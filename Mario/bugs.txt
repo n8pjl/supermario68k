@@ -1,0 +1,231 @@
+
+
+-Spikey don't get killed by bounching blocks!
+ Dummy func is executed. This applies to all enemies with dummy_func as die func
+
+-Falling down through floor sometimes when swimming down. (Large mario,)
+
+-Is "Devil Mario" still present???
+
+-Flying turtle:
+	-Sometimes bad sprite when dieing. Jumpkilled
+
+
+
+
+
+
+
+-Flickering on V200 and/or TI92+ ?
+
+-'Slowdown on V200 and TI92+ (possible solution found)
+
+-Sprite bug in Boss_handler_2 ?
+
+-Check starkilled shell anim!
+ Shell just dissappears
+
+-Strange bug found in w6 L6 (cave) in start of cave:
+ Jumpkilled beetle, shell started spinning, hit goomba or flying goomba or both, goomba started spinning upside down like a shell!!
+ bounched in the air without falling down between two walls  (wtf?)
+ (U.D. fireflower killed at approx the same time in the same area)
+
+-Handler_1 limited "new": can get stuck when 1 tile. 
+
+-Mushrom house bug
+
+
+
+
+
+
+
+
+Probably not present anymore:
+
+-beetle shell resurects bad (sprite+mask)
+
+-shell: beatle shell looks like turtle shell in some cases!
+
+-Skeleton turtle often appears out of position
+
+
+
+
+
+
+V200 & TI92PLUS ISSUES:
+
+-*commonfile levels fails (graphically, FgX)
+
+-*small games must be fitted to screen size of V200 & TI92PLUS
+
+
+
+FIXED:
+
+
+
+
+-*Garbage collection while saving: fatal!
+	Possible solutions:
+		-Don't archive
+		-Prevent garbage collection
+		-Automaticly answer yes to the dialog (if possible)
+		-Something else
+
+-*When game over:
+	-Sometimes crash. See bug report
+	 Could it be that you loose more than one life in rare cases?
+	 That could bypass aweakness in the code: It says if(Player.Lives==0), shoul be <=0
+
+-*Mistakes in french and german translations: See mail from Kevin Kofler
+
+-*Resurected turtle can't be killed by racoon tale (killed by fireball )
+
+-*Using a star from the map, saving the game, then reloading the game seems to make Mario blink 
+but not become truly immune when starting the next level after reloading
+
+-*Show_titlescreen();
+  Add error check for levelfile "common" not found!
+
+-*Map_data.Color must be saved in savegame
+
+-*Bomb (from cannon) not initialized properly: Bad sprite, crash on contact: Enemy->Die is bad
+	Fatal bug probably fixed.
+	Some doesn't respawn, get stuck at mode==2
+		Possibly fixed now, but need some more testing
+
+-*Player.Maskbase should be saved or reconstructed on load (will be reconstructed first frame of game if not...)
+
+-*Map objects: Must save some identifier that holds info on what handler it uses! Must be restored on save, to avoid crash!
+
+-*Replace_map_tile: incompatible when dark and sky!
+
+-*Levelfiles must be stored in "mario" folder: consider to allow other locations
+
+-*The bug with the slope roof is still present: It is, under some conditions possible to jump through the roof
+
+-*Bottom flower "climbs" upwards!
+
+-*Hammerman can sometimes jump under ground: When lever bro fall down because of broken bricks
+
+-*Many enemies doesn't give points when killed
+
+-*Pow item: Bounching bricks doesn't convert to coins!
+
+-*Set SavePlayer.L to 0 when load map ?
+
+-*Exit in level/map exits program!
+	*Only when playing a loaded game  ???
+
+-*Star mario: still flashing on map statbar when exit level in star mode
+	-*Seems to happen after map pipe
+
+-*racoon tale animation
+
+-*Investigate flying / flycondition: Does it work exactly as intended???
+	*It doesn't: it is sometimes possible to fly when you shouldn't !!!
+
+-*Map mid game menu: Selection key jump triggers enter level if mario on level on map
+
+-*Make it easier to jumpkill cannonballs
+
+-*Swimming and press down: Lets you go through solid tiles!!!
+	Possibly fixed: Try to reproduce!
+
+-*Cannot jump while going down slope tiles!
+
+-*Only allow map monsters to settle on nodes!
+
+-*Save/restore FgX/FgY in play_level(); doesn't work!
+
+-*Ghost limited: Possible bug: XLimit. See 1.castle w6
+	-Fixed, but check all limited ghosts, because of a bad typo!
+
+-Boom boom: *Doesn't fall down while flashing (hurt animation)
+	*Sometimes walks in the air!
+
+-*Moving ship animation doesn't work properly. Related to FgX and FgY
+
+-*Fireball flower upside down has wrong sprite:
+	Pointing upwards, while shooting downwards and vice versa
+
+-*After loading game: sometimes mario is transferred back to previous cleared spot in map!
+
+-*L must be stored together with save game to prevent from getting stuck!!!
+
+
+-*In-level statbar: numbers don't always get updated!
+
+Save game:
+	-*Save after passing a map border gives fuckup!
+	-*Save while .lset file is locked: Crash (while(1))
+
+-*Press left and right simultanyously:
+
+-Bowser: 
+	 *Doesn't allways break bricks in powerjump (questionable...)
+	 *When able to jump up he does, even if free down. solid tile very next in <dir>
+	 *sometimes he break bricks when he "wake up" after getting hurt
+
+-*Bg can sometimes scroll to high, showing garbage on the bottom of the screen (seen on 92+)
+
+-*Exit level while sitting gives graphical fuckup in mario sprites!
+	Only possible when [ESC] 
+-*Graphical bug in map statbar mario picture (related to above ???)
+
+-*Climbing: X limit to center of ladder +-6 (4)
+	-*Make it not possible to jump and climb simultaniously (causes too fast climbing)
+
+-*Shot bomb bug:
+	*Bad ressurection: Resurects with star sprite, height ~16 walks left and right (handler_1)
+	*Kills when contact, doesn't die when jumped on
+
+-*Bomb: Bounching: Avoid that mario can follow bomb through bounch: generates weirdness!
+	*Shot bomb:Mario star:
+		*bomb hit mario in air: die ok.resurects with wrong attribs: Uses custom die
+		*bomb killed by star: Sometimes esurects bad: wrong position
+			*Resurects with wrong attribs: Uses custom die
+
+-*Racoon tale graphical bug!
+
+-*bug in UpsideDownSprite func! When clipping at upper border of screen!
+
+-*Use mask instead of replace when drawing falling block!
+	Problem:interlaced+separate mask...
+	Possible solution: add a sprite in the "sprite format"
+
+-*Mario doesn't die when hit by lavaball
+
+-*Enemy bounching fireball dont bounch!!!
+
+-*Player sometimes moves in map after starting a new game 2nd+ time
+
+-*PU + 1 UP mushrom can sometimes travel through solid!
+
+-*Growing ladder "head": graphical bug
+
+-*flower: Is often up when mario rises from pipe!
+
+-*Walking into trigger pipes leftwards: blit does not work!
+
+-*cannonballs doesn't die when mario star
+
+-*Entering secret mushrom house w1 l3 warp whistle generates secret mushrom house on map at 0,0
+
+-*cardgame doesn't reset when quit->start new game
+
+-*Map monster tend to destroy tile (0,0) after fight
+
+-*Warp zone mess-up!
+
+-*Levelend handler: n up GFX (number only)
+
+-*Sometimes mario reenters a level immedeately after dying in the level. Keyscan related
+
+-*Map monsters:
+	-*Wrong sprite in some cases (wrong direction)
+
+
+

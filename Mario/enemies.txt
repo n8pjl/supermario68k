@@ -1,0 +1,48 @@
+
+
+Description of the enemy handler funcs:
+
+1:	Walk in given direction. If enemy meets some solid stuff then change direction. No jump. No fire 
+	Direction initialized by enemy.Face
+	Can be used for simple walking enemies with gravity enabled and simple flying with gravity disabled
+
+2:	Handles flower based in a pipe or similar. Rises and stays up for a given amount of frames. 
+	Sinks down and stays hidden for a given amount of time. No jump. No fire. No direction. 
+	Uptime:   Frames	Framecounter/internal timer:	
+	Downtime:   Frames	
+
+3:	Handles flower based in a pipe or similar. Rises and stays up for a given amount of frames. 
+	Fires upon player when player is in range.
+	Sinks down and stays hidden for a given amount of time. No jump. 
+	Uptime:   Frames	Framecounter/internal timer:	
+	Downtime:   Frames	FireLimiter:
+
+4:	flying monster1
+
+5:	Handles dead enemies: Decrements a timer variable. when reaching zero enemy is cleared from list
+	Used for enemies that leaves behind a 'timed sprite' when killed
+
+6:	Handles shells lying on the ground. Resurects after a while
+
+7:	
+
+
+
+
+
+Description of the enemy die funcs:
+
+1:	Enemy dies, is removed from list. Leaves behind timed sprite which stays for a given amount of frames
+	Score:
+
+2:	Enemy dies, is removed from list. Leaves behind a shell.
+	Score:
+
+3:	Enemy dies, is removed from list.
+	Score:
+
+4:	Death of the flying turtle: Is converted to regular turtle
+
+5:	For shells. If killed (by jump) then start bounching
+
+

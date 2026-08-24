@@ -1,0 +1,213 @@
+The game controls:
+
+
+
+For Ti-89 and Ti-89T:
+
+In-Game;
+
+	Arrows:
+		Left:	Turn left/Walk to the left
+		Right:	Turn Right/Walk to the Right
+		Up:	Enter pipes which points down etc.
+		Down:	Duck when mario is large, Enter pipes etc.
+
+	2nd:
+		Jump/Fly/Swim
+
+	Diamond:
+		Run
+		Throw fireball
+
+	Esc:
+		Pause/Mid-game menu
+
+	+/- :
+		Adjust contrast
+
+
+
+
+
+
+
+
+
+In map:
+	
+
+	Arrows:
+		Left:	Walk to the left
+		Right:	Walk to the Right
+		Up:	Walk up
+		Down:	Walk down
+
+	2nd:
+		Enter a level in map / Use current item from list
+
+	Diamond:
+		Toggle statusbar (status mode or itemlist mode)
+
+	Esc:
+		Pause/Mid-game menu
+
+	+/- :
+		Adjust contrast
+
+
+
+
+
+In menus:
+
+	Enter:
+		Choose the current alternative
+
+	Esc:
+		Back/Exit
+
+	Up/Down:
+		Move cursor
+
+
+
+
+
+
+For the Ti-92+:
+
+In-Game;
+
+	Arrows:
+		Left:	Turn left/Walk to the left
+		Right:	Turn Right/Walk to the Right
+		Up:	Enter pipes which points down etc.
+		Down:	Duck when mario is large, Enter pipes etc.
+
+	F1:
+		Jump/Fly
+
+	F2:
+		Run/Throw fireball
+
+	Esc:
+		Pause/Mid-game menu
+
+	+/- :
+		Adjust contrast
+
+
+
+In map:
+	
+
+	Arrows:
+		Left:	Walk to the left
+		Right:	Walk to the Right
+		Up:	Walk up
+		Down:	Walk down
+
+	F1:
+		Enter a level in map / Use current item from list
+
+	F2:
+		Toggle statusbar (status mode or itemlist mode)
+
+	Esc:
+		Pause/Mid-game menu
+
+	+/- :
+		Adjust contrast
+
+
+
+
+
+In menus:
+
+	Enter:
+		Choose the current alternative
+
+	Esc:
+		Back/Exit
+
+	Up/Down:
+		Move cursor
+
+
+
+
+
+For the V200:
+
+In-Game;
+
+	Arrows:
+		Left:	Turn left/Walk to the left
+		Right:	Turn Right/Walk to the Right
+		Up:	Enter pipes which points down etc.
+		Down:	Duck when mario is large, Enter pipes etc.
+
+	Hand:
+		Jump/Fly
+
+	Q:
+		Run
+
+	Esc:
+		Pause/Mid-game menu
+
+	+/- :
+		Adjust contrast
+
+In map:
+	
+
+	Arrows:
+		Left:	Walk to the left
+		Right:	Walk to the Right
+		Up:	Walk up
+		Down:	Walk down
+
+	Hand:
+		Enter a level in map / Use current item from list
+
+	Q:
+		Toggle statusbar (status mode or itemlist mode)
+
+	Esc:
+		Pause/Mid-game menu
+
+	+/- :
+		Adjust contrast
+
+In menus:
+
+	Enter:
+		Choose the current alternative
+
+	Esc:
+		Back/Exit
+
+	Up/Down:
+		Move cursor
+
+
+
+How to
+
+	Fly:	To fly you need to have the racoon suit or the p-wing.
+		You can fly when all the triangles in the statusbar have turned dark
+		and the P is flashing. To make this happend you need to run continously for some time.
+		Then, when the P is flashing, press and hold the jump button and you will fly until 
+		you release the button.
+		When you have the P-wing you can fly at any time, but it will only last for one level.
+		
+
+	Swim:	Whem you are in water you move left and right as usual, by using the arrow keys. 
+		Mowement in water is generally mush slower than on land, unless you swim.
+		You can swim by using the Jump key, and it will also bring you upwards a little.
+		You will slowly sink when not swimming. To sink faster, simply press the "Down" arrow key.
+
+	Get out of Quicksand:
+		Pressing the Jump key!

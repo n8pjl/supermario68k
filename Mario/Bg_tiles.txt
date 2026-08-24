@@ -1,0 +1,31 @@
+0-white
+1-box medium upper left corner
+2-Box medium upper middle
+3-Box medium upper middle shadowed
+4-Box medium upper right corner
+5-Box medium left edge
+6-Box medium inner shadowed
+7-Box medium right edge
+8-light gray
+9-box light upper left corner
+10-Box light upper middle
+11-Box Light upper middle shadowed
+12-Box Light upper right corner
+13-Box Light left edge
+14-Box Light inner shadowed
+15-Box Light right edge
+16-Ground 1
+17-Ground 2
+18-Trees 1
+19-Trees 2
+20-Trees 3
+21-Trees 4
+22-Trees 5
+23-Trees 6
+24-Trees 7
+25-Dark Gray
+26-
+27-
+28-
+29-
+30-

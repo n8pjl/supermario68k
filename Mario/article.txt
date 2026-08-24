@@ -1,0 +1,43 @@
+
+
+
+
+
+
+This is Super Mario 68K, a grayscale Mario game for your calculator! 
+It features 8 worlds with maps, a lot of exiting levels and many hours of fun gameplay.
+
+
+
+
+
+
+
+
+
+Explore and find your way through a lot of exiting worlds! You will meet many kind of challenges on your way.
+When Bowser took over the Mushrom kingdom he sent out a lot of different troops, creatures like goombas, turtles, the Koopa Kiddos 
+and even the Hammer Brothers! 
+You will have to make your way through the fruitfull lands of the mushrom kingdom, 
+through hostile deserts with pyramids and oasis, and if you're lucky you might find hidden treasures!
+
+You will have to cross deep oceans with plenty of different creatures, and if you're good at diving you might find sunken ships from Bowsers navy!
+
+
+
+
+
+
+
+
+
+
+
+
+The game also supports external, custom-made levels! 
+With this feature you will never get tired of the game ;-)
+
+With the leveleditor you can make your own levels, worldmaps and even a brand new Mario game!
+ 
+
+Visit <link> to download new levels and the editor.

@@ -1,0 +1,87 @@
+Author:
+	Lach
+
+Programming:
+	Lach
+
+Graphics:
+	Most of it is taken from Super Mario 3 (all-stars version) using snes9x and SpritED.
+	
+	Some graphics is made by me.
+
+Levels and maps:
+	Lach
+
+
+Thanks to:
+
+	TI - Freakware and all it's users:
+		For hosting the Super Mario 68K homepage
+		A lot of support and testing
+		For beeing a very friendly and nice TI-Community, simply the best ;-)
+		For Connecting TI-Communities ;-)
+
+
+
+
+
+	Lionel Debroux:
+		-For extgraph - an excellent graphics library!
+		And:
+		-Technical support
+		-Assembly routines:
+			-UpsideDownGrayClipSprite16_MASK_R();
+			-TestCollide162h_R(); (now included in extgraph)
+
+
+	Kevin Kofler:
+		-For tigcc and tigcclib - an integrated development environment for the 68k calcs 
+		 that made it possible for me to make this game!
+		And:
+		-Technical support
+
+	Elias Zacarias:
+		-For SpritED - A good graphics editor and graphics import tool for the 68k calcs !
+
+
+	Julien Richard Foy:
+		-For his Tilemap Engine (included in extgraph)
+		-The function drawgrayplane16broll - an extension to the tilemap engine
+
+
+	Tifreak8x:
+		He is the author of http://tifreakware.calcgames.org/
+		Thanks to him for providing a forum for the game, and designing the projects page.
+ 		Also thanks for testing, bug reports, suggestions and a lot of support.
+
+
+	All users of the TICT messageboard who helped me out with tecnical support and suggestions.
+
+
+
+
+
+
+
+
+Beta testers:
+
+
+
+
+
+
+
+
+Translators:
+
+English:
+	Lachprog
+	
+
+Norwegian:
+	Lachprog
+
+
+
+

@@ -1,0 +1,231 @@
+
+
+Powerups:
+
+
+The mushrom: <picture>
+
+The mushrom makes mario stronger. He grows when he gets it, and he can now smash bricks!
+Those are often enclosed in bonusboxes throughout the levels. 
+
+The Flower: <picture>
+
+This makes mario even stronger than the mushrom! He can now throw fireballs at his enemies.
+Mario also gets another suit when he find the flower.
+
+
+The Leaf: <picture>
+
+The Leaf makes mario stronger than the mushrom, and it gives him the racoon suit. 
+When wearing the racoon suit he can smash near-by enemies and bricks with the tale, 
+and he can even open bunusboxes with it!
+And the best part of it all: With the racoon suit Mario can even fly!
+(see "How to fly")
+
+
+The Star: <picture>
+
+The star makes Mario immortal for some time. All enemies he touches while being immortal will die. 
+When Mario is immortal he will be flashing.
+
+
+1 UP Mushrom: <picture>
+
+This mushrom gives you an extra life. Those are often hidden 
+
+
+
+
+Other bonuses:
+
+Coins: <picture>
+
+You will find alot of those coins spread out through the levels. 
+When you collect 100 of them you get an extra life.
+
+
+
+Bonus Boxes: <picture>
+
+Those bonus boxes will be placed throughout the levels. You can smash them from underneat, 
+or with the your tale if you are wearing the racoon suit. 
+When you smash them a bonus will come out of them.
+This might be a powerup, one or more coins a ladder, a pow item. (Links)
+
+Sometimes the bonus boxes will be hidden inside a brick and other times 
+they will be invicible.
+
+
+
+
+Treasure box:
+Those contains useful items that you can save and use whenever you need them!
+(see Items)
+
+
+Pow:
+
+When you jump on this it will turn all bricks into Coins and all Coins into bricks for a while.
+
+
+
+Levelend:
+
+When you see this box you have reached the end of the level. Simply jump up and grab the item 
+inside the frame to finish the level.
+Then you will get a card. When you have gathered 3 cards you will win a prize!
+The prize depends on what cards you have:
+3 Different cards gives 1 UP
+3 Mushroms gives 2 UP
+3 Flowers gives 3 UP
+3 Stars gives 5 UP!
+
+
+
+
+
+
+
+
+Other cool stuff:
+
+Bricks: <picture>
+The bricks are a bit skjør, when mario is large he is strong enough to break them!
+He like smashing bricks by jumping up and hitting them from underneath!
+When he wears the racoon suit he can also smash them from besides, with his tale.
+
+
+Note Block: <picture>
+
+When you jump on those they will bounche you off.
+But if you press the jump key in the right moment 
+you will be able to jump really long and high!
+
+
+
+Dark Note Block: <picture>
+
+Those will also bounche you off when you jump on them. 
+But they also also have Magic Power: 
+If you hit the jump key in the right moment they will take you up above the skies ;-)
+
+
+Wood block: <picture>
+Usually those wood blocks are just what they look like: Innocent woodblocks.
+But one of Mario's friends hid parts of his magic powder inside some pieces of wood 
+when he was fleeing from bowsers troops. Therefore you might find powerups in some of them, 
+if you're lucky ;-)
+
+
+Falling Block: <picture>
+
+Once you step on one of these they will loosen and start shaking. 
+If you stand on them too long they will fall!
+
+
+Pipes: <picture>
+
+The pipes will sometimes house evil meat-eating flowers that will try to capture you. 
+Some of them will even throw fireballs after you! 
+They will usually go up and down, but but they won't come up while you stand on the top of the pipe.
+
+Mario can also crawl through somne of the pipes to reach other areas of a level. 
+You enter a pipe by simply standing on it and pressing "Down" / jump up to it and press "Up" 
+or simply walk straight into it if the pipe is lying horizontally.
+
+
+
+
+
+
+
+
+
+Items:
+
+When playing the game you will find several items in mushrom houses and in hidden areas of the levels.
+The items will be encloused in a threasure-box like this:(picture)
+When you collect one of those items it will be stored in your itemlist(Link).
+
+
+Mushrom: <picture>
+
+This is a normal powerup Mushrom. Makes mario large and stronger.
+You can also win this item in the cardgame.
+
+Flower: <picture>
+The flower makes mario stronger and gives him the ability to throw fireballs.
+You can also win this item in the cardgame.
+
+Leaf: <picture>
+The leaf gives mario the racoon suit. With it he can fly 
+and even smash enemies and stuff with his tale.
+
+Star: <picture>
+It makes Mario immortal for a period of time. 
+This item can also be won in the cardgame.
+
+
+P-Wing: <picture>
+This gives Mario the Racoon suit, but it also gives him some special abilities:
+With the P-Wing he can always fly, he doesn't need to run first! 
+The super power will last for one level.
+
+
+Cloud item: <picture>
+With the cloud mario can bypass a level on the map. This can help you to pass difficult levels ;-)
+
+
+Anchor: <picture>
+The anchor will prevent the ships from flying away from you. 
+Once you throw the anchor the ships will stand still until you beat them.
+The anchors will be enclosed in very hidden places.
+
+
+Hammer: <picture>
+With the hammer you can crush all near-by rocks on the map. 
+This can be useful to reveal hidden paths or to unblock blocked roads.
+
+
+Whistle: <picture>
+One tooth on this whistle will take you to a far away land!
+They will be really good hidden!
+
+
+
+
+
+
+
+Item list: <picture>
+
+All items you collect through the game will be collected in your item list.
+Those are the items you collect from treasure boxes in secret areas of some level and in mushrom houses. 
+
+
+
+
+This holds all items you collect from treasure boxes, mushrom houses etc. 
+It can be accessed when you are on the map, by pressing 
+
+	[Diamond] on TI 89 & TI 89 Titanium
+	[F2] on TI 92+
+	[Q] on Voyage 200
+
+Pressing this key again will take you out of the item list.
+
+
+You simply browse through your items using the arrow keys.
+You can now use an item by pressing
+
+	[2nd] on TI 89 & TI 89 Titanium
+	[F1] on TI 92+
+	[Hand] on Voyage 200
+
+
+
+
+
+
+
+

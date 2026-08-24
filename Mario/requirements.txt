@@ -1,0 +1,17 @@
+Super Mario 68 K has the following hardware and software requirements:
+
+Compatible with following TI 68K calculators:
+
+TI 89
+TI 89 Titanium
+TI 92+
+Voyage 200
+
+
+Memory:
+
+Free ram: xxxxx bytes
+Free flashrom/Archive: xxxxx bytes
+
+
+Minimum AMS version: 2.00

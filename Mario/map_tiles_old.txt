@@ -1,0 +1,108 @@
+
+Fully Walkable:
+0-19
+ 0-road -
+ 1-road |
+ 2-Bridge ^
+ 3-coast upper |
+ 4-coast lower |
+ 5-coast left -
+ 6-coast righ -
+ 7-water |
+ 8-water -
+ 9-sky road -
+10-sky road |
+11-
+12-
+13-
+14-
+
+
+
+walkable nodes
+15-road - node
+16-road | node
+17-M
+18-road _| node
+19-start
+20-demolished castle
+21-Big castle lower part visited
+22-Node
+23-water |
+24-water -
+25-dock
+26-sky road - node*
+27-sky road | node*
+28-sky road _| node*
+29-sky road node*
+30-
+31-pipe
+32-Big castle lower part, releases ship
+33-Mushrom house
+34-Game house
+
+
+
+
+Levels: (castles etc included)
+30-39
+
+35-level 1
+36-level 2
+37-level 3
+38-level 4
+39-level 5
+40-level 6
+41-small castle
+42-Big castle lower part, NO SHIP
+43-Pyramid
+44-Quicksand
+45-small castle 2
+46-Level 7
+47-Level 8
+48-
+49-
+50-Bonus level
+51-
+52-
+53-
+54-
+
+unwalkable:
+55-grass/plain ground
+56-rock
+57-bushes
+58-Big castle upper part
+59-River |""
+60-River ""|
+61-River |_
+62-River _|
+63-River --
+64-River |
+65-Palm
+66-Pyramid
+67-Oasis
+68-Locked door
+69-coast upper left corner
+70-coast upper middle
+71-coast upper right corner
+72-coast middle left
+73-coast middle right 
+74-coast lower left corner
+75-coast lower middle
+76-coast lower righ corner
+77-water
+78-coast upper river
+79-coast lower river
+80-flower
+81-sky upper edge
+82-sky left edge
+83-sky upper left corner
+84-sky krok
+85-white
+86-star
+87-Locked door 2
+88-
+89-
+
+

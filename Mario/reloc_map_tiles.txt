@@ -1,0 +1,46 @@
+
+Category:		Range:		Free:	Need:	Suggest:
+
+Fully Walkable:		00-14		2	2	4   (+2)
+
+walkable nodes:		15-39		1	2	4   (+3)
+
+Levels:			40-59		5	1	5   (+0)
+
+Unwalkable:		60-100		0	3	6   (+6) Can be added later because it is the highest cathegory.
+
+
+
+
+New: 
+
+Category:		Range:		Free:	Need:	Available:
+
+Fully Walkable:		00-16		2	2	4   (+2)
+
+walkable nodes:		17-44		1	2	4   (+3)
+
+Levels:			45-64		5	1	5   (+0)
+
+Unwalkable:		65-110		0	3	6   (+6)
+
+
+
+Fully Walkable:
+-Bridge 2 - open
+-Bridge 2 | open
+
+Walkable nodes:	
+-Trigger castle
+-Ghost house (replicated for trigger)
+
+
+Levels:	
+-Ghost house
+
+
+Unwalkable:
+-Bridge 2 - closed
+-Bridge 2 | closed
+-Ice berg
+-skies ?

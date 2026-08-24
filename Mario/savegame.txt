@@ -1,0 +1,10 @@
+
+
+saveplayer
+
+world filename
+
+rle compressed map deviation/residual matrix (including objects)
+
+(no triggers, won't change) or maybe, in the future???
+

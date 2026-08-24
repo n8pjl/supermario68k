@@ -1,0 +1,45 @@
+Bonus games:
+
+The game comes with two bonus games.
+If you play good at those games you will win prizes that will help you on your way!
+
+
+The Card Game:
+<screenshot>
+The Card game will sometimes appear on the map. It will look like this: <Sprite>
+In this game you need to flip over any two cards to see if they match. 
+If they match you win the price pictured on the card. 
+You can win Power-up items, extra lives and coins.
+If you're good to memorize, you can win a lot of stuff here.
+
+But if you miss twice you're out!
+
+
+
+
+
+
+The Game House:
+<screenshot>
+The Game houses will be placed on the map. It looks like this: <Tile>
+Yuo can only enter a game houce once.
+In this game parts of pictures will scroll over the screen horizontally. 
+The clue is to line up the pictures to make them match. 
+<screenshot match>
+The prize you win will depend on the picture you line up:
+	The star gives you 5 extra lives
+	The flower gives 3 extra lives, and
+	The mushrom gives 2 extra lives
+	
+You will only get one chance!
+
+
+
+
+
+
+
+
+
+
+ 

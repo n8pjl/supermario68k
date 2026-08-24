@@ -1,0 +1,58 @@
+Gameplay ideas:
+
+Hidden doors: Revealed by POW-item
+
+magic trigger:
+could look like power item with different symbol, or something different
+(hidden in most/all cases)
+
+Triggers magic events like:
+-arrival of "money ship"
+-arrival of cardgame
+-Revealing hidden paths in maps
+-
+
+
+
+multiple exits in level:
+
+-introduces less linear gameplay (shortcuts,new areas,bonuses etc)
+
+
+
+
+
+
+Levelend card:
+
+-replace step 3 (second mushrom) with some kind of joker.
+ 2 equal cards + joker counts as a match
+ 3 jokers gives 5 up + a powerup (p-wing ?)
+
+
+
+Bomb enemy: Multiple modes
+mode 1:
+	-walks with or without limit (aka Handler_1)
+	 Initializes countdown when jumpkilled. 
+	 Explodes after countdown. Explotion kills mario. Enemies too???
+
+
+mode 2: -Initializes countdown when player is in range. 
+	 Explodes after countdown.
+
+mode 3: -Power bomb. Should look different than the others
+	 Use mode 1 and 2, but explotion also triggers interactive solid tiles
+	 Demolishes bricks, triggers bonusboxes etc. Kills everything within a range.
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,89 @@
+
+
+Version 1.00 Released:   22.06.07
+
+
+
+Version 1.01 Changes:    24.07.07
+
+-Added missing Errorcheck in Show_titlescreen() and Menus() that crashed the game when
+ common.mlev is not found.
+
+-Changed game over detection code to avoid a bug caused by a infinite loop if Lives is smaller than zero.
+
+-Added a check in Playloop() to prevent mario from loosing more than one life at a time.
+ Happends rarely, but triggers bug described above.
+
+-Fixed bug where Mario lost his immortality when saving game.
+
+-Fixed bug where resurected turtle could't be killed by racoon tale.
+
+-Corrected mistakes in french and german translations. Still a small problem with displaying accented letters in the French translation.
+
+-Implemented automatic archiveing of save game, doing garbage collection if neccessarry
+
+-Fixed bug that occured when saving game in warp zone
+
+-Done some corrections in level 3-2 and 4-1 to make them fit into Ti-92+ and V200 screen size
+
+
+
+Version 1.02 Changes:    
+
+-Enabled compiler switch: -ffunction-sections saving 156 bytes
+
+-Fixed a bug where some flying platforms dissappeared too early. FgX instead of FgY was used to detect if platform had fallen below screen
+
+-Fixed a potensial bug when loading GFX. GFX pointers could become invalid on Garbage Collection when saving when playing custom levelsets.
+
+-Added Spanish translation by Alberto Rodriguez
+
+-Tweaking compiler options saved ~2.5-3 KB
+
+
+
+Version 1.03 Changes:  
+
+-Added confirmation when player wants to overwrite an old save game
+
+-Added configureable keys for Jump & Run keys
+
+
+
+Version 1.04 Changes:  
+
+-Small size optimizations: 
+ WaitKeyReleased() and WaitKeyPress(). This also fixed small issues with over-responsive keys.
+
+-Bugfix: Clearing all arrow key presses after a trigger is executed. Fixing a bug where triggers were some 
+ automaticly executed when mario came out of pipes.
+
+-Fixed a bug where some flying platforms dissappeared too early. Added a check that prevents removing platforms that haven't started to fall.
+
+-Fixed bug where player died on contact with flying platforms when he was positioned on slope tiles
+ Mario is now pushed to the side and upwards instead of dying when he is positioned on slope tiles
+ Made minor changes to Handleplayer() and Platform_handler_1(...)
+
+-Fixed a bug where shells killed by mario in star mode didn't get animated. This also led to a size optimization. 
+
+-Fixed bug with flashing line at the top of items when a treasure is opened
+
+-Increased speed of Player die animation
+
+
+
+Version 1.041 Changes:
+
+-Added corrected german translation of the readme.
+ Thanks to Boscop.
+
+
+
+Version 1.05 Changes: 
+-Added a maximum limit of 99 lives. This prevents Game Over when Player Lives is larger than 127
+
+
+
+
+
+

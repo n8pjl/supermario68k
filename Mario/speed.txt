@@ -1,0 +1,48 @@
+
+Ideas for speed optimization - very cruical for 92+ and v200 version:
+
+
+-Frame skipping: Calculate, but not draw some frames
+
+-Static background: Draw to backbuffer once, use fastcopy on update
+
+-Draw enemies and other objects in their Handle_*s() func
+	Gives small speed increase: Traverse array once instead of twice
+
+-Look at tilemap rendering: Is it possible to do the same work in fewer steps?
+
+-Increase FG animation length
+
+-Increase BG scrollrate
+	Make 2^x only: LSR
+
+-GrayDbufToggleSync(): Is there a waiting loop inside this function/macro??
+
+
+
+
+
+
+
+
+
+Hard to achieve:
+
+-Mod extgraph funcs to load dest pointers internally (minor increase)
+
+-Mod tilemap engine to not draw in the area used by statusbar
+	Gives a speed increase
+	Also makes it unnesseccessarry to copy statusbar to screen each frame
+
+-Learn 68K asm: Inline ASM in speed critical parts of the game
+
+
+
+
+
+
+
+
+
+
+

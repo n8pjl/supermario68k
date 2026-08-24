@@ -1,0 +1,91 @@
+Levels:
+
+The game levels are stored in external levelfiles with the extension .mlev
+
+The levelfiles can be stored in any folder, the game will find them automatically.
+
+One levelfile may contain a bounch of levels, a levelset. There are two modes of progress for a levelset:
+
+	-Normal:
+		In this level you are simply taken to the next level when you complete a level
+		(like in super mario 1)
+
+	-Map:
+		The mapmode leaves much more freedom to the player. Now you can move around on a worldmap
+		and therefore in many cases choose between different paths of gameplay.
+		(like in super mario 3)
+		The levels provided in super mario 68 k are all in map-mode.
+
+
+Levelsets:
+	-Levelsets are stored in a small file with the extension .MLST
+	 Those files contains the filenames of the levelfiles used and some additional information
+	 Like the name of the levelset, nr of worlds (files) etc.
+	 They also hold the savegames and highscore for the current levelset.
+
+
+ blah blah....
+
+With the leveleditor you can make your own levels, worldmaps and levelsets!
+
+
+
+The structure of the levelfiles:
+
+-Levelfile struct
+  this fiels contains a lot of info about the levelset, for instance relative pointers to the adress 
+  where you find the separate levels
+
+-Map struct:
+  This field contains info about the map, or the world.
+
+-Map:
+  The map itself (array of char)
+
+-Map triggers:
+  Info about wrapper pipes etc. on the map
+
+-Map objects:
+  Monsters walking around on the map, boats etc.
+
+
+Levelinfo struct:
+  This field contains all the necessarry data about the spesific levels.
+
+Level:
+  The level itself
+  (array of char,array of enemies, array of triggers etc...)
+
+Levelinfo struct:
+  This field contains all the necessarry data about the spesific levels.
+
+Level:
+  The level itself
+  (array of char,array of enemies, array of triggers etc...)
+
+
+and so on...
+
+
+
+
+
+
+The backgrounds:
+
+The backgrounds are shared, they can be used by several different levels, they are therefore saved in a 
+separate file.
+
+The structure of this file:
+
+	-Backgroundfile-struct:
+		-this field holds all neccesarry info about the bg file, such as relative pointers to the backgrounds
+
+
+	-Backgroundinfo-struct:
+		-This one contains info about the background itself, such as width, height etc.
+
+	-The background:
+		-the background tilemap is an array of char
+
+

@@ -1,0 +1,34 @@
+To implement ice world requires:
+
+At least 8 Tiles: 512 B
+	-Wooden floor with snow (3) S.I.D.
+	-Big ice block (4) 2 x S.I.D. + 2 x S.
+	-Small ice block (1) S.I.D.
+
+Extras that might be included: Up to 23 Tiles: 1472 B
+	-Wooden platform with snow (3) S.I.D.
+	-Pile of snow (6) N.S.
+	-"Box" with snow (3) S.D.I. (+ possibly 3 N.S)
+
+Non-solid:
++9
+-Pile of snow (6)
+-"Box" with snow (3)
+
+
+Solid down interactive:
++3
+-"Box" with snow (3)
+
+Solid interactive down:
+6+3
+-Wooden floor with snow (3)
+-Big ice block (2)
+-Small ice block (1)
+-Wooden platform with snow (3)
+
+
+
+Solid:
++2
+-Big ice block (2)

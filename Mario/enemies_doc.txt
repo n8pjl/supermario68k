@@ -1,0 +1,142 @@
+
+The Monsters:
+
+Goomba: <picture>
+
+The goombas will often attack in groups and are one of the most common monsters. 
+The are wolnerable by any kind of attack.
+
+
+Paragoomba: <picture>
+
+Paragoombas are simply Goombas with wings. They are more dangerous than the others, 
+because they can attack you from above. 
+When you stomp on them they will loose their wings and be transformed to a regular goomba.
+
+
+Koopa Troopa: <picture>
+
+The Koopa Troopas are evil turtles. If you stomp them they will flee into their shell for some seconds. 
+Now you can stomp or kick the shell, and it will start spinning! A spinning shell can be used as a weapon against 
+any monster, but be careful: It might bounche back on you before you know it!
+
+
+
+Koopa Paratroopa:
+
+Koopa Paratroopas are relatives of the Koopa Troopas with one big advantage: They have wings.
+They will follow different flying patterns, depending on their mood. When you stomp a Koopa Paratroopa 
+it will loose its wings and become a regular Koopa Troopa.
+
+
+
+Dry Bones:
+Dry Bones are the reanimated remains of dead Koopas. 
+These skeletal monsters can often be found lurking in castles.
+Since they are already dead, it is very difficult to destroy Dry Bones. They can however be crushed by 
+stomping on them, but they will rebuild them selves within a few seconds.
+
+ 
+
+
+Spikey:
+
+Spikeys has has a thich shell that protect them from most attacks. 
+You cannot stomp them because of their spikes, and the shell will protect them from fireballs.
+Their weakness is spinning shells.
+
+
+Buzzy Beetle: <picture>
+
+Buzzy Beetles can often be found in caves. They have a protective shell and is hard to destroy. 
+When you stomp a Buzzy Beetle they will hide inside their shell and you can stomp them again 
+to make the shell spinn!
+
+
+
+
+Piranha Plant: <picture>
+
+Piranha Plants are meat eating flowers that will bite you at first opportunity. 
+They are mainly living inside pipes, but can also settle down in quicksand etc.
+
+
+
+Fire Piranha Plant: <picture>
+
+Those are relatives of the Piranha Plants with one advantage: They spit fireballs at Mario!
+
+
+Hammer Brothers:
+
+Hammer Brothers are an elite force of Koopas armed with...hammers!
+Because of the weapons they carrry around with them, 
+Hammer Brothers are among the more dangerous enemies Mario must face. 
+They often appear in pairs and can be quite pesky unless Mario is armed with fireballs.
+
+
+Boomerang Bro: <picture>
+
+Boomerang Bros are relatives of the Hammer Bros 
+that have mastered the art of throwing and catching boomerangs.
+They are dangerous at distance, but hates jump attacks and pretty easy to hit with fireballs.
+
+
+
+Firebros: <picture>
+Fire Bros are another relatives of the Hammer Bros.
+The high-speed fireballs they spit are dangerous and difficult to dodge, so watch out for them!
+
+
+Nipper Plant: <picture>
+
+The Nipper Plants is dangerous meat eating plants that often appear in groups. 
+They are constantly hungry and will jump after you to get a bite! Some of them will even come after you!
+
+
+
+Bob-omb:
+
+The Bob-omb can act in many different ways: Sometimes they are just lurking around, 
+and sometimes they fall from the sky. Some of them can even be shot out from cannons.
+
+When you stomp them they will start a count down and explode, so watch out for them!
+
+
+
+
+
+
+Blooper:
+
+The Blooper is a jellyfish that has been cursed by Bowser. They will allways swin agains you, so you 
+need to use your swimming skills wisely to get away from them!
+
+
+Boo Diddly: (Ghost)
+
+Be aware of the ghosts! They can fly through any walls and will bite you if you come too close to them.
+When you look at them they will stop, but once you turn your back at them they will start chasing you! 
+
+
+Thwomp:
+
+Thwomps will typically be hanging in the roof in castles and fall down when mario comes close. 
+They live inside big concrete blocks, so you cannot defeat them.
+
+
+Boom Boom: (Boss 1)
+
+These dim witted turtles were assigned to guard the ? Ball at the end of every fortress. 
+They are a large turtle with a spiky shell. 
+Despite being a turtle they are quite fast and jumps a great distance.
+
+
+Cheep-Cheep:
+
+Cheep-cheeps are fishies that often come in small groups. 
+They are mostly just swimming around.
+Some of them have learned to fly short distances, and are therefore quite dangerous!
+
+
+

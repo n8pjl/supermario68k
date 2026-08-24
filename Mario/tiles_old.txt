@@ -1,0 +1,330 @@
+Foreground:
+non-solid		00-50
+
+non-solid bonus		51-60
+
+non-solid water		41-50
+non-solid water	bonus	51-60
+non-solid water hostile	61-70
+
+non-solid hostile	61-65
+
+Non-solid interactive	66-80
+
+solid_down		81-90
+
+solid interactive	
+	left		91-100
+	left+right	101-105
+	right		106-110
+	up		111-140
+	up+down		141-150
+	down		151-160
+
+solid			161-235
+
+slope under left 	236-240
+
+slope under right	241-245
+
+slope over left		246-250
+
+slope over right	251-255
+
+
+non-solid
+0-Blank
+1-Bushes left edge
+2-Bushes middle
+3-Bushes right edge
+4-Power item after
+5-big box light lower left corner
+6-Big box light lower middle
+7-Big box light lower right corner
+8-Big box light middle left
+9-Big box light middle right
+10-Big box light covered middle
+11-Big box light covered lower
+12-light gray
+13-dark gray
+14-bush
+15-tree: upper left outer
+16-tree: lower left outer
+17-tree: upper right outer
+18-tree: lower right outer
+19-tree: upper left inner
+20-tree: lower left inner
+21-tree: upper right inner
+22-tree: lower right inner
+23-Start of the dark area close to the end ( > )
+24-levelend frame left
+25-levelend frame right
+26-levelend frame upper
+27-levelend frame lower
+28-Door, upper part
+29-rope upper
+30-rope lower
+31-Big box dark lower left corner
+32-Big box dark lower between
+33-Big box dark lower right corner
+34-palm top left
+35-palm top right
+36-palm bottom left
+37-palm bottom right
+38-fence
+39-fence,right end
+40-Water waves surface
+
+Non-solid bonus
+51-Coin
+52-flower (fireball enable)
+53-treasure box (random)
+54-treasure box star
+55-treasure box whistle
+56-treasure box hammer
+
+58-flower water
+59-Coin water
+60-levelend
+
+Non-solid hostile
+61-lava top up
+62-lava "top" down
+63-spikes down
+64-spikes up
+65-venomous flower
+
+
+Non-solid interactive
+66-Quicksand top
+67-Quicksand under
+68-Ladder
+69-Water surface
+70 water under
+71-lava under
+
+72-hidden bonusbox pu 2
+73-hidden bonusbox pow
+74-hidden note (jump booster)
+75-hidden dark note (trigger)
+76-Door, lower part
+77-Hidden bonusbox, 1 coin
+78-Hidden bonusbox 8 coins
+79-Hidden bonusbox 1 up
+80-hidden bonusbox pu 1
+ 
+
+
+Solid_down
+81-Big box light upper left corner
+82-Big box light upper middle
+83-Big box light upper right corner
+84-Big box dark upper left corner
+85-Big box dark upper middle
+86-Big box dark upper right corner
+
+solid interactive left
+
+92-pipe horizontal left lower
+
+solid interactive left and right
+101-wooden brick pu 1
+
+
+solid interactive right
+
+106-Pipe horizontal Right lower
+
+
+Solid interactive up:
+  can Not be triggered by bounching shells etc.
+111-pipe vertical bottom left
+112-pipe vertical bottom right
+
+
+  The following can be triggered by bounching shells etc.
+116-bb climbing flower
+??-brick hidden ladder to heaven
+
+119-brick hidden coins
+120-Brick hidden coin
+121-Brick
+122-
+123-
+124-BB power up 1 (mushrom or fireflower)
+125-BB power up 2 (mushrom or leaf)
+126-BB star
+127-BB pow
+128-BB 1 up
+129-BB 1 coin
+130-BB 2 coins
+131-BB 3 coins
+132-BB 4 coins
+133-BB 5 coins
+134-BB 6 coins
+135-BB 7 coins
+136-BB 8 coins
+137-Brick hidden pu 2
+138-Brick hidden pow
+139-Brick hidden power up 1
+140-Brick hidden 1 up
+
+
+solid interactive up and down
+141- Note. (Jump high)
+142-Note Dark (trigger)
+143-Note, with pu 2
+
+
+Solid interactive down:
+151-Falling block
+152-Pipe left
+153-Pipe right
+144-
+155-power item before
+
+Solid:
+161-Bonusbox after
+162-wood floor upper left corner
+163-wood floor upper between
+164-wood floor upper right corner
+165-wood floor lower left
+166-wood floor lower between
+167-wood floor lower right
+168-Pipe vertical left (non-interactive)
+169-Pipe vertical right (non-interactive)
+170-Pipe horizontal upper (non-interactive)
+171-Pipe horizontal lower (non-interactive)
+172-cloud
+173-Pipe down left (non-interactive)
+174-Pipe down right (non-interactive)
+175-Pipe up left (non-interactive)
+176-Pipe up right (non-interactive)
+177-blank solid
+178-pipe left upper
+179-pipe right upper
+180-wood block
+181-castle brick  [X]
+182-axis of circulating fireball
+183-grass left corner
+184-grass upper middle
+185-grass right corner
+186-grass left edge
+187-grass inner
+188-grass right edge
+189-pipe right lower (non-interactive)
+190-pipe left lower (non-interactive)
+191-wooden platform left edge
+192-wooden platform middle
+193-wooden platform right edge
+194-wooden platform leg
+195-cave upper left corner
+196-cave upper middle
+197-cave upper right corner
+198-cave left edge middle
+199-cave middle
+200-cave right edge middle
+201-cave lower left corner
+202-cave lower middle
+203-cave lower right corner
+204-pipe structure corner
+205-pipe structure horizontal
+206-pipe structure vertical
+207-big solid box upper left corner
+208-big solid box upper middle
+209-big solid box upper right corner
+210-big solid box lower left corner
+211-big solid box lower middle
+212-big solid box lower right corner
+213-ship 1
+214-ship 2
+215-ship 3
+216-ship 4
+217-ship 5
+218-ship 6
+219-cannon
+220-cannon down left
+221-cannon down right
+222-cannon up left
+223-cannon up right
+224-ship front under water
+225-ring under water
+226-dark gray solid
+
+
+slope:
+
+
+slope under left:
+236-cave slope under left
+237-grass slope under left
+238-slope grass water surface
+239-slope grass water under
+240-cave slope under left water surface
+241-cave slope under left water under
+
+
+slope under right:
+242-cave slope under right
+243-grass slope under right
+244-slope grass water surface
+245-slope grass water under
+246-cave slope under right water surface
+247-cave slope under right water under
+
+slope over left:
+248-cave upper left
+249-cave upper left water
+
+slope over right:
+252-cave upper right
+253-cave upper right water
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+old:
+
+
+
+
+slope under left:
+236-cave slope under left
+237-grass slope under left
+238-slope water surface
+239-slope water under
+240-cave slope under left water surface
+
+-cave slope under left water under
+
+
+slope under right:
+241-cave slope under right
+242-grass slope under right
+243-slope water surface
+244-slope water under
+-cave slope under right water surface
+-cave slope under right water under
+
+slope over left:
+246-cave upper left
+
+slope over right:
+251-cave upper right
+

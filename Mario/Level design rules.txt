@@ -1,0 +1,43 @@
+Those rules must be followed when designing levels:
+(Most of them will have built-in protection in editor)
+
+
+Level:
+
+-A level must be at least 10 tiles high and at least 15 tiles wide
+
+-Treasure box: Empty space, water or water surface in the next tile above
+
+-Slope ground: Must have at least two tiles of free (non-solid) above
+
+-A level must have a background
+
+-A level must have at least one exit that can be reached (End, trigger, or treasure)
+
+-When enemies that carry treasures is present there must be empty space just above the floor
+ close to this enemy
+
+-Hammerman must have at least 2 levels of tiles of solid ground below to avoid falling through the ground
+
+
+
+
+
+
+
+
+
+
+Map:
+
+-At least one level must be completed before it is possible to enter doomship
+
+-A map must be at least 10 tiles high and at least 15 tiles wide
+
+-A boat can not be placed in slot 0!
+
+
+Levelset mapmode:
+
+-A map mode levelset must have a levelfile not containing any world, but common stuff like mushrom house, 
+ map monsters, moneyship, warp zone etc.

@@ -1,0 +1,70 @@
+
+
+//include guards to prevent errors with infinite include nesting :-) 
+#ifndef __all__
+#define __all__
+
+
+					//Generate calc specific code. Nesscessarry in scankeys and some graphics functions
+
+// Speedtest:
+// Note: This does NOT give an accurate FPS, probably not even close to. See main.c for more info.
+//#define speedtest
+
+
+//#define PRODUCE_TI89_CODE
+//#define PRODUCE_TI92PLUS_CODE
+#define PRODUCE_V200_CODE
+
+//Raise this number if new versions with new features are released
+#define compatibility 1
+
+
+//#define debug
+//gives some debugging features like ability to skip levels and worlds
+//extern short Slow;//used in debug only
+
+//#define immortal_mode
+//Gives immortal mario: Useful when debugging
+
+#undef MIN_AMS
+#define MIN_AMS 200
+
+#include <tigcclib.h>
+#include "error.h"
+#include "savegame.h"
+#include "TileMap.h"
+#include "extgraph.h"
+#include "comp.h"
+#include "enemies.h"
+#include "player.h"
+#include "levelset.h"
+#include "level.h"
+#include "items.h"
+#include "text.h"
+#include "gfx.h"
+#include "control.h"
+#include "custom.h"
+#include "objects.h"
+#include "shells.h"
+#include "render.h"
+#include "gameloop.h"
+#include "scankeys.h"
+#include "flying.h"
+#include "bosses.h"
+#include "smallgames.h"
+#include "DrawGrayPlane16BRoll.h"
+#include "bounch.h"
+#include "map.h"
+#include "titlescreen.h"
+#include "menus.h"
+#include "rle.h"
+#include "stringcopy.h"
+
+
+
+#endif
+
+
+
+

@@ -1,0 +1,86 @@
+
+This is Super Mario 68K, a grayscale mario game for your 68K calculator!
+It includes 70 exiting levels in 8 different worlds. 
+
+With 70 exiting levels through 8 worlds it provides many hours of game play. 
+
+The game are highly animated and has smooth scrolling backgrounds. There are many different power-ups 
+like the mushrom, fire flower, racoon suit, extra lives, and many, many more!
+
+You will meet a lot of different enemies in this game, including the classic goombas, turtles, 
+the hammer brothers, and even Bowser!
+
+
+
+There is also an overworld map for each one of the 8 worlds (Similar to SM3) with features like mushrom houses, 
+two different mini games, airships, boats, castles and much more.
+
+
+
+
+
+
+
+
+The levels has a lot of animated and interactive features
+
+
+
+
+
+
+
+
+Animated interactive levels
+
+Beautiful scrolling backgrounds
+
+-Grayscale graphics
+-Animated Levels
+-Scrolling background
+-8 world maps and a LOT of levels!
+-Powerups like mushroms, fire flower, star, 1 UP and racoon suit!
+-A lot of secrets hidden throughout the worlds ;-)
+-Warp zone
+-Mushrom houses
+-Two different minigames. Go there and win a prize!
+-Save game (3 slots)
+
+70 exiting levels
+8 worlds
+
+The game also supports external, custom-made levels. With this feature you will never get tired of the game ;-)
+With the leveleditor you can make your own levels, worldmaps and even a brand new Mario game!
+
+
+
+
+
+
+
+-----new attempt:
+
+Super Mario 68K is a grayscale Super Mario game for your calc.
+
+The game are highly animated with beautiful graphics and smooth scrolling backgrounds. 
+
+There's a LOT of different kinds of monsters, ranging from the classic goombas and turtles, 
+ghosts and hammer bros, and even Bowser! and many, many more.
+
+3 different kinds of bosses are present.
+
+There are many kind of powerup's to aid you in your quest, like the Mushrom, Fire Flower, Extra Lives, 
+the Racoon Suit and many more. Did i mention that you can even fly in this game?
+
+There is also an overworld map for each of the 8 worlds with features like mushrom houses, 
+two different mini games, airships, boats, castles and much more!
+
+There is a lot of secrets and hidden areas in the game, so there will always be new places to explore!
+A warp zone is also included!
+
+With 3 save slots you can save your progress, and continue from the same spot later.
+
+
+With 70 exiting levels through 8 worlds it gives you many hours of game play. 
+And with the upcoming level editor you can even make your own worlds and levels!
+

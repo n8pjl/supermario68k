@@ -1,0 +1,13 @@
+Super Mario 68K comes with documentation and in-game text in different languages. 
+English is the default language for the in-game texts.
+
+
+Ho to change in-game texts to another language:
+
+Find the proper file in the folder "Languages". The filename will indicate which language it holds.
+Send this file to your calculator. You will get the message "Blah blah blah".
+Choose ok, and the language file will be replaced with the one you transferred. 
+Run the game, and it will appear in your language!
+
+
+If you want to translate the game into your language, please contact me!

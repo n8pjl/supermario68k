@@ -1,0 +1,85 @@
+Troubleshooting:
+
+Before installing the game be sure to have enough memory free!
+
+
+Error message:
+
+"Out of memory"
+
+What to do:
+
+Make sure there is enough RAM free. This can be done by archiving files on your calculator.
+Alternatively you can delete files, but do not delete any files belonging to Super Mario 68K!
+
+
+"No levelset found"
+
+There is no levelset file in your calculator. For the Super Mario 68K levels this file is called
+
+" sm68k.MLST ".
+
+For custom levelset this file will have another name, but with the extension " .MLST "
+
+To solve this problem, retransfer this file to your calc adn archive it.
+
+
+"Textfile not found"
+
+The file containing the in-game texts was not found. 
+Make sure the file "ma_texts.MTXT" is stored in the "mario" folder.
+If it isn't, move it to the "mario" folder or retransfer it to your calculator. 
+See "Languages".
+
+
+
+"Failed to open graphics file"
+One or more of the graphics files was not found.
+Make sure the files "ma_tiles.GFX" , "ma_sprts.GFX" and "ma_bckgr.MBG" are stored in the "mario" folder.
+If it isn't, move it to the "mario" folder or retransfer it to your calculator. 
+
+
+
+
+
+
+"could not load level"
+"could not load map"
+Make sure all the level files are stored in the "mario" folder.
+If they aren't, move them to the "mario" folder or retransfer them to your calculator. 
+
+For Super Mario 68K these files are:
+
+-sm68k.mlst
+-world1.mlev
+-world2.mlev
+-world3.mlev
+-world4.mlev
+-world5.mlev
+-world6.mlev
+-world7.mlev
+-world8.mlev
+-common.mlev
+
+For any custom levelset, see the the according readme or doc for the filenames.
+
+
+
+"Could not initialize grayscale"
+This could be caused by too little free RAM. Try to free some RAM by archiving or deleting some files.
+(see requirements)
+
+If this doesn't help, contact the author. See "Contact"
+
+
+
+
+
+
+
+If any of this don't solve the problem, don't hesitate to contact me!
+See "Contact".
+
+
+
+

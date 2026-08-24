@@ -1,0 +1,26 @@
+
+Sprites convension:
+
+Sprites are organized as follows:
+
+The first bytes are the light_data
+The next bytes are the light_data
+The masks are put in a seperate array called Mariomasks
+
+unsigned short Mariosprites = {light_data,...,dark_data,...};
+
+The tiles are organized as follows:
+
+There is used an interlaced format which is required by the tilemap engine.
+
+First variable is the light_data of the first line, next comes the dark_data and then the mask (mask not implemented yet)
+
+unsigned short Tiles = {light_data0,dark_data0,mask_data0,light_data1,dark_data1,mask_data1,...};
+
+
+
+
+
+
+
+

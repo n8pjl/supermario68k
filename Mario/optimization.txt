@@ -1,0 +1,218 @@
+optimizations:
+
+
+
+-GetPlayerSprite(,Base,Sprite);
+-GetPlayerMask(,Base,Sprite);
+
+-short Unarchive(char* Name);
+
+-Can Note_*_handler have shared code ?
+
+-It is anything to gain in removing item.Collect ??
+
+-Include Player_get_coin(X,Y); in Bonusbox_coin_animate(X,Y);
+
+
+gametextdata pointer to data in file instead of loading
+
+
+Replace global access by local pointer:
+	-Fg_plane.p.big_vscreen and similar in menus
+
+
+Player_collect_bonus:
+	Is it optimal to do it this way ?
+
+
+-Enemy_handler_17 ++
+	-Mad flower
+	-
+	-Flying fish
+	-
+
+-Selection_key()
+	To be used in menu and small games.
+	Enter (Enter2) Jump Run
+
+-Draw_text_small(...)
+	To be used where speed is not cruisal
+	Possible places:
+	-(menu) m
+	-(errorhandler) m
+	-(save failed) m
+	-(map statusbar) m
+	-game ending
+	-url
+	-end of world 	
+
+
+
+*Make a function that does:
+
+	OldFgX=FgX;
+	OldFgY=FgY;
+		
+	Render();
+	Playloop();
+				
+	FgX=OldFgX;
+	FgY=OldFgY;
+
+
+Game house draw code: 
+	try a for loop that draws outer and inner dark gray frame by repeatedly calling
+	GrayFastOutlineRect_R   or similar
+
+-*FilledRectEraseDark(); removing dest pointers saved 16 bytes
+
+-*FilledRectEraseLight(); removing dest pointers saved 6 bytes
+
+-*FilledRectDark(); removing dest pointers saved 60 bytes
+
+-*GrayOutlineRect(); removing dest pointers saved 39 bytes
+
+-*Free(Mem); with check: Saved 10 bytes
+
+-*DrawSpriteSMASK();//Remove dest planes as parameters. Saved 86 bytes
+
+-*WaitKeyReleased(); saved 17 bytes
+
+-*void WaitKeyPress();
+
+-*DrawString();  saved 237 bytes
+
+-*void DrawBg(x,y) 35 bytes
+
+-*void DrawMarioCursor() 52 bytes;
+
+
+-*void DrawItem(short ItemId);
+	to be used in itemlist, world ending...
+
+-short Within_active_area(short X,short Y);
+	can be used by enemies,shells...
+
+
+
+
+
+*Boss_free_down() and Boss_free_up()
+
+void Levelfile_find_and_lock();
+
+-Player_get_spr_pointer();
+ (can be used in draw, collision detection)
+
+*void File_find_and_lock(char* Name);
+ Done. Reduced code size with 578 bytes!
+
+-*GrayDBuffToggleAndSetPointers();
+
+-*Stop using Leveldata.Bg_width !!!
+	use tilemap engine stuff instead
+
+
+
+
+-scan through array of enemies only once to increase speed
+
+	-move drawenemies to enemyscanning in handle_enemies();
+	-*move testcollide player/enemy to enemyscanning in handle_enemies();
+	-*move testcollide shell/enemy to enemyscanning in handle_enemies();
+	-*move testcollide fireball/enemy to enemyscanning in handle_enemies();
+
+-inline funcs that are only called one time
+
+-*Move cardgame constants to gfx file
+  Done. Saved ~70 bytes
+
+-*Look at Add_power_up_1 and Add_power_up_2:
+	Could use a add_pu_mushrom() function
+
+-Object drawers and handlers can be merged together to save bytes and speed
+
+-*Remove unused star animation: Opens for optimization of items drawing code
+
+-*Treasure handlers: can be simplified: much shared code!
+ Done.
+
+-*Ememy_move(enemy);
+ Done.
+
+-Screen_dark_gray();
+
+-move Enenyshots and playershots to allocated mem
+
+-many Enemy_handler's using boomerang graphics have similar code: Try to optimize by using common funcs
+
+-Add_shot_<Type>(); Funks might save some bytes if merged together
+
+
+
+-*remove flying platform sprites: Use interlaced version instead! Tiles "wooden platform" looks very similar!
+ Done. Code size reduction: 198 bytes
+       Spritefile size reduction: 198 Bytes
+
+
+-use a common die func for enemies instead of doing testing against attribs several places
+
+-*remove tile sprites replicated in array Sprites! This is STUPID!
+ Done.  Code size reduction: 32 bytes
+	Spritefile reduction: 352 bytes
+ 
+
+-*Put_map_tile(); instead of multiple ~equal assignments
+ Done. Saved 182 Bytes
+
+-*Move enemymasks to inside array of enemysprites: lightdata/darkdata/mask
+ will reduce code size: one pointer passed to drawfunc two times instead of two different ones.
+ When changing enemysprite only one assignment is needed instead of two. Faster too.
+ Removes one global pointer.
+ -Use one common pointer: format = Lightdata\darkdata\mask
+ -Reduce nr of assignments to one each time an enemy changes sprite
+ Done. Saved ~800 bytes
+
+-*Do the same as above with boss graphics
+ Done. Saved 184 bytes...
+
+-*Do the same as above with shot graphics (fireball, cannonballs, boomerangs etc.)
+ Done. Saved 260 bytes...
+
+-*Do the same as above with item graphics
+
+
+-*Do the same as above with map objects
+ Done.
+
+-*Do the same as above with Score sprites
+ Done.
+
+-Do the same as above with as many other sprites as possible:
+ -*Coin anim
+
+
+
+-MapFgX and MapFgY instead of sharing FgX with Foreground: Avoid saving and reloading
+
+
+-relocate many variables from globals to local
+
+
+-Use sprite and mask pointer for objects instead of the current method, which is only effective 
+ When there is not many different types of objects, which is not the case anymore
+
+-*Cannonball_horiz_handler is redundant:Use Cannonball_handler instead with data1 set to 0
+ Tried, but it increased code size!!! 
+
+-*Merge 2 malloc's in main into one (and two free's): One large buffer instead of two medium sized
+ Tried, but it increased code size a bit. WTF???
+
+
+
+-*check if possible to use pointers to inside graphics files instead of loading, reduces use of ram
+	Done! it reduced ram usage by 12-14 kb,even more when the game is finished!
+	also reduced program size by more then 2 kb 
+
+
+-*Levelsetfile_get_pointer_and_lock(); function

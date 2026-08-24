@@ -1,0 +1,56 @@
+
+English:
+
+When you get the whistle:
+
+"One toot on this whistle will send you to a far away land!"
+
+
+Mushrom house:
+
+"Pick a box. Its contents will help you on your way."
+
+
+White mushrom house:
+
+"Hello! You found my shop of strange and wonderful things!"
+
+Card game:
+ "Flip over any two cards and see if they match. Miss twice and youre out!"
+
+
+Game house:
+"Line up the pictures and get a prize! You only get one try."
+
+
+End of level:
+
+"COURSE CLEAR!"
+"YOU GOT A CARD"
+
+
+After completing a world:
+
+"Oh thank heavens! I'm back to my old self again. Thank you so much. Here is a letter from the princess."
+
+
+
+Letters from princess:
+
+1.
+
+"Greetings,
+
+if you see any ghosts, be careful.
+They will give chase if you turn away.
+
+I have encloded a jewel that helps protect you.
+
+Princess Toadstool."
+
+
+
+
+---------------------------------------------------------------------------------------------------------
+French:
+

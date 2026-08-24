@@ -1,0 +1,8 @@
+Card game:
+
+ 1-Mushrom
+ 2-Star
+ 3-Flower
+ 4-1 Up
+ 5-10 Coins
+ 6-20 Coins

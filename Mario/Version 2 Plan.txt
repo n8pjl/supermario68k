@@ -1,0 +1,26 @@
+
+What to implement:
+
+-Hidden coins: Revealed by POW
+-Special Coins: Collect 5 in a level and get a 1 up
+
+
+-Hidden doors: Revealed by POW
+
+
+-Ice World theme
+-Bear Suit
+
+
+-Hammer Suit
+
+
+-Grab shells and throw
+-Grab "Special" bricks and throw
+
+
+
+
+-Harder Bowser
+	-Higher shot frequency (?)
+	-Throwing bombs (?)

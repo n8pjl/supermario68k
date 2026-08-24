@@ -1,0 +1,89 @@
+new tiles needed:
+
+Non-solid:	11
+-Locked door, upper part
+-invisible coins, get visible when pow triggered
+-new fence
+(+9?)	
+-"Box" with snow (3)
+	-Pile of snow (6)
+
+
+Non-solid hostile
+
+
+
+Non-solid bonus:	7
+
+-invisible coins, get visible when pow triggered
+-special coins (3 or 5 == 1 UP)
+3 UP?
+-Key?
+-Treasure boxes:
+	-Hammer suit
+	-"Paralyse map monsters"-Item
+	-Bear suit
+
+
+
+
+Non-solid interactive:		4
+-Hidden bonusbox ladder
+-Hidden bonusbox multicoins
+-Key
+-Locked door,lower part
+
+Solid down interactive:		(3)
+(+3?)-"Box" with snow (3)
+
+Solid:		5
+New kind of platform (3 tiles)
+Ice block lower part (2 tiles)
+
+Solid interactive:
+
+
+
+
+Solid interactive down:		7	
+-"trampoline". SMB1 compatibility
+-Ice/snow: Snow on wooden floor (3)
+-Large Ice block (2)
+-Small Ice block (1)
+	-Wooden platform with snow (3)
+6+3
+
+
+
+Solid interactive up+down:
+
+
+Solid interactive up:	2
+-BB Multicoins: growing chain of coins
+-Brick hidden ladder to heaven
+
+Solid interactive left+right:
+-"Portable" brick: Grab it, throw it
+-Key: Grab it and bring it to the locked door
+
+Solid:
++2 -Large Ice block
+-New kind of platform
+
+Slope under left:
+-wooden slope/ghost house slope
+
+Slope under right:
+-wooden slope/ghost house slope
+
+Slope over left:
+-wooden slope/ghost house slope
+
+Slope over right:
+-wooden slope/ghost house slope
+
+
+
+
+
+

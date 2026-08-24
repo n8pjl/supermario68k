@@ -1,0 +1,5 @@
+
+Exit:
+
+Exit == 1: Died in level
+Exit == 2: level completed

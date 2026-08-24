@@ -1,0 +1,176 @@
+
+-* = done
+
+
+
+-Explain flying in the readme!
+
+-Test game engine with new compiler switch enabled -ffunction-sections (Size optimization)
+
+-Move Adjust_renderpoint() into Render() Might save space, might make out of pipe anim look smoother ???
+
+
+-Text "WARP ZONE" instead of nothing when entering warp zone
+
+
+
+
+
+
+
+
+-Statusbar: Enable on/off/roll-in
+
+-Improve flying platform motion: too shaky!
+
+
+
+
+
+-*Configurable controls!
+
+-*Add Overwrite? No,Yes in textfile! Remember translations, and update all languages!
+
+-*Implement automatic archiveing of .mlst file !
+Idea:
+ -1.Generate complete save file in mem buffer, record size (already implemented)
+ -2.Check if possible to archive this:
+ 	-if not: Garbage collect. Goto 2. Repeat only once, else report failure.
+ -3.Generate twin symbol in ram
+ -4.delete original file
+ -5. archive file
+  This might prevent destruction of old save games when not enough mem
+
+  
+-*Add placeholders for future purposes:
+	-Leveldata:
+		-Time
+		-Autoscroll
+	-Mapdata:
+		-a short, just in case
+	-Levelsetdata
+		-a short, just in case
+
+-*Final tiles relocation! Make space for possibly future stuff!
+
+-*Test game with multiple levelsets: watch for folder stuff: Levelsets in different folders!
+
+-*Remove Options menu: Not implemented in release 1
+
+-*World numbers in warp zone
+
+-*Textwrap
+
+-*Implement compatibility field and control in levelset
+
+-*Bowser!
+	-*gfx
+	-*code
+		-*Die
+	-'The End
+		*1.Bowser die
+		*2.Load mhouse level+modify
+		'3.Mario + princess(object)
+		*4.Text
+		*5.Exit to menu
+		*6.Get item list full of p-wings if new game
+
+-*Finish doc + readme
+
+-*Fix bug associated to slope roof!
+
+-*Make treasure placement after fight start scan in the bottom instead of the top
+
+-*Make menus able to handle larger amounts of options, scrolling
+
+-*Test external language support
+
+-*Redo turtle GFX
+
+-*make the mushroom houses work so you can choose a box, and press either jump or enter in front of the one you want
+
+-*Fly animation (tale only)
+
+-*Bugfix:
+	-*climbing animation (one sprite only)
+
+-*Skip map objects motion animation when outside visible screen
+ Done, but observe it to make sure it works properly!
+
+-*Display score
+
+-*Titlescreen: Finish it!
+
+-*Adjust BG width's
+
+-*Add map monsters to world 5
+
+-*Add secrets to worlds 4,5,7
+	More secrets in other worlds
+
+-*Change Treasure placement code in Enemy_die_10:
+	-*Change start pos generation   
+	*Avoid putting treasures in unavailable / strange places!
+
+	*idea:   Find start pos with some semi smart algorithm (dep. on Player+enemy X pos)
+		Scan downwards to find the floor. If empty space above, place treasure.
+		If not, X++. Limit X scope to Enemy->X+-DX*work remaining on bomb: a couple of unimplemented modes
+	-*shot mode; done, but still needs respawn to always work properly
+		-*also some optimizations possible here
+
+-*Does end world anim work with castle as ending level? (world 4)
+	-Yes, it does :-D
+
+-*Bomb: Bounching must be changed: Looks weird!
+
+-*Fix levelend bug
+
+-*Boss_free_down()
+-*Boss_free_up()
+
+-*Bomb: allways execute when shot out of cannon!
+
+-*Fix bug in enemy bounching fireball!
+
+-*Enemy handler_1: 3rd mode: Turn when reaching the end
+
+-*Ship/castle finished boss2_die: Animation, get an item (letter from princess ?)
+
+-*enemy reappear (configureable)
+	-*Limited to handler_1 for now
+
+-*White box: fall behind FG
+
+
+-*Debug boomerang guy/bros in money ship
+   
+-*Game over
+
+-*Lock/unlock levelfile when loading map (see load level)
+
+-*Bugfix: When collecting treasure: Replace tile with water if treasure is in water!
+
+
+-*Enemy shot: Bounching fireball can be jumped on??? Looks like cannonball when "killed"
+
+-*Add TI89T, V200 and TI92+ compability
+
+-*improve contrast adjustment
+
+-*status bar:  (score?), (time?)
+
+
+
+
+
+
+
+
+-is Enemy_die_8(); really necessarry? (fire flower)	
+
+-Size and speed optimizations!
+-level editor
+
+
+-sound? (optional)
+

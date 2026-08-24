@@ -1,0 +1,118 @@
+The map:
+
+Super Mario 68K features maps for the overworlds.
+See Controls for how to move arond the map.
+You move around the map using the arrow keys. 
+
+
+Levels:
+
+The levels are usually marked with numbers like this <Tiles>
+In some cases you can also enter pyramids <Tile>, get dragged down in the Quicksand <Tiles> etc.
+You can not pass a level on the map before you have completed it.
+
+To enter a level, press the Jump key, that is:
+2nd on TI-89
+F1 on TI-92+
+Hand on Voyage 200
+
+
+
+
+Fortresses:
+
+The Boom Booms have taken over all the fortresses <Tile> in the Mushrom Kingdom. On their way through the 
+worlds they blocked several roads <Tile>. The roadblocks can only be removed with the "?-Ball" <Sprite>. 
+Those magic balls are hidden by the Boom Boom's in the very deep chanbers in the fortresses, 
+and they will guard them until the very end!
+
+
+
+
+The Castles and Airships:
+
+Each world has a castle. In most cases it will look like this: <Tile>
+The castles has been captured by the Koopa Kiddos and the kings has been transformed to animals.
+
+To get the king back to himself and free the current world you need to retrieve the magic wand. 
+Unfortunately, the magic wand has been stolen by the koopa kiddos, who will guard it with their lives!
+
+When you charge the koopa kiddo he will try to get away in his airship. 
+They will move around trying to flee from you until you defeat them. 
+When you defeat him and get the magic wand, 
+the King will be transformed back, and the current world is free!
+
+
+Bowser's Castle:
+
+Bowser's castle in the dark underworld is your destination. This is where Bowser keeps the princess 
+prisoned, so you need to get there to free her. But Bowser and his forces will do anything to stop you,
+so it will be a hard task!
+
+
+
+Pipes
+
+There are several underground passages in the worlds that you can walk through to get to another place 
+on the map. 
+You can enter them through the pipes.
+<Tile>
+
+
+
+Mushrom houses
+
+Mario has lots of friends all over the mushrom kingdom. They live in the mushrom houses.
+If you visit them they will help you in your quest!
+
+
+
+
+
+
+Game houses
+
+You will find several game houses on your way. Go inside to play, 
+and if you're good you'll win a prize!
+(See Game house)
+
+
+
+
+Card Game:
+
+Sometimes the card game will pop up on the map. Go play, and win a lot of useful prizes!
+(See Card Game)
+
+Treasure ship:
+If you're lucky a treasure ship will pass by while you play.
+
+Hiddee Mushrom houses:
+Sometimes extra mushrom houses will appear on the map.
+
+
+
+Monsters
+
+Some of Bowser's Troops are lurking around looking for Mario. 
+They will charge you once they get a chance, so watch out!
+They carry around with magic items, so if you beat them you get a prize.
+
+
+
+
+
+
+Save Game:
+The game also has the possibility to save your game. 
+There are 3 saveslots available.
+To save a game, go to the mid-game menu by pressing "Esc", and choose "Save game".
+Your savegames will be saved in the file "sm68k.MLST" 
+or in the file with the extension .MLST for any other levelset.
+You can save your game from the map.
+
+
+
+
+
+
