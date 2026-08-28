@@ -9,10 +9,11 @@
 // wasm build, but the library's original sources are in ExtGraph/src/lib and
 // serve as the reference for these ports.
 //
-// IMPORTANT: sprite, mask and tile data all come from the big-endian m68k data
-// blobs, which are deliberately left unswapped. Every 16-bit pixel row read in
-// this file must therefore be read big-endian - see be16(). Getting this wrong
-// transposes the two 8-pixel halves of every row.
+// Sprite, mask and tile rows are 16-bit and arrive already byte-swapped:
+// tools/mkdata.py converts the 16-bit regions of the GFX blobs at build time,
+// so they can be read natively here. The two byte-addressed regions it leaves
+// alone - Smallsprites and Games - are exactly the ones nothing in this file
+// reads as words.
 //
 // Planes are 240x128, one bit per pixel, 30 bytes per row, pixel 0 of a row in
 // bit 7 of the first byte.
@@ -20,14 +21,6 @@
 // TODO: the remaining stubs below are pending the real ports.
 
 #define PLANE_STRIDE 30
-
-// Sprite, mask and tile rows come from the big-endian m68k blobs, which
-// tools/mkdata.py deliberately leaves unswapped. Read every 16-bit pixel row
-// through this. wasm is always little-endian, so the swap is unconditional.
-static inline unsigned short be16(const unsigned short *p)
-{
-	return __builtin_bswap16(*p);
-}
 
 // Set or clear the horizontal run of pixels x1..x2 (inclusive) on row y.
 // Endpoints are swapped if they arrive the wrong way round, matching what
@@ -243,7 +236,7 @@ short TestCollide162h_R(short x0, short y0, short x1, short y1,
 	data0 += top - y0;
 	data1 += top - y1;
 	for (r = 0; r < bot - top; r++)
-		if (((unsigned long)be16(data0 + r) << dx) & be16(data1 + r))
+		if (((unsigned long)data0[r] << dx) & data1[r])
 			return 1;
 	return 0;
 }

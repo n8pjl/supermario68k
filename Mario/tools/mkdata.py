@@ -8,20 +8,26 @@ Two jobs:
    file[0x56 : size-2]. It already starts with the 2-byte big-endian size word
    the game skips via HeapDeref(h)+2, so nothing downstream needs adjusting.
 
-2. Byte-swap the structs. The data is big-endian m68k; wasm is little-endian.
-   Only the structures the game memcpy's or casts a pointer at are swapped -
-   everything else is byte-addressed and must be left alone:
+2. Byte-swap everything that is read as a 16-bit quantity. The data is
+   big-endian m68k; wasm is little-endian. What must be left alone is whatever
+   the game reads a byte at a time:
 
      - Level payloads (enemies, flying platforms, triggers) are read one
        unsigned char at a time by level.c, so they are NOT touched.
-     - Tile and sprite pixel data is NOT touched; the graphics primitives in
-       compat/ read those rows big-endian on purpose.
+     - Inside the GFX blobs, the two byte-addressed regions - Smallsprites
+       (8-pixel-wide sprites, one byte per row) and the Games blob - are NOT
+       touched. Everything else in them is.
 
    Struct layouts assume TIGCC's ABI: 16-bit int and 2-byte alignment.
+
+   The GFX region table is derived from the #defines in gfx.h rather than
+   hardcoded here, so the two cannot drift apart, and the result is checked
+   against the actual blob size (see gfx_regions).
 
 Usage: mkdata.py <src dir> <out dir>
 """
 import os
+import re
 import struct
 import sys
 
@@ -37,6 +43,85 @@ LEVELDATA = [(0, 12), (26, 2), (34, 2)]
 SIZEOF_LEVELDATA = 38
 BGFILEDATA = [(2, 21)]           # char Nr_of_bgs + pad, then Backgrounds[20], Size
 BGDATA = [(0, 2)]                # Height, Width
+
+
+GFX_HEADER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "gfx.h")
+
+
+def gfx_constants():
+    """The Nr_of_* / Size_of_* #defines from gfx.h, as a dict."""
+    src = open(GFX_HEADER).read()
+    consts = {}
+    for m in re.finditer(r"^#define\s+(Nr_of_\w+|Size_of_\w+)\s+(.+?)\s*(?://.*)?$",
+                         src, re.M):
+        consts[m.group(1)] = eval(m.group(2), {"__builtins__": {}}, dict(consts))
+    return consts
+
+
+def gfx_regions(name, datalen):
+    """[(name, length, width)] covering one GFX blob's data area.
+
+    width 2 means the region is read as 16-bit words and must be swapped;
+    width 1 means it is byte-addressed and must not be. The offsets mirror the
+    pointer arithmetic in Load_gfx_from_file() (gfx.c) exactly - note that the
+    Size_of_* constants are counts of shorts despite gfx.h's comment, except
+    Size_of_smallsprites, which gfx.c adds to a char* and so is a byte count.
+    """
+    c = gfx_constants()
+    if name == "ma_tiles":
+        regions = [
+            ("Fg_plane.sprites", 32 * c["Nr_of_fg_tiles"] * 2, 2),
+            ("Fg_mask.sprites", 16 * c["Nr_of_tilemasks"] * 2, 2),
+            ("Bg_plane.sprites", 32 * c["Nr_of_bg_tiles"] * 2, 2),
+            ("Fg_plane.tabanim", c["Nr_of_fg_animations"] * 4 * 2, 2),
+            ("Fg_mask.tabanim", c["Nr_of_fg_animations"] * 4 * 2, 2),
+            ("Map_plane.sprites", 32 * c["Nr_of_map_tiles"] * 2, 2),
+            ("Map_plane.tabanim", c["Nr_of_map_animations"] * 4 * 2, 2),
+        ]
+    elif name == "ma_sprts":
+        regions = [
+            ("Mariosprites", c["Size_of_mariosprites"] * 2, 2),
+            ("Mariomasks", c["Size_of_mariomasks"] * 2, 2),
+            # Animation tables, not pixels, but still 16-bit: these are the
+            # indices enemies.c feeds back into Mariosprites.
+            ("Marioanimtab", c["Size_of_marioanimtab"] * 2, 2),
+            ("Enemysprites", c["Size_of_enemysprites"] * 2, 2),
+            ("Smallsprites", c["Size_of_smallsprites"], 1),
+            ("Sprites", c["Size_of_sprites"] * 2, 2),
+            ("Itemsprites", c["Size_of_itemsprites"] * 2, 2),
+            ("Boss_sprites", c["Size_of_boss_sprites"] * 2, 2),
+        ]
+    else:
+        raise ValueError("unknown GFX blob %r" % name)
+
+    total = sum(length for _, length, _ in regions)
+    if total > datalen:
+        raise ValueError("%s: regions from gfx.h need %d bytes, blob has %d"
+                         % (name, total, datalen))
+    if name == "ma_tiles":
+        # This one is fully described, so an exact match is the check that the
+        # gfx.h constants still match the shipped data.
+        if total != datalen:
+            raise ValueError("%s: regions cover %d bytes, blob has %d"
+                             % (name, total, datalen))
+    else:
+        # ma_sprts ends with the Games blob, whose size is not in gfx.h; it is
+        # whatever is left, and it is char data, so it stays unswapped.
+        regions.append(("Games", datalen - total, 1))
+    return regions
+
+
+def swap_gfx(b, name, tag):
+    """Swap the 16-bit regions of a GFX blob in place."""
+    datalen = len(b) - (len(tag) + 3)   # trailing {0, tag, 0, OTH_TAG}
+    off = 0
+    for rname, length, width in gfx_regions(name, datalen):
+        if width == 2:
+            if length % 2:
+                raise ValueError("%s: %s has odd length %d"
+                                 % (name, rname, length))
+            swap(b, off, [(0, length // 2)])
+        off += length
 
 
 def swap(buf, base, runs):
@@ -85,8 +170,8 @@ def convert(content, tag, name):
             off = struct.unpack_from("<H", b, 2 + i * 2)[0]
             if off + 4 <= len(b):
                 swap(b, off, BGDATA)
-    # Everything else - notably GFX, which is ma_tiles/ma_sprts pixel data -
-    # is passed through untouched and read big-endian by the graphics code.
+    elif tag == "GFX":
+        swap_gfx(b, name, tag)
     return bytes(b)
 
 
