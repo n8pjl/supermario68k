@@ -14,18 +14,90 @@
 // this file must therefore be read big-endian - see be16(). Getting this wrong
 // transposes the two 8-pixel halves of every row.
 //
-// TODO: all of the below are stubs pending the real ports.
+// Planes are 240x128, one bit per pixel, 30 bytes per row, pixel 0 of a row in
+// bit 7 of the first byte.
+//
+// TODO: the remaining stubs below are pending the real ports.
+
+#define PLANE_STRIDE 30
+
+// Set or clear the horizontal run of pixels x1..x2 (inclusive) on row y.
+//
+// The ExtGraph originals work a word at a time and unroll to 64-bit writes;
+// that is a speed trick for the 68000 and byte-at-a-time is equivalent, so
+// this stays bytewise. It is also endian-agnostic, which matters because the
+// planes are shared with sprite data read big-endian elsewhere in this file.
+static void hspan(unsigned char *plane, short x1, short x2, short y, short set)
+{
+	unsigned char *row;
+	short b, b1, b2;
+	unsigned char m1, m2, m;
+
+	if (y < 0 || y >= LCD_HEIGHT || x2 < x1 || x2 < 0 || x1 > LCD_WIDTH - 1)
+		return;
+	if (x1 < 0)
+		x1 = 0;
+	if (x2 > LCD_WIDTH - 1)
+		x2 = LCD_WIDTH - 1;
+
+	row = plane + (short)(y * PLANE_STRIDE);
+	b1 = x1 >> 3;
+	b2 = x2 >> 3;
+	m1 = (unsigned char)(0xFF >> (x1 & 7));
+	m2 = (unsigned char)(0xFF << (7 - (x2 & 7)));
+
+	if (b1 == b2) {
+		m = m1 & m2;
+		if (set)
+			row[b1] |= m;
+		else
+			row[b1] &= (unsigned char)~m;
+		return;
+	}
+
+	if (set) {
+		row[b1] |= m1;
+		for (b = b1 + 1; b < b2; b++)
+			row[b] = 0xFF;
+		row[b2] |= m2;
+	} else {
+		row[b1] &= (unsigned char)~m1;
+		for (b = b1 + 1; b < b2; b++)
+			row[b] = 0x00;
+		row[b2] &= (unsigned char)~m2;
+	}
+}
+
+// Set or clear the filled rectangle (x1,y1)-(x2,y2), corners included. The
+// originals swap the corners if they arrive the wrong way round, and clip
+// nothing at all - a caller passing an off-screen coordinate scribbles past
+// the plane. Here the span helper clips instead, which cannot change the
+// result for the on-screen coordinates the game actually passes.
+static void filled_rect(void *plane, short x1, short y1, short x2, short y2,
+			short set)
+{
+	short y, t;
+
+	if (y2 < y1) {
+		t = y1; y1 = y2; y2 = t;
+	}
+	if (x2 < x1) {
+		t = x1; x1 = x2; x2 = t;
+	}
+	for (y = y1; y <= y2; y++)
+		hspan((unsigned char *)plane, x1, x2, y, set);
+}
 
 void FastFilledRect_Draw_R(void *plane, unsigned short x1, unsigned short y1,
 			   unsigned short x2, unsigned short y2)
 {
-	(void)plane; (void)x1; (void)y1; (void)x2; (void)y2;
+	filled_rect(plane, (short)x1, (short)y1, (short)x2, (short)y2, 1);
 }
 
 void FastFilledRect_Erase_R(void *plane, unsigned short x1, unsigned short y1,
 			    unsigned short x2, unsigned short y2)
 {
-	(void)plane; (void)x1; (void)y1; (void)x2; (void)y2;
+	filled_rect(plane, (short)x1, (short)y1, (short)x2, (short)y2, 0);
 }
 
 void GrayFastOutlineRect_R(void *dest0, void *dest1, unsigned short x1,
