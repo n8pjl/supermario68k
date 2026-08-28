@@ -19,8 +19,6 @@
 // originals clip against that, not against the smaller visible area of a
 // TI-89, because there is only one set of sprite routines for all models - so
 // these use PLANE_WIDTH/PLANE_HEIGHT rather than PLANE_WIDTH/PLANE_HEIGHT.
-//
-// TODO: the remaining stubs below are pending the real ports.
 
 // Set or clear the horizontal run of pixels x1..x2 (inclusive) on row y.
 // Endpoints are swapped if they arrive the wrong way round, matching what
@@ -285,12 +283,49 @@ void GrayClipSprite16_SMASK_R(short x, short y, unsigned short height,
 	}
 }
 
+// Write the 8-pixel row `val` at absolute pixel (x, y) of a plane, under the
+// write-enable mask `wr`, both with pixel 0 in bit 7.
+//
+// This is put_row16 with the byte parked in the top half of the 16-pixel
+// window and the bottom half left write-disabled: those eight pixels then have
+// `wr` clear, so put_row16 leaves the plane's bits alone there and the byte
+// lands at x..x+7 alone. The clipping falls out too - a byte entirely off the
+// left edge is one whose enabled bits all sit in bytes put_row16 skips.
+static void put_row8(unsigned char *plane, short x, short y, unsigned val,
+		     unsigned wr)
+{
+	put_row16(plane, x, y, (val & 0xFF) << 8, (wr & 0xFF) << 8);
+}
+
+// Draw an 8-wide grayscale sprite through a mask, and clip it to the screen.
+//
+// The 8-wide twin of GrayClipSprite16_SMASK_R: one byte per row in each of
+// sprt0, sprt1 and the shared mask, same conventions - the planes live in
+// separate arrays, and a set mask bit means "keep the background", so it is
+// complemented into a write enable.
+//
+// The original has a fourth hand-written case the 16-wide one does not, since
+// eight pixels at a bit offset of 0..7 may or may not fit inside the one word
+// it reads; put_row8's window makes that distinction disappear as well.
 void GrayClipSprite8_SMASK_R(short x, short y, unsigned short height,
 			     const unsigned char *sprt0, const unsigned char *sprt1,
 			     const unsigned char *mask, void *dest0, void *dest1)
 {
-	(void)x; (void)y; (void)height; (void)sprt0; (void)sprt1; (void)mask;
-	(void)dest0; (void)dest1;
+	int first = y < 0 ? -y : 0;		// first sprite row on screen
+	int last = height;			// one past the last
+	int r;
+
+	if (last > PLANE_HEIGHT - y)
+		last = PLANE_HEIGHT - y;
+
+	for (r = first; r < last; r++) {
+		unsigned wr = (unsigned)(unsigned char)~mask[r];
+
+		put_row8((unsigned char *)dest0, x, (short)(y + r),
+			 sprt0[r], wr);
+		put_row8((unsigned char *)dest1, x, (short)(y + r),
+			 sprt1[r], wr);
+	}
 }
 
 // Pixel-exact collision test between two 16-wide sprites of independent
@@ -353,22 +388,77 @@ void GrayClearScreen2B(void *lightplane, void *darkplane)
 	memset(darkplane, 0, LCD_SIZE);
 }
 
+// Draw a 16-wide grayscale sprite flipped top to bottom, through a mask, and
+// clip it to the screen.
+//
+// MASK rather than SMASK: each plane carries its own mask, mask0 with sprt0
+// and mask1 with sprt1, though the game passes the same array for both. The
+// sense is unchanged - a set mask bit keeps the background - and so is the
+// per-row operation, dest = (dest & mask) | sprite.
+//
+// The flip is all in the indexing: screen row y+k takes sprite row
+// height-1-k, mask included, which is what the original gets by pointing all
+// four arrays one row past their ends and walking them backwards with
+// pre-decrements. The vertical clip then still trims the same range of k, and
+// a sprite hanging off the top of the screen loses its *last* rows.
 void UpsideDownGrayClipSprite16_MASK_R(short x, short y, unsigned short height,
 				       unsigned short *sprt0, unsigned short *sprt1,
 				       unsigned short *mask0, unsigned short *mask1,
 				       void *dest0, void *dest1)
 {
-	(void)x; (void)y; (void)height; (void)sprt0; (void)sprt1;
-	(void)mask0; (void)mask1; (void)dest0; (void)dest1;
+	int first = y < 0 ? -y : 0;		// first row slot on screen
+	int last = height;			// one past the last
+	int k;
+
+	if (last > PLANE_HEIGHT - y)
+		last = PLANE_HEIGHT - y;
+
+	for (k = first; k < last; k++) {
+		int r = height - 1 - k;		// the sprite row that lands there
+
+		put_row16((unsigned char *)dest0, x, (short)(y + k),
+			  sprt0[r], (unsigned)(unsigned short)~mask0[r]);
+		put_row16((unsigned char *)dest1, x, (short)(y + k),
+			  sprt1[r], (unsigned)(unsigned short)~mask1[r]);
+	}
 }
 
 // Game-local routine (see Mario/GrayClipSprite16_SMASKBLIT_R.s): a SMASK blit
-// that also ORs a constant `maskval` row into the mask.
+// restricted to the columns `maskval` selects. The game uses it to reveal Mario
+// a slice at a time - Player.Blit is the window - so a zero maskval draws
+// nothing and 0xFFFF makes it an ordinary GrayClipSprite16_SMASK_R.
+//
+// Per row and plane the original is the SMASK operation with maskval folded in
+// twice, once each way round:
+//
+//	dest = (dest & (mask | ~maskval)) | (sprite & maskval)
+//
+// Complementing the effective mask into a write enable turns the first half
+// into ~mask & maskval - write only where the sprite's own mask allows it and
+// maskval selects the column - which is the AND of the two write enables, as
+// one would hope. The second half is not redundant with it, mind: put_row16
+// ORs `val` in over the enable, so a sprite bit outside the blit window would
+// still light a pixel if it were not cleared here. Same as the note on
+// put_row16 about bits outside a sprite's own mask - the original clears these
+// with an `and.l`, so the port does too.
 void GrayClipSprite16_SMASKBLIT_R(short x, short y, unsigned short height,
 				  unsigned short *sprt0, unsigned short *sprt1,
 				  unsigned short *mask, const unsigned short maskval,
 				  void *dest0, void *dest1)
 {
-	(void)x; (void)y; (void)height; (void)sprt0; (void)sprt1; (void)mask;
-	(void)maskval; (void)dest0; (void)dest1;
+	int first = y < 0 ? -y : 0;		// first sprite row on screen
+	int last = height;			// one past the last
+	int r;
+
+	if (last > PLANE_HEIGHT - y)
+		last = PLANE_HEIGHT - y;
+
+	for (r = first; r < last; r++) {
+		unsigned wr = (unsigned)(unsigned short)~mask[r] & maskval;
+
+		put_row16((unsigned char *)dest0, x, (short)(y + r),
+			  sprt0[r] & maskval, wr);
+		put_row16((unsigned char *)dest1, x, (short)(y + r),
+			  sprt1[r] & maskval, wr);
+	}
 }
