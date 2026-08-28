@@ -16,10 +16,8 @@
 
 #define PLANE_STRIDE 30
 
-// The 4x6 font is not present in the AMS image the other two came from, so
-// F_4x6 falls back to the 6x8 face. Text asking for it renders slightly larger
-// than on hardware; the only user is the URL line on the menu screen, which
-// still fits the 240px width.
+// F_4x6 is proportional - each character carries its own advance - while the
+// other two faces are fixed-width.
 static const unsigned char *font_glyph(short font, unsigned char c, short *h,
 				       short *advance)
 {
@@ -28,9 +26,14 @@ static const unsigned char *font_glyph(short font, unsigned char c, short *h,
 		*advance = 8;
 		return Font8x10[c];
 	}
-	*h = 8;
-	*advance = 6;
-	return Font6x8[c];
+	if (font == F_6x8) {
+		*h = 8;
+		*advance = 6;
+		return Font6x8[c];
+	}
+	*h = 6;
+	*advance = Font4x6Width[c];
+	return Font4x6[c];
 }
 
 static void blit_glyph(unsigned char *plane, short x, short y,
