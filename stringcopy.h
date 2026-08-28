@@ -1,3 +1,4 @@
 #pragma once
 
-short StringCopy(char *dest, char *src);
+#include <stdint.h>
+int16_t StringCopy(char *dest, char *src);

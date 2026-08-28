@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "graph.h"
 #include "gray.h"
 #include "font_data.h"
@@ -17,8 +18,8 @@
 
 // F_4x6 is proportional - each character carries its own advance - while the
 // other two faces are fixed-width.
-static const unsigned char *font_glyph(short font, unsigned char c, short *h,
-				       short *advance)
+static const uint8_t *font_glyph(int16_t font, uint8_t c, int16_t *h,
+				       int16_t *advance)
 {
 	if (font == F_8x10) {
 		*h = 10;
@@ -50,29 +51,29 @@ static const unsigned char *font_glyph(short font, unsigned char c, short *h,
 // For the 4x6 face the cell includes the blank spacing column the advance
 // carries past the ink, and its blank sixth row - so a replaced line of text
 // clears the gaps between its characters too, as the ROM's DrawStr does.
-static void blit_glyph(unsigned char *plane, short x, short y,
-		       const unsigned char *g, short h, short adv, short attr)
+static void blit_glyph(uint8_t *plane, int16_t x, int16_t y,
+		       const uint8_t *g, int16_t h, int16_t adv, int16_t attr)
 {
 	// The glyph is one byte wide, so the cell cannot usefully be wider.
-	short cw = adv > 8 ? 8 : adv;
-	unsigned char cell = cw > 0 ? (unsigned char)(0xFF << (8 - cw)) : 0;
+	int16_t cw = adv > 8 ? 8 : adv;
+	uint8_t cell = cw > 0 ? (uint8_t)(0xFF << (8 - cw)) : 0;
 
-	for (short r = 0; r < h; r++) {
-		short py = y + r;
+	for (int16_t r = 0; r < h; r++) {
+		int16_t py = y + r;
 		if (py < 0 || py >= PLANE_HEIGHT)
 			continue;
 		// Place the 8-bit glyph row into a 16-bit window so a glyph
 		// straddling a byte boundary writes both bytes.
-		unsigned short win = (unsigned short)g[r] << (8 - (x & 7));
-		unsigned short cellwin = (unsigned short)cell << (8 - (x & 7));
-		short col = x >> 3;
-		for (short b = 0; b < 2; b++) {
-			short cc = col + b;
+		uint16_t win = (uint16_t)g[r] << (8 - (x & 7));
+		uint16_t cellwin = (uint16_t)cell << (8 - (x & 7));
+		int16_t col = x >> 3;
+		for (int16_t b = 0; b < 2; b++) {
+			int16_t cc = col + b;
 			if (cc < 0 || cc >= PLANE_STRIDE)
 				continue;
-			unsigned char bits = (win >> (8 - 8 * b)) & 0xFF;
-			unsigned char cbits = (cellwin >> (8 - 8 * b)) & 0xFF;
-			unsigned char *p = plane + py * PLANE_STRIDE + cc;
+			uint8_t bits = (win >> (8 - 8 * b)) & 0xFF;
+			uint8_t cbits = (cellwin >> (8 - 8 * b)) & 0xFF;
+			uint8_t *p = plane + py * PLANE_STRIDE + cc;
 			switch (attr) {
 			case A_REVERSE:
 				*p &= ~bits;
@@ -81,7 +82,7 @@ static void blit_glyph(unsigned char *plane, short x, short y,
 				*p ^= bits;
 				break;
 			case A_REPLACE:
-				*p = (unsigned char)((*p & ~cbits) | bits);
+				*p = (uint8_t)((*p & ~cbits) | bits);
 				break;
 			default:
 				*p |= bits;
@@ -91,22 +92,22 @@ static void blit_glyph(unsigned char *plane, short x, short y,
 	}
 }
 
-static void draw_str_plane(void *plane, short x, short y, const char *s,
-			   short attr, short font)
+static void draw_str_plane(void *plane, int16_t x, int16_t y, const char *s,
+			   int16_t attr, int16_t font)
 {
-	short h, adv;
+	int16_t h, adv;
 	for (; *s; s++) {
-		const unsigned char *g = font_glyph(font, (unsigned char)*s, &h, &adv);
-		blit_glyph((unsigned char *)plane, x, y, g, h, adv, attr);
+		const uint8_t *g = font_glyph(font, (uint8_t)*s, &h, &adv);
+		blit_glyph((uint8_t *)plane, x, y, g, h, adv, attr);
 		x += adv;
 	}
 }
 
-static short str_width(const char *s, short font)
+static int16_t str_width(const char *s, int16_t font)
 {
-	short h, adv, w = 0;
+	int16_t h, adv, w = 0;
 	for (; *s; s++) {
-		font_glyph(font, (unsigned char)*s, &h, &adv);
+		font_glyph(font, (uint8_t)*s, &h, &adv);
 		w += adv;
 	}
 	return w;
@@ -120,13 +121,13 @@ void ClrScr(void)
 
 // The error screen draws with the plain-plane calls; render to both planes so
 // the result reads as solid black rather than a gray shade.
-void DrawStr(short x, short y, const char *s, short attr)
+void DrawStr(int16_t x, int16_t y, const char *s, int16_t attr)
 {
 	draw_str_plane(GrayDBufGetHiddenPlane(LIGHT_PLANE), x, y, s, attr, F_6x8);
 	draw_str_plane(GrayDBufGetHiddenPlane(DARK_PLANE), x, y, s, attr, F_6x8);
 }
 
-void DrawChar(short x, short y, char c, short attr)
+void DrawChar(int16_t x, int16_t y, char c, int16_t attr)
 {
 	char s[2] = { c, 0 };
 	DrawStr(x, y, s, attr);
@@ -134,10 +135,10 @@ void DrawChar(short x, short y, char c, short attr)
 
 // Mirrors ExtGraph's GrayDrawStrExt2B: draw into both planes, honouring the
 // A_CENTERED and A_SHADOWED extended attributes.
-void GrayDrawStrExt2B(unsigned short x, unsigned short y, const char *s,
-		      short attr, short font, void *lightplane, void *darkplane)
+void GrayDrawStrExt2B(uint16_t x, uint16_t y, const char *s,
+		      int16_t attr, int16_t font, void *lightplane, void *darkplane)
 {
-	short shadow = attr & A_SHADOWED;
+	int16_t shadow = attr & A_SHADOWED;
 
 	if (attr & A_CENTERED)
 		x = (LCD_WIDTH - str_width(s, font)) / 2;

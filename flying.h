@@ -1,23 +1,24 @@
 #pragma once
 
+#include <stdint.h>
 struct flying_platform {
-  short X;
-  short Y;
+  int16_t X;
+  int16_t Y;
 
-  short Width; // char ???
+  int16_t Width; // char ???
 
   // char Active;
-  short Active;
+  int16_t Active;
 
-  short Data0;
-  short Data1;
-  short Data2;
-  short Data3;
+  int16_t Data0;
+  int16_t Data1;
+  int16_t Data2;
+  int16_t Data3;
 
   // char PlayerOn;
-  short PlayerOn;
+  int16_t PlayerOn;
   //	short DrawMode;
-  unsigned short Sprite;
+  uint16_t Sprite;
 
   void (*Handler)(struct flying_platform *Flying_platform);
 };

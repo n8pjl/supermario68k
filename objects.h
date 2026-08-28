@@ -1,19 +1,20 @@
 #pragma once
 
+#include <stdint.h>
 #define nr_of_objects 10
 
 struct object {
-  short X;
-  short Y;
+  int16_t X;
+  int16_t Y;
 
   /*	char Data0;
           char Data1;
           char Data2;
           char Active;*/
-  short Data0;
-  short Data1;
-  short Data2;
-  short Active;
+  int16_t Data0;
+  int16_t Data1;
+  int16_t Data2;
+  int16_t Active;
   //	void (*Handler)(void *Object);
   void (*Draw)(
       struct object *Object); // the function that draws the spesific object
@@ -50,6 +51,6 @@ void Handle_timed_coinconvert(struct object *Object);
 
 // void Handle_climbing_flower(object* Object);
 
-void Splash(short X, short Y);
+void Splash(int16_t X, int16_t Y);
 
-short Find_free_object();
+int16_t Find_free_object();

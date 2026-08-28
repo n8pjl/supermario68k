@@ -14,16 +14,17 @@
 #include "player.h"
 #include "shells.h"
 #include <limits.h>
+#include <stdint.h>
 #include <string.h>
 
-short BgX, BgY, FgX, FgY; // screen render points (upper left corner of visual
-                          // screen,coordinates in level...)
+int16_t BgX, BgY, FgX, FgY; // screen render points (upper left corner of visual
+                            // screen,coordinates in level...)
 
-short Update_FG;
+int16_t Update_FG;
 
 struct Plane Bg_plane;
 struct AnimatedPlane Fg_plane, Fg_mask, Map_plane;
-unsigned char StatBarHeight;
+uint8_t StatBarHeight;
 // statusbardata Statusbardata;
 
 void *dBufHPL_G, *dBufHPD_G;
@@ -36,34 +37,35 @@ void GrayDBufToggleSync_SetPointers() {
   dBufHPD_G = GrayDBufGetHiddenPlane(DARK_PLANE);
 }
 
-void FilledRectEraseDark(short X1, short Y1, short X2, short Y2) {
+void FilledRectEraseDark(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2) {
   FastFilledRect_Erase_R(dBufHPD_G, X1, Y1, X2, Y2);
 };
 
-void FilledRectEraseLight(short X1, short Y1, short X2, short Y2) {
+void FilledRectEraseLight(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2) {
   FastFilledRect_Erase_R(dBufHPL_G, X1, Y1, X2, Y2);
 };
 
-void FilledRectDark(short X1, short Y1, short X2, short Y2) {
+void FilledRectDark(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2) {
   FastFilledRect_Draw_R(dBufHPD_G, X1, Y1, X2, Y2);
 }
 
-void GrayOutlineRect(short X1, short Y1, short X2, short Y2, short Color) {
+void GrayOutlineRect(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2,
+                     int16_t Color) {
   GrayFastOutlineRect_R(dBufHPL_G, dBufHPD_G, X1, Y1, X2, Y2, Color);
 };
 
-void DrawString(short X, short Y, const char *Str, short Attr, short Font) {
+void DrawString(int16_t X, int16_t Y, const char *Str, int16_t Attr,
+                int16_t Font) {
   DrawGrayStrExt2B(X, Y, Str, Attr, Font, dBufHPL_G, dBufHPD_G);
 }
 
-void DrawSprite16SMASKR(short X, short Y, short H, const unsigned short *sprt0,
-                        const unsigned short *sprt1,
-                        const unsigned short *mask) {
+void DrawSprite16SMASKR(int16_t X, int16_t Y, int16_t H, const uint16_t *sprt0,
+                        const uint16_t *sprt1, const uint16_t *mask) {
   GrayClipSprite16_SMASK_R(X, Y, H, sprt0, sprt1, mask, dBufHPL_G, dBufHPD_G);
 };
 
-void DrawSprite(register short X, register short Y, register short H,
-                const unsigned short *sprt0, short H2) {
+void DrawSprite(register int16_t X, register int16_t Y, register int16_t H,
+                const uint16_t *sprt0, int16_t H2) {
 
   //	GrayClipSprite16_SMASK_R(X-FgX,Y-FgY,H,sprt0,sprt0+H2,sprt0+2*H2,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
   GrayClipSprite16_SMASK_R(X - FgX, Y - FgY, H, sprt0, sprt0 + H2,
@@ -76,15 +78,15 @@ void DrawSprite(register short X, register short Y, register short H,
 const unsigned short *sprt0,const unsigned short *sprt1,const unsigned short
 *mask);*/
 
-void DrawMarioCursor(short X, short Y) {
+void DrawMarioCursor(int16_t X, int16_t Y) {
   // GrayClipSprite16_SMASK_R(X,Y,16,Mariosprites+2*Marioanimtab[1][0],Mariosprites+2*Marioanimtab[1][0]+16,Mariomasks+Marioanimtab[1][0],dBufHPL_G,dBufHPD_G);
   DrawSprite16SMASKR(X, Y, 16, Mariosprites + 2 * Marioanimtab[1][0],
                      Mariosprites + 2 * Marioanimtab[1][0] + 16,
                      Mariomasks + Marioanimtab[1][0]);
 };
 
-void DrawSpriteUpsideDown(register short X, register short Y, register short H,
-                          unsigned short *sprt0, short H2) {
+void DrawSpriteUpsideDown(register int16_t X, register int16_t Y,
+                          register int16_t H, uint16_t *sprt0, int16_t H2) {
 
   //	UpsideDownGrayClipSprite16_MASK_R(X-FgX,Y-FgY,H,sprt0,sprt0+H2,sprt0+2*H2,sprt0+2*H2,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
   UpsideDownGrayClipSprite16_MASK_R(
@@ -111,7 +113,7 @@ short H2){
 *dest0,register void *dest1) __attribute__((__stkparm__));
 */
 
-void DrawBg(short X, short Y) {
+void DrawBg(int16_t X, int16_t Y) {
   DrawGrayPlane(X, Y, &Bg_plane, dBufHPL_G, dBufHPD_G, drawmode_bg,
                 TM_G16B_ROLL);
 };
@@ -138,7 +140,7 @@ void Render() // this function renders all graphics
 
           #endif
   */
-  short C, D;
+  int16_t C, D;
   /*//Those should be valid from previous call to Render(), Render_map() or
   initialization dBufHPL_G = GrayDBufGetHiddenPlane(LIGHT_PLANE); dBufHPD_G =
   GrayDBufGetHiddenPlane(DARK_PLANE);
@@ -176,7 +178,7 @@ void Render() // this function renders all graphics
     Draw_player();
   };
 
-  short Curr_enemy;
+  int16_t Curr_enemy;
   // Draw_enemies(); //put inline for minor speed increase
   for (Curr_enemy = 0; Curr_enemy < Leveldata.Nr_of_enemies; Curr_enemy++) {
 
@@ -262,7 +264,7 @@ void Render() // this function renders all graphics
     if (Flying_platforms[C].Active) {
 
       for (D = 0; D <= (Flying_platforms[C].Width - 1); D++) {
-        short Temp = 0;
+        int16_t Temp = 0;
 
         if (D == 1) {
           Temp = 32;
@@ -281,8 +283,8 @@ void Render() // this function renders all graphics
               Flying_platforms[C].X - FgX + (D) * 16,
               Flying_platforms[C].Y - FgY, 16,
               /*Flying_platforms[C].Sprite+Temp*/
-              (unsigned short *)Fg_plane.p.sprites +
-                  Flying_platforms[C].Sprite * 32 + Temp,
+              (uint16_t *)Fg_plane.p.sprites + Flying_platforms[C].Sprite * 32 +
+                  Temp,
               /*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
               /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
         }
@@ -399,7 +401,7 @@ void Draw_brick_fragments(struct object *Object) {
     Object->Data1--; // high y
   };
 
-  unsigned char *Sprite = brick_fragment_sprite;
+  uint8_t *Sprite = brick_fragment_sprite;
   /*
   GrayClipSprite8_SMASK_R((Object->X-Object->Active)-FgX,(Object->Y-8*Object->Data0)-FgY,8,brick_fragment_sprite,brick_fragment_sprite+8,brick_fragment_sprite+16,dBufHPL_G,dBufHPD_G);
   GrayClipSprite8_SMASK_R((Object->X+Object->Active)-FgX,(Object->Y-8*Object->Data0)-FgY,8,brick_fragment_sprite,brick_fragment_sprite+8,brick_fragment_sprite+16,dBufHPL_G,dBufHPD_G);
@@ -407,10 +409,10 @@ void Draw_brick_fragments(struct object *Object) {
   GrayClipSprite8_SMASK_R((Object->X+Object->Active)-FgX,(Object->Y-8*Object->Data1)-FgY,8,brick_fragment_sprite,brick_fragment_sprite+8,brick_fragment_sprite+16,dBufHPL_G,dBufHPD_G);
   */
 
-  short X1 = (Object->X - Object->Active) - FgX;
-  short X2 = (Object->X + Object->Active) - FgX;
-  short Y1 = (Object->Y - 8 * Object->Data0) - FgY;
-  short Y2 = (Object->Y - 8 * Object->Data1) - FgY;
+  int16_t X1 = (Object->X - Object->Active) - FgX;
+  int16_t X2 = (Object->X + Object->Active) - FgX;
+  int16_t Y1 = (Object->Y - 8 * Object->Data0) - FgY;
+  int16_t Y2 = (Object->Y - 8 * Object->Data1) - FgY;
 
   GrayClipSprite8_SMASK_R(/*(Object->X-Object->Active)-FgX*/ X1,
                           /*(Object->Y-8*Object->Data0)-FgY*/ Y1, 8, Sprite,
@@ -430,7 +432,7 @@ void Draw_killed_fireballs(struct object *Object) {
 
   Object->Active++;
 
-  short Data0 = Object->Data0;
+  int16_t Data0 = Object->Data0;
 
   if (Object->Active == 4) {
     /*Object->*/ Data0 = 16;
@@ -468,7 +470,7 @@ void Draw_elastic_tiles(
     };
   };
 
-  short Xoffset = 0, Yoffset = 0;
+  int16_t Xoffset = 0, Yoffset = 0;
 
   if ((Object->Data2 & 0b10000000)) {
     Yoffset = -8;
@@ -484,11 +486,11 @@ void Draw_elastic_tiles(
   };
 
   // GrayClipSprite16_MASK_R(Object->X-FgX+Xoffset,Object->Y-FgY+Yoffset,16,Sprites+Object->Data1*32,Sprites+Object->Data1*32+16,bbox_note_mask,bbox_note_mask,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
-  GrayClipISprite16_RPLC_R(
-      Object->X - FgX + Xoffset, Object->Y - FgY + Yoffset, 16,
-      (unsigned short *)Fg_plane.p.sprites + Object->Data1 * 32,
-      /*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
-      /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
+  GrayClipISprite16_RPLC_R(Object->X - FgX + Xoffset, Object->Y - FgY + Yoffset,
+                           16,
+                           (uint16_t *)Fg_plane.p.sprites + Object->Data1 * 32,
+                           /*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
+                           /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
 };
 
 void Draw_bb_coin(struct object *Object) {
@@ -496,7 +498,7 @@ void Draw_bb_coin(struct object *Object) {
   // GrayClipSprite16_SMASK_R(Object->X-FgX,Object->Y-FgY-8,Object->Data1,bb_coin_anim_sprite+(2*Object->Data0),bb_coin_anim_sprite+(2*Object->Data0)+Object->Data1,bb_coin_anim_sprite+(2*Object->Data0)+2*Object->Data1,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
   Object->Active--;
 
-  short Y = Object->Y;
+  int16_t Y = Object->Y;
 
   if (Object->Active > 15) {
     /*Object->*/ Y -= 5;
@@ -507,7 +509,7 @@ void Draw_bb_coin(struct object *Object) {
 
   Object->Y = Y;
 
-  short Data0 = Object->Data0;
+  int16_t Data0 = Object->Data0;
 
   if (Object->Active <= 6) {
     if (Object->Active > 3) {
@@ -601,9 +603,9 @@ void Draw_killed_cannonballs(struct object *Object) {
 
 void Draw_splash(struct object *Object) {
 
-  short Data0 = Object->Data0;
-  short Data1 = Object->Data1;
-  short Y = Object->Y;
+  int16_t Data0 = Object->Data0;
+  int16_t Data1 = Object->Data1;
+  int16_t Y = Object->Y;
 
   switch (Object->Active) {
   case 20:
@@ -647,9 +649,9 @@ void Update_statusbar() { // one dummy call neccesarry with all the
   String[2] = ' ';
   String[3] = 0;
   static char Oldcoins = 101;
-  static short Oldlives = 0;
-  static unsigned int OldScore = UINT_MAX;
-  short C;
+  static int16_t Oldlives = 0;
+  static uint16_t OldScore = UINT16_MAX;
+  int16_t C;
 
   if (Oldlives != SavePlayer.Lives) { // Statusbardata.Update_lives
     Oldlives = SavePlayer.Lives;
@@ -695,9 +697,9 @@ void Update_statusbar() { // one dummy call neccesarry with all the
 #ifndef speedtest
   if (OldScore != SavePlayer.Score) {
     OldScore = SavePlayer.Score;
-    short S = SavePlayer.Score;
-    short D = 0;
-    short F = (10000);
+    int16_t S = SavePlayer.Score;
+    int16_t D = 0;
+    int16_t F = (10000);
 
     while (F >= 1) {
 
@@ -769,7 +771,7 @@ void Update_statusbar() { // one dummy call neccesarry with all the
 };
 
 void Draw_statusbar() {
-  short C;
+  int16_t C;
 
   memset(Statusbar, 0, 480);
   /*for(C=0;C<480;C++)
@@ -786,9 +788,9 @@ void Draw_statusbar() {
 };
 
 void Draw_player() {
-  short C;
+  int16_t C;
 
-  short Dest1, Dest2;
+  int16_t Dest1, Dest2;
 
   // the following stuff is animating mario star-mario and wounded mario
   // (flashing) tricking with the grayscale
@@ -886,9 +888,9 @@ void Draw_player() {
 };
 
 void Render_map() {
-  short C, Left, Right, Height;
+  int16_t C, Left, Right, Height;
   //	char String[4];
-  unsigned short *Sprite, *Mask;
+  uint16_t *Sprite, *Mask;
 
   /*	String[0]='x';
           String[2]=' ';
@@ -907,10 +909,10 @@ void Render_map() {
 
   if (Levelsetdata.CurrentWorld ==
       Levelsetdata.Commonfile) { // Warp zone: Find pipe pos and draw numbers
-    short C;
+    int16_t C;
     for (C = 0; C < Map_data.Nr_of_triggers; C++) {
 
-      short NewMap = Map_triggers[C].NewMap + 1; // + 26   + C;;
+      int16_t NewMap = Map_triggers[C].NewMap + 1; // + 26   + C;;
       char String[3];
 
       String[0] = (NewMap < 10 ? ' ' : '0' + NewMap / 10);
@@ -1008,8 +1010,7 @@ void Render_map() {
     for (C = 0; C <= (SavePlayer.CurrCard - 1); C++) {
       GrayClipISprite16_RPLC_R(
           screen_width - 18 * 3 + 1 + 18 * C, screen_height - 16, 16,
-          (unsigned short *)Fg_plane.p.sprites +
-              (79 + SavePlayer.Cards[C]) * 32,
+          (uint16_t *)Fg_plane.p.sprites + (79 + SavePlayer.Cards[C]) * 32,
           /*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
           /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
     };
@@ -1075,7 +1076,7 @@ void Render_map() {
         GrayDBufGetHiddenPlane(Right /*DARK_PLANE*/));
 
     GrayClipISprite16_RPLC_R(50, screen_height - 16, 16,
-                             (unsigned short *)Fg_plane.p.sprites + (4) * 32,
+                             (uint16_t *)Fg_plane.p.sprites + (4) * 32,
                              /*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
                              /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
 
@@ -1083,10 +1084,10 @@ void Render_map() {
     //	while(1);
   } else { // Map_statusbar==itemlist
 
-    Right = min(max(Player.Curr_item + (short)(screen_width / 36),
-                    (short)(screen_width / 18)),
+    Right = min(max(Player.Curr_item + (int16_t)(screen_width / 36),
+                    (int16_t)(screen_width / 18)),
                 itemlist_length);
-    Left = Right - (short)(screen_width / 18);
+    Left = Right - (int16_t)(screen_width / 18);
 
     for (C = Left; C < Right; C++) {
       /*
@@ -1185,9 +1186,9 @@ void Render_map() {
   GrayDBufToggleSync_SetPointers();
 };
 
-void DrawItem(short X, short Y, short Item) {
-  short Height = 16;
-  unsigned short *Sprite;
+void DrawItem(int16_t X, int16_t Y, int16_t Item) {
+  int16_t Height = 16;
+  uint16_t *Sprite;
 
   switch (Item) {
   /*case 0:{

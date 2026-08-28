@@ -9,6 +9,7 @@
 #include "render.h"
 #include "savegame.h"
 #include "scankeys.h"
+#include <stdint.h>
 #include <string.h>
 
 struct settings Settings;
@@ -23,9 +24,9 @@ inline void Custom() {
     // handle midgame menu
 
     char OldBg = Leveldata.Background;
-    short OldBg_offset = Leveldata.Bg_offset;
+    int16_t OldBg_offset = Leveldata.Bg_offset;
 
-    /*char*/ short Res = doMenu(Texts + GameTextData.MidGameLevel, 2);
+    /*char*/ int16_t Res = doMenu(Texts + GameTextData.MidGameLevel, 2);
 
     SetBg(OldBg /*,Bg_file_sym->handle*/);
     Leveldata.Bg_offset = OldBg_offset;
@@ -82,9 +83,9 @@ void Key_configure() {
 
   SetBg(0);
 
-  short Curr = 0;
+  int16_t Curr = 0;
 
-  short Back = 0;
+  int16_t Back = 0;
 
   while (!Back) {
 
@@ -96,7 +97,7 @@ void Key_configure() {
     // DrawGrayStrExt2B(20,5,Txt,A_NORMAL|A_SHADOWED,F_8x10,dBufHPL_G,dBufHPD_G);
     DrawString(20, 5, Txt, A_NORMAL | A_SHADOWED, F_8x10);
 
-    short C, Next = 0;
+    int16_t C, Next = 0;
     for (C = 0; C < 2; C++) {
       Txt += strlen(Txt) + 1;
       // DrawGrayStrExt2B(30,25+C*16,Txt,A_NORMAL|A_SHADOWED,F_6x8,dBufHPL_G,dBufHPD_G);
@@ -179,22 +180,22 @@ void Load_settings() {
   HANDLE Conf;
 
 #ifdef PRODUCE_TI89_CODE
-  const short DefJump = 0, DefRun = 2;
+  const int16_t DefJump = 0, DefRun = 2;
 #endif
 #ifdef PRODUCE_TI92PLUS_CODE
-  const short DefJump = 1, DefRun = 2;
+  const int16_t DefJump = 1, DefRun = 2;
 #endif
 #ifdef PRODUCE_V200_CODE
-  const short DefJump = 0, DefRun = 1;
+  const int16_t DefJump = 0, DefRun = 1;
 #endif
 
   Settings.Keys[0] = DefJump;
   Settings.Keys[1] = DefRun;
 
   if ((Conf = File_get_pointer_and_lock("mario\\maconfig")) != H_NULL) {
-    const unsigned char *Raw = HeapDeref(Conf);
+    const uint8_t *Raw = HeapDeref(Conf);
     // Blobs carry a 2-byte big-endian payload size ahead of the data.
-    if (Raw && ((Raw[0] << 8) | Raw[1]) >= (short)sizeof(struct settings)) {
+    if (Raw && ((Raw[0] << 8) | Raw[1]) >= (int16_t)sizeof(struct settings)) {
       memcpy(&Settings, Raw + 2, sizeof(struct settings));
     }
   }
@@ -202,7 +203,7 @@ void Load_settings() {
   // The slots are indices into a 4-entry per-model key table that Scankeys()
   // reads without bounds-checking. Reject a corrupt or foreign config rather
   // than let it point jump/run at garbage.
-  for (short C = 0; C < 2; C++) {
+  for (int16_t C = 0; C < 2; C++) {
     if (Settings.Keys[C] < 0 || Settings.Keys[C] > 3) {
       Settings.Keys[0] = DefJump;
       Settings.Keys[1] = DefRun;

@@ -4,6 +4,7 @@
 #include "compat/graph.h"
 #include "gfx.h"
 #include "scankeys.h"
+#include <stdint.h>
 
 void Errorhandler(char Error) {
 
@@ -44,8 +45,8 @@ void Errorhandler(char Error) {
     break;
   }
 
-  short X = 10;
-  short Y = 30;
+  int16_t X = 10;
+  int16_t Y = 30;
   if ((Error != 1) && (Error != 7)) {
 
     while (*Msg) { // loop until null character found (aka the end of the text)

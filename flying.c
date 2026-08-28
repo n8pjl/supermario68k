@@ -4,12 +4,13 @@
 #include "player.h"
 #include "render.h"
 #include "shells.h"
+#include <stdint.h>
 #include <stdlib.h>
 
 struct flying_platform *Flying_platforms;
 
 inline void Handle_flying_platforms() {
-  short C;
+  int16_t C;
 
   for (C = 0; C < Leveldata.Nr_of_flying_platforms; C++) {
 

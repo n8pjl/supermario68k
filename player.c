@@ -8,6 +8,7 @@
 #include "render.h"
 #include "scankeys.h"
 #include "smallgames.h"
+#include <stdint.h>
 #include <string.h>
 
 struct player Player;
@@ -83,7 +84,7 @@ finished... Pipe_left_handler,Dummy_func,//104-105
         Dummy_func,Dummy_func,Dummy_func,Dummy_func,Dummy_func//156-160
 };
 */
-void (*Interactive_tile_handlers[47])(short X, short Y) = {
+void (*Interactive_tile_handlers[47])(int16_t X, int16_t Y) = {
     // will be fewer when finished...
     Pipe_left_handler, // 113
     Wood_block_pu2_handler, Dummy_func, Dummy_func,
@@ -106,7 +107,7 @@ void (*Interactive_tile_handlers[47])(short X, short Y) = {
     Dummy_func, Dummy_func, Dummy_func, Dummy_func, Dummy_func, Dummy_func //
 };
 
-void (*Interactive_non_solid_tile_handlers[21])(short X, short Y) = {
+void (*Interactive_non_solid_tile_handlers[21])(int16_t X, int16_t Y) = {
     Quicksand_handler,
     Quicksand_handler,
     Ladder_handler,
@@ -136,26 +137,26 @@ void (*Bonushandlers[15])( short X, short Y)={
 };
 */
 
-void (*Bonushandlers[20])(short X, short Y) = {Player_collect_coin,
-                                               Player_collect_flower,
-                                               Handle_treasure_all,
-                                               Handle_treasure_all,
-                                               Handle_treasure_all,
-                                               Handle_treasure_all,
-                                               Handle_treasure_all,
-                                               Player_collect_flower,
-                                               Player_collect_coin_water,
-                                               Levelend_handler,
-                                               Handle_treasure_all,
-                                               Handle_treasure_all,
-                                               Dummy_func,
-                                               Dummy_func,
-                                               Dummy_func,
-                                               Dummy_func,
-                                               Dummy_func,
-                                               Dummy_func,
-                                               Dummy_func,
-                                               Dummy_func};
+void (*Bonushandlers[20])(int16_t X, int16_t Y) = {Player_collect_coin,
+                                                   Player_collect_flower,
+                                                   Handle_treasure_all,
+                                                   Handle_treasure_all,
+                                                   Handle_treasure_all,
+                                                   Handle_treasure_all,
+                                                   Handle_treasure_all,
+                                                   Player_collect_flower,
+                                                   Player_collect_coin_water,
+                                                   Levelend_handler,
+                                                   Handle_treasure_all,
+                                                   Handle_treasure_all,
+                                                   Dummy_func,
+                                                   Dummy_func,
+                                                   Dummy_func,
+                                                   Dummy_func,
+                                                   Dummy_func,
+                                                   Dummy_func,
+                                                   Dummy_func,
+                                                   Dummy_func};
 
 // unsigned short Mariosprites[];		//will be fetched from graphics
 // file in Loadgfx() unsigned short Mariomasks[];			//will
@@ -257,7 +258,7 @@ Player.Itemlist[19]=3;
   if (Exit == 99) {
     // memset(&SavePlayer.Itemlist,7,itemlist_length);//fill with p-wings if
     // bowser defeated
-    short C;
+    int16_t C;
     for (C = 0; C < itemlist_length; C++) {
       SavePlayer.Itemlist[C] = 7;
     }
@@ -265,7 +266,7 @@ Player.Itemlist[19]=3;
 
   //	memset(CardGame,0,18);//reset cardgame: this is neccessarry when
   // starting a new game a second time without exiting the program
-  short C;
+  int16_t C;
   for (C = 0; C < 18; C++) {
     *(CardGame + C) = 0;
   }
@@ -274,11 +275,11 @@ Player.Itemlist[19]=3;
 // the following functions can be declared as inline for minor speed increase,
 // but size increases
 void Set_player_attribs_right(
-    unsigned char *Attribs) { // sets the player position attributes for the
-                              // current direction (right)
-  unsigned char Val = 16, Temp;
-  short C;
-  short Temp2;
+    uint8_t *Attribs) { // sets the player position attributes for the
+                        // current direction (right)
+  uint8_t Val = 16, Temp;
+  int16_t C;
+  int16_t Temp2;
 
   Player.SlopeDownUnder = 0;
 
@@ -391,10 +392,10 @@ void Set_player_attribs_right(
    */
 }
 
-void Set_player_attribs_left(unsigned char *Attribs) {
-  unsigned char Val = 16, Temp; //,Temp2,Temp3,FL,FM,FH
-  short C;
-  short Temp2;
+void Set_player_attribs_left(uint8_t *Attribs) {
+  uint8_t Val = 16, Temp; //,Temp2,Temp3,FL,FM,FH
+  int16_t C;
+  int16_t Temp2;
 
   Player.SlopeDownUnder = 0;
 
@@ -499,10 +500,10 @@ void Set_player_attribs_left(unsigned char *Attribs) {
   Attribs[5] = Val;
 }
 
-void Set_player_attribs_up(unsigned char *Attribs) {
-  unsigned char Val = 16;
-  short C;
-  short Temp;
+void Set_player_attribs_up(uint8_t *Attribs) {
+  uint8_t Val = 16;
+  int16_t C;
+  int16_t Temp;
 
   // Attribs[0] = (Player.Y)%16;
   // //distance to next tile up
@@ -558,8 +559,8 @@ void Set_player_attribs_up(unsigned char *Attribs) {
       Temp = ((Player.Y) -
               (Flying_platforms[C].Y + 16 /*+Flying_platforms[C].Data3*/)); //-1
 
-      if (((Temp) >= 0) && (Temp <= (short)Val)) {
-        Val = (unsigned char)Temp;
+      if (((Temp) >= 0) && (Temp <= (int16_t)Val)) {
+        Val = (uint8_t)Temp;
 
         if (((Temp - Flying_platforms[C].Data3) <=
              Player.Jumpspeed) /*&& (Flying_platforms[C].Data3>0)*/) {
@@ -572,10 +573,10 @@ void Set_player_attribs_up(unsigned char *Attribs) {
   Attribs[5] = Val;
 }
 
-void Set_player_attribs_down(unsigned char *Attribs) {
-  unsigned char Val = 16;
-  short C;
-  short Temp;
+void Set_player_attribs_down(uint8_t *Attribs) {
+  uint8_t Val = 16;
+  int16_t C;
+  int16_t Temp;
 
   Attribs[0] =
       15 - (Player.Y + Player.Height - 1) % 16; // distance to next tile down
@@ -635,8 +636,8 @@ Attribs[4] = Get_tile(Player.X+15,Player.Y+Player.Height);
 
         Temp = ((Flying_platforms[C].Y) - (Player.Y + Player.Height - 1)); //-1
 
-        if ((Temp >= 0) && (Temp <= (short)Val)) {
-          Val = (unsigned char)Temp;
+        if ((Temp >= 0) && (Temp <= (int16_t)Val)) {
+          Val = (uint8_t)Temp;
 
           if (((Temp + Flying_platforms[C].Data3) <= Player.Fallspeed)) {
             Flying_platforms[C].PlayerOn = 3;
@@ -650,10 +651,10 @@ Attribs[4] = Get_tile(Player.X+15,Player.Y+Player.Height);
 }
 
 inline void Handleplayer() {
-  unsigned char Temp, C, D, Runflag; // runflag is fly code
+  uint8_t Temp, C, D, Runflag; // runflag is fly code
   static char Anim_step;
 
-  unsigned char Attribs[6], Attribs2[6]; // common temporary storage
+  uint8_t Attribs[6], Attribs2[6]; // common temporary storage
 
   if ((Player.Behind_fg > 0) /*&& (!(SavePlayer.Attribs & 0b00010000))*/) {
     Player.Behind_fg--;
@@ -808,7 +809,7 @@ inline void Handleplayer() {
 
     Player.Face = -1;
     if (Player.X >=
-        (Leveldata.Border_left + (unsigned char)Player.Walkspeed)) { // bug?
+        (Leveldata.Border_left + (uint8_t)Player.Walkspeed)) { // bug?
       Set_player_attribs_left(Attribs);
 
       if (Attribs[5] >= Player.Walkspeed) { // enough free space
@@ -1063,7 +1064,7 @@ inline void Handleplayer() {
     // fly code
     Runflag++;
 
-    short White_box = 0;
+    int16_t White_box = 0;
     // test if interactive tile below
     Temp = Get_tile(Player.X, Player.Y + Player.Height);
     if ((Temp >= solid_interactive_up_down_low) &&
@@ -1272,7 +1273,7 @@ void Player_die() {
 
 void Player_die_hard() {
   // New: V 1.04 Increased speed of die animation
-  /*char*/ short Temp = -2;
+  /*char*/ int16_t Temp = -2;
 
   SavePlayer.Spritenr = 9;
 
@@ -1297,7 +1298,7 @@ void Player_die_hard() {
 };
 
 // get the id-numner of the tile in which coordinates x and y is
-unsigned char Get_tile(short X, short Y) {
+uint8_t Get_tile(int16_t X, int16_t Y) {
 
   if ((Y >= 0) && (Y < (Leveldata.Height * 16))) {
     // if( (Y>=0) && (Y<(Leveldata.Height<<4)) ){
@@ -1309,7 +1310,7 @@ unsigned char Get_tile(short X, short Y) {
             // upwards and downwards
 }
 
-void Put_tile(short X, short Y, unsigned char Tile) {
+void Put_tile(int16_t X, int16_t Y, uint8_t Tile) {
 
   /*		if( (X>(Leveldata.Width*16)) && (Y>(Leveldata.Height*16)) )
                           return;*/
@@ -1321,14 +1322,14 @@ void Put_tile(short X, short Y, unsigned char Tile) {
           Fg_mask.p.force_update=1;*/
 }
 
-void Dummy_func(short X, short Y) {
+void Dummy_func(int16_t X, int16_t Y) {
   // Nothing
 }
 
 void Player_add_fireball() { // adds a new fireball if free slot. This func can
                              // be optimized when using only two fireballs at
                              // once
-  unsigned short C;
+  uint16_t C;
   // DrawStr(30,30,"fireball",A_NORMAL);
 
   for (C = 0; C < nr_of_player_smallshots; C++) {
@@ -1347,7 +1348,7 @@ void Player_add_fireball() { // adds a new fireball if free slot. This func can
 };
 
 void Player_handle_fireballs() {
-  short C;
+  int16_t C;
 
   for (C = 0; C < nr_of_player_smallshots; C++) {
 

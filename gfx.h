@@ -1,12 +1,13 @@
 #pragma once
 
+#include <stdint.h>
 #include "compat/utils.h"
 
 // #define blank_sprite Tiles
-#define blank_sprite (unsigned short *)Fg_plane.p.sprites
+#define blank_sprite (uint16_t *)Fg_plane.p.sprites
 // #define black_sprite
 // Tiles+3*32
-#define black_sprite (unsigned short *)Fg_plane.p.sprites + 3 * 32
+#define black_sprite (uint16_t *)Fg_plane.p.sprites + 3 * 32
 //
 //
 #define monster1_sprite Enemysprites
@@ -282,30 +283,30 @@
 // doMenu(...,4) by 4. Slots with no reference in the code keep descriptive
 // names and are listed here only to hold the layout together.
 struct gametextdata {
-  unsigned short main_menu;    // "Main menu:"
-  unsigned short Save;         // "Save game:"
-  unsigned short load_menu;    // "Load game:"
-  unsigned short Options;      // "Options:"
-  unsigned short Statusbar;    // "Statusbar:"      (unused)
-  unsigned short Statusbar2;   // "Statusbar:"      (unused, same offset)
-  unsigned short MidGameMap;   // "Mid-game menu:"  (3 entries, unused)
-  unsigned short MidGameLevel; // "Mid-game menu:"  (2 entries)
-  unsigned short GameOver;     // "Game over:"      (unused)
-  unsigned short Ending1;      // "THANK YOU MARIO, BUT OUR"
-  unsigned short Ending2;      // "PRINCESS IS IN ANOTHER CASTLE!"
-  unsigned short Ending3;
-  unsigned short ThankU1;              // "THANK YOU MARIO!"
-  unsigned short ThankU2;              // "YOU ARE MY HERO!"
-  unsigned short ThankU3;              // "*KISS*"
-  unsigned short MemError;             // "Out of memory!"
-  unsigned short GfXErr;               // "Failed to open GFX file"
-  unsigned short MapError;             // "Could not load map"
-  unsigned short LevelError;           // "Could not load level"
-  unsigned short LevelsetError;        // "No levelset found!"
-  unsigned short GrayError;            // "Grayscale failed"
-  unsigned short LevelSetIncompatible; // "Levelset incompatible"
-  unsigned short OverWrite;            // "Overwrite?"
-  unsigned short KeyConfigTexts;       // "Buttons:"
+  uint16_t main_menu;    // "Main menu:"
+  uint16_t Save;         // "Save game:"
+  uint16_t load_menu;    // "Load game:"
+  uint16_t Options;      // "Options:"
+  uint16_t Statusbar;    // "Statusbar:"      (unused)
+  uint16_t Statusbar2;   // "Statusbar:"      (unused, same offset)
+  uint16_t MidGameMap;   // "Mid-game menu:"  (3 entries, unused)
+  uint16_t MidGameLevel; // "Mid-game menu:"  (2 entries)
+  uint16_t GameOver;     // "Game over:"      (unused)
+  uint16_t Ending1;      // "THANK YOU MARIO, BUT OUR"
+  uint16_t Ending2;      // "PRINCESS IS IN ANOTHER CASTLE!"
+  uint16_t Ending3;
+  uint16_t ThankU1;              // "THANK YOU MARIO!"
+  uint16_t ThankU2;              // "YOU ARE MY HERO!"
+  uint16_t ThankU3;              // "*KISS*"
+  uint16_t MemError;             // "Out of memory!"
+  uint16_t GfXErr;               // "Failed to open GFX file"
+  uint16_t MapError;             // "Could not load map"
+  uint16_t LevelError;           // "Could not load level"
+  uint16_t LevelsetError;        // "No levelset found!"
+  uint16_t GrayError;            // "Grayscale failed"
+  uint16_t LevelSetIncompatible; // "Levelset incompatible"
+  uint16_t OverWrite;            // "Overwrite?"
+  uint16_t KeyConfigTexts;       // "Buttons:"
 };
 
 extern struct gametextdata GameTextData;
@@ -372,18 +373,18 @@ extern short *Fg_animations;
 extern short *Fg_mask_animations;
 extern short *Map_animations;
 */
-extern unsigned short *Mariosprites;
-extern unsigned short *Mariomasks;
-extern short (*Marioanimtab)[11];
-extern unsigned short *Enemysprites;
+extern uint16_t *Mariosprites;
+extern uint16_t *Mariomasks;
+extern int16_t (*Marioanimtab)[11];
+extern uint16_t *Enemysprites;
 // extern unsigned short *Enemymasks;
-extern unsigned char *Smallsprites;
+extern uint8_t *Smallsprites;
 // extern unsigned char  *Smallmasks;
-extern unsigned short *Sprites;
+extern uint16_t *Sprites;
 // extern unsigned short *Masks;
-extern unsigned short *Boss_sprites;
+extern uint16_t *Boss_sprites;
 // extern unsigned short *Boss_masks;
 // extern unsigned short *Itemsprites;
 // extern unsigned short *Itemmasks;
 
-short Load_gfx_from_file();
+int16_t Load_gfx_from_file();

@@ -13,6 +13,7 @@
 #include "render.h"
 #include "scankeys.h"
 #include "shells.h"
+#include <stdint.h>
 #include <stdlib.h>
 
 struct item *Items;
@@ -20,7 +21,7 @@ struct item *Items;
 struct trigger *Triggers;
 
 inline void Handleitems() {
-  short C, D;
+  int16_t C, D;
 
   for (C = 0; C < nr_of_items; C++) {
     if (Items[C].Active) { // if existing
@@ -56,7 +57,7 @@ inline void Handleitems() {
   };
 };
 
-void Dark_gray_magic_mode_handler(short X, short Y) {
+void Dark_gray_magic_mode_handler(int16_t X, int16_t Y) {
 
   if (Player.Behind_fg) {
     Leveldata.Condition = 240;
@@ -64,7 +65,7 @@ void Dark_gray_magic_mode_handler(short X, short Y) {
   }
 }
 
-void White_magic_box_handler(short X, short Y) {
+void White_magic_box_handler(int16_t X, int16_t Y) {
 
   if (Keystate.Down) {
     if ((++Player.White_magic_box_counter) == 100) {
@@ -78,12 +79,12 @@ void White_magic_box_handler(short X, short Y) {
   }
 };
 
-void Player_collect_bonus(short X, short Y) {
+void Player_collect_bonus(int16_t X, int16_t Y) {
 
   Bonushandlers[Get_tile(X, Y) - non_solid_bonus_low](X, Y);
 }
 
-void Player_get_coin(short X, short Y) {
+void Player_get_coin(int16_t X, int16_t Y) {
 
   if ((++SavePlayer.Coins) == 100) {
     SavePlayer.Coins = 0;
@@ -93,22 +94,22 @@ void Player_get_coin(short X, short Y) {
   SavePlayer.Score++;
 };
 
-void Player_collect_coin(short X, short Y) {
+void Player_collect_coin(int16_t X, int16_t Y) {
 
   Player_get_coin(X, Y);
 
   Put_tile(X, Y, 0);
 }
 
-void Player_collect_coin_water(short X, short Y) {
+void Player_collect_coin_water(int16_t X, int16_t Y) {
 
   Player_get_coin(X, Y);
 
   Put_tile(X, Y, water);
 }
 
-void Player_collect_flower(short X, short Y) {
-  unsigned char Temp;
+void Player_collect_flower(int16_t X, int16_t Y) {
+  uint8_t Temp;
 
   if (SavePlayer.Life == 1) {
 
@@ -145,8 +146,8 @@ void Player_collect_flower(short X, short Y) {
   Put_tile(X, Y, Temp);
 }
 
-void Trigger_pow_item(short X, short Y) {
-  short C;
+void Trigger_pow_item(int16_t X, int16_t Y) {
+  int16_t C;
 
   Put_tile(X, Y, pow_item_after);
 
@@ -162,11 +163,11 @@ void Trigger_pow_item(short X, short Y) {
 };
 
 void Convert_brick_coin() {
-  unsigned short C;
+  uint16_t C;
 
   for (C = 0; C < (Fg_plane.p.width * Leveldata.Height); C++) {
-    if ((*((unsigned char *)(Fg_plane.p.matrix + C)) == brick) ||
-        (*((unsigned char *)(Fg_plane.p.matrix + C)) == bounching_brick)) {
+    if ((*((uint8_t *)(Fg_plane.p.matrix + C)) == brick) ||
+        (*((uint8_t *)(Fg_plane.p.matrix + C)) == bounching_brick)) {
       *((char *)(Fg_plane.p.matrix + C)) = coin;
     } else {
       if (*((char *)(Fg_plane.p.matrix + C)) == coin) {
@@ -176,23 +177,23 @@ void Convert_brick_coin() {
   };
 };
 
-void Pipe_down_left_handler(short X, short Y) {
+void Pipe_down_left_handler(int16_t X, int16_t Y) {
   /*if( Player.X >= ((X/16)*16) )
           Pipe_down_handler( (X/16) ,(Y/16) );*/
-  if (Player.X >= (short)(X & 0xfff0)) // same as above, but optimized
+  if (Player.X >= (int16_t)(X & 0xfff0)) // same as above, but optimized
     Pipe_down_handler((X >> 4), (Y >> 4));
 };
 
-void Pipe_down_right_handler(short X, short Y) {
+void Pipe_down_right_handler(int16_t X, int16_t Y) {
   /*if( Player.X <= ((X/16)*16) )
           Pipe_down_handler( (X/16)-1 ,(Y/16) );*/
-  if (Player.X <= (short)(X & 0xfff0)) // same as above, but optimized
+  if (Player.X <= (int16_t)(X & 0xfff0)) // same as above, but optimized
     Pipe_down_handler((X >> 4) - 1, (Y >> 4));
 };
 
-void Pipe_down_handler(short X, short Y) {
-  /*char*/ short Height = Player.Height;
-  short C;
+void Pipe_down_handler(int16_t X, int16_t Y) {
+  /*char*/ int16_t Height = Player.Height;
+  int16_t C;
 
   if (Keystate.Down) {
 
@@ -210,24 +211,24 @@ void Pipe_down_handler(short X, short Y) {
   };
 };
 
-void Pipe_up_left_handler(short X, short Y) {
+void Pipe_up_left_handler(int16_t X, int16_t Y) {
   /*if( Player.X >= ((X/16)*16) )
           Pipe_up_handler( (X/16) ,(Y/16) );*/
-  if (Player.X >= (short)(X & 0xfff0)) // same as above, but optimized
+  if (Player.X >= (int16_t)(X & 0xfff0)) // same as above, but optimized
     Pipe_up_handler((X >> 4), (Y >> 4));
 };
 
-void Pipe_up_right_handler(short X, short Y) {
+void Pipe_up_right_handler(int16_t X, int16_t Y) {
   /*if( Player.X <= ((X/16)*16) )
           Pipe_up_handler( (X/16)-1 ,(Y/16) );*/
-  if (Player.X <= (short)(X & 0xfff0)) // same as above, but optimized
+  if (Player.X <= (int16_t)(X & 0xfff0)) // same as above, but optimized
     Pipe_up_handler((X >> 4) - 1, (Y >> 4));
 };
 
-void Pipe_up_handler(short X, short Y) {
-  short C;
+void Pipe_up_handler(int16_t X, int16_t Y) {
+  int16_t C;
 
-  short Height = Player.Height;
+  int16_t Height = Player.Height;
 
   if (Keystate.Up) {
 
@@ -248,13 +249,13 @@ void Pipe_up_handler(short X, short Y) {
   };
 };
 
-void Pipe_right_handler(short X, short Y) {
-  short C;
+void Pipe_right_handler(int16_t X, int16_t Y) {
+  int16_t C;
 
   // if( ((Player.Y+Player.Height) <= ((Y/16)*16+16)) &&
   // (Player.Y>=((Y/16)*16-16)) ){
-  if (((Player.Y + Player.Height) <= ((short)(Y & 0xfff0) + 16)) &&
-      (Player.Y >= ((short)(Y & 0xfff0) - 16))) {
+  if (((Player.Y + Player.Height) <= ((int16_t)(Y & 0xfff0) + 16)) &&
+      (Player.Y >= ((int16_t)(Y & 0xfff0) - 16))) {
     if (Keystate.Right) {
 
       // animate
@@ -280,13 +281,13 @@ void Pipe_right_handler(short X, short Y) {
   };
 };
 
-void Pipe_left_handler(short X, short Y) {
-  short C;
+void Pipe_left_handler(int16_t X, int16_t Y) {
+  int16_t C;
 
   // if( ((Player.Y+Player.Height) <= ((Y/16)*16+16)) &&
   // (Player.Y>=((Y/16)*16-16)) ){
-  if (((Player.Y + Player.Height) <= ((short)(Y & 0xfff0) + 16)) &&
-      (Player.Y >= ((short)(Y & 0xfff0) - 16))) {
+  if (((Player.Y + Player.Height) <= ((int16_t)(Y & 0xfff0) + 16)) &&
+      (Player.Y >= ((int16_t)(Y & 0xfff0) - 16))) {
     if (Keystate.Left) {
 
       // animate
@@ -312,8 +313,8 @@ void Pipe_left_handler(short X, short Y) {
   };
 };
 
-void Add_break_brick_anim(short X, short Y) {
-  short C;
+void Add_break_brick_anim(int16_t X, int16_t Y) {
+  int16_t C;
 
   if ((C = Find_free_object()) != -1) {
     Objects[C].Active = 1;
@@ -326,12 +327,12 @@ void Add_break_brick_anim(short X, short Y) {
   };
 }
 
-void Break_brick(short X, short Y) {
-  short C;
+void Break_brick(int16_t X, int16_t Y) {
+  int16_t C;
 
   // if((Player.Life==1) && (Player.Y==((Y/16)*16+16)) ){
-  if ((SavePlayer.Life == 1) && (Player.Y == ((short)(Y & 0xfff0) + 16)) &&
-      (abs(Player.X - (short)(X & 0xfff0)) <= 16)) {
+  if ((SavePlayer.Life == 1) && (Player.Y == ((int16_t)(Y & 0xfff0) + 16)) &&
+      (abs(Player.X - (int16_t)(X & 0xfff0)) <= 16)) {
     Elastic_tile_animate(X, Y, brick, 0b10000000, 20); // 4
     Put_tile(X, Y, bounching_brick);
   } else { // break
@@ -343,8 +344,8 @@ void Break_brick(short X, short Y) {
   };
 };
 
-void Falling_block_handler(short X, short Y) {
-  short C;
+void Falling_block_handler(int16_t X, int16_t Y) {
+  int16_t C;
 
   for (C = 0; C < nr_of_dummy_platforms; C++) {
     if (!Flying_platforms[C].Active) { // find free dummy platform
@@ -367,14 +368,14 @@ void Falling_block_handler(short X, short Y) {
   };
 }
 
-void Brick_hidden_coins(short X, short Y) {
+void Brick_hidden_coins(int16_t X, int16_t Y) {
   //*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16)) ) =
   // bonusbox_8_coins;
   Put_tile(X, Y, bonusbox_8_coins);
   Bonus_box_coins(X, Y);
 };
 
-void Bonus_box_coin(short X, short Y) {
+void Bonus_box_coin(int16_t X, int16_t Y) {
 
   // Player_get_coin(X,Y);
 
@@ -383,7 +384,7 @@ void Bonus_box_coin(short X, short Y) {
   Bonusbox_coin_animate(X, Y);
 };
 
-void Bonus_box_coins(short X, short Y) {
+void Bonus_box_coins(int16_t X, int16_t Y) {
 
   // Player_get_coin(X,Y);
 
@@ -399,7 +400,7 @@ void Bonus_box_coins(short X, short Y) {
   Bonusbox_coin_animate(X, Y);
 };
 
-void Bonus_box_powerup_1(short X, short Y) {
+void Bonus_box_powerup_1(int16_t X, int16_t Y) {
 
   // Add_power_up_1(16*(X/16),16*(Y/16));
   Add_power_up_1(X & 0xfff0, Y & 0xfff0);
@@ -407,7 +408,7 @@ void Bonus_box_powerup_1(short X, short Y) {
   Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
 };
 
-void Bonus_box_powerup_2(short X, short Y) {
+void Bonus_box_powerup_2(int16_t X, int16_t Y) {
 
   // Add_power_up_2(16*(X/16),16*(Y/16)-2,2);
   Add_power_up_2(X & 0xfff0, (Y & 0xfff0) - 2, 2);
@@ -415,8 +416,8 @@ void Bonus_box_powerup_2(short X, short Y) {
   Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
 };
 
-void Bonus_box_1up(short X, short Y) {
-  short C;
+void Bonus_box_1up(int16_t X, int16_t Y) {
+  int16_t C;
   X = (X & 0xfff0);
 
   if ((C = Find_free_item()) != -1) {
@@ -436,7 +437,7 @@ void Bonus_box_1up(short X, short Y) {
   Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
 };
 
-void Bonus_box_pow(short X, short Y) {
+void Bonus_box_pow(int16_t X, int16_t Y) {
 
   //*( (char*)(Fg_plane.p.matrix+((Y/16)-1)*Fg_plane.p.width+(X/16)) )=pow_item;
   //*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16))
@@ -445,8 +446,8 @@ void Bonus_box_pow(short X, short Y) {
   Put_tile(X, Y, bonusbox_after);
 };
 
-void Bonus_box_star(short X, short Y) {
-  short C;
+void Bonus_box_star(int16_t X, int16_t Y) {
+  int16_t C;
   X = (X & 0xfff0);
 
   if ((C = Find_free_item()) != -1) {
@@ -467,8 +468,8 @@ void Bonus_box_star(short X, short Y) {
   Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
 };
 
-void Bonus_box_climbing_flower(short X, short Y) {
-  short C;
+void Bonus_box_climbing_flower(int16_t X, int16_t Y) {
+  int16_t C;
 
   if ((C = Find_free_object()) ==
       -1) { // if no free slots, use the first slot, which has been occupied for
@@ -491,11 +492,11 @@ void Bonus_box_climbing_flower(short X, short Y) {
   Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
 };
 
-void Note_handler(short X, short Y) {
+void Note_handler(int16_t X, int16_t Y) {
   char Temp;
   char Yoffset;
 
-  if (/*(16*(Y/16))*/ (short)(Y & 0xfff0) < Player.Y) {
+  if (/*(16*(Y/16))*/ (int16_t)(Y & 0xfff0) < Player.Y) {
     /*Player.*/ Yoffset = 3; // 5
     Player.Fallspeed = 2;    // 5
     Temp = 0b10000000;
@@ -514,12 +515,12 @@ void Note_handler(short X, short Y) {
   Elastic_tile_animate(X, Y, note, Temp, 17); // 1
 };
 
-void Pu_2_note_handler(short X, short Y) {
+void Pu_2_note_handler(int16_t X, int16_t Y) {
   char Temp;
   char Yoffset;
 
   // if( (16*(Y/16)) < Player.Y){
-  if ((short)(Y & 0xfff0) < Player.Y) {
+  if ((int16_t)(Y & 0xfff0) < Player.Y) {
     /*Player.*/ Yoffset = 3; // 5
     Player.Fallspeed = 2;    // 5
     Temp = 0b10000000;
@@ -542,14 +543,14 @@ void Pu_2_note_handler(short X, short Y) {
   Elastic_tile_animate(X, Y, note, Temp, 17); // 1
 };
 
-void Dark_note_handler(short X, short Y) {
+void Dark_note_handler(int16_t X, int16_t Y) {
   char Temp;
   char Yoffset;
 
   Player.IsJumping = Player.Max_jumpheight;
 
   // if( (16*(Y/16)) < Player.Y){
-  if ((short)(Y & 0xfff0) < Player.Y) {
+  if ((int16_t)(Y & 0xfff0) < Player.Y) {
     /*Player.*/ Yoffset = 3; // 5;
     Player.Fallspeed = 2;    // 5;
     Temp = 0b10000000;
@@ -560,8 +561,8 @@ void Dark_note_handler(short X, short Y) {
     // if(Keystate.Jump && (Player.X>=((X/16)*16-2)) &&
     // (Player.X<=((X/16)*16+2)) ){
     X = X & 0xfff0;
-    if (Keystate.Jump && (Player.X >= ((short)(X /*&0xfff0*/) - 2)) &&
-        (Player.X <= ((short)(X /*&0xfff0*/) + 2))) {
+    if (Keystate.Jump && (Player.X >= ((int16_t)(X /*&0xfff0*/) - 2)) &&
+        (Player.X <= ((int16_t)(X /*&0xfff0*/) + 2))) {
       // animate
       SavePlayer.Spritenr = 7;
       while (Player.Y >= 0) {
@@ -582,15 +583,15 @@ void Dark_note_handler(short X, short Y) {
   Elastic_tile_animate(X, Y, note_dark, Temp, 47); // 2
 };
 
-void Wood_block_pu2_handler(short X, short Y) {
-  unsigned char Temp;
+void Wood_block_pu2_handler(int16_t X, int16_t Y) {
+  uint8_t Temp;
 
   X = X & 0xfff0;
   Add_power_up_2((X /*& 0xfff0*/), (Y & 0xfff0) - 2,
                  2); // Add_power_up_2( 16*(X/16), 16*(Y/16)-2, 2);
 
   // if( (Player.X+15)<=((X/16)*16) ){
-  if ((Player.X + 15) <= (short)(X /*&0xfff0*/)) {
+  if ((Player.X + 15) <= (int16_t)(X /*&0xfff0*/)) {
     Temp = 0b00010000;
   } else {
     Temp = 0b00100000;
@@ -598,7 +599,7 @@ void Wood_block_pu2_handler(short X, short Y) {
   Elastic_tile_animate(X, Y, wood_block, Temp, 73); // 3
 };
 
-void Door_handler(short X, short Y) {
+void Door_handler(int16_t X, int16_t Y) {
 
   // X = ((X/16)*16);
   X = X & 0xfff0;
@@ -614,10 +615,10 @@ void Door_handler(short X, short Y) {
   };
 };
 
-short HiddenConditions(short Y) {
+int16_t HiddenConditions(int16_t Y) {
   // using this func instead of repeated code gave a significant size decrease
   if (Player.IsJumping) {
-    if (((short)(Y & 0xfff0)) <= Player.Y) {
+    if (((int16_t)(Y & 0xfff0)) <= Player.Y) {
       Player.Flycount = Player.IsJumping = 0;
       return 1;
     }
@@ -625,7 +626,7 @@ short HiddenConditions(short Y) {
   return 0;
 }
 
-void Hidden_bonusbox_1_coin_handler(short X, short Y) {
+void Hidden_bonusbox_1_coin_handler(int16_t X, int16_t Y) {
 
   /*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
@@ -643,7 +644,7 @@ void Hidden_bonusbox_1_coin_handler(short X, short Y) {
   }
 };
 
-void Hidden_bonusbox_8_coins_handler(short X, short Y) {
+void Hidden_bonusbox_8_coins_handler(int16_t X, int16_t Y) {
 
   /*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
@@ -664,7 +665,7 @@ void Hidden_bonusbox_8_coins_handler(short X, short Y) {
   }
 };
 
-void Hidden_bonusbox_1_up_handler(short X, short Y) {
+void Hidden_bonusbox_1_up_handler(int16_t X, int16_t Y) {
 
   /*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
@@ -682,7 +683,7 @@ void Hidden_bonusbox_1_up_handler(short X, short Y) {
   }
 };
 
-void Hidden_bonusbox_pu_1_handler(short X, short Y) {
+void Hidden_bonusbox_pu_1_handler(int16_t X, int16_t Y) {
 
   /*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
@@ -699,7 +700,7 @@ void Hidden_bonusbox_pu_1_handler(short X, short Y) {
   }
 };
 
-void Hidden_bonusbox_pu_2_handler(short X, short Y) {
+void Hidden_bonusbox_pu_2_handler(int16_t X, int16_t Y) {
 
   /*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
@@ -716,7 +717,7 @@ void Hidden_bonusbox_pu_2_handler(short X, short Y) {
   }
 };
 
-void Hidden_bonusbox_pow_handler(short X, short Y) {
+void Hidden_bonusbox_pow_handler(int16_t X, int16_t Y) {
 
   /*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
@@ -733,7 +734,7 @@ void Hidden_bonusbox_pow_handler(short X, short Y) {
   }
 };
 
-void Hidden_note_handler(short X, short Y) {
+void Hidden_note_handler(int16_t X, int16_t Y) {
 
   /*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
@@ -753,7 +754,7 @@ void Hidden_note_handler(short X, short Y) {
   }
 };
 
-void Hidden_dark_note_handler(short X, short Y) {
+void Hidden_dark_note_handler(int16_t X, int16_t Y) {
 
   /*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
@@ -773,9 +774,9 @@ void Hidden_dark_note_handler(short X, short Y) {
   }
 };
 
-void Ladder_handler(short X, short Y) {
+void Ladder_handler(int16_t X, int16_t Y) {
 
-  if (abs((Player.X) - (short)(X & 0xfff0)) <= 6) {
+  if (abs((Player.X) - (int16_t)(X & 0xfff0)) <= 6) {
 
     if (Keystate.Up || Player.IsClimbing) {
 
@@ -795,7 +796,7 @@ void Ladder_handler(short X, short Y) {
   };
 };
 
-void Quicksand_handler(short X, short Y) {
+void Quicksand_handler(int16_t X, int16_t Y) {
 
   if (!Player.IsInQsand) {
 
@@ -812,15 +813,15 @@ void Quicksand_handler(short X, short Y) {
   };
 };
 
-void Lava_handler(short X, short Y) {
+void Lava_handler(int16_t X, int16_t Y) {
 
   Water_handler(X, Y); // let the player swim through lava if he is immortal
 
   Player_die();
 };
 
-void Water_handler(short X, short Y) { // optimize!!!!!!!!!!
-  short Temp;
+void Water_handler(int16_t X, int16_t Y) { // optimize!!!!!!!!!!
+  int16_t Temp;
 
   if (!Player.IsInWater) {
 
@@ -879,13 +880,13 @@ void Water_handler(short X, short Y) { // optimize!!!!!!!!!!
 
 // Optimize
 
-void Water_surface_handler(short X, short Y) {
+void Water_surface_handler(int16_t X, int16_t Y) {
 
   if ((SavePlayer.Spritenr == 8) /*|| (Player.Spritenr==7)*/) {
     Splash(X, (Y & 0xfff0) - 16 + 9);
   }
 
-  if ((Player.Y) <= ((short)(Y & 0xfff0) + 2)) {
+  if ((Player.Y) <= ((int16_t)(Y & 0xfff0) + 2)) {
     if (Keystate.Jump &&
         (Keystate.Up /*|| !Free_down(Player.X,Player.Y+Player.Height)*/)) {
       Player.Max_jumpheight = 40;
@@ -905,7 +906,7 @@ void Water_surface_handler(short X, short Y) {
 // item handlers
 void Mushrom_handler(
     struct item *Item) { // handles power up mushrom and 1 up mushrom
-  short Temp;
+  int16_t Temp;
 
   if (Item->Height < 16) {
     Item->Height++;
@@ -1008,11 +1009,11 @@ void Dead_boss_handler(struct item *Item) {
 }
 
 void Player_collect_dead_boss(struct item *Item) {
-  unsigned short C; //,E;
+  uint16_t C; //,E;
 
   for (C = 0; C < 20; C++) {
 
-    unsigned short D;
+    uint16_t D;
     if (C % 2) {
 
       //			memset(/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,0xffff,LCD_SIZE);
@@ -1041,8 +1042,8 @@ void Player_collect_dead_boss(struct item *Item) {
 }
 
 void Player_collect_pu_mushrom(struct item *Item) {
-  unsigned char C;
-  unsigned short D;
+  uint8_t C;
+  uint16_t D;
 
   Item->Active = 0;
   Score_anim(Item->X, Item->Y - 8, score_1000);
@@ -1055,9 +1056,9 @@ void Player_collect_pu_mushrom(struct item *Item) {
     SavePlayer.Maskbase = SavePlayer.Spritebase =
         (Player.Face == 1) ? 3 : 2; // set new sprites
 
-    short H;
-    short DY;
-    short DBase;
+    int16_t H;
+    int16_t DY;
+    int16_t DBase;
     for (C = 0; C < 6; C++) {
       Render();
       if (!(C % 2)) {
@@ -1130,8 +1131,8 @@ void Player_collect_leaf(struct item *Item) {
   Add_dustsky(Player.X, Player.Y + 8);
 };
 
-short Free_down(short X, short Y) { // works width 16 objects only
-  /*char*/ short Val = 16;          // char C;
+int16_t Free_down(int16_t X, int16_t Y) { // works width 16 objects only
+  /*char*/ int16_t Val = 16;              // char C;
   // unsigned char Temp1,Temp2;
 
   /*Temp1=Get_tile(X,Y+15);
@@ -1162,7 +1163,7 @@ short Free_down(short X, short Y) { // works width 16 objects only
   return Val;
 }
 
-short Free_up(short X, short Y) { // works width 16 objects only
+int16_t Free_up(int16_t X, int16_t Y) { // works width 16 objects only
   // char C;//Val = 16,
 
   if ((Get_tile(X, Y - 15) >= solid_low) ||
@@ -1173,8 +1174,8 @@ short Free_up(short X, short Y) { // works width 16 objects only
     return 16; // return Val;
 }
 
-short Free_right(short X, short *Y, short Height, char Face) {
-  /*char*/ short Val = 16, C;
+int16_t Free_right(int16_t X, int16_t *Y, int16_t Height, char Face) {
+  /*char*/ int16_t Val = 16, C;
 
   if (((Get_tile(X + 15, *Y + Height - 1) >= slope_under_left_low) &&
        (Get_tile(X + 15, *Y + Height - 1) < slope_under_left_high)) ||
@@ -1195,8 +1196,8 @@ short Free_right(short X, short *Y, short Height, char Face) {
   return Val;
 };
 
-short Free_left(short X, short *Y, short Height, char Face) {
-  /*char*/ short Val = 16, C;
+int16_t Free_left(int16_t X, int16_t *Y, int16_t Height, char Face) {
+  /*char*/ int16_t Val = 16, C;
 
   if (((Get_tile(X, *Y + Height - 1) >= slope_under_right_low) &&
        (Get_tile(X, *Y + Height - 1) <= slope_under_right_high)) ||
@@ -1216,9 +1217,9 @@ short Free_left(short X, short *Y, short Height, char Face) {
   return Val;
 };
 
-void Elastic_tile_animate(short X, short Y, unsigned char After, char Attribs,
-                          unsigned char Spriteoffset) {
-  short C;
+void Elastic_tile_animate(int16_t X, int16_t Y, uint8_t After, char Attribs,
+                          uint8_t Spriteoffset) {
+  int16_t C;
 
   if ((C = Find_free_object()) != -1) {
     Objects[C].Active = elastic_tile_anim_time;
@@ -1243,8 +1244,8 @@ void Elastic_tile_animate(short X, short Y, unsigned char After, char Attribs,
   };
 }
 
-void Bonusbox_coin_animate(short X, short Y) {
-  short C;
+void Bonusbox_coin_animate(int16_t X, int16_t Y) {
+  int16_t C;
 
   if ((C = Find_free_object()) != -1) {
     Objects[C].Active = 25;
@@ -1259,8 +1260,8 @@ void Bonusbox_coin_animate(short X, short Y) {
   Player_get_coin(X, Y);
 };
 
-short Find_free_item() {
-  short C;
+int16_t Find_free_item() {
+  int16_t C;
 
   for (C = 0; C < nr_of_items; C++) {
     if (!(Items[C].Active)) {
@@ -1270,9 +1271,9 @@ short Find_free_item() {
   return -1;
 }
 
-void Add_power_up_1(short X, short Y) {
-  short C;
-  unsigned char Temp;
+void Add_power_up_1(int16_t X, int16_t Y) {
+  int16_t C;
+  uint8_t Temp;
 
   if (SavePlayer.Life == 1) {
 
@@ -1288,8 +1289,8 @@ void Add_power_up_1(short X, short Y) {
   };
 };
 
-void Add_power_up_2(short X, short Y, short Height) {
-  short C;
+void Add_power_up_2(int16_t X, int16_t Y, int16_t Height) {
+  int16_t C;
 
   if (SavePlayer.Life == 1) {
 
@@ -1313,8 +1314,8 @@ void Add_power_up_2(short X, short Y, short Height) {
   };
 };
 
-void Add_pu_mushrom(short X, short Y, short Height) {
-  short C;
+void Add_pu_mushrom(int16_t X, int16_t Y, int16_t Height) {
+  int16_t C;
 
   if ((C = Find_free_item()) != -1) {
     Items[C].X = X;
@@ -1330,8 +1331,8 @@ void Add_pu_mushrom(short X, short Y, short Height) {
   };
 }
 
-void Score_anim(short X, short Y, char Score) {
-  short C;
+void Score_anim(int16_t X, int16_t Y, char Score) {
+  int16_t C;
 
   if ((C = Find_free_object()) != -1) {
     Objects[C].Active = 10;
@@ -1342,7 +1343,7 @@ void Score_anim(short X, short Y, char Score) {
     Objects[C].Draw = Draw_score;
   };
 
-  short S;
+  int16_t S;
   switch (Score) {
   case score_100:
     S = 1; // SavePlayer.Score++;
@@ -1357,8 +1358,8 @@ void Score_anim(short X, short Y, char Score) {
   SavePlayer.Score += S;
 };
 
-void Execute_trigger(short X, short Y) {
-  short C;
+void Execute_trigger(int16_t X, int16_t Y) {
+  int16_t C;
 
   // trigcomp
   for (C = 0; C < Leveldata.Nr_of_triggers; C++) {
@@ -1377,8 +1378,8 @@ void Execute_trigger(short X, short Y) {
   };
 };
 
-void Animate_out_of_wrapper(short T) {
-  short C;
+void Animate_out_of_wrapper(int16_t T) {
+  int16_t C;
 
   // Player.Attribs = Player.Attribs | 0b00010000;//draw player before fg ON
 
@@ -1407,7 +1408,7 @@ void Animate_out_of_wrapper(short T) {
   };
 
   switch (/*Triggers[T].*/ Anim) {
-    short Height;
+    int16_t Height;
   case 0:
     Player.Y -= Player.Height;
     break;
@@ -1700,11 +1701,11 @@ void Handle_treasure_rand( short X, short Y ){
 
 };*/
 
-void Handle_treasure_all(short X, short Y) {
+void Handle_treasure_all(int16_t X, int16_t Y) {
 
-  unsigned char T = Get_tile(X, Y);
-  unsigned char TileAbove = Get_tile(X, Y - 16);
-  unsigned char NewTile = 0;
+  uint8_t T = Get_tile(X, Y);
+  uint8_t TileAbove = Get_tile(X, Y - 16);
+  uint8_t NewTile = 0;
 
   if ((Leveldata.Background == 6) && (Keystate.Run == 0)) // UGLY CODE !
     return; // This makes sure you have to use the "Run" key to open a treasure
@@ -1718,9 +1719,9 @@ void Handle_treasure_all(short X, short Y) {
 
   Put_tile(X, Y, NewTile); // 0
 
-  short Height = 16;
+  int16_t Height = 16;
   //		Items[0].Height = Items[0].Height2 = 16;
-  unsigned short *Sprite;
+  uint16_t *Sprite;
 
   switch (T) {
 
@@ -1800,7 +1801,7 @@ void Handle_treasure_all(short X, short Y) {
   Items[0].Height = Items[0].Height2 = Height;
   // Treasure_anim_end();
   { // put inline for memory optimization: saved  68 bytes
-    short C, H = /*Items[0].*/ Height;
+    int16_t C, H = /*Items[0].*/ Height;
 
     for (C = 0; C < 70; C++) {
 
@@ -1864,7 +1865,7 @@ void Treasure_anim_end(){
 };*/
 
 void Itemlist_add(char Item) {
-  short C;
+  int16_t C;
 
   for (C = 0; ((SavePlayer.Itemlist[C] != 0) && (C < (itemlist_length - 1)));
        C++)
@@ -1874,7 +1875,7 @@ void Itemlist_add(char Item) {
 };
 
 void Itemlist_remove(char Index) {
-  short C;
+  int16_t C;
 
   for (C = Index; C < (itemlist_length - 1);
        C++) { // move all elements one step to the left
@@ -1884,9 +1885,9 @@ void Itemlist_remove(char Index) {
   SavePlayer.Itemlist[itemlist_length - 1] = 0; // last slot must be empty
 };
 
-void Levelend_handler(short X, short Y) {
-  short C;
-  short P;
+void Levelend_handler(int16_t X, int16_t Y) {
+  int16_t C;
+  int16_t P;
 
   X = X & 0xfff0; //(X/16)*16;
   Y = Y & 0xfff0; //(Y/16)*16;
@@ -1895,9 +1896,9 @@ void Levelend_handler(short X, short Y) {
 
   // get card
   char CurrCard = SavePlayer.CurrCard;
-  SavePlayer.Cards[(short)/*SavePlayer.*/ CurrCard] = Fg_plane.step;
-  if (SavePlayer.Cards[(short)/*SavePlayer.*/ CurrCard] == 3)
-    SavePlayer.Cards[(short)/*SavePlayer.*/ CurrCard] = 1;
+  SavePlayer.Cards[(int16_t)/*SavePlayer.*/ CurrCard] = Fg_plane.step;
+  if (SavePlayer.Cards[(int16_t)/*SavePlayer.*/ CurrCard] == 3)
+    SavePlayer.Cards[(int16_t)/*SavePlayer.*/ CurrCard] = 1;
 
   for (C = -1; C < 2; C++) {
     for (P = -1; P < 2; P++)
@@ -1942,15 +1943,15 @@ void Levelend_handler(short X, short Y) {
   // short*)Fg_plane.p.sprites+(79+SavePlayer.Cards[(short)SavePlayer.CurrCard])*32,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
   GrayClipISprite16_RPLC_R(
       screen_width - 60, 28, 16,
-      (unsigned short *)Fg_plane.p.sprites +
-          (79 + SavePlayer.Cards[(short)/*SavePlayer.*/ CurrCard]) * 32,
+      (uint16_t *)Fg_plane.p.sprites +
+          (79 + SavePlayer.Cards[(int16_t)/*SavePlayer.*/ CurrCard]) * 32,
       /*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
       /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
 
   // x up
   if (/*SavePlayer.*/ CurrCard == 2) {
 
-    short Lives;
+    int16_t Lives;
     if ((SavePlayer.Cards[0] == SavePlayer.Cards[1]) &&
         (SavePlayer.Cards[0] == SavePlayer.Cards[2])) { // 3 equal cards? :-D
       /*if(Player.Cards[0]==0){//flower
@@ -2001,8 +2002,7 @@ void Levelend_handler(short X, short Y) {
       // short*)Fg_plane.p.sprites+(79+SavePlayer.Cards[C])*32,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
       GrayClipISprite16_RPLC_R(
           screen_width - 77 + 17 * C, 50, 16,
-          (unsigned short *)Fg_plane.p.sprites +
-              (79 + SavePlayer.Cards[C]) * 32,
+          (uint16_t *)Fg_plane.p.sprites + (79 + SavePlayer.Cards[C]) * 32,
           /*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
           /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
     };
@@ -2019,8 +2019,7 @@ void Levelend_handler(short X, short Y) {
     // GrayClipSprite8_SMASK_R(75,44,15,Smallsprites+P,Smallsprites+P+15,(unsigned
     // char*)blank_sprite,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
     GrayClipSprite8_SMASK_R(screen_width - 85, 44, 15, Smallsprites + P,
-                            Smallsprites + P + 15,
-                            (unsigned char *)blank_sprite,
+                            Smallsprites + P + 15, (uint8_t *)blank_sprite,
                             /*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
                             /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
 
@@ -2045,8 +2044,8 @@ void Levelend_handler(short X, short Y) {
   SavePlayer.CurrCard++;
 };
 
-void Add_dustsky(short X, short Y) {
-  short C;
+void Add_dustsky(int16_t X, int16_t Y) {
+  int16_t C;
 
   if ((C = Find_free_object()) != -1) {
     Objects[C].Active = 1;

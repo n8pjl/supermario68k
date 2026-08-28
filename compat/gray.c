@@ -14,7 +14,7 @@
 // Note for the preprocessor's sake: a top-level comma in an EM_*_JS body would
 // split the macro arguments, since only parentheses are balanced. Keep commas
 // inside parentheses.
-EM_JS(void, pageflip, (const void *rgba, int w, int h), {
+EM_JS(void, pageflip, (const void *rgba, int16_t w, int16_t h), {
 	const canvas = Module.canvas;
 
 	// The canvas is sized from here rather than from the page, so the shell
@@ -55,9 +55,9 @@ EM_ASYNC_JS(void, pageflip_wait, (void), {
 	globalThis.__smPrevFrame = now - (elapsed % period);
 });
 
-void DelayNFrames(unsigned int frames)
+void DelayNFrames(uint16_t frames)
 {
-	for (int i = 0; i < frames; i++)
+	for (int16_t i = 0; i < frames; i++)
 		pageflip_wait();
 }
 
@@ -72,12 +72,12 @@ static bool dbuf_buf_no;
 static uint8_t renderbuf[LCD_HEIGHT][LCD_WIDTH][4];
 static void render(uint8_t *restrict light, uint8_t *restrict dark)
 {
-	for (int y = 0; y < LCD_HEIGHT; y++) {
-		for (int bx = 0; bx < LCD_LINE_BYTES; bx++) {
+	for (int16_t y = 0; y < LCD_HEIGHT; y++) {
+		for (int16_t bx = 0; bx < LCD_LINE_BYTES; bx++) {
 			uint8_t l = ~light[y * PLANE_STRIDE + bx];
 			uint8_t d = ~dark[y * PLANE_STRIDE + bx];
 
-			for (int j = 0; j < 8; j++) {
+			for (int16_t j = 0; j < 8; j++) {
 				uint8_t color =
 					(((l >> (7 - j)) & 1) * 0b01010101) |
 					(((d >> (7 - j)) & 1) * 0b10101010);
@@ -107,12 +107,12 @@ void GrayDBufInit(void *buf)
 	dbuf1 = buf;
 }
 
-void *GrayDBufGetActivePlane(short plane)
+void *GrayDBufGetActivePlane(int16_t plane)
 {
 	return dbuf_buf(dbuf_buf_no) + LCD_SIZE * !!plane;
 }
 
-void *GrayDBufGetHiddenPlane(short plane)
+void *GrayDBufGetHiddenPlane(int16_t plane)
 {
 	return dbuf_buf(!dbuf_buf_no) + LCD_SIZE * !!plane;
 }

@@ -6,9 +6,11 @@
 #include "level.h"
 #include "render.h"
 #include "scankeys.h"
+#include <stdint.h>
 
-short Show_titlescreen() { // New: V 1.01 Changed return type from void to short
-  short C, H = 19;
+int16_t
+Show_titlescreen() { // New: V 1.01 Changed return type from void to short
+  int16_t C, H = 19;
 
   // New: V 1.01 Added error check
   if (Load_level(Commonfilename, 7)) {

@@ -1,4 +1,5 @@
 #include "stringcopy.h"
+#include <stdint.h>
 #include <string.h>
 
 // StringCopy copies the string at dest to src, returning the length of the
@@ -7,7 +8,7 @@
 // memory in all these cases, but also in most cases it replaces a single
 // strcpy()
 
-short StringCopy(char *dest, char *src) {
+int16_t StringCopy(char *dest, char *src) {
 
   strcpy(dest, src);
 

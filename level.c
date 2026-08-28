@@ -15,6 +15,7 @@
 #include "rle.h"
 #include "savegame.h"
 #include "shells.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -62,13 +63,13 @@ static void Swap_leveldata(struct leveldata *Data) {
   Data->Spare2 = be16(Data->Spare2);
 }
 
-short Load_level(char *Levelfile, short Level_nr) {
+int16_t Load_level(char *Levelfile, int16_t Level_nr) {
   SYM_ENTRY *Levelfile_sym;
   HANDLE Temp;
   struct levelfiledata *Levelfileinfo;
 
   // char buffer[20];
-  short C, Byte;
+  int16_t C, Byte;
 
   if (!Skip_anim) {
     Enter_level_anim();
@@ -232,7 +233,7 @@ if( !(Temp = Bg_file_sym->handle) )
           return -111;
   */
 
-  SetBg((short)Leveldata.Background /*,Bg_file_sym->handle*/);
+  SetBg((int16_t)Leveldata.Background /*,Bg_file_sym->handle*/);
   /*
   memcpy(&Bg_fileinfo,HeapDeref (Temp)+2,sizeof(bg_filedata));
   memcpy(&Bg_data,HeapDeref
@@ -254,16 +255,16 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 
   // memset(Enemies,0,sizeof(enemy)*Leveldata.Nr_of_enemies);
 
-  short Nr = 0;
-  short NextRaw;
+  int16_t Nr = 0;
+  int16_t NextRaw;
   char Model;
 
-  unsigned char Byte3, Byte4, Byte5;
+  uint8_t Byte3, Byte4, Byte5;
 
-  unsigned short *Sprite;
+  uint16_t *Sprite;
   void *Handler;
   void *Die;
-  unsigned char Attribs;
+  uint8_t Attribs;
   char Face;
   char Life;
 
@@ -271,16 +272,16 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 
     Model = *((char *)Raw);
 
-    Enemies[Nr].X = (*((unsigned char *)Raw + 1)) * 16; // COMMON FOR ALL
-    Enemies[Nr].Y = (*((unsigned char *)Raw + 2)) * 16; // COMMON FOR ALL
+    Enemies[Nr].X = (*((uint8_t *)Raw + 1)) * 16; // COMMON FOR ALL
+    Enemies[Nr].Y = (*((uint8_t *)Raw + 2)) * 16; // COMMON FOR ALL
     Enemies[Nr].Active = 1;
     Enemies[Nr].Mode = 1;
     Enemies[Nr].Life = 1; // keep this, avoids bugs!
     NextRaw = 3;
 
-    Byte3 = (*((unsigned char *)Raw + 3));
-    Byte4 = (*((unsigned char *)Raw + 4));
-    Byte5 = (*((unsigned char *)Raw + 5));
+    Byte3 = (*((uint8_t *)Raw + 3));
+    Byte4 = (*((uint8_t *)Raw + 4));
+    Byte5 = (*((uint8_t *)Raw + 5));
     /*
     Enemies[Nr].Jumping = 0;
     Enemies[Nr].Data0 = Enemies[Nr].Data1 = 0;
@@ -328,7 +329,7 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
             };
     */  		//end of "handler 1 enemies"
 
-    short Height1OK =
+    int16_t Height1OK =
         0; // this tells whether or not Height2 shall be copied to Height
 
     if ((Model <= 20) && (Model > 0)) {
@@ -666,8 +667,7 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
       /*Enemies[Nr].*/ Face = Byte3; //(*((unsigned char*)Raw+3));
       /*Enemies[Nr].*/ Life = Byte4; //(*((unsigned char*)Raw+4));
       Enemies[Nr].Mode = Byte5 * 16; //( (*((unsigned char*)Raw+5)) *16);
-      Enemies[Nr].Data0 = Enemies[Nr].Data1 =
-          ((*((unsigned char *)Raw + 6)) * 16);
+      Enemies[Nr].Data0 = Enemies[Nr].Data1 = ((*((uint8_t *)Raw + 6)) * 16);
       // 			Enemies[Nr].Jumping = 0;//not neccessarry, done
       // in memset
       /*Enemies[Nr].*/ Handler = Enemy_handler_19;
@@ -796,12 +796,9 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 
     if (Model > 0) {
 
-      Flying_platforms[Nr].X =
-          (*((unsigned char *)Raw + 1)) * 16; // COMMON FOR ALL
-      Flying_platforms[Nr].Y =
-          (*((unsigned char *)Raw + 2)) * 16; // COMMON FOR ALL
-      Flying_platforms[Nr].Width =
-          (*((unsigned char *)Raw + 3)); // COMMON FOR ALL
+      Flying_platforms[Nr].X = (*((uint8_t *)Raw + 1)) * 16; // COMMON FOR ALL
+      Flying_platforms[Nr].Y = (*((uint8_t *)Raw + 2)) * 16; // COMMON FOR ALL
+      Flying_platforms[Nr].Width = (*((uint8_t *)Raw + 3));  // COMMON FOR ALL
       Flying_platforms[Nr].Active = 1;
       Flying_platforms[Nr].Sprite = 100; // platform_sprite;
 
@@ -810,7 +807,7 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
       case 11:
       case 12:
 
-        Flying_platforms[Nr].Data0 = (*((unsigned char *)Raw + 4));
+        Flying_platforms[Nr].Data0 = (*((uint8_t *)Raw + 4));
         Flying_platforms[Nr].Data2 = (*((char *)Raw + 5));
         Flying_platforms[Nr].Data3 = (*((char *)Raw + 6));
         Flying_platforms[Nr].Handler = Platform_handler_1;
@@ -899,8 +896,8 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
     // if(Leveldata.Boss){
     Model = *((char *)Raw);
 
-    BossG->X = (*((unsigned char *)Raw + 1)) * 16; // COMMON FOR ALL
-    BossG->Y = (*((unsigned char *)Raw + 2)) * 16; // COMMON FOR ALL
+    BossG->X = (*((uint8_t *)Raw + 1)) * 16; // COMMON FOR ALL
+    BossG->Y = (*((uint8_t *)Raw + 2)) * 16; // COMMON FOR ALL
     BossG->Life = 3;
     BossG->Active = 0;
     BossG->Face = -1;
@@ -908,7 +905,7 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
     BossG->Data0 = 0;
     BossG->Data1 = 0;
 
-    short Height;
+    int16_t Height;
     switch (Model) {
     case boss_1: // Boom boom
 
@@ -980,11 +977,11 @@ Boss_sprites + (long)Boss->Sprite;
   return 0;
 }
 
-short Generate_handler_1_enemy(short Nr, char Model, char Face,
-                               unsigned char D0D1) {
+int16_t Generate_handler_1_enemy(int16_t Nr, char Model, char Face,
+                                 uint8_t D0D1) {
   // All handler_1 enemies is now generated in this func because it is needed in
   // both when loading level and when respawning an enemy
-  short NextRaw = 4;
+  int16_t NextRaw = 4;
 
   Enemies[Nr].Active = 1; // common for all
   Enemies[Nr].Mode = 1;
@@ -1011,10 +1008,10 @@ short Generate_handler_1_enemy(short Nr, char Model, char Face,
     NextRaw = 5; // NextRaw += 1;
   }
 
-  unsigned short *Sprite;
+  uint16_t *Sprite;
   void *Die;
-  unsigned char Attribs = 0b11111001;
-  short Height2 = 16;
+  uint8_t Attribs = 0b11111001;
+  int16_t Height2 = 16;
 
   switch (Model) {
     // start of "handler 1 enemies"
@@ -1081,9 +1078,9 @@ short Generate_handler_1_enemy(short Nr, char Model, char Face,
   return NextRaw;
 }
 
-void SetBg(short Bg_nr /*,HANDLE Temp*/) { // this func sets the pointer to th
-                                           // bg tilemap, updates the bg plane
-                                           // struct and leveldata
+void SetBg(int16_t Bg_nr /*,HANDLE Temp*/) { // this func sets the pointer to th
+                                             // bg tilemap, updates the bg plane
+                                             // struct and leveldata
   // HANDLE Temp;
   /*	bg_data Bg_data;
     bg_filedata Bg_fileinfo;
@@ -1148,13 +1145,13 @@ Bg_data.Width; Bg_plane.force_update = 1; Leveldata.Bg_height = Bg_data.Height;
 // the loop in Load_map() turns into real pointers once this has run.
 static void Swap_map_payload() {
 
-  long I;
-  short C;
+  int32_t I;
+  int16_t C;
 
   { // a map_trigger is fourteen shorts and nothing else
-    short *Field = (short *)Map_triggers;
-    long Fields = (long)Map_data.Nr_of_triggers *
-                  (sizeof(struct map_trigger) / sizeof(short));
+    int16_t *Field = (int16_t *)Map_triggers;
+    int32_t Fields = (int32_t)Map_data.Nr_of_triggers *
+                     (sizeof(struct map_trigger) / sizeof(int16_t));
 
     for (I = 0; I < Fields; I++)
       Field[I] = be16(Field[I]);
@@ -1168,19 +1165,17 @@ static void Swap_map_payload() {
     Map_objects[C].Y = be16(Map_objects[C].Y);
 
     Map_objects[C].Handler =
-        (void (*)(void *))be32((unsigned long)Map_objects[C].Handler);
-    Map_objects[C].Sprite =
-        (unsigned short *)be32((unsigned long)Map_objects[C].Sprite);
-    Map_objects[C].Mask =
-        (unsigned short *)be32((unsigned long)Map_objects[C].Mask);
+        (void (*)(void *))be32((uint32_t)Map_objects[C].Handler);
+    Map_objects[C].Sprite = (uint16_t *)be32((uint32_t)Map_objects[C].Sprite);
+    Map_objects[C].Mask = (uint16_t *)be32((uint32_t)Map_objects[C].Mask);
   }
 }
 
-short Load_map(char *Levelfile) {
+int16_t Load_map(char *Levelfile) {
   SYM_ENTRY *Levelfile_sym;
   HANDLE Temp;
   struct levelfiledata *Levelfileinfo;
-  short C;
+  int16_t C;
 
   // Error: Map not found
   /*
@@ -1271,14 +1266,14 @@ if( !(Temp = Levelfile_sym->handle) ){
   for (C = 0; C < Map_data.Nr_of_objects; C++) {
 
     if (Map_objects[C].Mode) {
-      Map_objects[C].Sprite = Sprites + (long)Map_objects[C].Sprite;
+      Map_objects[C].Sprite = Sprites + (int32_t)Map_objects[C].Sprite;
       // Map_objects[C].Mask = Masks + (long)Map_objects[C].Mask;
 
-      if ((long)Map_objects[C].Handler == 1)
+      if ((int32_t)Map_objects[C].Handler == 1)
         Map_objects[C].Handler = (void (*)(void *))Handle_ship;
-      if ((long)Map_objects[C].Handler == 2)
+      if ((int32_t)Map_objects[C].Handler == 2)
         Map_objects[C].Handler = (void (*)(void *))Handle_map_monster;
-      if ((long)Map_objects[C].Handler == 3)
+      if ((int32_t)Map_objects[C].Handler == 3)
         Map_objects[C].Handler = (void (*)(void *))Handle_boat;
     };
   };

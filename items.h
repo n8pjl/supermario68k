@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #define pow_item_time 300
 #define star_immortal_time 500
 
@@ -19,34 +20,34 @@
 #define score_1up 36 * 2
 
 struct item {
-  short X; // Xpos
-  short Y; // Ypos
-  short Height;
-  short Height2;
+  int16_t X; // Xpos
+  int16_t Y; // Ypos
+  int16_t Height;
+  int16_t Height2;
   /*	char Data0;
           char Data1;
           char Active;		//if positioned in the active area (inside big
      Vscreen) and "alive", in use
   */
-  short Data0;
-  short Data1;
-  short Active; // if positioned in the active area (inside big Vscreen) and
+  int16_t Data0;
+  int16_t Data1;
+  int16_t Active; // if positioned in the active area (inside big Vscreen) and
                 // "alive", in use
 
   void (*Collect)(struct item *Item);
   void (*Handler)(struct item *Item);
-  unsigned short *Sprite;
+  uint16_t *Sprite;
   //	unsigned short* Mask;
   // void *Next;//removed. using array instead
 };
 struct trigger {
-  unsigned char X; // XY-pos of the trigger
-  unsigned char Y;
-  unsigned char NewX; // player's new pos
-  unsigned char NewY;
-  unsigned char Border_left;
-  unsigned char Border_right;
-  unsigned char Anim; // 0: no animation
+  uint8_t X; // XY-pos of the trigger
+  uint8_t Y;
+  uint8_t NewX; // player's new pos
+  uint8_t NewY;
+  uint8_t Border_left;
+  uint8_t Border_right;
+  uint8_t Anim; // 0: no animation
                       // 1: coming up from pipe
                       // 2: comming down from pipe
                       // 3: coming out of pipe from the left
@@ -61,20 +62,20 @@ extern struct item *Items;
 
 extern struct trigger *Triggers;
 
-extern unsigned short *Itemsprites;
+extern uint16_t *Itemsprites;
 // extern unsigned short *Itemmasks;
 
 void Handleitems();
 
-void Player_collect_bonus(short X, short Y);
+void Player_collect_bonus(int16_t X, int16_t Y);
 
-void Player_get_coin(short X, short Y);
+void Player_get_coin(int16_t X, int16_t Y);
 
-void Player_collect_coin_water(short X, short Y);
+void Player_collect_coin_water(int16_t X, int16_t Y);
 
-void Player_collect_coin(short X, short Y);
+void Player_collect_coin(int16_t X, int16_t Y);
 
-void Player_collect_flower(short X, short Y);
+void Player_collect_flower(int16_t X, int16_t Y);
 
 void Player_collect_pu_mushrom(struct item *Item);
 
@@ -86,101 +87,101 @@ void Player_collect_leaf(struct item *Item);
 
 void Player_collect_dead_boss(struct item *Item);
 
-void Trigger_pow_item(short X, short Y);
+void Trigger_pow_item(int16_t X, int16_t Y);
 
 void Convert_brick_coin();
 
-/*char*/ short Free_down(short X, short Y);
-/*char*/ short Free_up(short X, short Y);
-/*char*/ short Free_right(short X, short *Y, short Height, char Face);
-/*char*/ short Free_left(short X, short *Y, short Height, char Face);
+/*char*/ int16_t Free_down(int16_t X, int16_t Y);
+/*char*/ int16_t Free_up(int16_t X, int16_t Y);
+/*char*/ int16_t Free_right(int16_t X, int16_t *Y, int16_t Height, char Face);
+/*char*/ int16_t Free_left(int16_t X, int16_t *Y, int16_t Height, char Face);
 
-void Pipe_down_left_handler(short X, short Y);
-void Pipe_down_right_handler(short X, short Y);
-void Pipe_down_handler(short X, short Y);
+void Pipe_down_left_handler(int16_t X, int16_t Y);
+void Pipe_down_right_handler(int16_t X, int16_t Y);
+void Pipe_down_handler(int16_t X, int16_t Y);
 
-void Pipe_up_left_handler(short X, short Y);
-void Pipe_up_right_handler(short X, short Y);
-void Pipe_up_handler(short X, short Y);
+void Pipe_up_left_handler(int16_t X, int16_t Y);
+void Pipe_up_right_handler(int16_t X, int16_t Y);
+void Pipe_up_handler(int16_t X, int16_t Y);
 
-void Pipe_right_handler(short X, short Y);
+void Pipe_right_handler(int16_t X, int16_t Y);
 
-void Pipe_left_handler(short X, short Y);
+void Pipe_left_handler(int16_t X, int16_t Y);
 
-void Falling_block_handler(short X, short Y);
+void Falling_block_handler(int16_t X, int16_t Y);
 
-void Note_handler(short X, short Y);
+void Note_handler(int16_t X, int16_t Y);
 
-void Pu_2_note_handler(short X, short Y);
+void Pu_2_note_handler(int16_t X, int16_t Y);
 
-void Dark_note_handler(short X, short Y);
+void Dark_note_handler(int16_t X, int16_t Y);
 
-void Add_break_brick_anim(short X, short Y);
+void Add_break_brick_anim(int16_t X, int16_t Y);
 
-void Break_brick(short X, short Y);
+void Break_brick(int16_t X, int16_t Y);
 
-void Brick_hidden_coins(short X, short Y);
+void Brick_hidden_coins(int16_t X, int16_t Y);
 
-void Bonus_box_coin(short X, short Y);
+void Bonus_box_coin(int16_t X, int16_t Y);
 
-void Bonus_box_coins(short X, short Y);
+void Bonus_box_coins(int16_t X, int16_t Y);
 
-void Bonus_box_powerup_1(short X, short Y);
+void Bonus_box_powerup_1(int16_t X, int16_t Y);
 
-void Bonus_box_powerup_2(short X, short Y);
+void Bonus_box_powerup_2(int16_t X, int16_t Y);
 
-void Bonus_box_1up(short X, short Y);
+void Bonus_box_1up(int16_t X, int16_t Y);
 
-void Bonus_box_pow(short X, short Y);
+void Bonus_box_pow(int16_t X, int16_t Y);
 
-void Bonus_box_star(short X, short Y);
+void Bonus_box_star(int16_t X, int16_t Y);
 
-void Bonus_box_climbing_flower(short X, short Y);
+void Bonus_box_climbing_flower(int16_t X, int16_t Y);
 
-void Wood_block_pu2_handler(short X, short Y);
+void Wood_block_pu2_handler(int16_t X, int16_t Y);
 
-void Door_handler(short X, short Y);
+void Door_handler(int16_t X, int16_t Y);
 
-void Hidden_bonusbox_1_coin_handler(short X, short Y);
+void Hidden_bonusbox_1_coin_handler(int16_t X, int16_t Y);
 
-void Hidden_bonusbox_8_coins_handler(short X, short Y);
+void Hidden_bonusbox_8_coins_handler(int16_t X, int16_t Y);
 
-void Hidden_bonusbox_1_up_handler(short X, short Y);
+void Hidden_bonusbox_1_up_handler(int16_t X, int16_t Y);
 
-void Hidden_bonusbox_pu_1_handler(short X, short Y);
+void Hidden_bonusbox_pu_1_handler(int16_t X, int16_t Y);
 
-void Hidden_bonusbox_pu_2_handler(short X, short Y);
+void Hidden_bonusbox_pu_2_handler(int16_t X, int16_t Y);
 
-void Hidden_bonusbox_pow_handler(short X, short Y);
+void Hidden_bonusbox_pow_handler(int16_t X, int16_t Y);
 
-void Hidden_note_handler(short X, short Y);
+void Hidden_note_handler(int16_t X, int16_t Y);
 
-void Hidden_dark_note_handler(short X, short Y);
+void Hidden_dark_note_handler(int16_t X, int16_t Y);
 
-void Ladder_handler(short X, short Y);
+void Ladder_handler(int16_t X, int16_t Y);
 
-void Quicksand_handler(short X, short Y);
+void Quicksand_handler(int16_t X, int16_t Y);
 
-void Lava_handler(short X, short Y);
+void Lava_handler(int16_t X, int16_t Y);
 
-void Water_handler(short X, short Y);
+void Water_handler(int16_t X, int16_t Y);
 
-void Water_surface_handler(short X, short Y);
+void Water_surface_handler(int16_t X, int16_t Y);
 
-void Dark_gray_magic_mode_handler(short X, short Y);
+void Dark_gray_magic_mode_handler(int16_t X, int16_t Y);
 
-void White_magic_box_handler(short X, short Y);
+void White_magic_box_handler(int16_t X, int16_t Y);
 
-void Handle_treasure_all(short X, short Y);
+void Handle_treasure_all(int16_t X, int16_t Y);
 
 void Itemlist_add(char Item);
 
 void Itemlist_remove(char Index);
 
-void Elastic_tile_animate(short X, short Y, unsigned char After, char Attribs,
-                          unsigned char Spriteoffset);
+void Elastic_tile_animate(int16_t X, int16_t Y, uint8_t After, char Attribs,
+                          uint8_t Spriteoffset);
 
-void Bonusbox_coin_animate(short X, short Y);
+void Bonusbox_coin_animate(int16_t X, int16_t Y);
 
 void Mushrom_handler(struct item *Item);
 
@@ -190,18 +191,18 @@ void Star_handler(struct item *Item);
 
 void Dead_boss_handler(struct item *Item);
 
-short Find_free_item();
+int16_t Find_free_item();
 
-void Add_power_up_1(short X, short Y);
-void Add_power_up_2(short X, short Y, short Height);
-void Add_pu_mushrom(short X, short Y, short Height);
+void Add_power_up_1(int16_t X, int16_t Y);
+void Add_power_up_2(int16_t X, int16_t Y, int16_t Height);
+void Add_pu_mushrom(int16_t X, int16_t Y, int16_t Height);
 
-void Score_anim(short X, short Y, char Socre);
+void Score_anim(int16_t X, int16_t Y, char Socre);
 
-void Execute_trigger(short X, short Y);
+void Execute_trigger(int16_t X, int16_t Y);
 
-void Animate_out_of_wrapper(short T);
+void Animate_out_of_wrapper(int16_t T);
 
-void Levelend_handler(short X, short Y);
+void Levelend_handler(int16_t X, int16_t Y);
 
-void Add_dustsky(short X, short Y);
+void Add_dustsky(int16_t X, int16_t Y);

@@ -1,9 +1,10 @@
 #pragma once
 
+#include <stdint.h>
 struct settings {
   /*short Jumpkey;
   short RunFireKey;*/
-  short Keys[2];
+  int16_t Keys[2];
   // 0: Jumpkey
   // 1: RunFireKey
 };

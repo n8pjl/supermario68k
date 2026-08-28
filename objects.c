@@ -12,6 +12,7 @@ air, animations etc,
 #include "objects.h"
 #include "items.h"
 #include "render.h"
+#include <stdint.h>
 
 struct object *Objects;
 
@@ -156,8 +157,8 @@ void Handle_climbing_flower(object* Object){
 
 };
 */
-void Splash(short X, short Y) {
-  short C;
+void Splash(int16_t X, int16_t Y) {
+  int16_t C;
 
   if ((C = Find_free_object()) != -1) {
 
@@ -171,8 +172,8 @@ void Splash(short X, short Y) {
   }
 };
 
-short Find_free_object() {
-  short C;
+int16_t Find_free_object() {
+  int16_t C;
 
   for (C = 0; C < nr_of_objects; C++) {
     if (!(Objects[C].Active)) {

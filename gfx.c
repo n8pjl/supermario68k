@@ -5,6 +5,7 @@
 #include "render.h"
 #include "savegame.h"
 #include "smallgames.h"
+#include <stdint.h>
 #include <string.h>
 
 // SYM_ENTRY *Tilefile_sym, *Spritefile_sym, *Bg_file_sym, *TextFile_sym;
@@ -12,7 +13,7 @@ HANDLE Tilefile_sym_h, Spritefile_sym_h, Bg_file_sym_h, TextFile_sym_h;
 struct gametextdata GameTextData;
 char *Texts;
 
-inline short
+inline int16_t
 Load_gfx_from_file() { // sets up the pointers to gfx arrays in external files
 
   HANDLE Temp;
@@ -35,29 +36,27 @@ Load_gfx_from_file() { // sets up the pointers to gfx arrays in external files
 
   Fg_plane.p.sprites = HeapDeref(Temp) /*+ sizeof(tilefiledata)*/ + 2;
 
-  Fg_mask.p.sprites =
-      Fg_plane.p.sprites +
-      32 * /*Tilefiledata.*/ Nr_of_fg_tiles * sizeof(unsigned short);
+  Fg_mask.p.sprites = Fg_plane.p.sprites +
+                      32 * /*Tilefiledata.*/ Nr_of_fg_tiles * sizeof(uint16_t);
 
   Bg_plane.sprites = Fg_mask.p.sprites + 16 *
                                              /*Tilefiledata.*/ Nr_of_tilemasks *
-                                             sizeof(unsigned short);
+                                             sizeof(uint16_t);
 
   Fg_plane.tabanim =
       Bg_plane.sprites +
       32 * /*Tilefiledata.*/ Nr_of_bg_tiles *
-          sizeof(unsigned short); // Tilemasks + 16*Gfxfiledata.Nr_of_tilemasks;
+          sizeof(uint16_t); // Tilemasks + 16*Gfxfiledata.Nr_of_tilemasks;
 
   Fg_mask.tabanim = Fg_plane.tabanim + /*Tilefiledata.*/ Nr_of_fg_animations *
-                                           4 * sizeof(unsigned short);
+                                           4 * sizeof(uint16_t);
 
   Map_plane.p.sprites =
       Fg_mask.tabanim +
-      /*Tilefiledata.*/ Nr_of_fg_animations * 4 * sizeof(unsigned short);
+      /*Tilefiledata.*/ Nr_of_fg_animations * 4 * sizeof(uint16_t);
 
-  Map_plane.tabanim =
-      Map_plane.p.sprites +
-      32 * /*Tilefiledata.*/ Nr_of_map_tiles * sizeof(unsigned short);
+  Map_plane.tabanim = Map_plane.p.sprites +
+                      32 * /*Tilefiledata.*/ Nr_of_map_tiles * sizeof(uint16_t);
 
   // New: V 1.01 Changed "ma_sprts" to "mario\\ma_sprts"
   if (!(Temp = Spritefile_sym_h =
@@ -68,17 +67,18 @@ Load_gfx_from_file() { // sets up the pointers to gfx arrays in external files
   Mariosprites = HeapDeref(Temp) /*+ sizeof(spritefiledata)*/ + 2;
 
   Mariomasks = Mariosprites + /*Spritefiledata.*/ Size_of_mariosprites;
-  Marioanimtab = (short (*)[11])((short *)Mariomasks +
-                                 /*Spritefiledata.*/ Size_of_mariomasks);
+  Marioanimtab = (int16_t (*)[11])((int16_t *)Mariomasks +
+                                   /*Spritefiledata.*/ Size_of_mariomasks);
 
   Enemysprites =
-      (unsigned short *)Marioanimtab + /*Spritefiledata.*/
+      (uint16_t *)Marioanimtab + /*Spritefiledata.*/
       Size_of_marioanimtab; // Mariomasks + Spritefiledata.Size_of_mariomasks;
 
   Smallsprites =
       (char *)(Enemysprites + /*Spritefiledata.*/ Size_of_enemysprites);
 
-  Sprites = (short *)(Smallsprites + /*Spritefiledata.*/ Size_of_smallsprites);
+  Sprites =
+      (int16_t *)(Smallsprites + /*Spritefiledata.*/ Size_of_smallsprites);
 
   Itemsprites = Sprites + /*Spritefiledata.*/ Size_of_sprites;
 

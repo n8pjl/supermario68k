@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 // Screen geometry. The drawing surface is the same on every model: 240x128
 // one-bit pixels, 30 bytes to a row, 3840 bytes a plane. What differs is how
 // much of it the LCD shows - the TI-89 displays only the top-left 160x100, the
@@ -41,8 +42,8 @@ enum Attrs {A_REVERSE, A_NORMAL, A_XOR, A_SHADED, A_REPLACE, A_OR, A_AND, A_THIC
 // fonts; those fonts are ROM data and are not part of this source drop, so a
 // substitute font has to be supplied before they can draw anything.
 void ClrScr(void);
-void DrawStr(short x, short y, const char *s, short attr);
-void DrawChar(short x, short y, char c, short attr);
+void DrawStr(int16_t x, int16_t y, const char *s, int16_t attr);
+void DrawChar(int16_t x, int16_t y, char c, int16_t attr);
 
 // Contrast has no meaning on a canvas; kept so the key handler still links.
 void OSContrastUp(void);

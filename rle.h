@@ -1,7 +1,8 @@
 #pragma once
 
-void RLEDecompress(unsigned char *output, unsigned char *input,
-                   unsigned short length);
+#include <stdint.h>
+void RLEDecompress(uint8_t *output, uint8_t *input,
+                   uint16_t length);
 
-unsigned short RLECompress(unsigned char *output, unsigned char *input,
-                           unsigned short length);
+uint16_t RLECompress(uint8_t *output, uint8_t *input,
+                           uint16_t length);

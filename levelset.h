@@ -1,4 +1,6 @@
 #pragma once
+
+#include <stdint.h>
 // Reconstructed from the shipped levelset binary (sm68k). The original
 // levelset.h was not part of the released source drop, but all.h still
 // referenced it and the layout is pinned down by the data plus its use sites:
@@ -21,10 +23,10 @@ struct levelsetdata {
   char Commonfile;  // index of the common file, i.e. Nr_of_files
   char Mode;        // 1 = map mode
   char CurrentWorld;
-  unsigned short Compatibility; // checked against `compatibility` in all.h
-  unsigned short Savegames[3];  // offset of each save slot, 0 = empty
-  unsigned short Savegame_size[3];
-  unsigned short Spare;
+  uint16_t Compatibility; // checked against `compatibility` in all.h
+  uint16_t Savegames[3];  // offset of each save slot, 0 = empty
+  uint16_t Savegame_size[3];
+  uint16_t Spare;
 };
 
 extern struct levelsetdata Levelsetdata;

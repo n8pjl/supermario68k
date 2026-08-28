@@ -34,6 +34,7 @@
 #include "render.h"
 #include "shells.h"
 #include "smallgames.h"
+#include <stdint.h>
 #include <stdlib.h>
 
 #define Life_the_universe_and_everything 42
@@ -44,19 +45,19 @@ void *Block;
 void *Buffer; // pointer to video memory (gray doublebuffering mem and
               // backbuffers for tilemap engine)
 
-unsigned short *Mariosprites;
-unsigned short *Mariomasks;
-short (*Marioanimtab)[11];
+uint16_t *Mariosprites;
+uint16_t *Mariomasks;
+int16_t (*Marioanimtab)[11];
 
-unsigned short *Enemysprites;
+uint16_t *Enemysprites;
 
-unsigned char *Smallsprites;
+uint8_t *Smallsprites;
 
-unsigned short *Sprites;
+uint16_t *Sprites;
 
-unsigned short *Itemsprites;
+uint16_t *Itemsprites;
 
-unsigned short *Boss_sprites;
+uint16_t *Boss_sprites;
 
 char *Level, *Map;
 
@@ -67,7 +68,7 @@ char ErrorCode;
 char Skip_anim;
 
 char Map_statusbar;
-unsigned char Treasure;
+uint8_t Treasure;
 
 #ifdef speedtest
 // Speedtest:
@@ -77,7 +78,7 @@ unsigned char Treasure;
 // frame skipping and increasing animation length was as a speed optimization.
 // Those optimizations were aimed on Voyage 200 and Ti-92+ because the game run
 // slower on those calcs.
-volatile short Fps;
+volatile int16_t Fps;
 DEFINE_INT_HANDLER(TESTCOUNTER) { // speed test
   counter++;
   if (counter == 0) {
@@ -123,7 +124,7 @@ int main(void) {
 
   // Error: Memory possible
   Block =
-      malloc((unsigned long)GRAYDBUFFER_SIZE + 2 * GRAY_BIG_VSCREEN_SIZE +
+      malloc((uint32_t)GRAYDBUFFER_SIZE + 2 * GRAY_BIG_VSCREEN_SIZE +
              BIG_VSCREEN_SIZE +
              480); // allocate 1 drawbuffer and 2 big_vsceens(1 for each plane)
 

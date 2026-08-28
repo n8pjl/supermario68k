@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #define enemy_fallspeed 3
 
 // nr of enemy fireballs simultaniously
@@ -15,8 +16,8 @@
 #define active_y_upper (FgY - 16 * 4)
 
 struct enemy {
-  short X; // Xpos
-  short Y; // Ypos
+  int16_t X; // Xpos
+  int16_t Y; // Ypos
 
   char Life;
   char Face; // direction. -1=left	1=right
@@ -24,10 +25,10 @@ struct enemy {
   short Life;
   short Face;
   */
-  short Height;
-  short Height2; // the height of the enemy sprite, ie distance from Start of
+  int16_t Height;
+  int16_t Height2; // the height of the enemy sprite, ie distance from Start of
                  // lightdata (unsigned short* Sprite) to darkdata
-  unsigned char Attribs; // b7...b0
+  uint8_t Attribs; // b7...b0
                          // b7 set: dies when jumped on
                          // b6 set: dies when hit by fireball
                          // b5 set: gravity enabled
@@ -39,17 +40,17 @@ struct enemy {
                          // racoontale
 
   char Jumping;
-  unsigned char Mode;
+  uint8_t Mode;
   char Active; // if positioned in the active area
-  unsigned char Data0;
-  unsigned char Data1;
+  uint8_t Data0;
+  uint8_t Data1;
 
-  unsigned short *Sprite;
+  uint16_t *Sprite;
   //	unsigned short* Mask;
   char Respawn;
   char Respawn2;
-  unsigned char RespawnX;
-  unsigned char RespawnY;
+  uint8_t RespawnX;
+  uint8_t RespawnY;
 
   void (*Handler)(struct enemy *Enemy); // func pointer to the func that deals
                                         // with the current kind of enemy
@@ -61,17 +62,17 @@ struct enemy {
 };
 
 struct shot { // experiment shot
-  short X;    // Xpos
-  short Y;    // Ypos
-  short Height;
+  int16_t X;    // Xpos
+  int16_t Y;    // Ypos
+  int16_t Height;
   /*char Mode;
   char Data0;
   char Data1;*/
-  short Mode; // Changing those 3 variables to short saved bytes
-  short Data0;
-  short Data1;
-  short Data2;
-  unsigned short *Sprite;
+  int16_t Mode; // Changing those 3 variables to short saved bytes
+  int16_t Data0;
+  int16_t Data1;
+  int16_t Data2;
+  uint16_t *Sprite;
   // unsigned short* Mask;
   void (*Handler)(struct shot *Shot);
 };
@@ -132,21 +133,21 @@ void Spawn_bomb2(struct enemy *Enemy);
 
 void Handle_enemyshots();
 
-void Enemy_add_fireball(short X, short Y, /*char*/ short Dir,
-                        /*char*/ short Ydir);
+void Enemy_add_fireball(int16_t X, int16_t Y, /*char*/ int16_t Dir,
+                        /*char*/ int16_t Ydir);
 
-void Enemy_add_hammer(short X, short Y, /*char*/ short Xdir);
+void Enemy_add_hammer(int16_t X, int16_t Y, /*char*/ int16_t Xdir);
 
-void Enemy_add_boomerang(short X, short Y, /*char*/ short Dir);
+void Enemy_add_boomerang(int16_t X, int16_t Y, /*char*/ int16_t Dir);
 
-void Enemy_add_cannonball_horiz(short X, short Y, char Dir);
+void Enemy_add_cannonball_horiz(int16_t X, int16_t Y, char Dir);
 
-void Enemy_add_cannonball(short X, short Y, char DirX, char DirY);
+void Enemy_add_cannonball(int16_t X, int16_t Y, char DirX, char DirY);
 
-void Enemy_add_bounching_fireball(short X, short Y, /*char*/ short Xdir,
-                                  /*char*/ short Ydir);
+void Enemy_add_bounching_fireball(int16_t X, int16_t Y, /*char*/ int16_t Xdir,
+                                  /*char*/ int16_t Ydir);
 
-void Enemy_add_underwater_shot(short X, short Y, /*char*/ short Dirx);
+void Enemy_add_underwater_shot(int16_t X, int16_t Y, /*char*/ int16_t Dirx);
 
 void Enemy_fireball_handler(struct shot *Fireball);
 
@@ -159,4 +160,4 @@ void Enemy_cannonball_handler(struct shot *Cannonball);
 void Underwater_shot_handler(struct shot *Cannonball);
 
 void Enemy_boomerang_handler(struct shot *Fireball);
-short Find_free_enemyshot(void);
+int16_t Find_free_enemyshot(void);

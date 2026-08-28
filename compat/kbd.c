@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "kbd.h"
 
 #include <emscripten.h>
@@ -21,7 +22,7 @@
 // still works.
 struct keybind {
 	const char *code;	// KeyboardEvent.code
-	unsigned char row, bit;
+	uint8_t row, bit;
 };
 
 static const struct keybind keymap[] = {
@@ -64,7 +65,7 @@ static const struct keybind keymap[] = {
 #endif
 };
 
-EM_JS(void, kbd_bind, (const char *code, int row, int bit), {
+EM_JS(void, kbd_bind, (const char *code, int16_t row, int16_t bit), {
 	globalThis.keyMap[UTF8ToString(code)] = [row, bit];
 });
 
@@ -91,14 +92,14 @@ EM_JS(void, kbd_start, (void), {
 
 void kbd_init(void)
 {
-	unsigned i;
+	uint16_t i;
 
 	kbd_start();
 	for (i = 0; i < sizeof keymap / sizeof keymap[0]; i++)
 		kbd_bind(keymap[i].code, keymap[i].row, keymap[i].bit);
 }
 
-unsigned short _rowread(short rowmask)
+uint16_t _rowread(int16_t rowmask)
 {
 	return EM_ASM_INT({
 		if (typeof keyMatrix === "undefined") return 0;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 enum Menus {
   none = 0,
   mainMenu = 1,
@@ -8,9 +9,9 @@ enum Menus {
 
 };
 
-/*char*/ short doMenu(char *Menudata, short Nr_of_options);
+/*char*/ int16_t doMenu(char *Menudata, int16_t Nr_of_options);
 
-short Menus();
+int16_t Menus();
 
 void Paste_saveslot_text(char *Buffer, char *Text);
 // void Paste_saveslot_text(char* Buffer,char* Text);//short L);

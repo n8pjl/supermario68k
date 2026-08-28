@@ -1,16 +1,17 @@
 #pragma once
 
+#include <stdint.h>
 struct keystate {
-  short Enter;
-  short Esc;
-  short Jump;
-  short Down;
-  short Left;
-  short Right;
-  short Up;
-  short Run;
-  short Plus;
-  short Minus;
+  int16_t Enter;
+  int16_t Esc;
+  int16_t Jump;
+  int16_t Down;
+  int16_t Left;
+  int16_t Right;
+  int16_t Up;
+  int16_t Run;
+  int16_t Plus;
+  int16_t Minus;
   //	short Fire;//not in use any more
 
   //	short Keydetect;//not neccessarry

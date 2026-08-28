@@ -14,11 +14,12 @@
 #include "scankeys.h"
 #include "shells.h"
 #include "smallgames.h"
+#include <stdint.h>
 
 inline void Handle_player_map() {
-  short OldFgX, OldFgY, Temp = 0, Temp2;
-  static short CX = 0, CY = 0, /*L=0,*/ C = 0;
-  static const short Searchtable[4] = {0, 0, -16, 16};
+  int16_t OldFgX, OldFgY, Temp = 0, Temp2;
+  static int16_t CX = 0, CY = 0, /*L=0,*/ C = 0;
+  static const int16_t Searchtable[4] = {0, 0, -16, 16};
   // static short PrevCompX,PrevCompY;
 
   if (Player.Offset > 0) { //
@@ -85,7 +86,7 @@ inline void Handle_player_map() {
               (Map_data.Border_right >
                (SavePlayer.MapX + 16))) { // check if water
             CX = 16;
-            Map_objects[(short)SavePlayer.IsOnMapBoat].MoveX =
+            Map_objects[(int16_t)SavePlayer.IsOnMapBoat].MoveX =
                 16; // move boat along with player
           };
           if (Get_map_tile(SavePlayer.MapX + 16, SavePlayer.MapY) ==
@@ -138,7 +139,7 @@ inline void Handle_player_map() {
                  water_map) &&
                 (Map_data.Border_left < SavePlayer.MapX)) { // check if water
               CX = -16;
-              Map_objects[(short)SavePlayer.IsOnMapBoat].MoveX =
+              Map_objects[(int16_t)SavePlayer.IsOnMapBoat].MoveX =
                   -16; // move boat along with player
             };
             if (Get_map_tile(SavePlayer.MapX - 16, SavePlayer.MapY) ==
@@ -193,7 +194,7 @@ inline void Handle_player_map() {
               if ((Get_map_tile(SavePlayer.MapX, SavePlayer.MapY - 16) ==
                    water_map)) { // check if water
                 CY = -16;
-                Map_objects[(short)SavePlayer.IsOnMapBoat].MoveY =
+                Map_objects[(int16_t)SavePlayer.IsOnMapBoat].MoveY =
                     -16; // move boat along with player
               };
               if (Get_map_tile(SavePlayer.MapX, SavePlayer.MapY - 16) ==
@@ -244,7 +245,7 @@ inline void Handle_player_map() {
                 if ((Get_map_tile(SavePlayer.MapX, SavePlayer.MapY + 16) ==
                      water_map)) { // check if water
                   CY = 16;
-                  Map_objects[(short)SavePlayer.IsOnMapBoat].MoveY =
+                  Map_objects[(int16_t)SavePlayer.IsOnMapBoat].MoveY =
                       16; // move boat along with player
                 };
                 if (Get_map_tile(SavePlayer.MapX, SavePlayer.MapY + 16) ==
@@ -518,10 +519,10 @@ inline void Handle_player_map() {
       Player.Curr_item++;
     };
     if (Keystate.Jump && !Previous_keystate.Jump) {
-      if (SavePlayer.Itemlist[(short)Player.Curr_item]) {
+      if (SavePlayer.Itemlist[(int16_t)Player.Curr_item]) {
         // collect item
-        short Remove = 1;
-        switch (SavePlayer.Itemlist[(short)Player.Curr_item]) {
+        int16_t Remove = 1;
+        switch (SavePlayer.Itemlist[(int16_t)Player.Curr_item]) {
         case 1: { // mushrom
 
           if (SavePlayer.Life ==
@@ -576,7 +577,7 @@ inline void Handle_player_map() {
           // animation
           for (C = 0; C < 12; C++) {
 
-            unsigned short D;
+            uint16_t D;
             if (C % 2) {
 
               //								memset(/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,0x0000,LCD_SIZE);
@@ -613,15 +614,15 @@ inline void Handle_player_map() {
               SavePlayer.MapX = -16;
             }
             Render_map();
-            short C;
+            int16_t C;
             for (C = 0; C < 100; C++)
               ;
 
           } while (Map_objects[0].X > FgX);
 
           Map_statusbar = status;
-          short WarpX = Map_data.WarpX;
-          short WarpY = Map_data.WarpY;
+          int16_t WarpX = Map_data.WarpX;
+          int16_t WarpY = Map_data.WarpY;
           Levelsetdata.CurrentWorld = Levelsetdata.Commonfile;
           Load_map(Commonfilename);
           // set MapY, depending on current world
@@ -647,8 +648,8 @@ inline void Handle_player_map() {
                              SavePlayer.MapY + Searchtable[3 - C]) ==
                 rock) { // rock?
 
-              short X = SavePlayer.MapX + 2 * Searchtable[C];
-              short Y = SavePlayer.MapY + 2 * Searchtable[3 - C];
+              int16_t X = SavePlayer.MapX + 2 * Searchtable[C];
+              int16_t Y = SavePlayer.MapY + 2 * Searchtable[3 - C];
               if ((Get_map_tile(X, Y) <= walkable_high) && (X > 0) &&
                   (X < (Map_data.Width * 16)) && (Y > 0) &&
                   (Y < (Map_data.Height * 16))) { // walkable behind the rock?
@@ -700,8 +701,8 @@ inline void Handle_player_map() {
 #endif
 };
 
-void Enter_mushrom_house(unsigned char Treasure) {
-  short OldFgX, OldFgY, C;
+void Enter_mushrom_house(uint8_t Treasure) {
+  int16_t OldFgX, OldFgY, C;
 
   Load_level(Commonfilename, 0);
 
@@ -728,7 +729,7 @@ void Enter_mushrom_house(unsigned char Treasure) {
 };
 
 void Enter_enemy_ship(struct map_object *Ship) {
-  short OldFgX, OldFgY, C;
+  int16_t OldFgX, OldFgY, C;
 
   Load_level(Levelfilename, 7);
   /*
@@ -825,8 +826,8 @@ void Enter_enemy_ship(struct map_object *Ship) {
 
     // DrawItem(blah blah blah);
 
-    unsigned short *Sprite;
-    short Height = 16;
+    uint16_t *Sprite;
+    int16_t Height = 16;
     //		Leveldata.Event=8;
     /*	switch(Leveldata.Event){
 
@@ -905,7 +906,7 @@ void Enter_enemy_ship(struct map_object *Ship) {
 };
 
 inline void Handle_map_objects() {
-  short C; //,OldFgX,OldFgY;
+  int16_t C; //,OldFgX,OldFgY;
 
   for (C = 0; C < Map_data.Nr_of_objects; C++) {
 
@@ -970,13 +971,13 @@ inline void Handle_map_objects() {
   };
 }
 
-unsigned char Get_map_tile(short X, short Y) {
+uint8_t Get_map_tile(int16_t X, int16_t Y) {
 
   return *(
       (char *)(Map_plane.p.matrix + (Y >> 4) * Map_plane.p.width + (X >> 4)));
 }
 
-void Put_map_tile(short X, short Y, unsigned char Tile) {
+void Put_map_tile(int16_t X, int16_t Y, uint8_t Tile) {
 
   *((char *)(Map_plane.p.matrix + (Y >> 4) * Map_plane.p.width + (X >> 4))) =
       Tile;
@@ -984,7 +985,7 @@ void Put_map_tile(short X, short Y, unsigned char Tile) {
 
 void Handle_boat(struct map_object *Boat) {
 
-  short Dx = 0, Dy = 0;
+  int16_t Dx = 0, Dy = 0;
 
   if (Boat->MoveX > 0) {
     Dx = map_speed; // Boat->X += map_speed;
@@ -1031,7 +1032,7 @@ void Handle_ship(struct map_object *Ship) {
 }
 
 void Handle_map_monster(struct map_object *Monster) {
-  short C;
+  int16_t C;
 
   C = 0;
 
@@ -1042,8 +1043,8 @@ void Handle_map_monster(struct map_object *Monster) {
     Monster->X -= Monster->Data0;
     Monster->Data0 = 0;
 
-    short X = Monster->X; // small size optimisation
-    short Y = Monster->Y;
+    int16_t X = Monster->X; // small size optimisation
+    int16_t Y = Monster->Y;
 
     switch (
         Map_plane
@@ -1079,9 +1080,8 @@ void Handle_map_monster(struct map_object *Monster) {
     };
 
     // avoid settling at non-nodes
-    unsigned char Temp =
-        Get_map_tile(Monster->X + Monster->MoveX - Monster->Data0,
-                     Monster->Y + Monster->MoveY);
+    uint8_t Temp = Get_map_tile(Monster->X + Monster->MoveX - Monster->Data0,
+                                Monster->Y + Monster->MoveY);
     if (!((Temp >= walkable_node_low) && (Temp <= walkable_node_high))) {
       Monster->MoveX = Monster->MoveY =
           0; // abort, if target tile is not a node, i.e. a path
@@ -1186,7 +1186,7 @@ GrayFastFillRect2B240_R(GrayDBufGetActivePlane(LIGHT_PLANE),GrayDBufGetActivePla
 
 void Enter_level_anim() {
 
-  short LX = 0, RX = screen_width, HY = 0, LY = screen_height, C;
+  int16_t LX = 0, RX = screen_width, HY = 0, LY = screen_height, C;
 
   while ((LX < RX) || (LY > HY)) {
     if (LX < (SavePlayer.MapX - FgX))
@@ -1213,7 +1213,7 @@ void Enter_level_anim() {
 };
 
 void Fight_monster(struct map_object *Monster) {
-  short OldFgX, OldFgY, C;
+  int16_t OldFgX, OldFgY, C;
 
   Load_level(Commonfilename, Monster->Mode - 1);
 
@@ -1240,8 +1240,8 @@ void Fight_monster(struct map_object *Monster) {
   // Exit=0;
 }
 
-short Free_left_map(short X, short Y) {
-  short DX = 0;
+int16_t Free_left_map(int16_t X, int16_t Y) {
+  int16_t DX = 0;
 
   while ((Get_map_tile(X - 16 + DX, Y) <= levels_high) &&
          ((X + DX) > Map_data.Border_left)) {
@@ -1254,8 +1254,8 @@ short Free_left_map(short X, short Y) {
   return DX;
 };
 
-short Free_right_map(short X, short Y) {
-  short DX = 0;
+int16_t Free_right_map(int16_t X, int16_t Y) {
+  int16_t DX = 0;
 
   while ((Get_map_tile(X + 16 + DX, Y) <= levels_high) &&
          ((X + DX + 16) < Map_data.Border_right)) {
@@ -1268,8 +1268,8 @@ short Free_right_map(short X, short Y) {
   return DX;
 };
 
-short Free_up_map(short X, short Y) {
-  short DY = 0;
+int16_t Free_up_map(int16_t X, int16_t Y) {
+  int16_t DY = 0;
 
   while ((Get_map_tile(X, Y - 16 + DY) <= levels_high)) {
     DY -= 16;
@@ -1281,8 +1281,8 @@ short Free_up_map(short X, short Y) {
   return DY;
 };
 
-short Free_down_map(short X, short Y) {
-  short DY = 0;
+int16_t Free_down_map(int16_t X, int16_t Y) {
+  int16_t DY = 0;
 
   while ((Get_map_tile(X, Y + 16 + DY) <= levels_high)) {
     DY += 16;
@@ -1294,12 +1294,12 @@ short Free_down_map(short X, short Y) {
   return DY;
 };
 
-void Replace_map_tile(unsigned char Tile) {
-  short C;
+void Replace_map_tile(uint8_t Tile) {
+  int16_t C;
 
   for (C = 0; C < Map_data.Height * Map_data.Width; C++) {
 
-    if (*((unsigned char *)(Map_plane.p.matrix + C)) == Tile) {
+    if (*((uint8_t *)(Map_plane.p.matrix + C)) == Tile) {
       Replace_by_road((C % Map_data.Width) * 16, (C / Map_data.Width) * 16);
     }
     /*else{
@@ -1308,8 +1308,8 @@ void Replace_map_tile(unsigned char Tile) {
   };
 }
 
-void Replace_by_road(short X, short Y) {
-  unsigned char Tile1, Tile2;
+void Replace_by_road(int16_t X, int16_t Y) {
+  uint8_t Tile1, Tile2;
   /*unsigned char Grass[6] = {0,1,15,16,18,22};
   unsigned char Sky[6] = {9,10,26,27,28,29};
   unsigned char Dark[6] = {11,12,35,36,37,38};*/
@@ -1321,7 +1321,7 @@ void Replace_by_road(short X, short Y) {
           11,12,35,36,37,38,//dark
   };*/
 
-  unsigned char Tiles[6 * 3] = {
+  uint8_t Tiles[6 * 3] = {
       0,  1,  17, 18, 20, 24, // grass
       9,  10, 28, 29, 30, 31, // sky
       11, 12, 37, 38, 39, 40, // dark
@@ -1341,7 +1341,7 @@ void Replace_by_road(short X, short Y) {
   instead
   }*/
 
-  short TileNr;
+  int16_t TileNr;
 
   if (Get_map_tile(X - 16, Y) <= walkable_high) {   //-
     if (Get_map_tile(X, Y - 16) <= walkable_high) { //_| found
@@ -1430,8 +1430,8 @@ void Add_card_game(){
 };
 */
 
-void Add_map_event(unsigned char Event) {
-  short C;
+void Add_map_event(uint8_t Event) {
+  int16_t C;
 
   if ((Event >= 240) && (Event <= 250)) { //
     Exit = 0;
@@ -1449,7 +1449,7 @@ void Add_map_event(unsigned char Event) {
         Map_objects[C].Data1 = 1;
         Map_objects[C].Handler = (void (*)(void *))Handle_ship;
 
-        unsigned short *Sprite;
+        uint16_t *Sprite;
         char Mode;
 
         if (Event == 1) {

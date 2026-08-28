@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "extgraph.h"
 
 #include <string.h>
@@ -28,11 +29,11 @@
 // that is a speed trick for the 68000 and byte-at-a-time is equivalent, so
 // this stays bytewise. It is also endian-agnostic, which matters because the
 // planes are shared with sprite data read big-endian elsewhere in this file.
-static void hspan(unsigned char *plane, short x1, short x2, short y, short set)
+static void hspan(uint8_t *plane, int16_t x1, int16_t x2, int16_t y, int16_t set)
 {
-	unsigned char *row;
-	short b, b1, b2, t;
-	unsigned char m1, m2, m;
+	uint8_t *row;
+	int16_t b, b1, b2, t;
+	uint8_t m1, m2, m;
 
 	if (x2 < x1) {
 		t = x1; x1 = x2; x2 = t;
@@ -44,18 +45,18 @@ static void hspan(unsigned char *plane, short x1, short x2, short y, short set)
 	if (x2 > PLANE_WIDTH - 1)
 		x2 = PLANE_WIDTH - 1;
 
-	row = plane + (short)(y * PLANE_STRIDE);
+	row = plane + (int16_t)(y * PLANE_STRIDE);
 	b1 = x1 >> 3;
 	b2 = x2 >> 3;
-	m1 = (unsigned char)(0xFF >> (x1 & 7));
-	m2 = (unsigned char)(0xFF << (7 - (x2 & 7)));
+	m1 = (uint8_t)(0xFF >> (x1 & 7));
+	m2 = (uint8_t)(0xFF << (7 - (x2 & 7)));
 
 	if (b1 == b2) {
 		m = m1 & m2;
 		if (set)
 			row[b1] |= m;
 		else
-			row[b1] &= (unsigned char)~m;
+			row[b1] &= (uint8_t)~m;
 		return;
 	}
 
@@ -65,10 +66,10 @@ static void hspan(unsigned char *plane, short x1, short x2, short y, short set)
 			row[b] = 0xFF;
 		row[b2] |= m2;
 	} else {
-		row[b1] &= (unsigned char)~m1;
+		row[b1] &= (uint8_t)~m1;
 		for (b = b1 + 1; b < b2; b++)
 			row[b] = 0x00;
-		row[b2] &= (unsigned char)~m2;
+		row[b2] &= (uint8_t)~m2;
 	}
 }
 
@@ -77,38 +78,38 @@ static void hspan(unsigned char *plane, short x1, short x2, short y, short set)
 // nothing at all - a caller passing an off-screen coordinate scribbles past
 // the plane. Here the span helper clips instead, which cannot change the
 // result for the on-screen coordinates the game actually passes.
-static void filled_rect(void *plane, short x1, short y1, short x2, short y2,
-			short set)
+static void filled_rect(void *plane, int16_t x1, int16_t y1, int16_t x2, int16_t y2,
+			int16_t set)
 {
-	short y, t;
+	int16_t y, t;
 
 	// Only the row order matters here; hspan() orders the columns itself.
 	if (y2 < y1) {
 		t = y1; y1 = y2; y2 = t;
 	}
 	for (y = y1; y <= y2; y++)
-		hspan((unsigned char *)plane, x1, x2, y, set);
+		hspan((uint8_t *)plane, x1, x2, y, set);
 }
 
-void FastFilledRect_Draw_R(void *plane, unsigned short x1, unsigned short y1,
-			   unsigned short x2, unsigned short y2)
+void FastFilledRect_Draw_R(void *plane, uint16_t x1, uint16_t y1,
+			   uint16_t x2, uint16_t y2)
 {
-	filled_rect(plane, (short)x1, (short)y1, (short)x2, (short)y2, 1);
+	filled_rect(plane, (int16_t)x1, (int16_t)y1, (int16_t)x2, (int16_t)y2, 1);
 }
 
-void FastFilledRect_Erase_R(void *plane, unsigned short x1, unsigned short y1,
-			    unsigned short x2, unsigned short y2)
+void FastFilledRect_Erase_R(void *plane, uint16_t x1, uint16_t y1,
+			    uint16_t x2, uint16_t y2)
 {
-	filled_rect(plane, (short)x1, (short)y1, (short)x2, (short)y2, 0);
+	filled_rect(plane, (int16_t)x1, (int16_t)y1, (int16_t)x2, (int16_t)y2, 0);
 }
 
 // Set or clear the vertical run of pixels y1..y2 (inclusive) in column x.
 // Swaps its endpoints, as FastDrawVLine_R does.
-static void vspan(unsigned char *plane, short x, short y1, short y2, short set)
+static void vspan(uint8_t *plane, int16_t x, int16_t y1, int16_t y2, int16_t set)
 {
-	unsigned char *p;
-	unsigned char m;
-	short y, t;
+	uint8_t *p;
+	uint8_t m;
+	int16_t y, t;
 
 	if (y2 < y1) {
 		t = y1; y1 = y2; y2 = t;
@@ -120,21 +121,21 @@ static void vspan(unsigned char *plane, short x, short y1, short y2, short set)
 	if (y2 > PLANE_HEIGHT - 1)
 		y2 = PLANE_HEIGHT - 1;
 
-	m = (unsigned char)(1 << (7 - (x & 7)));
-	p = plane + (short)(y1 * PLANE_STRIDE) + (x >> 3);
+	m = (uint8_t)(1 << (7 - (x & 7)));
+	p = plane + (int16_t)(y1 * PLANE_STRIDE) + (x >> 3);
 	for (y = y1; y <= y2; y++, p += PLANE_STRIDE) {
 		if (set)
 			*p |= m;
 		else
-			*p &= (unsigned char)~m;
+			*p &= (uint8_t)~m;
 	}
 }
 
 // The four edges of a rectangle in one plane.
-static void outline(void *plane, short x1, short y1, short x2, short y2,
-		    short set)
+static void outline(void *plane, int16_t x1, int16_t y1, int16_t x2, int16_t y2,
+		    int16_t set)
 {
-	unsigned char *pl = (unsigned char *)plane;
+	uint8_t *pl = (uint8_t *)plane;
 
 	hspan(pl, x1, x2, y1, set);
 	hspan(pl, x1, x2, y2, set);
@@ -154,12 +155,12 @@ static void outline(void *plane, short x1, short y1, short x2, short y2,
 // The original does not swap the corners here; each FastDraw*Line_R swaps its
 // own endpoints instead, which comes to the same rectangle. hspan()/vspan()
 // follow that contract, so no swap is needed at this level either.
-void GrayFastOutlineRect_R(void *dest0, void *dest1, unsigned short x1,
-			   unsigned short y1, unsigned short x2,
-			   unsigned short y2, short color)
+void GrayFastOutlineRect_R(void *dest0, void *dest1, uint16_t x1,
+			   uint16_t y1, uint16_t x2,
+			   uint16_t y2, int16_t color)
 {
-	outline(dest0, (short)x1, (short)y1, (short)x2, (short)y2, color & 1);
-	outline(dest1, (short)x1, (short)y1, (short)x2, (short)y2, color & 2);
+	outline(dest0, (int16_t)x1, (int16_t)y1, (int16_t)x2, (int16_t)y2, color & 1);
+	outline(dest1, (int16_t)x1, (int16_t)y1, (int16_t)x2, (int16_t)y2, color & 2);
 }
 
 // Write the 16-pixel row `val` at absolute pixel (x, y) of a plane, under the
@@ -184,11 +185,11 @@ void GrayFastOutlineRect_R(void *dest0, void *dest1, unsigned short x1,
 // this: for a plain replace it is all ones, for a sprite drawn through a
 // SMASK-style mask it is that mask complemented, since there a set bit means
 // "keep the background".
-static void put_row16(unsigned char *plane, short x, short y, unsigned val,
-		      unsigned wr)
+static void put_row16(uint8_t *plane, int16_t x, int16_t y, uint16_t val,
+		      uint16_t wr)
 {
-	unsigned long v, m;
-	short xs, bx, sh, i;
+	uint32_t v, m;
+	int16_t xs, bx, sh, i;
 
 	if (y < 0 || y >= PLANE_HEIGHT || x <= -16 || x >= PLANE_WIDTH)
 		return;
@@ -197,22 +198,22 @@ static void put_row16(unsigned char *plane, short x, short y, unsigned val,
 	// the leftmost clipped case; 16 is a whole number of bytes, so x & 7 is
 	// unchanged.
 	xs = x + 16;
-	bx = (short)(xs >> 3) - 2;
+	bx = (int16_t)(xs >> 3) - 2;
 	sh = xs & 7;
 
-	v = (unsigned long)(val & 0xFFFF) << (8 - sh);
-	m = (unsigned long)(wr & 0xFFFF) << (8 - sh);
+	v = (uint32_t)(val & 0xFFFF) << (8 - sh);
+	m = (uint32_t)(wr & 0xFFFF) << (8 - sh);
 
 	plane += y * PLANE_STRIDE;
 	for (i = 0; i < 3; i++) {
-		short b = bx + i;
-		unsigned char mb, vb;
+		int16_t b = bx + i;
+		uint8_t mb, vb;
 
 		if (b < 0 || b >= PLANE_STRIDE)
 			continue;
-		mb = (unsigned char)(m >> (16 - 8 * i));
-		vb = (unsigned char)(v >> (16 - 8 * i));
-		plane[b] = (unsigned char)((plane[b] & ~mb) | vb);
+		mb = (uint8_t)(m >> (16 - 8 * i));
+		vb = (uint8_t)(v >> (16 - 8 * i));
+		plane[b] = (uint8_t)((plane[b] & ~mb) | vb);
 	}
 }
 
@@ -226,21 +227,21 @@ static void put_row16(unsigned char *plane, short x, short y, unsigned val,
 // Vertical clipping just trims the row range and steps the sprite pointer past
 // the rows above the screen; the original folds that into the same registers it
 // uses for the destination offset, but it is only a range intersection.
-void GrayClipISprite16_RPLC_R(short x, short y, unsigned short height,
-			      const unsigned short *sprite, void *dest0,
+void GrayClipISprite16_RPLC_R(int16_t x, int16_t y, uint16_t height,
+			      const uint16_t *sprite, void *dest0,
 			      void *dest1)
 {
-	int first = y < 0 ? -y : 0;		// first sprite row on screen
-	int last = height;			// one past the last
-	int r;
+	int16_t first = y < 0 ? -y : 0;		// first sprite row on screen
+	int16_t last = height;			// one past the last
+	int16_t r;
 
 	if (last > PLANE_HEIGHT - y)
 		last = PLANE_HEIGHT - y;
 
 	for (r = first; r < last; r++) {
-		put_row16((unsigned char *)dest0, x, (short)(y + r),
+		put_row16((uint8_t *)dest0, x, (int16_t)(y + r),
 			  sprite[2 * r], 0xFFFF);
-		put_row16((unsigned char *)dest1, x, (short)(y + r),
+		put_row16((uint8_t *)dest1, x, (int16_t)(y + r),
 			  sprite[2 * r + 1], 0xFFFF);
 	}
 }
@@ -261,24 +262,24 @@ void GrayClipISprite16_RPLC_R(short x, short y, unsigned short height,
 // sliding three-byte window covers all three, and its `moveq #-1` equivalent
 // (the ones outside the 16-pixel window that the original's rol.l shifts in)
 // falls out of only writing the bytes the window reaches.
-void GrayClipSprite16_SMASK_R(short x, short y, unsigned short height,
-			      const unsigned short *sprt0,
-			      const unsigned short *sprt1,
-			      const unsigned short *mask, void *dest0, void *dest1)
+void GrayClipSprite16_SMASK_R(int16_t x, int16_t y, uint16_t height,
+			      const uint16_t *sprt0,
+			      const uint16_t *sprt1,
+			      const uint16_t *mask, void *dest0, void *dest1)
 {
-	int first = y < 0 ? -y : 0;		// first sprite row on screen
-	int last = height;			// one past the last
-	int r;
+	int16_t first = y < 0 ? -y : 0;		// first sprite row on screen
+	int16_t last = height;			// one past the last
+	int16_t r;
 
 	if (last > PLANE_HEIGHT - y)
 		last = PLANE_HEIGHT - y;
 
 	for (r = first; r < last; r++) {
-		unsigned wr = (unsigned)(unsigned short)~mask[r];
+		uint16_t wr = (uint16_t)(uint16_t)~mask[r];
 
-		put_row16((unsigned char *)dest0, x, (short)(y + r),
+		put_row16((uint8_t *)dest0, x, (int16_t)(y + r),
 			  sprt0[r], wr);
-		put_row16((unsigned char *)dest1, x, (short)(y + r),
+		put_row16((uint8_t *)dest1, x, (int16_t)(y + r),
 			  sprt1[r], wr);
 	}
 }
@@ -291,8 +292,8 @@ void GrayClipSprite16_SMASK_R(short x, short y, unsigned short height,
 // `wr` clear, so put_row16 leaves the plane's bits alone there and the byte
 // lands at x..x+7 alone. The clipping falls out too - a byte entirely off the
 // left edge is one whose enabled bits all sit in bytes put_row16 skips.
-static void put_row8(unsigned char *plane, short x, short y, unsigned val,
-		     unsigned wr)
+static void put_row8(uint8_t *plane, int16_t x, int16_t y, uint16_t val,
+		     uint16_t wr)
 {
 	put_row16(plane, x, y, (val & 0xFF) << 8, (wr & 0xFF) << 8);
 }
@@ -307,23 +308,23 @@ static void put_row8(unsigned char *plane, short x, short y, unsigned val,
 // The original has a fourth hand-written case the 16-wide one does not, since
 // eight pixels at a bit offset of 0..7 may or may not fit inside the one word
 // it reads; put_row8's window makes that distinction disappear as well.
-void GrayClipSprite8_SMASK_R(short x, short y, unsigned short height,
-			     const unsigned char *sprt0, const unsigned char *sprt1,
-			     const unsigned char *mask, void *dest0, void *dest1)
+void GrayClipSprite8_SMASK_R(int16_t x, int16_t y, uint16_t height,
+			     const uint8_t *sprt0, const uint8_t *sprt1,
+			     const uint8_t *mask, void *dest0, void *dest1)
 {
-	int first = y < 0 ? -y : 0;		// first sprite row on screen
-	int last = height;			// one past the last
-	int r;
+	int16_t first = y < 0 ? -y : 0;		// first sprite row on screen
+	int16_t last = height;			// one past the last
+	int16_t r;
 
 	if (last > PLANE_HEIGHT - y)
 		last = PLANE_HEIGHT - y;
 
 	for (r = first; r < last; r++) {
-		unsigned wr = (unsigned)(unsigned char)~mask[r];
+		uint16_t wr = (uint16_t)(uint8_t)~mask[r];
 
-		put_row8((unsigned char *)dest0, x, (short)(y + r),
+		put_row8((uint8_t *)dest0, x, (int16_t)(y + r),
 			 sprt0[r], wr);
-		put_row8((unsigned char *)dest1, x, (short)(y + r),
+		put_row8((uint8_t *)dest1, x, (int16_t)(y + r),
 			 sprt1[r], wr);
 	}
 }
@@ -345,18 +346,18 @@ void GrayClipSprite8_SMASK_R(short x, short y, unsigned short height,
 // Widening to 32 bits first means the pixels of sprite 0 that fall left of
 // sprite 1's window move into bits 16..31, where row1 has nothing, and are
 // discarded rather than wrapping into a false hit.
-short TestCollide162h_R(short x0, short y0, short x1, short y1,
-			unsigned short height0, unsigned short height1,
-			const unsigned short *data0, const unsigned short *data1)
+int16_t TestCollide162h_R(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+			uint16_t height0, uint16_t height1,
+			const uint16_t *data0, const uint16_t *data1)
 {
-	int dx = x1 - x0;
-	int top, bot, r;
+	int16_t dx = x1 - x0;
+	int16_t top, bot, r;
 
 	// Normalise to sprite 0 being the leftmost; the test is symmetric.
 	if (dx < 0) {
-		const unsigned short *dt = data0;
-		short t;
-		unsigned short ht;
+		const uint16_t *dt = data0;
+		int16_t t;
+		uint16_t ht;
 
 		dx = -dx;
 		data0 = data1; data1 = dt;
@@ -368,15 +369,15 @@ short TestCollide162h_R(short x0, short y0, short x1, short y1,
 
 	// Intersect the row ranges; bot is exclusive.
 	top = y0 > y1 ? y0 : y1;
-	bot = (int)y0 + height0 < (int)y1 + height1 ? (int)y0 + height0
-						    : (int)y1 + height1;
+	bot = (int16_t)y0 + height0 < (int16_t)y1 + height1 ? (int16_t)y0 + height0
+						    : (int16_t)y1 + height1;
 	if (bot <= top)
 		return 0;
 
 	data0 += top - y0;
 	data1 += top - y1;
 	for (r = 0; r < bot - top; r++)
-		if (((unsigned long)data0[r] << dx) & data1[r])
+		if (((uint32_t)data0[r] << dx) & data1[r])
 			return 1;
 	return 0;
 }
@@ -401,25 +402,25 @@ void GrayClearScreen2B(void *lightplane, void *darkplane)
 // four arrays one row past their ends and walking them backwards with
 // pre-decrements. The vertical clip then still trims the same range of k, and
 // a sprite hanging off the top of the screen loses its *last* rows.
-void UpsideDownGrayClipSprite16_MASK_R(short x, short y, unsigned short height,
-				       unsigned short *sprt0, unsigned short *sprt1,
-				       unsigned short *mask0, unsigned short *mask1,
+void UpsideDownGrayClipSprite16_MASK_R(int16_t x, int16_t y, uint16_t height,
+				       uint16_t *sprt0, uint16_t *sprt1,
+				       uint16_t *mask0, uint16_t *mask1,
 				       void *dest0, void *dest1)
 {
-	int first = y < 0 ? -y : 0;		// first row slot on screen
-	int last = height;			// one past the last
-	int k;
+	int16_t first = y < 0 ? -y : 0;		// first row slot on screen
+	int16_t last = height;			// one past the last
+	int16_t k;
 
 	if (last > PLANE_HEIGHT - y)
 		last = PLANE_HEIGHT - y;
 
 	for (k = first; k < last; k++) {
-		int r = height - 1 - k;		// the sprite row that lands there
+		int16_t r = height - 1 - k;		// the sprite row that lands there
 
-		put_row16((unsigned char *)dest0, x, (short)(y + k),
-			  sprt0[r], (unsigned)(unsigned short)~mask0[r]);
-		put_row16((unsigned char *)dest1, x, (short)(y + k),
-			  sprt1[r], (unsigned)(unsigned short)~mask1[r]);
+		put_row16((uint8_t *)dest0, x, (int16_t)(y + k),
+			  sprt0[r], (uint16_t)(uint16_t)~mask0[r]);
+		put_row16((uint8_t *)dest1, x, (int16_t)(y + k),
+			  sprt1[r], (uint16_t)(uint16_t)~mask1[r]);
 	}
 }
 
@@ -441,24 +442,24 @@ void UpsideDownGrayClipSprite16_MASK_R(short x, short y, unsigned short height,
 // still light a pixel if it were not cleared here. Same as the note on
 // put_row16 about bits outside a sprite's own mask - the original clears these
 // with an `and.l`, so the port does too.
-void GrayClipSprite16_SMASKBLIT_R(short x, short y, unsigned short height,
-				  unsigned short *sprt0, unsigned short *sprt1,
-				  unsigned short *mask, const unsigned short maskval,
+void GrayClipSprite16_SMASKBLIT_R(int16_t x, int16_t y, uint16_t height,
+				  uint16_t *sprt0, uint16_t *sprt1,
+				  uint16_t *mask, const uint16_t maskval,
 				  void *dest0, void *dest1)
 {
-	int first = y < 0 ? -y : 0;		// first sprite row on screen
-	int last = height;			// one past the last
-	int r;
+	int16_t first = y < 0 ? -y : 0;		// first sprite row on screen
+	int16_t last = height;			// one past the last
+	int16_t r;
 
 	if (last > PLANE_HEIGHT - y)
 		last = PLANE_HEIGHT - y;
 
 	for (r = first; r < last; r++) {
-		unsigned wr = (unsigned)(unsigned short)~mask[r] & maskval;
+		uint16_t wr = (uint16_t)(uint16_t)~mask[r] & maskval;
 
-		put_row16((unsigned char *)dest0, x, (short)(y + r),
+		put_row16((uint8_t *)dest0, x, (int16_t)(y + r),
 			  sprt0[r] & maskval, wr);
-		put_row16((unsigned char *)dest1, x, (short)(y + r),
+		put_row16((uint8_t *)dest1, x, (int16_t)(y + r),
 			  sprt1[r] & maskval, wr);
 	}
 }

@@ -1,6 +1,7 @@
 #include "scankeys.h"
 #include "compat/kbd.h"
 #include "custom.h"
+#include <stdint.h>
 
 struct keystate Keystate, Previous_keystate;
 
@@ -20,12 +21,12 @@ void WaitKeyPress() {
 // #if TI89
 
 void Scankeys() { // ti 89 and ti89T code
-  unsigned short Row;
+  uint16_t Row;
 
   // New V 1.03: Configureable keys
-  unsigned short Masks[4] = {0b00010000, 0b00100000, 0b01000000, 0b10000000};
-  unsigned short RunMask = Masks[Settings.Keys[1]];
-  unsigned short JumpMask = Masks[Settings.Keys[0]];
+  uint16_t Masks[4] = {0b00010000, 0b00100000, 0b01000000, 0b10000000};
+  uint16_t RunMask = Masks[Settings.Keys[1]];
+  uint16_t JumpMask = Masks[Settings.Keys[0]];
   ;
   // End of new
 
@@ -48,7 +49,7 @@ void Scankeys() { // ti 89 and ti89T code
   Keystate.Plus = Row & 0b00000010;
   Keystate.Minus = Row & 0b00000100;
 
-  short MaskLeft = 0;
+  int16_t MaskLeft = 0;
   if (Keystate.Left && Keystate.Right && Previous_keystate.Right) {
 
     MaskLeft = 1;
@@ -67,17 +68,17 @@ void Scankeys() { // ti 89 and ti89T code
 // #if TI92PLUS
 
 void Scankeys() { // ti 92+ code
-  unsigned short Row;
+  uint16_t Row;
 
   // New V 1.03: Configureable keys
-  unsigned short Masks[4] = {0b00001000, 0b00010000, 0b00010000, 0b00010000};
-  unsigned short RowMasks[4] = {0b1111111110, 0b1110111111, 0b1111101111,
-                                0b1111011111};
+  uint16_t Masks[4] = {0b00001000, 0b00010000, 0b00010000, 0b00010000};
+  uint16_t RowMasks[4] = {0b1111111110, 0b1110111111, 0b1111101111,
+                          0b1111011111};
 
-  unsigned short RunMask = Masks[Settings.Keys[1]];
-  unsigned short JumpMask = Masks[Settings.Keys[0]];
-  unsigned short RunRowMask = RowMasks[Settings.Keys[1]];
-  unsigned short JumpRowMask = RowMasks[Settings.Keys[0]];
+  uint16_t RunMask = Masks[Settings.Keys[1]];
+  uint16_t JumpMask = Masks[Settings.Keys[0]];
+  uint16_t RunRowMask = RowMasks[Settings.Keys[1]];
+  uint16_t JumpRowMask = RowMasks[Settings.Keys[0]];
   ;
 
   Keystate.Run = _rowread(RunRowMask) & RunMask;
@@ -105,7 +106,7 @@ void Scankeys() { // ti 92+ code
   //	Row = _rowread(0b1111101111);//4
   // Keystate.Run   = Row & 0b00010000;//F2
 
-  short MaskLeft = 0;
+  int16_t MaskLeft = 0;
   if (Keystate.Left && Keystate.Right && Previous_keystate.Right) {
 
     MaskLeft = 1;
@@ -124,17 +125,17 @@ void Scankeys() { // ti 92+ code
 // #if V200
 
 void Scankeys() { // ti v200 code
-  unsigned short Row;
+  uint16_t Row;
 
   // New V 1.03: Configureable keys
-  unsigned short Masks[4] = {0b00001000, 0b00001000, 0b00010000, 0b00001000};
-  unsigned short RowMasks[4] = {0b1111111110, 0b0111111111, 0b1110111111,
-                                0b1111111101};
+  uint16_t Masks[4] = {0b00001000, 0b00001000, 0b00010000, 0b00001000};
+  uint16_t RowMasks[4] = {0b1111111110, 0b0111111111, 0b1110111111,
+                          0b1111111101};
 
-  unsigned short RunMask = Masks[Settings.Keys[1]];
-  unsigned short JumpMask = Masks[Settings.Keys[0]];
-  unsigned short RunRowMask = RowMasks[Settings.Keys[1]];
-  unsigned short JumpRowMask = RowMasks[Settings.Keys[0]];
+  uint16_t RunMask = Masks[Settings.Keys[1]];
+  uint16_t JumpMask = Masks[Settings.Keys[0]];
+  uint16_t RunRowMask = RowMasks[Settings.Keys[1]];
+  uint16_t JumpRowMask = RowMasks[Settings.Keys[0]];
   ;
 
   Keystate.Run = _rowread(RunRowMask) & RunMask;
@@ -157,7 +158,7 @@ void Scankeys() { // ti v200 code
   // Keystate.Run   = Row & 0b00001000;//Q
   Keystate.Minus = Row & 0b00000001;
 
-  short MaskLeft = 0;
+  int16_t MaskLeft = 0;
   if (Keystate.Left && Keystate.Right && Previous_keystate.Right) {
 
     MaskLeft = 1;

@@ -7,16 +7,17 @@
 #include "objects.h"
 #include "player.h"
 #include "render.h"
+#include <stdint.h>
 
 // shell Shells[max_nr_of_shells];
 struct shell *Shells;
 
 // New: V 1.04 Added a function that adds killed shells, instead of repeated
 // code. Saved some bytes
-void Add_killed_shell(struct shell *Shell, short DirSpeed) {
+void Add_killed_shell(struct shell *Shell, int16_t DirSpeed) {
   // Possible optimization: shange DirSpeed parameter to the 2nd X coordinate
   // that is used to determine the direction
-  short O;
+  int16_t O;
   if ((O = Find_free_object()) != -1) {
     Objects[O].Active = Shell->Active;
     Objects[O].Data0 = DirSpeed;
@@ -28,9 +29,9 @@ void Add_killed_shell(struct shell *Shell, short DirSpeed) {
 }
 
 inline void Player_bounching_shell_hadler() {
-  short A, C, D;
-  unsigned char Temp;
-  short Dist = 0;
+  int16_t A, C, D;
+  uint8_t Temp;
+  int16_t Dist = 0;
 
   for (C = 0; C < max_nr_of_shells; C++) {
     struct shell *Shell = &Shells[C];
@@ -81,7 +82,7 @@ inline void Player_bounching_shell_hadler() {
             /*Shells[C].*/ Shell->X += min(/*Shells[C].*/ Shell->Dir, Dist);
 
             if ((/*Shells[C].*/ Shell->X) >
-                16 * (short)Fg_plane.p.width)   // test if outside level (right)
+                16 * (int16_t)Fg_plane.p.width) // test if outside level (right)
               /*Shells[C].*/ Shell->Active = 0; // kill shell
           };
         } //>0
@@ -249,8 +250,9 @@ inline void Player_bounching_shell_hadler() {
   }; // end for
 }
 
-void Add_shell(/*short X,short Y,*/ short Dir, char Type, struct enemy *Enemy) {
-  short C;
+void Add_shell(/*short X,short Y,*/ int16_t Dir, char Type,
+               struct enemy *Enemy) {
+  int16_t C;
 
   for (C = 0; C < max_nr_of_shells; C++) { // loop through array of shells
     if (!(Shells[C].Active)) {             // free space ?

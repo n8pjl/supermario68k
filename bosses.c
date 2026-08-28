@@ -8,6 +8,7 @@
 #include "player.h"
 #include "render.h"
 #include "scankeys.h"
+#include <stdint.h>
 #include <string.h>
 
 struct boss *BossG;
@@ -44,18 +45,18 @@ inline void Handlebosses() {
   };
 };
 
-short Boss_free_down(struct boss *Boss) {
+int16_t Boss_free_down(struct boss *Boss) {
 
   return min(Free_down(Boss->X, Boss->Y + Boss->Height),
              Free_down(Boss->X + 15, Boss->Y + Boss->Height));
 }
 
-short Boss_free_up(struct boss *Boss) {
+int16_t Boss_free_up(struct boss *Boss) {
 
   return min(Free_up(Boss->X, Boss->Y), Free_up(Boss->X + 15, Boss->Y));
 }
 
-void Add_killed_boss(struct boss *Boss, short Type) {
+void Add_killed_boss(struct boss *Boss, int16_t Type) {
 
   Items[0].X = Boss->X + 8;
   Items[0].Y = Boss->Y + 1 - 16;
@@ -71,7 +72,7 @@ void Add_killed_boss(struct boss *Boss, short Type) {
 }
 
 void Boss_handler_1(struct boss *Boss) {
-  short C, Temp, Temp2;
+  int16_t C, Temp, Temp2;
   char Face = Boss->Face;
   char Data0 = Boss->Data0;
 
@@ -208,7 +209,7 @@ void Boss_handler_1(struct boss *Boss) {
 #define threshold 5 * 16
 
 void Boss_handler_2(struct boss *Boss) {
-  short xDist, C, Temp, Temp2;
+  int16_t xDist, C, Temp, Temp2;
   char Face = Boss->Face;
   char Data0 = Boss->Data0;
 
@@ -456,7 +457,7 @@ void Bowser_handler(struct boss *Boss1) {
     if (Boss->Data1 == -1) {
       // chasing
 
-      short Dist = Player.X - Boss->X + 16;
+      int16_t Dist = Player.X - Boss->X + 16;
 
       if (abs(Dist) > threshold) {
 
@@ -468,7 +469,7 @@ void Bowser_handler(struct boss *Boss1) {
       }
     }
 
-    short Dist = 16, Dist2;
+    int16_t Dist = 16, Dist2;
 
     if (Boss->Data0 > 0) { // Handle jump and powerjump
       /*
@@ -494,7 +495,7 @@ void Bowser_handler(struct boss *Boss1) {
       }
       */
 
-      short Dist = Boss_free_up(Boss);
+      int16_t Dist = Boss_free_up(Boss);
 
       if (Dist >= 3) {
         Boss->Y -= 3;
@@ -522,7 +523,7 @@ void Bowser_handler(struct boss *Boss1) {
         Boss->Sprite =
             (Boss->X > Player.X ? bowser_run_left_spr : bowser_run_right_spr);
 
-      short /*Dist=16,Dist2,*/ DX;
+      int16_t /*Dist=16,Dist2,*/ DX;
 
       //			for(DX=0;DX<=16;DX+=16){
       //				Dist2 =
@@ -566,14 +567,13 @@ void Bowser_handler(struct boss *Boss1) {
                 Boss) /*Free_down(Boss->X+DX,Boss->Y+Boss->Height)*/) { // hit
                                                                         // the
                                                                         // floor?
-          unsigned char Tile = Get_tile(Boss->X, Boss->Y + Boss->Height + 5);
+          uint8_t Tile = Get_tile(Boss->X, Boss->Y + Boss->Height + 5);
           // short Bang = 0;
           if (Boss->Data1 == 1) { // powerjump
             // break bricks if any
             for (DX = 0; DX <= 32; DX += 16) {
 
-              unsigned char Tile =
-                  Get_tile(Boss->X + DX, Boss->Y + Boss->Height + 5);
+              uint8_t Tile = Get_tile(Boss->X + DX, Boss->Y + Boss->Height + 5);
 
               if ((Tile >= solid_interactive_bounch_low) &&
                   (Tile <= solid_interactive_bounch_high)) {
@@ -606,7 +606,7 @@ void Bowser_handler(struct boss *Boss1) {
         Boss->X += Boss->Face;
       } else {
         // check if bowser can jump up
-        short DY, Y;
+        int16_t DY, Y;
 
         if( !Boss_free_down(Boss)/*Free_down(Boss->X,Boss->Y+Boss->Height) && !Free_down(Boss->X+16,Boss->Y+Boss->Height)*/ ){
           for (DY = 16; DY <= 48; DY += 16) {
@@ -628,7 +628,7 @@ void Bowser_handler(struct boss *Boss1) {
         Boss->X += Boss->Face;
       } else {
         // check if bowser can jump up
-        short DY, Y;
+        int16_t DY, Y;
         if( !Boss_free_down(Boss)/*Free_down(Boss->X,Boss->Y+Boss->Height) && !Free_down(Boss->X+16,Boss->Y+Boss->Height)*/ ){
           for (DY = 16; DY <= 48; DY += 16) {
             Y = Boss->Y - DY;
@@ -646,7 +646,7 @@ void Bowser_handler(struct boss *Boss1) {
   } else { //! Active
 
     if (Boss->Mode) {
-      short DX = min(Boss_free_down(Boss), 3);
+      int16_t DX = min(Boss_free_down(Boss), 3);
       //			DX =
       // min(Free_down(Boss->X,Boss->Y+Boss->Height),3); DX =
       // min(DX,Free_down(Boss->X+16,Boss->Y+Boss->Height));
@@ -695,10 +695,10 @@ void Bowser_handler(struct boss *Boss1) {
         // flashing
         // bowser goes flies upwards
 
-        short C;
+        int16_t C;
         for (C = 0; C < 20; C++) {
 
-          unsigned short D;
+          uint16_t D;
           if (C % 2) {
 
             // FastFilledRect_Draw_R(dBufHPD_G,0,0,239,127);
@@ -730,7 +730,7 @@ void Bowser_handler(struct boss *Boss1) {
                 Put_tile(9*16,7*16,0);
                 Put_tile(7*16,7*16,0);
                 */
-        short D;
+        int16_t D;
         for (D = 5; D <= 9; D += 2) {
           Put_tile(D * 16, 7 * 16, 0);
         }
@@ -791,8 +791,9 @@ void Bowser_handler(struct boss *Boss1) {
 
 #undef threshold
 
-void Boss_die_1(struct boss *Boss) { // Boss_die_1 and Boss_die_2 merged together for
-                              // size optimization.
+void Boss_die_1(
+    struct boss *Boss) { // Boss_die_1 and Boss_die_2 merged together for
+                         // size optimization.
 
   if (!Boss->Mode) {
     if (Boss->Height == 27) {
@@ -869,8 +870,8 @@ void Boss_die_2(boss *Boss){
 };
 */
 
-void Add_boss_shot(short X, short Y, char DirX, char DirY) {
-  short C;
+void Add_boss_shot(int16_t X, int16_t Y, char DirX, char DirY) {
+  int16_t C;
 
   // */Shot->
   // shot* Shot = &Enemyshots[C];
@@ -908,8 +909,8 @@ void Boss_shot_handler(struct shot *Shot) {
   Shot->Y += Shot->Data1;
 };
 
-void Add_big_fireball_shot(short X, short Y, char DirX, char DirY) {
-  short C;
+void Add_big_fireball_shot(int16_t X, int16_t Y, char DirX, char DirY) {
+  int16_t C;
   /*
   for(C=0;C<nr_of_enemyshots;C++){
           if(!(Enemyshots[C].Mode)){

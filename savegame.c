@@ -15,11 +15,12 @@
 #include "scankeys.h"
 #include "smallgames.h"
 #include "stringcopy.h"
+#include <stdint.h>
 #include <string.h>
 
 void Savegame(char Slot) {
-  short C;
-  short Size;
+  int16_t C;
+  int16_t Size;
   //	SYM_ENTRY *Levelsetfile_sym;
   HANDLE Temp;
 
@@ -68,7 +69,7 @@ void Savegame(char Slot) {
   // update saveslot pointer
   // Levelsetdata.Savegames[(short)Slot] = Size;
   ((struct levelsetdata *)TempBuffer /*Fg_plane.p.big_vscreen*/)
-      ->Savegames[(short)Slot] = Levelsetdata.Savegames[(short)Slot] = Size;
+      ->Savegames[(int16_t)Slot] = Levelsetdata.Savegames[(int16_t)Slot] = Size;
 
   SavePlayer.MapBorderLeft = Map_data.Border_left;
   SavePlayer.MapBorderRight = Map_data.Border_right;
@@ -95,21 +96,21 @@ void Savegame(char Slot) {
   }
   Size += (18 + 10);
 
-  short MapSize = Map_data.Height * Map_data.Width +
-                  sizeof(struct map_trigger) * Map_data.Nr_of_triggers +
-                  sizeof(struct map_object) * Map_data.Nr_of_objects;
+  int16_t MapSize = Map_data.Height * Map_data.Width +
+                    sizeof(struct map_trigger) * Map_data.Nr_of_triggers +
+                    sizeof(struct map_object) * Map_data.Nr_of_objects;
 
   char *TempBuffer2 = Fg_mask.p.big_vscreen;
   memcpy(TempBuffer2 /*Fg_mask.p.big_vscreen*/, Map,
          MapSize); // copy possibly modified map with objects and triggers
 
-  short OldPCX = SavePlayer.PrevCompX;
-  short OldPCY = SavePlayer.PrevCompY;
-  short OldMapX = SavePlayer.MapX;
-  short OldMapY = SavePlayer.MapY;
-  short OldL = SavePlayer.L;
-  short OldFgX = FgX;
-  short OldFgY = FgY;
+  int16_t OldPCX = SavePlayer.PrevCompX;
+  int16_t OldPCY = SavePlayer.PrevCompY;
+  int16_t OldMapX = SavePlayer.MapX;
+  int16_t OldMapY = SavePlayer.MapY;
+  int16_t OldL = SavePlayer.L;
+  int16_t OldFgX = FgX;
+  int16_t OldFgY = FgY;
 
   // New: V 1.01 Added check whether or not warp zone is to be loaded. Bugfix
   Load_map((Levelsetdata.CurrentWorld == Levelsetdata.Commonfile
@@ -136,8 +137,8 @@ void Savegame(char Slot) {
   // unsigned short RLECompress(unsigned char *output,unsigned char
   // *input,unsigned short length);
 
-  short RLESize = RLECompress(TempBuffer /*Fg_plane.p.big_vscreen*/ + Size,
-                              TempBuffer2 /*Fg_mask.p.big_vscreen*/, MapSize);
+  int16_t RLESize = RLECompress(TempBuffer /*Fg_plane.p.big_vscreen*/ + Size,
+                                TempBuffer2 /*Fg_mask.p.big_vscreen*/, MapSize);
   // short SlotSize = sizeof(saveplayer)+10+RLESize;
   for (C = 0; C < MapSize; C++) { // Undo loading of original map
     *(Map + C) += *(TempBuffer2 /*Fg_mask.p.big_vscreen*/ + C);
@@ -146,12 +147,12 @@ void Savegame(char Slot) {
   Map_data.Border_left = SavePlayer.MapBorderLeft;
   Map_data.Border_right = SavePlayer.MapBorderRight;
 
-  short Slotsize = sizeof(struct saveplayer) + 10 + 18 + RLESize;
+  int16_t Slotsize = sizeof(struct saveplayer) + 10 + 18 + RLESize;
   Size += RLESize;
 
   ((struct levelsetdata *)TempBuffer /*Fg_plane.p.big_vscreen*/)
-      ->Savegame_size[(short)Slot] = Levelsetdata.Savegame_size[(short)Slot] =
-      Slotsize;
+      ->Savegame_size[(int16_t)Slot] =
+      Levelsetdata.Savegame_size[(int16_t)Slot] = Slotsize;
   // Levelsetdata.Savegame_size[(short)Slot] = Slotsize;
   //((levelsetdata*)Fg_plane.p.big_vscreen)->Savegame_size[(short)Slot] =
   // Size-((levelsetdata*)Fg_plane.p.big_vscreen)->Savegames[(short)Slot];
@@ -168,7 +169,7 @@ void Savegame(char Slot) {
 
   // New: V 1.01 Modified the file saving to automaticly archive save game file,
   // doing a garbage collection if neccessarry
-  short Tries = 0;
+  int16_t Tries = 0;
 
   while (Tries < 2) { // 0 or 1 try
 
@@ -270,7 +271,7 @@ void Savegame(char Slot) {
 
 failure: // save failed
 
-  Levelsetdata.Savegames[(short)Slot] = 0;
+  Levelsetdata.Savegames[(int16_t)Slot] = 0;
 
   GrayClearScreen2B(dBufHPL_G, dBufHPD_G);
 
@@ -287,8 +288,8 @@ failure: // save failed
 };
 
 void Loadgame(char Slot /* , char* Raw0*/) {
-  short C;
-  short Size;
+  int16_t C;
+  int16_t Size;
   //	SYM_ENTRY *Levelsetfile_sym;
   HANDLE Temp;
   //	Raw0 += sizeof(levelsetdata)+21 + 9*(Levelsetdata.Nr_of_files+1);
@@ -307,7 +308,7 @@ void Loadgame(char Slot /* , char* Raw0*/) {
   Raw = Raw0 = HeapDeref(Temp) + 2;
   // copy file content...
 
-  Raw += Levelsetdata.Savegames[(short)Slot];
+  Raw += Levelsetdata.Savegames[(int16_t)Slot];
 
   Raw += sizeof(struct saveplayer);
 
@@ -332,9 +333,9 @@ void Loadgame(char Slot /* , char* Raw0*/) {
 
   // Error: map not found
 
-  short MapSize = Map_data.Height * Map_data.Width +
-                  sizeof(struct map_trigger) * Map_data.Nr_of_triggers +
-                  sizeof(struct map_object) * Map_data.Nr_of_objects;
+  int16_t MapSize = Map_data.Height * Map_data.Width +
+                    sizeof(struct map_trigger) * Map_data.Nr_of_triggers +
+                    sizeof(struct map_object) * Map_data.Nr_of_objects;
 
   // memset(Fg_plane.p.big_vscreen,0x0000,MapSize);
 
@@ -346,7 +347,7 @@ void Loadgame(char Slot /* , char* Raw0*/) {
 
   Raw = Raw0;
 
-  Raw += ((struct levelsetdata *)Raw)->Savegames[(short)Slot];
+  Raw += ((struct levelsetdata *)Raw)->Savegames[(int16_t)Slot];
   // load player
 
   memcpy(&SavePlayer, Raw, sizeof(struct saveplayer));

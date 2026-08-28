@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include "enemies.h"
 
 // mario sprites
@@ -68,13 +69,13 @@
 #define itemlist_length 20
 
 struct player {
-  short X; // Xpos
-  short Y; // Ypos
+  int16_t X; // Xpos
+  int16_t Y; // Ypos
 
   char Xoffset;
   char Yoffset;
 
-  short Immortal; // used when recently wounded and when player recently got a
+  int16_t Immortal; // used when recently wounded and when player recently got a
                   // star. Used as a (frame)counter,counts down to 0.
 
   //	short Life;
@@ -88,47 +89,47 @@ struct player {
   char Face; // direction.   (+ == right) && (- == left)
 
   char PrevFace; // fly code
-  short SlopeAbove;
-  short SlopeDownUnder;
+  int16_t SlopeAbove;
+  int16_t SlopeDownUnder;
   //	char Coins;
 
   //	unsigned int Score;//nr of houndred points,get padded with "00"
 
   char Walkspeed;
   char Walkspeed2; // contents normal speed when run
-  short Jumpspeed;
-  short Fallspeed;
+  int16_t Jumpspeed;
+  int16_t Fallspeed;
 
-  short Max_jumpheight;
+  int16_t Max_jumpheight;
 
-  short IsJumping;
-  short IsFalling;
+  int16_t IsJumping;
+  int16_t IsFalling;
   char IsInWater; // will possibly be replaced by something using Attribs.
 
   char IsInQsand;
 
-  short IsClimbing;
+  int16_t IsClimbing;
 
-  short Height;
+  int16_t Height;
 
-  short Height2; // sprite height
+  int16_t Height2; // sprite height
 
   //	short Maskbase;
   //	short Spritebase;//small left, small right, large left, large right,
   // fire left, fire  right 	short Spritenr;
-  short SpriteOffset;
-  short Blit;
+  int16_t SpriteOffset;
+  int16_t Blit;
 
-  short Offset;
+  int16_t Offset;
   //	short PrevCompX;
   //	short PrevCompY;
 
-  short Test;
-  short Test2;
+  int16_t Test;
+  int16_t Test2;
 
   // fly code
-  short Flycount;
-  short Runcount;
+  int16_t Flycount;
+  int16_t Runcount;
 
   //	short MapX;
   //	short MapY;
@@ -151,37 +152,37 @@ struct player {
   // 9:
   // 10:
 
-  short Curr_item;
+  int16_t Curr_item;
   //	char Cards[3];
 
   //	char CurrCard;
 
-  short Behind_fg;
-  short White_magic_box_counter;
+  int16_t Behind_fg;
+  int16_t White_magic_box_counter;
 
-  short RacoonTaleAnim;
+  int16_t RacoonTaleAnim;
 };
 
 struct saveplayer {
 
-  unsigned short Score;
+  uint16_t Score;
 
   // are those neccessarry???
-  short Spritebase; // small left, small right, large left, large right, fire
+  int16_t Spritebase; // small left, small right, large left, large right, fire
                     // left, fire  right
-  short Spritenr;
-  short Maskbase;
+  int16_t Spritenr;
+  int16_t Maskbase;
 
-  short PrevCompX;
-  short PrevCompY;
+  int16_t PrevCompX;
+  int16_t PrevCompY;
 
-  short MapX;
-  short MapY;
+  int16_t MapX;
+  int16_t MapY;
 
-  short MapBorderLeft; // bugfix
-  short MapBorderRight;
+  int16_t MapBorderLeft; // bugfix
+  int16_t MapBorderRight;
 
-  short L;
+  int16_t L;
 
   char Life;
   char Lives;
@@ -211,16 +212,16 @@ extern struct saveplayer SavePlayer;
 
 extern struct shot Player_smallshots[nr_of_player_smallshots];
 
-extern unsigned short *Mariosprites;
-extern unsigned short *Mariomasks;
+extern uint16_t *Mariosprites;
+extern uint16_t *Mariomasks;
 
-extern void (*Bonushandlers[20])(short X,
-                                 short Y); // pointers to bonustiles functions
+extern void (*Bonushandlers[20])(int16_t X,
+                                 int16_t Y); // pointers to bonustiles functions
 extern void (*Interactive_tile_handlers[47])(
-    short X, short Y); // pointers to interactive tiles functions
+    int16_t X, int16_t Y); // pointers to interactive tiles functions
 
 extern void (*Interactive_non_solid_tile_handlers[21])(
-    short X, short Y); // pointers to inatective tiles functions
+    int16_t X, int16_t Y); // pointers to inatective tiles functions
 
 void Playerinit();
 
@@ -230,17 +231,17 @@ void Player_die();
 void Player_die_hard();
 void Player_die_anim();
 
-unsigned char Get_tile(short X, short Y);
+uint8_t Get_tile(int16_t X, int16_t Y);
 
-void Put_tile(short X, short Y, unsigned char Tile);
+void Put_tile(int16_t X, int16_t Y, uint8_t Tile);
 
 void Set_player_attribs();
-void Set_player_attribs_right(unsigned char *Attribs);
-void Set_player_attribs_left(unsigned char *Attribs);
-void Set_player_attribs_up(unsigned char *Attribs);
-void Set_player_attribs_down(unsigned char *Attribs);
+void Set_player_attribs_right(uint8_t *Attribs);
+void Set_player_attribs_left(uint8_t *Attribs);
+void Set_player_attribs_up(uint8_t *Attribs);
+void Set_player_attribs_down(uint8_t *Attribs);
 
-void Dummy_func(short X, short Y);
+void Dummy_func(int16_t X, int16_t Y);
 
 void Player_handle_fireballs();
 

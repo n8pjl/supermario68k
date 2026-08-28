@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 // Shim for the slice of the TIOS variable/file API that Super Mario 68K uses.
 //
 // On the calculator the game reads its data straight out of VAT variables:
@@ -36,8 +37,8 @@ enum FileStatusEnum {
 // by the game, but the rest is kept so the struct stays recognisable.
 typedef struct {
   char name[8];
-  unsigned short compat;
-  unsigned short flags;
+  uint16_t compat;
+  uint16_t flags;
   HANDLE handle;
 } SYM_ENTRY;
 
@@ -50,28 +51,28 @@ typedef const char *SYM_STR;
 typedef struct {
   char name[9];
   char tag[8];
-  unsigned char *buf;
+  uint8_t *buf;
   size_t len;
   size_t cap;
-  short mode;
+  int16_t mode;
 } FILES;
 
-SYM_ENTRY *SymFindPtr(SYM_STR name, short flags);
+SYM_ENTRY *SymFindPtr(SYM_STR name, int16_t flags);
 void *HeapDeref(HANDLE handle);
 HANDLE HeapLock(HANDLE handle);
 void *HToESI(HANDLE handle);
 
 char *SymFindFolderName(void);
 BOOL FolderCur(SYM_STR name, BOOL create);
-SYM_ENTRY *FFindFirst(short flags, const char *tag, const char *folder);
+SYM_ENTRY *FFindFirst(int16_t flags, const char *tag, const char *folder);
 SYM_ENTRY *FFindNext(void);
 
-unsigned short FOpen(const char *name, FILES *f, short mode, const char *tag);
-unsigned short FWrite(const void *data, short len, FILES *f);
-unsigned short FClose(FILES *f);
+uint16_t FOpen(const char *name, FILES *f, int16_t mode, const char *tag);
+uint16_t FWrite(const void *data, int16_t len, FILES *f);
+uint16_t FClose(FILES *f);
 
 // Archive memory management: there is no archive here, so these all succeed.
-short EM_findEmptySlot(long size);
-short EM_moveSymFromExtMem(SYM_STR name, HANDLE h);
-short EM_moveSymToExtMem(SYM_STR name, HANDLE h);
-short EM_GC(BOOL all);
+int16_t EM_findEmptySlot(int32_t size);
+int16_t EM_moveSymFromExtMem(SYM_STR name, HANDLE h);
+int16_t EM_moveSymToExtMem(SYM_STR name, HANDLE h);
+int16_t EM_GC(BOOL all);

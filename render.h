@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include "compat/tilemap.h"
 #include "objects.h"
 
@@ -77,38 +78,38 @@
 
 #endif
 
-extern short Update_FG;
+extern int16_t Update_FG;
 
-extern short BgX, BgY, FgX, FgY; // screen render points,PROBABLY UNNESSESSARRY
+extern int16_t BgX, BgY, FgX, FgY; // screen render points,PROBABLY UNNESSESSARRY
 extern struct Plane Bg_plane;
 extern struct AnimatedPlane Fg_plane, Fg_mask, Map_plane;
 extern void *Buffer;
 // extern unsigned short *Tiles;
 
 extern void *Statusbar;
-extern unsigned char StatBarHeight;
+extern uint8_t StatBarHeight;
 
 extern void *dBufHPL_G, *dBufHPD_G;
 
 void GrayDBufToggleSync_SetPointers();
 
-void DrawString(short X, short Y, const char *Str, short Attr, short Font);
+void DrawString(int16_t X, int16_t Y, const char *Str, int16_t Attr, int16_t Font);
 
 void Render();
 
-void DrawMarioCursor(short X, short Y);
+void DrawMarioCursor(int16_t X, int16_t Y);
 
-void DrawSprite16SMASKR(short x, short y, short h, const unsigned short *sprt0,
-                        const unsigned short *sprt1,
-                        const unsigned short *mask);
+void DrawSprite16SMASKR(int16_t x, int16_t y, int16_t h, const uint16_t *sprt0,
+                        const uint16_t *sprt1,
+                        const uint16_t *mask);
 
-void GrayOutlineRect(short X1, short Y1, short X2, short Y2, short Color);
+void GrayOutlineRect(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2, int16_t Color);
 
-void FilledRectDark(short X1, short Y1, short X2, short Y2);
+void FilledRectDark(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2);
 
-void FilledRectEraseLight(short X1, short Y1, short X2, short Y2);
+void FilledRectEraseLight(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2);
 
-void FilledRectEraseDark(short X1, short Y1, short X2, short Y2);
+void FilledRectEraseDark(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2);
 
 // void Draw_player();	//the following commented out functions are inlined
 // manually in Render()!
@@ -158,7 +159,7 @@ void Draw_statusbar();
 
 void Draw_player();
 
-void DrawItem(short X, short Y, short Item);
+void DrawItem(int16_t X, int16_t Y, int16_t Item);
 
 void Render_map();
-void DrawBg(short X, short Y);
+void DrawBg(int16_t X, int16_t Y);

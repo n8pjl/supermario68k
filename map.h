@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include <stddef.h> //offsetof, for the layout assertions below
 
 // map macros
@@ -25,34 +26,34 @@
 #define walkable_node_high 44
 
 extern char Move_map_objects;
-extern unsigned char Treasure;
+extern uint8_t Treasure;
 
 struct map_data {
-  short Width;
-  short Height;
+  int16_t Width;
+  int16_t Height;
 
-  short PlayerX;
-  short PlayerY;
+  int16_t PlayerX;
+  int16_t PlayerY;
 
-  short WarpX;
-  short WarpY;
+  int16_t WarpX;
+  int16_t WarpY;
 
-  short FgX;
-  short FgY;
+  int16_t FgX;
+  int16_t FgY;
 
-  short Border_left;
-  short Border_right;
+  int16_t Border_left;
+  int16_t Border_right;
 
-  short Nr_of_objects;
-  short Nr_of_triggers;
+  int16_t Nr_of_objects;
+  int16_t Nr_of_triggers;
 
-  short Color; // Determines which tileset to use: Light ground, dark ground,
+  int16_t Color; // Determines which tileset to use: Light ground, dark ground,
                // white ground(sky)
   // 0: Bright ground (grass/desert)
   // 1: White ground (Sky)
   // 2: Dark world
 
-  short Spare; // For future purposes
+  int16_t Spare; // For future purposes
 };
 
 // Load_map() casts this straight onto the map file's bytes, so its layout is
@@ -63,8 +64,8 @@ struct map_data {
 // further 2 per object. This is the only structure read from a file that has
 // pointers in it, and so the only one where the two ABIs disagree.
 struct map_object {
-  short X;
-  short Y;
+  int16_t X;
+  int16_t Y;
 
   char Mode;
   char Data0;
@@ -72,12 +73,12 @@ struct map_object {
   char MoveX;
   char MoveY;
 
-  unsigned char Treasure;
+  uint8_t Treasure;
 
   void (*Handler)(void *Map_object);
 
-  unsigned short *Sprite;
-  unsigned short *Mask;
+  uint16_t *Sprite;
+  uint16_t *Mask;
 
 } __attribute__((packed));
 
@@ -91,22 +92,22 @@ _Static_assert(sizeof(struct map_object) == 22,
                "map_object must match the file's 68K layout");
 
 struct map_trigger {
-  short X; // XY-pos of the trigger
-  short Y;
-  short NewX; // player's new pos
-  short NewY;
-  short LX; // Level start position: Used in bidirectional "passages" etc.
-  short LY;
-  short Border_left;
-  short Border_right;
-  short LevelNr;
-  short Exit;
+  int16_t X; // XY-pos of the trigger
+  int16_t Y;
+  int16_t NewX; // player's new pos
+  int16_t NewY;
+  int16_t LX; // Level start position: Used in bidirectional "passages" etc.
+  int16_t LY;
+  int16_t Border_left;
+  int16_t Border_right;
+  int16_t LevelNr;
+  int16_t Exit;
   // short WorldNr;
 
-  short NewMap;
-  short NewBorder_left;
-  short NewBorder_right;
-  short Color; // Determines which tileset to use: Light ground, dark ground,
+  int16_t NewMap;
+  int16_t NewBorder_left;
+  int16_t NewBorder_right;
+  int16_t Color; // Determines which tileset to use: Light ground, dark ground,
                // white ground(sky)
   // 0: Bright ground (grass/desert)
   // 1: White ground (Sky)
@@ -148,9 +149,9 @@ extern struct map_data Map_data;
 extern struct map_trigger *Map_triggers;
 extern struct map_object *Map_objects;
 
-unsigned char Get_map_tile(short X, short Y);
+uint8_t Get_map_tile(int16_t X, int16_t Y);
 
-void Put_map_tile(short X, short Y, unsigned char Tile);
+void Put_map_tile(int16_t X, int16_t Y, uint8_t Tile);
 
 inline void Handle_player_map();
 
@@ -164,7 +165,7 @@ void Handle_map_monster(struct map_object *Monster);
 
 void Enter_enemy_ship(struct map_object *Ship);
 
-void Enter_mushrom_house(unsigned char Treasure);
+void Enter_mushrom_house(uint8_t Treasure);
 
 void Fight_monster(struct map_object *Monster);
 
@@ -172,21 +173,21 @@ void Enter_map_anim();
 
 void Enter_level_anim();
 
-short Free_left_map(short X, short Y);
+int16_t Free_left_map(int16_t X, int16_t Y);
 
-short Free_right_map(short X, short Y);
+int16_t Free_right_map(int16_t X, int16_t Y);
 
-short Free_up_map(short X, short Y);
+int16_t Free_up_map(int16_t X, int16_t Y);
 
-short Free_down_map(short X, short Y);
+int16_t Free_down_map(int16_t X, int16_t Y);
 
-void Replace_map_tile(unsigned char Tile);
+void Replace_map_tile(uint8_t Tile);
 
-void Replace_by_road(short X, short Y);
+void Replace_by_road(int16_t X, int16_t Y);
 
 /*
 void Add_money_ship();
 
 void Add_card_game();
 */
-void Add_map_event(unsigned char Event);
+void Add_map_event(uint8_t Event);

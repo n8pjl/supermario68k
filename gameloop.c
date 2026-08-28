@@ -19,6 +19,7 @@
 #include "scankeys.h"
 #include "shells.h"
 #include "stringcopy.h"
+#include <stdint.h>
 #include <string.h>
 
 char *Filenames;
@@ -30,8 +31,8 @@ struct map_trigger *Map_triggers;
 char Move_map_objects;
 
 void Play_level() {
-  short OldFgX = FgX;
-  short OldFgY = FgY;
+  int16_t OldFgX = FgX;
+  int16_t OldFgY = FgY;
 
   //	Adjust_renderpoint();
   //	Render();
@@ -46,8 +47,8 @@ void Playloop() {
   OldFgX=FgX;	OldFgY=FgY;*/
 
   //	int frames=0;//test
-  short C;
-  long int D; // test
+  int16_t C;
+  int32_t D; // test
 
   // New: V 1.01:
   char PrevLives = SavePlayer.Lives;
@@ -64,7 +65,7 @@ void Playloop() {
 // Apply frame skipping on TI 92+ and V200 to gain speed
 #ifdef PRODUCE_TI92PLUS_CODE
 
-    static short FrameSkip = 0;
+    static int16_t FrameSkip = 0;
     if ((++FrameSkip) ==
         4) { // skipping each n'th frame (don't draw it, still calculated)
       FrameSkip = 0; // gives a good speed increase
@@ -76,7 +77,7 @@ void Playloop() {
 
 #ifdef PRODUCE_V200_CODE
 
-    static short FrameSkip = 0;
+    static int16_t FrameSkip = 0;
     if ((++FrameSkip) ==
         4) { // skipping each n'th frame (don't draw it, still calculated)
       FrameSkip = 0; // gives a good speed increase
@@ -160,7 +161,7 @@ void Playloop() {
 }
 
 void Gameloop() {
-  short C;
+  int16_t C;
   // long D;//for test
 
   while ((!Exit) && (ErrorCode == 0) && (SavePlayer.Lives > 0)) {
@@ -181,10 +182,10 @@ void Gameloop() {
       Scankeys();
       if (Keystate.Esc) { // mid game menu
 
-        /*char*/ short Res = doMenu(Texts + GameTextData.MidGameMap, 3);
+        /*char*/ int16_t Res = doMenu(Texts + GameTextData.MidGameMap, 3);
 
         switch (Res) {
-          short Offset;
+          int16_t Offset;
         case 1: // continue
           //					Render_map();
           //					while(1);
@@ -210,7 +211,7 @@ void Gameloop() {
 
           if ((Res >= 1) && (Res <= 3)) {
             //
-            short SaveOk = 1;
+            int16_t SaveOk = 1;
             if (Levelsetdata.Savegames[Res - 1] != 0) {
 
               // New: V 1.03 Added confirmation when overwriting a saveslot
@@ -274,8 +275,8 @@ void New_world_screen() {
 
   Render_map();
 
-  unsigned short *ActiveLight = GrayDBufGetActivePlane(LIGHT_PLANE);
-  unsigned short *ActiveDark = GrayDBufGetActivePlane(DARK_PLANE);
+  uint16_t *ActiveLight = GrayDBufGetActivePlane(LIGHT_PLANE);
+  uint16_t *ActiveDark = GrayDBufGetActivePlane(DARK_PLANE);
 
   /*	FastFilledRect_Erase_R(ActiveLight,32,32,128,68);
           FastFilledRect_Erase_R(ActiveDark,32,32,128,68);
@@ -336,10 +337,10 @@ void New_world_screen() {
   WaitKeyPress();
 };
 
-short RunGame(char Saveslot) {
+int16_t RunGame(char Saveslot) {
   //	SYM_ENTRY *Levelsetfile_sym;
   HANDLE Temp;
-  short C;
+  int16_t C;
 
   // memcpy( Filenames, HeapDeref (Temp)+2+sizeof(levelsetdata)+21,
   // 9*Levelsetdata.Nr_of_files );
@@ -397,7 +398,7 @@ short RunGame(char Saveslot) {
     if (SavePlayer.Lives <= 0) { //==0){//BUG!
       // Game over
       // menu: Game Over, Continue, Quit
-      short Res = doMenu(Texts + GameTextData.GameOver, 2);
+      int16_t Res = doMenu(Texts + GameTextData.GameOver, 2);
 
       if (Res == 1) {
 

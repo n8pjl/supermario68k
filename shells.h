@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #define shell_speed 3
 // 3
 #define max_nr_of_shells 5
@@ -15,8 +16,8 @@
   (((x0 + w0) > x1) && ((x1 + w1) > x0) && ((y0 + h0) > y1) && ((y1 + h1) > y0))
 
 struct shell {
-  short X;
-  short Y;
+  int16_t X;
+  int16_t Y;
   /*
           char Dir;
           char Active;
@@ -26,10 +27,10 @@ struct shell {
                                                                           //ACTIVE
   CAN REPLACE THIS, BY COUNTING DOWN TO 1 !!!
   */
-  short Dir;
-  short Active;
+  int16_t Dir;
+  int16_t Active;
   //	short Height;
-  short Count; // used as a framecounter to ensure that mario is not killed
+  int16_t Count; // used as a framecounter to ensure that mario is not killed
                // instantly when jumping on a shell,
 
   struct enemy
@@ -40,8 +41,8 @@ extern struct shell *Shells;
 
 void Player_bounching_shell_hadler();
 
-void Add_shell(/*short X,short Y,*/ short Dir, char Type, struct enemy *Enemy);
+void Add_shell(/*short X,short Y,*/ int16_t Dir, char Type, struct enemy *Enemy);
 
 // void Handle_collided_shells(object* Object);
 
-void Add_killed_shell(struct shell *Shell, short DirSpeed);
+void Add_killed_shell(struct shell *Shell, int16_t DirSpeed);

@@ -1,4 +1,5 @@
 #include "rle.h"
+#include <stdint.h>
 #include <string.h>
 
 /*
@@ -7,16 +8,15 @@ length : the length in the output buffer
 output : output buffer where to write the deconmpressed data
 input : the compressed data itself
 */
-void RLEDecompress(unsigned char *output, unsigned char *input,
-                   unsigned short length) {
-  signed char count;
+void RLEDecompress(uint8_t *output, uint8_t *input, uint16_t length) {
+  int8_t count;
 
   while (length > 0) {
-    count = (signed char)*input++;
+    count = (int8_t)*input++;
     if (count > 0) { /* replicate run */
       memset(output, *input++, count);
     } else if (count < 0) { /* literal run */
-      count = (signed char)-count;
+      count = (int8_t)-count;
       memcpy(output, input, count);
       input += count;
     } /* if */
@@ -31,11 +31,10 @@ Return the length in the output buffer
 output : output buffer where to write the conmpressed data
 input : the data to compress
 */
-unsigned short RLECompress(unsigned char *output, unsigned char *input,
-                           unsigned short length) {
-  unsigned short count = 0, index, i;
-  unsigned char token;
-  unsigned short out = 0;
+uint16_t RLECompress(uint8_t *output, uint8_t *input, uint16_t length) {
+  uint16_t count = 0, index, i;
+  uint8_t token;
+  uint16_t out = 0;
 
   while (count < length) {
     index = count;
@@ -68,11 +67,11 @@ unsigned short RLECompress(unsigned char *output, unsigned char *input,
       */
       while (index < length && input[index] == input[index - 1])
         index--;
-      output[out++] = (unsigned char)(count - index);
+      output[out++] = (uint8_t)(count - index);
       for (i = count; i < index; i++)
         output[out++] = input[i];
     } else {
-      output[out++] = (unsigned char)(index - count);
+      output[out++] = (uint8_t)(index - count);
       output[out++] = token;
     } /* if */
     count = index;

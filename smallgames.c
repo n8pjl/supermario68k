@@ -7,6 +7,7 @@
 #include "render.h"
 #include "scankeys.h"
 #include "stringcopy.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -14,7 +15,7 @@ char *CardGame;
 
 char *Games;
 
-static short RollX_176(short X) {
+static int16_t RollX_176(int16_t X) {
 
   if (X >= 176) { // 352
     return X - 176;
@@ -27,12 +28,12 @@ static short RollX_176(short X) {
   };
 };
 
-static short Find_stop_pos(short X) {
+static int16_t Find_stop_pos(int16_t X) {
   return ((X - 22) / 44) * 44 + (((X - 22) % 44) > 22 ? 44 : 0) + 22;
 }
 
-static short Find_stopping_D(short Stopdist) {
-  short D;
+static int16_t Find_stopping_D(int16_t Stopdist) {
+  int16_t D;
 
   Stopdist = abs(Stopdist);
 
@@ -55,13 +56,13 @@ static short Find_stopping_D(short Stopdist) {
 
 void Enter_game_house() {
 
-  /*char*/ short Playing = 1;
-  /*char*/ short State = 0;
-  short X1 = 0, X2 = 44, X3 = 88;
-  short Stopping = 0;
-  short Sprite;
-  unsigned char AnimCount = 0;
-  static const /*char*/ short Sequence[4] = {0, 2, 0, 1}; //,0,2,0,1};
+  /*char*/ int16_t Playing = 1;
+  /*char*/ int16_t State = 0;
+  int16_t X1 = 0, X2 = 44, X3 = 88;
+  int16_t Stopping = 0;
+  int16_t Sprite;
+  uint8_t AnimCount = 0;
+  static const /*char*/ int16_t Sequence[4] = {0, 2, 0, 1}; //,0,2,0,1};
   //	void *dBufHPL, *dBufHPD;
 
   while (Playing) { //! Keystate.Esc
@@ -81,7 +82,7 @@ void Enter_game_house() {
     GrayClearScreen2B(/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
                       /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
 
-    short C, D;
+    int16_t C, D;
     for (C = 0; C < 4; C++) {
       // 43 +16
       /*
@@ -154,7 +155,7 @@ void Enter_game_house() {
                            up_sprite + 15, blank_sprite);
         GrayClipSprite8_SMASK_R(
             67 + screen_offset_sg_x, 44, 15, Smallsprites + Sprite,
-            Smallsprites + Sprite + 15, (unsigned char *)blank_sprite,
+            Smallsprites + Sprite + 15, (uint8_t *)blank_sprite,
             /*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
             /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
       };
@@ -174,7 +175,7 @@ void Enter_game_house() {
 
     if (Keystate.Run && !(Previous_keystate.Run) && !(Stopping)) {
 
-      short TempX;
+      int16_t TempX;
 
       switch (State) {
       case 0:
@@ -288,7 +289,7 @@ void Enter_game_house() {
 };
 
 void New_card_game() {
-  short C;
+  int16_t C;
   /*
           static const char Games[5][18]={
                   {-3,-2,-4,-3,-4,-5,
@@ -331,17 +332,17 @@ void New_card_game() {
 }
 
 void SetPixel(
-    short X,
-    short Y) { // used in cardgame. Slower, but gives size optimization.
+    int16_t X,
+    int16_t Y) { // used in cardgame. Slower, but gives size optimization.
   EXT_SETPIX(dBufHPL_G, X, Y);
   EXT_SETPIX(dBufHPD_G, X, Y);
 }
 
 void Play_card_game() {
 
-  short CX = 0, CY = 0, PX = -1, PY = -1;
-  unsigned short *Sprite;
-  short C, D = 0;
+  int16_t CX = 0, CY = 0, PX = -1, PY = -1;
+  uint16_t *Sprite;
+  int16_t C, D = 0;
   //	void *dBufHPL, *dBufHPD;
 
   for (C = 0; C < 18; C++) {
@@ -354,7 +355,7 @@ void Play_card_game() {
     New_card_game();
   }
 
-  short Miss = 0, Wait = 0, Flash = 0, Turn = 0;
+  int16_t Miss = 0, Wait = 0, Flash = 0, Turn = 0;
   while (Miss < 2) {
 
     /*
@@ -449,7 +450,7 @@ void Play_card_game() {
 
               char String[5] = "";
 
-              Sprite = (unsigned short *)Fg_plane.p.sprites;
+              Sprite = (uint16_t *)Fg_plane.p.sprites;
 
               switch (CardGame[C + 6 * D]) {
 

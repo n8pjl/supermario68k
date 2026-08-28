@@ -15,25 +15,26 @@
 #include "stringcopy.h"
 #include "titlescreen.h"
 #include "version.h"
+#include <stdint.h>
 #include <string.h>
 
-short doMenu(char *Menudata, short Nr_of_options) {
+int16_t doMenu(char *Menudata, int16_t Nr_of_options) {
   // Renders and handles a menu with the menu items pointed to by parameter
   // Menudata, width 12+1 returns the selected menu item, esc controls:
   // up/down:
   // move cursor 		enter: 	 choose currently selected menu item
   // esc: cansel/back/exit
 
-  short Upper = 0, Lower;
+  int16_t Upper = 0, Lower;
 
-  /*char*/ short X = 1;
-  short C;
+  /*char*/ int16_t X = 1;
+  int16_t C;
   //	void *dBufHPL, *dBufHPD;
 
   SetBg(0);
 
   while (1) {
-    short Next = 0;
+    int16_t Next = 0;
 
     // ClearGrayScreen2B(GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));//temp
     // draw bg
@@ -109,11 +110,11 @@ short doMenu(char *Menudata, short Nr_of_options) {
   return 0;
 };
 
-short Menus() {
+int16_t Menus() {
   SYM_ENTRY *SymPtr;
-  short C = 0;
-  short Offset = 0;
-  /*char*/ short Res;
+  int16_t C = 0;
+  int16_t Offset = 0;
+  /*char*/ int16_t Res;
   char Menu = mainMenu;
 
   char *TempBuffer = Fg_plane.p.big_vscreen;
@@ -304,9 +305,9 @@ short Menus() {
 void Paste_saveslot_text(char *Buffer, char *Text) {
   // Dravs saveslot text (Title + save 1, save 2, <empty>)
   // Languages fully supported
-  short Offset; // The position in the output buffer to write to
-  short L;      // Position in the input buffer to fetch next string
-  short C;
+  int16_t Offset; // The position in the output buffer to write to
+  int16_t L;      // Position in the input buffer to fetch next string
+  int16_t C;
 
   char *TempBuffer = Fg_mask.p.big_vscreen;
 

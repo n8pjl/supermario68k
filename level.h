@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 // old
 /*
 #define solid_interactive_low
@@ -236,54 +237,54 @@ enum Tiles {
 };
 
 struct leveldata {
-  short Width;
-  short Height;
+  int16_t Width;
+  int16_t Height;
   //	short Bg_width;
-  short Bg_height;
-  short Border_left; // to "hide" secret areas beyond the rightmost part of the
+  int16_t Bg_height;
+  int16_t Border_left; // to "hide" secret areas beyond the rightmost part of the
                      // level.
-  short Border_right;
+  int16_t Border_right;
 
-  short PlayerX;
-  short PlayerY;
+  int16_t PlayerX;
+  int16_t PlayerY;
 
-  short Boss;
+  int16_t Boss;
 
-  short Nr_of_enemies;
-  short Nr_of_triggers;
+  int16_t Nr_of_enemies;
+  int16_t Nr_of_triggers;
 
-  short Nr_of_flying_platforms;
+  int16_t Nr_of_flying_platforms;
 
-  short Bg_offset;
+  int16_t Bg_offset;
 
   char Bg_scrollrate;
   char Background;
-  unsigned short Size;
-  unsigned short TCSize;
+  uint16_t Size;
+  uint16_t TCSize;
 
-  unsigned char Event; // describes which event to possibly occur when the level
+  uint8_t Event; // describes which event to possibly occur when the level
                        // is completed 0: none 1: Card game 5: money ship >50:
                        // Hidden mushrom house
-  unsigned char
+  uint8_t
       Condition;    // Describes under which conditions the event will occur
-  unsigned char EX; // EX and EY gives the map position of the event
-  unsigned char EY;
+  uint8_t EX; // EX and EY gives the map position of the event
+  uint8_t EY;
   // Special case: When ending level (End of a world): Event indicates which
   // item mario wins when defeating boss.
   // Condition != 0 : Ship Condition == 0 :
   // Castle
 
-  short Spare1; // For future purposes
-  short Spare2; // For future purposes
+  int16_t Spare1; // For future purposes
+  int16_t Spare2; // For future purposes
 };
 
 struct levelfiledata {
-  short Nr_of_levels;
+  int16_t Nr_of_levels;
   // TIGCC compiles with 16-bit int (-mshort); this field is 2 bytes in the
   // data files, so it must stay 16-bit here or every level offset shifts.
-  short Total_size;
+  int16_t Total_size;
 
-  unsigned short Levels[20]; // holds the offset from start of file to start of
+  uint16_t Levels[20]; // holds the offset from start of file to start of
                              // the levelstruct
 
   // short Map;
@@ -293,29 +294,29 @@ struct levelfiledata {
 };
 
 struct bg_data {
-  short Height;
-  short Width;
+  int16_t Height;
+  int16_t Width;
 };
 
 struct bg_filedata {
   char Nr_of_bgs;
 
-  unsigned short Backgrounds[20]; // holds the offset from start of file to
+  uint16_t Backgrounds[20]; // holds the offset from start of file to
                                   // start of the bg_struct
 
-  unsigned short Size;
+  uint16_t Size;
 };
 
 extern char *Level, *Map;
 
-short Load_level(char *Levelfile, short Level_nr);
+int16_t Load_level(char *Levelfile, int16_t Level_nr);
 
-short Generate_handler_1_enemy(short Nr, char Model, char Face,
-                               unsigned char D0D1);
+int16_t Generate_handler_1_enemy(int16_t Nr, char Model, char Face,
+                               uint8_t D0D1);
 
-void SetBg(short Bg_nr /*,HANDLE Temp*/);
+void SetBg(int16_t Bg_nr /*,HANDLE Temp*/);
 
-short Load_map(char *Levelfile);
+int16_t Load_map(char *Levelfile);
 
 void Free(void *Mem);
 
