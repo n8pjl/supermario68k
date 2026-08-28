@@ -29,10 +29,13 @@ CC = emcc
 CFLAGS = -Os -std=gnu99 -fgnu89-inline -flto -msimd128 -MMD -MP -D$(CALCDEF)
 # -sENVIRONMENT=web: this only ever runs in a browser, so drop the node,
 # worker and shell startup paths Emscripten emits by default.
-LDFLAGS = -sJSPI -Os -flto -sENVIRONMENT=web \
+# -sEXPORT_ES6: emit mario.mjs as an ES module (a default-exported factory),
+# so shell.js can `import` it instead of reaching for a global Module. This
+# also implies -sMODULARIZE.
+LDFLAGS = -sJSPI -Os -flto -sENVIRONMENT=web -sEXPORT_ES6=1 \
           --preload-file data@/data
 
-TARGET = mario.js
+TARGET = mario.mjs
 
 SRCS = main.c enemies.c gameloop.c  items.c player.c render.c \
        scankeys.c shells.c custom.c objects.c flying.c smallgames.c \
@@ -83,5 +86,5 @@ format: $(NON_COMPAT_SRCS) $(HDRS)
 -include $(DEPS)
 
 clean:
-	rm -f $(OBJS) $(DEPS) $(TARGET) mario.wasm mario.data .calc-stamp .data-stamp
+	rm -f $(OBJS) $(DEPS) $(TARGET) mario.js mario.wasm mario.data .calc-stamp .data-stamp
 	rm -rf data

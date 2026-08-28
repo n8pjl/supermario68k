@@ -1,7 +1,7 @@
 # Build artifacts
 *.o
 mario
-mario.js
+mario.mjs
 mario.wasm
 mario.html
 mario.data
