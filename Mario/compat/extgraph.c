@@ -21,6 +21,14 @@
 
 #define PLANE_STRIDE 30
 
+// Sprite, mask and tile rows come from the big-endian m68k blobs, which
+// tools/mkdata.py deliberately leaves unswapped. Read every 16-bit pixel row
+// through this. wasm is always little-endian, so the swap is unconditional.
+static inline unsigned short be16(const unsigned short *p)
+{
+	return __builtin_bswap16(*p);
+}
+
 // Set or clear the horizontal run of pixels x1..x2 (inclusive) on row y.
 // Endpoints are swapped if they arrive the wrong way round, matching what
 // ExtGraph's FastDrawHLine_R does internally.
@@ -187,12 +195,56 @@ void GrayClipSprite8_SMASK_R(short x, short y, unsigned short height,
 	(void)dest0; (void)dest1;
 }
 
+// Pixel-exact collision test between two 16-wide sprites of independent
+// heights, one word per row, top-left corners at (x0,y0) and (x1,y1). Returns
+// nonzero if any pixel is set in both.
+//
+// The original spends most of its length juggling registers so that one code
+// path serves all four sign combinations of dx and dy; the actual test is two
+// instructions. Written out plainly, it is: normalise so sprite 0 is the
+// leftmost, intersect the two row ranges, and per row check
+//
+//	((unsigned long)row0 << dx) & row1
+//
+// The 32-bit shift is the crux. Treating bit 15 as the leftmost pixel, sprite
+// 0's pixel i sits at absolute x0+i and sprite 1's pixel j at x0+dx+j, so they
+// coincide when j == i-dx; shifting row0 left by dx lines those bits up.
+// Widening to 32 bits first means the pixels of sprite 0 that fall left of
+// sprite 1's window move into bits 16..31, where row1 has nothing, and are
+// discarded rather than wrapping into a false hit.
 short TestCollide162h_R(short x0, short y0, short x1, short y1,
 			unsigned short height0, unsigned short height1,
 			const unsigned short *data0, const unsigned short *data1)
 {
-	(void)x0; (void)y0; (void)x1; (void)y1; (void)height0; (void)height1;
-	(void)data0; (void)data1;
+	int dx = x1 - x0;
+	int top, bot, r;
+
+	// Normalise to sprite 0 being the leftmost; the test is symmetric.
+	if (dx < 0) {
+		const unsigned short *dt = data0;
+		short t;
+		unsigned short ht;
+
+		dx = -dx;
+		data0 = data1; data1 = dt;
+		t = y0; y0 = y1; y1 = t;
+		ht = height0; height0 = height1; height1 = ht;
+	}
+	if (dx >= 16)
+		return 0;	// too far apart horizontally to share a column
+
+	// Intersect the row ranges; bot is exclusive.
+	top = y0 > y1 ? y0 : y1;
+	bot = (int)y0 + height0 < (int)y1 + height1 ? (int)y0 + height0
+						    : (int)y1 + height1;
+	if (bot <= top)
+		return 0;
+
+	data0 += top - y0;
+	data1 += top - y1;
+	for (r = 0; r < bot - top; r++)
+		if (((unsigned long)be16(data0 + r) << dx) & be16(data1 + r))
+			return 1;
 	return 0;
 }
 
