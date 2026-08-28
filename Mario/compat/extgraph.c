@@ -164,11 +164,79 @@ void GrayFastOutlineRect_R(void *dest0, void *dest1, unsigned short x1,
 	outline(dest1, (short)x1, (short)y1, (short)x2, (short)y2, color & 2);
 }
 
+// Write the 16-pixel row `val` at absolute pixel (x, y) of a plane, but only
+// where `mask` has a bit set; pixel 0 of both is bit 15. Anything falling off
+// the left or right edge is dropped.
+//
+// The originals reach this through four hand-written cases - fully on screen
+// split by whether x&15 is under 8, clipped left, clipped right - because the
+// 68000 wants the destination read as an aligned 32-bit long and that long
+// would run off the end of the row for the last word. Sliding a three-byte
+// window instead covers all of them at once: 16 pixels at a bit offset of 0..7
+// never span more than three bytes.
+//
+// Taking mask as a parameter is what lets the masked blitters share this: for
+// a plain replace it is all ones, for a sprite drawn through a mask it is the
+// mask row.
+static void put_row16(unsigned char *plane, short x, short y, unsigned val,
+		      unsigned mask)
+{
+	unsigned long v, m;
+	short xs, bx, sh, i;
+
+	if (y < 0 || y >= LCD_HEIGHT || x <= -16 || x >= LCD_WIDTH)
+		return;
+
+	// Bias by two bytes so the shift and remainder stay non-negative for
+	// the leftmost clipped case; 16 is a whole number of bytes, so x & 7 is
+	// unchanged.
+	xs = x + 16;
+	bx = (short)(xs >> 3) - 2;
+	sh = xs & 7;
+
+	v = (unsigned long)(val & mask & 0xFFFF) << (8 - sh);
+	m = (unsigned long)(mask & 0xFFFF) << (8 - sh);
+
+	plane += y * PLANE_STRIDE;
+	for (i = 0; i < 3; i++) {
+		short b = bx + i;
+		unsigned char mb, vb;
+
+		if (b < 0 || b >= PLANE_STRIDE)
+			continue;
+		mb = (unsigned char)(m >> (16 - 8 * i));
+		vb = (unsigned char)(v >> (16 - 8 * i));
+		plane[b] = (unsigned char)((plane[b] & ~mb) | vb);
+	}
+}
+
+// Draw a 16-wide interlaced grayscale sprite, replacing what is under it, and
+// clip it to the screen.
+//
+// "Interlaced" is the sprite layout: the two planes' rows alternate in one
+// array, dest0's row then dest1's, so a row pair is two words. There is no
+// mask - RPLC overwrites all 16 pixels.
+//
+// Vertical clipping just trims the row range and steps the sprite pointer past
+// the rows above the screen; the original folds that into the same registers it
+// uses for the destination offset, but it is only a range intersection.
 void GrayClipISprite16_RPLC_R(short x, short y, unsigned short height,
 			      const unsigned short *sprite, void *dest0,
 			      void *dest1)
 {
-	(void)x; (void)y; (void)height; (void)sprite; (void)dest0; (void)dest1;
+	int first = y < 0 ? -y : 0;		// first sprite row on screen
+	int last = height;			// one past the last
+	int r;
+
+	if (last > LCD_HEIGHT - y)
+		last = LCD_HEIGHT - y;
+
+	for (r = first; r < last; r++) {
+		put_row16((unsigned char *)dest0, x, (short)(y + r),
+			  sprite[2 * r], 0xFFFF);
+		put_row16((unsigned char *)dest1, x, (short)(y + r),
+			  sprite[2 * r + 1], 0xFFFF);
+	}
 }
 
 void GrayClipSprite16_SMASK_R(short x, short y, unsigned short height,
