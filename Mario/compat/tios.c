@@ -37,17 +37,44 @@ static var_t *find_slot(const char *name)
 // survives localStorage's string-only values.
 static unsigned char *load_from_storage(const char *name, size_t *out_len)
 {
-	char *b64 = (char *)EM_ASM_PTR({
+	// Read in two steps - ask for the length, allocate here, then have JS
+	// fill the buffer - so the C side owns the allocation. The obvious
+	// one-shot version returns stringToNewUTF8(v), but that is an
+	// emscripten *library* symbol rather than a runtime one: it is not
+	// linked in unless asked for, and the throw it raises when missing was
+	// being swallowed by the catch below, so a stored save silently read
+	// back as "absent" and the shipped blob was loaded instead. The string
+	// is parked on globalThis between the two calls, as gray.c does for its
+	// frame timestamp, so localStorage is still only read once.
+	int b64len = EM_ASM_INT({
 		try {
 			var v = localStorage.getItem("sm68k/" + UTF8ToString($0));
-			if (v === null) return 0;
-			return stringToNewUTF8(v);
-		} catch (e) { return 0; }
+			globalThis.__sm68kSave = v;
+			return v === null ? -1 : v.length;
+		} catch (e) {
+			globalThis.__sm68kSave = null;
+			return -1;
+		}
 	}, name);
-	if (!b64)
+	if (b64len < 0)
 		return NULL;
 
-	size_t n = strlen(b64);
+	char *b64 = malloc((size_t)b64len + 1);
+	if (!b64) {
+		EM_ASM({ globalThis.__sm68kSave = null; });
+		return NULL;
+	}
+	EM_ASM({
+		var v = globalThis.__sm68kSave;
+		// This is base64 we wrote ourselves, so every code unit is one
+		// ASCII byte and no UTF-8 encoding step is needed.
+		for (var i = 0; i < v.length; i++)
+			HEAPU8[$0 + i] = v.charCodeAt(i) & 0x7F;
+		HEAPU8[$0 + v.length] = 0;
+		globalThis.__sm68kSave = null;
+	}, b64);
+
+	size_t n = (size_t)b64len;
 	unsigned char *out = malloc(n);	// decoded is always smaller
 	size_t len = 0;
 	int acc = 0, bits = 0;
