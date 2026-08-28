@@ -14,7 +14,6 @@
 //
 // Planes are 240x128, one bit per pixel, 30 bytes per row, pixel 0 in bit 7.
 
-#define PLANE_STRIDE 30
 
 // F_4x6 is proportional - each character carries its own advance - while the
 // other two faces are fixed-width.
@@ -41,7 +40,7 @@ static void blit_glyph(unsigned char *plane, short x, short y,
 {
 	for (short r = 0; r < h; r++) {
 		short py = y + r;
-		if (py < 0 || py >= LCD_HEIGHT)
+		if (py < 0 || py >= PLANE_HEIGHT)
 			continue;
 		// Place the 8-bit glyph row into a 16-bit window so a glyph
 		// straddling a byte boundary writes both bytes.

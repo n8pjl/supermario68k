@@ -14,12 +14,13 @@
 // alone - Smallsprites and Games - are exactly the ones nothing in this file
 // reads as words.
 //
-// Planes are 240x128, one bit per pixel, 30 bytes per row, pixel 0 of a row in
-// bit 7 of the first byte.
+// Planes are 240x128 on every model, one bit per pixel, 30 bytes per row,
+// pixel 0 of a row in bit 7 of the first byte; see compat/graph.h. The
+// originals clip against that, not against the smaller visible area of a
+// TI-89, because there is only one set of sprite routines for all models - so
+// these use PLANE_WIDTH/PLANE_HEIGHT rather than PLANE_WIDTH/PLANE_HEIGHT.
 //
 // TODO: the remaining stubs below are pending the real ports.
-
-#define PLANE_STRIDE 30
 
 // Set or clear the horizontal run of pixels x1..x2 (inclusive) on row y.
 // Endpoints are swapped if they arrive the wrong way round, matching what
@@ -38,12 +39,12 @@ static void hspan(unsigned char *plane, short x1, short x2, short y, short set)
 	if (x2 < x1) {
 		t = x1; x1 = x2; x2 = t;
 	}
-	if (y < 0 || y >= LCD_HEIGHT || x2 < 0 || x1 > LCD_WIDTH - 1)
+	if (y < 0 || y >= PLANE_HEIGHT || x2 < 0 || x1 > PLANE_WIDTH - 1)
 		return;
 	if (x1 < 0)
 		x1 = 0;
-	if (x2 > LCD_WIDTH - 1)
-		x2 = LCD_WIDTH - 1;
+	if (x2 > PLANE_WIDTH - 1)
+		x2 = PLANE_WIDTH - 1;
 
 	row = plane + (short)(y * PLANE_STRIDE);
 	b1 = x1 >> 3;
@@ -114,12 +115,12 @@ static void vspan(unsigned char *plane, short x, short y1, short y2, short set)
 	if (y2 < y1) {
 		t = y1; y1 = y2; y2 = t;
 	}
-	if (x < 0 || x >= LCD_WIDTH || y2 < 0 || y1 > LCD_HEIGHT - 1)
+	if (x < 0 || x >= PLANE_WIDTH || y2 < 0 || y1 > PLANE_HEIGHT - 1)
 		return;
 	if (y1 < 0)
 		y1 = 0;
-	if (y2 > LCD_HEIGHT - 1)
-		y2 = LCD_HEIGHT - 1;
+	if (y2 > PLANE_HEIGHT - 1)
+		y2 = PLANE_HEIGHT - 1;
 
 	m = (unsigned char)(1 << (7 - (x & 7)));
 	p = plane + (short)(y1 * PLANE_STRIDE) + (x >> 3);
@@ -191,7 +192,7 @@ static void put_row16(unsigned char *plane, short x, short y, unsigned val,
 	unsigned long v, m;
 	short xs, bx, sh, i;
 
-	if (y < 0 || y >= LCD_HEIGHT || x <= -16 || x >= LCD_WIDTH)
+	if (y < 0 || y >= PLANE_HEIGHT || x <= -16 || x >= PLANE_WIDTH)
 		return;
 
 	// Bias by two bytes so the shift and remainder stay non-negative for
@@ -235,8 +236,8 @@ void GrayClipISprite16_RPLC_R(short x, short y, unsigned short height,
 	int last = height;			// one past the last
 	int r;
 
-	if (last > LCD_HEIGHT - y)
-		last = LCD_HEIGHT - y;
+	if (last > PLANE_HEIGHT - y)
+		last = PLANE_HEIGHT - y;
 
 	for (r = first; r < last; r++) {
 		put_row16((unsigned char *)dest0, x, (short)(y + r),
@@ -271,8 +272,8 @@ void GrayClipSprite16_SMASK_R(short x, short y, unsigned short height,
 	int last = height;			// one past the last
 	int r;
 
-	if (last > LCD_HEIGHT - y)
-		last = LCD_HEIGHT - y;
+	if (last > PLANE_HEIGHT - y)
+		last = PLANE_HEIGHT - y;
 
 	for (r = first; r < last; r++) {
 		unsigned wr = (unsigned)(unsigned short)~mask[r];

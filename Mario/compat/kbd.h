@@ -1,8 +1,12 @@
 #pragma once
 
-// The keyboard is a 7-row matrix on the calculator; scankeys.c reads it
-// directly via _rowread. The JS side fills in the same bit layout from
-// keyboard events, so scankeys.c itself is unchanged.
+// Bind the browser's keys to the calculator's key matrix and start listening.
+// Call once, before anything reads the keyboard.
+void kbd_init(void);
+
+// scankeys.c reads the key matrix directly via _rowread. kbd_init() has the JS
+// side maintain the same bit layout from keyboard events, so scankeys.c itself
+// is unchanged.
 unsigned short _rowread(short row);
 
 // Hand control back to the browser for one frame. The game's key-wait loops

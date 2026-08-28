@@ -80,6 +80,8 @@ int main(void)
 	//short C;//test
 	ErrorCode = 0;
 	Skip_anim = 1;
+
+	kbd_init();	// bind the browser's keys to this model's key matrix
 	
 	Map_statusbar=status;
 	StatBarHeight = 8;

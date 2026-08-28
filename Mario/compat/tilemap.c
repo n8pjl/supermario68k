@@ -30,8 +30,6 @@
 #define VS_COLS 17
 #define VS_ROWS 10
 
-#define PLANE_STRIDE 30
-
 // Word k of a buffer row, seen through a window `shift` pixels to the right:
 // each output word is stitched from two source words,
 //
@@ -70,7 +68,13 @@ static const unsigned char *vs_window(const void *src, unsigned short x,
 }
 
 // Mono buffer blitter used for the foreground mask plane: AND a scrolled
-// 240x128 window of the big virtual screen onto a plane.
+// window of the big virtual screen onto a plane.
+//
+// The window is the visible screen, so this is both DrawBuffer_MASK and the
+// TI-89's DrawBuffer89_MASK: the originals differ only in copying 30 bytes on
+// 128 rows against 20 bytes on 100, and both step the destination by a full
+// 30-byte plane row either way. Sized from LCD_LINE_BYTES/LCD_HEIGHT, one
+// function covers both.
 void DrawBuffer_MASK(const void *src, unsigned short x, unsigned short y,
 		     void *dest)
 {
@@ -81,7 +85,7 @@ void DrawBuffer_MASK(const void *src, unsigned short x, unsigned short y,
 
 	for (row = 0; row < LCD_HEIGHT; row++, s += VS_STRIDE,
 					      d += PLANE_STRIDE) {
-		for (k = 0; k < PLANE_STRIDE; k += 2) {
+		for (k = 0; k < LCD_LINE_BYTES; k += 2) {
 			unsigned w = vs_word(s, k, shift);
 
 			d[k] &= (unsigned char)(w >> 8);
@@ -90,8 +94,10 @@ void DrawBuffer_MASK(const void *src, unsigned short x, unsigned short y,
 	}
 }
 
-// Gray buffer blitters: copy a scrolled 240x128 window of the gray big virtual
-// screen onto the two planes, either replacing what is there or ORing onto it.
+// Gray buffer blitters: copy a scrolled window of the gray big virtual screen
+// onto the two planes, either replacing what is there or ORing onto it. As
+// with the mono blitter above, the visible-window sizing makes each of these
+// serve as both the 92+/V200 and the TI-89 variant.
 //
 // The originals take a single destination and reach the dark plane at
 // dest+3840, which holds on the calculator because the gray double buffer
@@ -109,7 +115,7 @@ static void gray_blit(const void *src, unsigned short x, unsigned short y,
 	for (row = 0; row < LCD_HEIGHT; row++, s += VS_STRIDE,
 					      dl += PLANE_STRIDE,
 					      dd += PLANE_STRIDE) {
-		for (k = 0; k < PLANE_STRIDE; k += 2) {
+		for (k = 0; k < LCD_LINE_BYTES; k += 2) {
 			unsigned l = vs_word(s, k, shift);
 			unsigned d = vs_word(s + VS_SIZE, k, shift);
 

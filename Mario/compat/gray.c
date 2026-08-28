@@ -13,10 +13,22 @@
 // Note for the preprocessor's sake: a top-level comma in an EM_*_JS body would
 // split the macro arguments, since only parentheses are balanced. Keep commas
 // inside parentheses.
-EM_ASYNC_JS(void, pageflip_sync, (const void *rgba), {
-	const ctx = Module.canvas.getContext("2d");
-	const view = new Uint8ClampedArray(HEAPU8.buffer, rgba, 3840 * 8 * 4);
-	ctx.putImageData(new ImageData(view, 240, 128), 0, 0);
+EM_ASYNC_JS(void, pageflip_sync, (const void *rgba, int w, int h), {
+	const canvas = Module.canvas;
+
+	// The canvas is sized from here rather than from the page, so the shell
+	// does not have to know which calculator this was built for. Assigning
+	// width/height clears the canvas, so only do it when it changed.
+	if (canvas.width !== w || canvas.height !== h) {
+		canvas.width = w;
+		canvas.height = h;
+		canvas.style.width = (w * 3) + "px";
+		canvas.style.height = (h * 3) + "px";
+	}
+
+	const ctx = canvas.getContext("2d");
+	const view = new Uint8ClampedArray(HEAPU8.buffer, rgba, w * h * 4);
+	ctx.putImageData(new ImageData(view, w, h), 0, 0);
 
 	if (globalThis.__smPrevFrame === undefined) globalThis.__smPrevFrame = 0;
 	let now = performance.now();
@@ -31,20 +43,29 @@ static uint8_t dbuf0[GRAYDBUFFER_SIZE] = { 0 };
 static uint8_t *dbuf1;
 static bool dbuf_buf_no;
 
-static uint8_t renderbuf[LCD_SIZE][8][4];
+// Expand the two bit planes into RGBA for the canvas. Only the visible part of
+// each plane row is walked - on a TI-89 that is the leftmost 20 of the 30
+// bytes, and the top 100 of the 128 rows - so what reaches the canvas is what
+// the calculator's LCD would have shown.
+static uint8_t renderbuf[LCD_HEIGHT][LCD_WIDTH][4];
 static void render(uint8_t *restrict light, uint8_t *restrict dark)
 {
-	for (int i = 0; i < LCD_SIZE; i++) {
-		uint8_t l = ~light[i];
-		uint8_t d = ~dark[i];
-		for (int j = 0; j < 8; j++) {
-			uint8_t color = (((l >> (7 - j)) & 1) * 0b01010101) |
-					(((d >> (7 - j)) & 1) * 0b10101010);
+	for (int y = 0; y < LCD_HEIGHT; y++) {
+		for (int bx = 0; bx < LCD_LINE_BYTES; bx++) {
+			uint8_t l = ~light[y * PLANE_STRIDE + bx];
+			uint8_t d = ~dark[y * PLANE_STRIDE + bx];
 
-			renderbuf[i][j][0] = color;
-			renderbuf[i][j][1] = color;
-			renderbuf[i][j][2] = color;
-			renderbuf[i][j][3] = 255;
+			for (int j = 0; j < 8; j++) {
+				uint8_t color =
+					(((l >> (7 - j)) & 1) * 0b10101010) |
+					(((d >> (7 - j)) & 1) * 0b01010101);
+				uint8_t *px = renderbuf[y][bx * 8 + j];
+
+				px[0] = color;
+				px[1] = color;
+				px[2] = color;
+				px[3] = 255;
+			}
 		}
 	}
 }
@@ -74,5 +95,5 @@ void GrayDBufToggleSync(void)
 {
 	dbuf_buf_no = !dbuf_buf_no;
 	render(GrayDBufGetActivePlane(LIGHT_PLANE), GrayDBufGetActivePlane(DARK_PLANE));
-	pageflip_sync(renderbuf);
+	pageflip_sync(renderbuf, LCD_WIDTH, LCD_HEIGHT);
 }
