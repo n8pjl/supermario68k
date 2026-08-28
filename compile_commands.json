@@ -1,0 +1,622 @@
+[
+  {
+    "file": "main.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "main.c",
+      "-o",
+      "main.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "main.o"
+  },
+  {
+    "file": "enemies.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "enemies.c",
+      "-o",
+      "enemies.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "enemies.o"
+  },
+  {
+    "file": "gameloop.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "gameloop.c",
+      "-o",
+      "gameloop.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "gameloop.o"
+  },
+  {
+    "file": "items.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "items.c",
+      "-o",
+      "items.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "items.o"
+  },
+  {
+    "file": "player.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "player.c",
+      "-o",
+      "player.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "player.o"
+  },
+  {
+    "file": "render.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "render.c",
+      "-o",
+      "render.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "render.o"
+  },
+  {
+    "file": "scankeys.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "scankeys.c",
+      "-o",
+      "scankeys.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "scankeys.o"
+  },
+  {
+    "file": "shells.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "shells.c",
+      "-o",
+      "shells.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "shells.o"
+  },
+  {
+    "file": "custom.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "custom.c",
+      "-o",
+      "custom.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "custom.o"
+  },
+  {
+    "file": "objects.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "objects.c",
+      "-o",
+      "objects.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "objects.o"
+  },
+  {
+    "file": "flying.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "flying.c",
+      "-o",
+      "flying.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "flying.o"
+  },
+  {
+    "file": "smallgames.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "smallgames.c",
+      "-o",
+      "smallgames.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "smallgames.o"
+  },
+  {
+    "file": "bounch.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "bounch.c",
+      "-o",
+      "bounch.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "bounch.o"
+  },
+  {
+    "file": "map.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "map.c",
+      "-o",
+      "map.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "map.o"
+  },
+  {
+    "file": "titlescreen.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "titlescreen.c",
+      "-o",
+      "titlescreen.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "titlescreen.o"
+  },
+  {
+    "file": "menus.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "menus.c",
+      "-o",
+      "menus.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "menus.o"
+  },
+  {
+    "file": "rle.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "rle.c",
+      "-o",
+      "rle.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "rle.o"
+  },
+  {
+    "file": "level.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "level.c",
+      "-o",
+      "level.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "level.o"
+  },
+  {
+    "file": "savegame.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "savegame.c",
+      "-o",
+      "savegame.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "savegame.o"
+  },
+  {
+    "file": "stringcopy.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "stringcopy.c",
+      "-o",
+      "stringcopy.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "stringcopy.o"
+  },
+  {
+    "file": "error.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "error.c",
+      "-o",
+      "error.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "error.o"
+  },
+  {
+    "file": "bosses.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "bosses.c",
+      "-o",
+      "bosses.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "bosses.o"
+  },
+  {
+    "file": "gfx.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "gfx.c",
+      "-o",
+      "gfx.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "gfx.o"
+  },
+  {
+    "file": "compat/alloc.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "compat/alloc.c",
+      "-o",
+      "compat/alloc.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "compat/alloc.o"
+  },
+  {
+    "file": "compat/tios.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "compat/tios.c",
+      "-o",
+      "compat/tios.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "compat/tios.o"
+  },
+  {
+    "file": "compat/tilemap.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "compat/tilemap.c",
+      "-o",
+      "compat/tilemap.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "compat/tilemap.o"
+  },
+  {
+    "file": "compat/extgraph.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "compat/extgraph.c",
+      "-o",
+      "compat/extgraph.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "compat/extgraph.o"
+  },
+  {
+    "file": "compat/graph.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "compat/graph.c",
+      "-o",
+      "compat/graph.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "compat/graph.o"
+  },
+  {
+    "file": "compat/font_data.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "compat/font_data.c",
+      "-o",
+      "compat/font_data.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "compat/font_data.o"
+  },
+  {
+    "file": "compat/kbd.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "compat/kbd.c",
+      "-o",
+      "compat/kbd.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "compat/kbd.o"
+  },
+  {
+    "file": "compat/gray.c",
+    "arguments": [
+      "/usr/lib/emscripten/emcc",
+      "-Os",
+      "-std=gnu99",
+      "-fgnu89-inline",
+      "-flto",
+      "-msimd128",
+      "-MMD",
+      "-MP",
+      "-DPRODUCE_TI89_CODE",
+      "-c",
+      "compat/gray.c",
+      "-o",
+      "compat/gray.o"
+    ],
+    "directory": "/home/saladin/code/supermario68k/Super Mario 68K/SRC/Mario",
+    "output": "compat/gray.o"
+  }
+]

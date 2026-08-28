@@ -1,7 +1,0 @@
-CompileFlags:
-  Compiler: emcc
-
-  Add: [
-	  --target=wasm32-unknown-emscripten,
-    --sysroot=/home/saladin/.cache/emscripten/sysroot
-    ]
