@@ -24,6 +24,11 @@ Two jobs:
    hardcoded here, so the two cannot drift apart, and the result is checked
    against the actual blob size (see gfx_regions).
 
+The three calculators do not share data: the backgrounds, the common level and
+some of the worlds were retuned for the TI-89's smaller screen, so each model
+has its own set under Bin/ and the Makefile passes the directory matching the
+build target.
+
 Usage: mkdata.py <src dir> <out dir>
 """
 import os
@@ -42,6 +47,7 @@ SIZEOF_MAPDATA = 30
 LEVELDATA = [(0, 12), (26, 2), (34, 2)]
 SIZEOF_LEVELDATA = 38
 BGFILEDATA = [(2, 21)]           # char Nr_of_bgs + pad, then Backgrounds[20], Size
+SIZEOF_BGFILEDATA = 44
 BGDATA = [(0, 2)]                # Height, Width
 
 
@@ -124,6 +130,38 @@ def swap_gfx(b, name, tag):
         off += length
 
 
+def swap_backgrounds(b, name, datalen):
+    """Swap each background's bg_data header. Returns how many there were.
+
+    The count cannot come from bg_filedata.Nr_of_bgs: it is 0 in every shipped
+    file, because nothing writes it and the game never reads it - SetBg()
+    indexes Backgrounds[] directly. So it comes from the data instead. A
+    background is a Height/Width pair followed by Height*Width matrix bytes, so
+    the offsets chain: each one lands exactly where the previous background
+    ends. Walking that chain and requiring every step to match the matching
+    Backgrounds[] entry both counts the backgrounds and checks the layout, and
+    the walk has to consume the data area exactly.
+
+    Getting this wrong is quiet rather than loud - the game reads a byte-swapped
+    Width as a plausible-looking number and renders the map from far outside the
+    matrix - so the checks here are worth more than usual.
+    """
+    offs = struct.unpack_from("<20H", b, 2)
+    off = SIZEOF_BGFILEDATA
+    n = 0
+    while n < len(offs) and off + 4 <= datalen and off == offs[n]:
+        swap(b, off, BGDATA)
+        height, width = struct.unpack_from("<hh", b, off)
+        off += 4 + height * width
+        n += 1
+    if not n:
+        raise ValueError("%s: no backgrounds found" % name)
+    if off != datalen:
+        raise ValueError("%s: %d backgrounds cover %d bytes, blob has %d"
+                         % (name, n, off, datalen))
+    return n
+
+
 def swap(buf, base, runs):
     """Byte-swap unsigned short runs in place, relative to base."""
     for off, count in runs:
@@ -165,11 +203,7 @@ def convert(content, tag, name):
             swap(b, off, LEVELDATA)
     elif tag == "MBG":
         swap(b, 0, BGFILEDATA)
-        n = b[0]
-        for i in range(n):
-            off = struct.unpack_from("<H", b, 2 + i * 2)[0]
-            if off + 4 <= len(b):
-                swap(b, off, BGDATA)
+        swap_backgrounds(b, name, len(content) - (len(tag) + 3))
     elif tag == "GFX":
         swap_gfx(b, name, tag)
     return bytes(b)
@@ -179,8 +213,10 @@ def main():
     src = sys.argv[1] if len(sys.argv) > 1 else "../../Bin/Voyage 200"
     out = sys.argv[2] if len(sys.argv) > 2 else "data"
     os.makedirs(out, exist_ok=True)
+    # Data variables: .89y/.89z on the TI-89, .9xy/.9xz on the 92+ and V200.
+    # The .89p/.9xp/.v2y/.v2z files are the calculator executable itself.
     for fn in sorted(os.listdir(src)):
-        if not fn.lower().endswith((".9xy", ".9xz")):
+        if not fn.lower().endswith((".9xy", ".9xz", ".89y", ".89z")):
             continue
         raw = open(os.path.join(src, fn), "rb").read()
         blob = raw[0x56:len(raw) - 2]
