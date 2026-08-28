@@ -58,99 +58,63 @@ static struct var_t *find_slot(const char *name)
 	return NULL;
 }
 
-// A save written this session shadows the shipped blob. Stored base64 so it
-// survives localStorage's string-only values.
+// A save written this session shadows the shipped blob. It is kept base64 so it
+// survives localStorage's string-only values; the base64 itself is done in JS
+// with Uint8Array.{to,from}Base64() rather than a codec hand-rolled here.
 static uint8_t *load_from_storage(const char *name, size_t *out_len)
 {
-	// Read in two steps - ask for the length, allocate here, then have JS
-	// fill the buffer - so the C side owns the allocation. The obvious
-	// one-shot version returns stringToNewUTF8(v), but that is an
-	// emscripten *library* symbol rather than a runtime one: it is not
-	// linked in unless asked for, and the throw it raises when missing was
-	// being swallowed by the catch below, so a stored save silently read
-	// back as "absent" and the shipped blob was loaded instead. The string
-	// is parked on globalThis between the two calls, as gray.c does for its
-	// frame timestamp, so localStorage is still only read once.
+	// Decode in JS in two steps - first return the decoded byte count, then
+	// copy the bytes into a buffer allocated here - so the C side owns the
+	// allocation. The decoded Uint8Array is parked on globalThis between the
+	// calls, as gray.c does for its frame timestamp, so localStorage and the
+	// decode each happen once.
 	char key[32];
 	storage_key(key, sizeof key, name);
 
-	int16_t b64len = EM_ASM_INT({
+	int len = EM_ASM_INT({
 		try {
-			var v = localStorage.getItem(UTF8ToString($0));
-			globalThis.__sm68kSave = v;
-			return v === null ? -1 : v.length;
+			const v = localStorage.getItem(UTF8ToString($0));
+			if (!v) {
+				globalThis.__sm68kSave = null;
+				return -1;
+			}
+			const arr = Uint8Array.fromBase64(v);
+			globalThis.__sm68kSave = arr;
+			return arr.length;
 		} catch (e) {
 			globalThis.__sm68kSave = null;
 			return -1;
 		}
 	}, key);
-	if (b64len < 0)
+	if (len < 0)
 		return NULL;
 
-	char *b64 = malloc((size_t)b64len + 1);
-	if (!b64) {
+	uint8_t *out = malloc((size_t)len + 1);	// +1: never malloc(0)
+	if (!out) {
 		EM_ASM({ globalThis.__sm68kSave = null; });
 		return NULL;
 	}
 	EM_ASM({
-		var v = globalThis.__sm68kSave;
-		// This is base64 we wrote ourselves, so every code unit is one
-		// ASCII byte and no UTF-8 encoding step is needed.
-		for (var i = 0; i < v.length; i++)
-			HEAPU8[$0 + i] = v.charCodeAt(i) & 0x7F;
-		HEAPU8[$0 + v.length] = 0;
+		HEAPU8.set(globalThis.__sm68kSave, $0);
 		globalThis.__sm68kSave = null;
-	}, b64);
+	}, out);
 
-	size_t n = (size_t)b64len;
-	uint8_t *out = malloc(n);	// decoded is always smaller
-	size_t len = 0;
-	int16_t acc = 0, bits = 0;
-	for (size_t i = 0; i < n; i++) {
-		int16_t c = b64[i], v;
-		if (c >= 'A' && c <= 'Z') v = c - 'A';
-		else if (c >= 'a' && c <= 'z') v = c - 'a' + 26;
-		else if (c >= '0' && c <= '9') v = c - '0' + 52;
-		else if (c == '+') v = 62;
-		else if (c == '/') v = 63;
-		else continue;	// '=' and stray whitespace
-		acc = (acc << 6) | v;
-		bits += 6;
-		if (bits >= 8) {
-			bits -= 8;
-			out[len++] = (acc >> bits) & 0xFF;
-		}
-	}
-	free(b64);
-	*out_len = len;
+	*out_len = (size_t)len;
 	return out;
 }
 
 static void save_to_storage(const char *name, const uint8_t *data, size_t len)
 {
-	static const char T[] =
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-	size_t n = ((len + 2) / 3) * 4;
-	char *b64 = malloc(n + 1);
-	size_t o = 0;
-	for (size_t i = 0; i < len; i += 3) {
-		uint16_t v = data[i] << 16;
-		if (i + 1 < len) v |= data[i + 1] << 8;
-		if (i + 2 < len) v |= data[i + 2];
-		b64[o++] = T[(v >> 18) & 63];
-		b64[o++] = T[(v >> 12) & 63];
-		b64[o++] = (i + 1 < len) ? T[(v >> 6) & 63] : '=';
-		b64[o++] = (i + 2 < len) ? T[v & 63] : '=';
-	}
-	b64[o] = 0;
 	char key[32];
 	storage_key(key, sizeof key, name);
 	EM_ASM({
 		try {
-			localStorage.setItem(UTF8ToString($0), UTF8ToString($1));
-		} catch (e) {}
-	}, key, b64);
-	free(b64);
+			// slice() copies the range out of the wasm heap;
+			// toBase64() then encodes that copy.
+			const b64 = HEAPU8.slice($1, $1 + $2).toBase64();
+			localStorage.setItem(UTF8ToString($0), b64);
+		} catch {}
+	}, key, data, len);
 }
 
 // Pull a variable into memory: a localStorage save if one exists, otherwise the
