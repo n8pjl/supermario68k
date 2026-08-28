@@ -22,6 +22,8 @@
 #define PLANE_STRIDE 30
 
 // Set or clear the horizontal run of pixels x1..x2 (inclusive) on row y.
+// Endpoints are swapped if they arrive the wrong way round, matching what
+// ExtGraph's FastDrawHLine_R does internally.
 //
 // The ExtGraph originals work a word at a time and unroll to 64-bit writes;
 // that is a speed trick for the 68000 and byte-at-a-time is equivalent, so
@@ -30,10 +32,13 @@
 static void hspan(unsigned char *plane, short x1, short x2, short y, short set)
 {
 	unsigned char *row;
-	short b, b1, b2;
+	short b, b1, b2, t;
 	unsigned char m1, m2, m;
 
-	if (y < 0 || y >= LCD_HEIGHT || x2 < x1 || x2 < 0 || x1 > LCD_WIDTH - 1)
+	if (x2 < x1) {
+		t = x1; x1 = x2; x2 = t;
+	}
+	if (y < 0 || y >= LCD_HEIGHT || x2 < 0 || x1 > LCD_WIDTH - 1)
 		return;
 	if (x1 < 0)
 		x1 = 0;
@@ -78,11 +83,9 @@ static void filled_rect(void *plane, short x1, short y1, short x2, short y2,
 {
 	short y, t;
 
+	// Only the row order matters here; hspan() orders the columns itself.
 	if (y2 < y1) {
 		t = y1; y1 = y2; y2 = t;
-	}
-	if (x2 < x1) {
-		t = x1; x1 = x2; x2 = t;
 	}
 	for (y = y1; y <= y2; y++)
 		hspan((unsigned char *)plane, x1, x2, y, set);
@@ -100,11 +103,64 @@ void FastFilledRect_Erase_R(void *plane, unsigned short x1, unsigned short y1,
 	filled_rect(plane, (short)x1, (short)y1, (short)x2, (short)y2, 0);
 }
 
+// Set or clear the vertical run of pixels y1..y2 (inclusive) in column x.
+// Swaps its endpoints, as FastDrawVLine_R does.
+static void vspan(unsigned char *plane, short x, short y1, short y2, short set)
+{
+	unsigned char *p;
+	unsigned char m;
+	short y, t;
+
+	if (y2 < y1) {
+		t = y1; y1 = y2; y2 = t;
+	}
+	if (x < 0 || x >= LCD_WIDTH || y2 < 0 || y1 > LCD_HEIGHT - 1)
+		return;
+	if (y1 < 0)
+		y1 = 0;
+	if (y2 > LCD_HEIGHT - 1)
+		y2 = LCD_HEIGHT - 1;
+
+	m = (unsigned char)(1 << (7 - (x & 7)));
+	p = plane + (short)(y1 * PLANE_STRIDE) + (x >> 3);
+	for (y = y1; y <= y2; y++, p += PLANE_STRIDE) {
+		if (set)
+			*p |= m;
+		else
+			*p &= (unsigned char)~m;
+	}
+}
+
+// The four edges of a rectangle in one plane.
+static void outline(void *plane, short x1, short y1, short x2, short y2,
+		    short set)
+{
+	unsigned char *pl = (unsigned char *)plane;
+
+	hspan(pl, x1, x2, y1, set);
+	hspan(pl, x1, x2, y2, set);
+	vspan(pl, x1, y1, y2, set);
+	vspan(pl, x2, y1, y2, set);
+}
+
+// Draw the outline of a rectangle in the given gray color.
+//
+// The original is C already, four FastDrawHLine_R/FastDrawVLine_R calls per
+// plane with A_NORMAL or A_REVERSE picked by the color. Its tests read
+// `color & (COLOR_WHITE | COLOR_LIGHTGRAY)` and `color & (COLOR_DARKGRAY |
+// COLOR_WHITE)`, but COLOR_WHITE is 0, so those are just bit 0 for the light
+// plane and bit 1 for the dark plane - and the else branches mean the edge is
+// actively *cleared* in the plane whose bit is off, not left alone.
+//
+// The original does not swap the corners here; each FastDraw*Line_R swaps its
+// own endpoints instead, which comes to the same rectangle. hspan()/vspan()
+// follow that contract, so no swap is needed at this level either.
 void GrayFastOutlineRect_R(void *dest0, void *dest1, unsigned short x1,
 			   unsigned short y1, unsigned short x2,
 			   unsigned short y2, short color)
 {
-	(void)dest0; (void)dest1; (void)x1; (void)y1; (void)x2; (void)y2; (void)color;
+	outline(dest0, (short)x1, (short)y1, (short)x2, (short)y2, color & 1);
+	outline(dest1, (short)x1, (short)y1, (short)x2, (short)y2, color & 2);
 }
 
 void GrayClipISprite16_RPLC_R(short x, short y, unsigned short height,
