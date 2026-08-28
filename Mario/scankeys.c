@@ -5,12 +5,12 @@
 keystate Keystate,Previous_keystate;
 
 void WaitKeyReleased(){
-	while(_rowread(0));
+	while(_rowread(0)) browser_yield();
 }
 
 void WaitKeyPress(){
-	while(_rowread(0));//wait until key released
-	while(!_rowread(0));//wait until key pressed
+	while(_rowread(0)) browser_yield();//wait until key released
+	while(!_rowread(0)) browser_yield();//wait until key pressed
 };
 
 #ifdef PRODUCE_TI89_CODE

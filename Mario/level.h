@@ -265,7 +265,9 @@ typedef struct{
 
 typedef struct{
 	short Nr_of_levels;
-	int Total_size;
+	// TIGCC compiles with 16-bit int (-mshort); this field is 2 bytes in the
+	// data files, so it must stay 16-bit here or every level offset shifts.
+	short Total_size;
 	
 	unsigned short Levels[20];//holds the offset from start of file to start of the levelstruct
 	

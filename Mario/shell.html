@@ -1,0 +1,67 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Super Mario 68K</title>
+<style>
+  body { background:#1a1a1a; color:#ddd; font:14px system-ui,sans-serif;
+         display:flex; flex-direction:column; align-items:center; gap:1rem; padding:2rem; }
+  canvas { image-rendering:pixelated; width:720px; height:384px;
+           background:#9ca88b; border:2px solid #444; }
+  table { border-collapse:collapse; font-size:13px; }
+  td { padding:.15rem .6rem; } td:first-child { color:#888; text-align:right; }
+  kbd { background:#333; border:1px solid #555; border-radius:3px; padding:0 .3rem; }
+  #log { font-family:ui-monospace,monospace; font-size:12px; color:#7a7;
+         white-space:pre-wrap; max-width:720px; }
+</style>
+
+<h1>Super Mario 68K</h1>
+<canvas id="canvas" width="240" height="128"></canvas>
+
+<table>
+  <tr><td>Move</td><td><kbd>&larr;</kbd><kbd>&uarr;</kbd><kbd>&rarr;</kbd><kbd>&darr;</kbd></td></tr>
+  <tr><td>Jump</td><td><kbd>Space</kbd> / <kbd>Z</kbd></td></tr>
+  <tr><td>Run / fire</td><td><kbd>Shift</kbd> / <kbd>X</kbd></td></tr>
+  <tr><td>Enter / Esc</td><td><kbd>Enter</kbd> <kbd>Esc</kbd></td></tr>
+  <tr><td>Contrast</td><td><kbd>+</kbd> <kbd>-</kbd></td></tr>
+</table>
+<div id="log"></div>
+
+<script>
+// The calculator's 10-row key matrix, as _rowread() in compat/kbd.c reads it.
+// Bit positions below are the ones scankeys.c tests for the V200 build.
+var keyMatrix = new Uint16Array(10);
+
+// [row, bit] per browser key. The two configurable game keys (jump and run)
+// default on V200 to row 0 bit 3 and row 9 bit 3 respectively; the other two
+// selectable slots are bound as well so the in-game key config still works.
+const KEYS = {
+  ArrowLeft:  [0, 4], ArrowUp:   [0, 5], ArrowRight: [0, 6], ArrowDown: [0, 7],
+  Space:      [0, 3], KeyZ:      [0, 3],          // jump   (slot 0)
+  ShiftLeft:  [9, 3], ShiftRight:[9, 3], KeyX: [9, 3],  // run  (slot 1)
+  KeyC:       [6, 4],                              // slot 2
+  KeyV:       [1, 3],                              // slot 3
+  Enter:      [9, 1], Escape:    [8, 6],
+  Equal:      [8, 4], Minus:     [9, 0],
+};
+
+function setKey(code, down) {
+  const k = KEYS[code];
+  if (!k) return false;
+  if (down) keyMatrix[k[0]] |= (1 << k[1]);
+  else      keyMatrix[k[0]] &= ~(1 << k[1]);
+  return true;
+}
+addEventListener("keydown", e => { if (setKey(e.code, true))  e.preventDefault(); });
+addEventListener("keyup",   e => { if (setKey(e.code, false)) e.preventDefault(); });
+addEventListener("blur",    () => keyMatrix.fill(0));
+
+const log = m => { document.getElementById("log").textContent += m + "\n"; };
+
+var Module = {
+  canvas: document.getElementById("canvas"),
+  print:    t => log(t),
+  printErr: t => log("stderr: " + t),
+  onRuntimeInitialized: () => log("runtime ready, data mounted at /data"),
+  onAbort:  w => log("ABORT: " + w),
+};
+</script>
+<script src="mario.js"></script>

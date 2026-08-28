@@ -8,11 +8,9 @@ CC = emcc
 # out-of-line definition in the .c file.
 CFLAGS = -Os -std=gnu99 -g -fgnu89-inline
 LDFLAGS = -sJSPI \
-          --js-library compat/library.js \
-          --pre-js compat/library_pre.js \
           --preload-file data@/data
 
-TARGET = mario
+TARGET = mario.js
 
 SRCS = main.c enemies.c gameloop.c  items.c player.c render.c \
        scankeys.c shells.c custom.c objects.c flying.c smallgames.c \
@@ -21,15 +19,17 @@ SRCS = main.c enemies.c gameloop.c  items.c player.c render.c \
 
 OBJS = $(SRCS:.c=.o)
 
-.PHONY: all clean
+.PHONY: all clean data
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
+data: ; python3 tools/mkdata.py
+
+$(TARGET): $(OBJS) | data
 	$(CC) $(OBJS) $(LDFLAGS) -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET) mario.wasm mario.data
