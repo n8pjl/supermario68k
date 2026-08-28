@@ -3,17 +3,14 @@
 # on - screen size, scroll limits, status bar position - and the matching data
 # set under Bin/, which is not interchangeable between models: the backgrounds,
 # the common level and some worlds were retuned for the 89's smaller screen.
-CALC ?= 89
+CALC ?= v200
 
 ifeq ($(CALC),89)
 CALCDEF = PRODUCE_TI89_CODE
-DATADIR = ../../Bin/TI-89 & TI-89 Titanium
 else ifeq ($(CALC),92p)
 CALCDEF = PRODUCE_TI92PLUS_CODE
-DATADIR = ../../Bin/TI-92+
 else ifeq ($(CALC),v200)
 CALCDEF = PRODUCE_V200_CODE
-DATADIR = ../../Bin/Voyage 200
 else
 $(error CALC must be 89, 92p or v200)
 endif
@@ -67,7 +64,7 @@ FORCE:
 # preloaded file is baked in at link time, and a phony prerequisite would be
 # rebuilt without the link noticing.
 .data-stamp: tools/mkdata.py .calc-stamp
-	python3 tools/mkdata.py "$(DATADIR)" data
+	python3 tools/mkdata.py calc-data data
 	@touch $@
 
 data: .data-stamp

@@ -208,7 +208,7 @@ def convert(content, tag, name):
 
 
 def main():
-    src = sys.argv[1] if len(sys.argv) > 1 else "../../Bin/Voyage 200"
+    src = sys.argv[1] if len(sys.argv) > 1 else "calc-data"
     out = sys.argv[2] if len(sys.argv) > 2 else "data"
     os.makedirs(out, exist_ok=True)
     # Data variables: .89y/.89z on the TI-89, .9xy/.9xz on the 92+ and V200.
