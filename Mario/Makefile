@@ -30,7 +30,9 @@ CC = emcc
 # reaches most of the others, so without this a header edit is silently
 # ignored and the link fails - or worse, does not.
 CFLAGS = -Os -std=gnu99 -fgnu89-inline -flto -msimd128 -MMD -MP -D$(CALCDEF)
-LDFLAGS = -sJSPI -Os -flto \
+# -sENVIRONMENT=web: this only ever runs in a browser, so drop the node,
+# worker and shell startup paths Emscripten emits by default.
+LDFLAGS = -sJSPI -Os -flto -sENVIRONMENT=web \
           --preload-file data@/data
 
 TARGET = mario.js
@@ -65,9 +67,11 @@ FORCE:
 
 data: .data-stamp
 
-$(OBJS): .calc-stamp
+# CFLAGS and LDFLAGS live here, so a change to this file has to rebuild and
+# relink - the same reason the data and the headers are prerequisites.
+$(OBJS): .calc-stamp Makefile
 
-$(TARGET): $(OBJS) .data-stamp
+$(TARGET): $(OBJS) .data-stamp Makefile
 	$(CC) $(OBJS) $(LDFLAGS) -o $@
 
 %.o: %.c
