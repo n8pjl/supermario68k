@@ -1,5 +1,4 @@
-#ifndef __control__
-#define __control__
+#pragma once
 
 enum map_statusbar_state { status = 0, itemlist = 1 };
 
@@ -9,5 +8,3 @@ extern char ErrorCode;
 extern char Skip_anim;
 
 extern char Map_statusbar;
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __comp__
-#define __comp__
+#pragma once
 
 // misc stuff used by compression system
 
@@ -151,4 +150,3 @@ enum Enemy_compression_models  {
 
 };
 */
-#endif

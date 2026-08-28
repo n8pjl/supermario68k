@@ -1,4 +1,11 @@
-#include "all.h"
+#include "gfx.h"
+#include "compat/tios.h"
+#include "compat/utils.h"
+#include "items.h"
+#include "render.h"
+#include "savegame.h"
+#include "smallgames.h"
+#include <string.h>
 
 // SYM_ENTRY *Tilefile_sym, *Spritefile_sym, *Bg_file_sym, *TextFile_sym;
 HANDLE Tilefile_sym_h, Spritefile_sym_h, Bg_file_sym_h, TextFile_sym_h;

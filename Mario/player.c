@@ -6,7 +6,7 @@ player Player;
 saveplayer SavePlayer;
 
 // smallshot Player_smallshots[nr_of_player_smallshots];
-shot Player_smallshots[nr_of_player_smallshots];
+struct shot Player_smallshots[nr_of_player_smallshots];
 // shot* Player_smallshots;
 /*
 const short Marioanimtab[8][11]={
@@ -726,7 +726,7 @@ inline void Handleplayer() {
         Player.X = Player.X + Player.Walkspeed;
 
         // fly code
-        if ((Player.Walkspeed == PLAYER_RUNSPEED)) {
+        if (Player.Walkspeed == PLAYER_RUNSPEED) {
           Runflag++;
         };
 
@@ -825,7 +825,7 @@ inline void Handleplayer() {
         }//b111*/
 
         // fly code
-        if ((Player.Walkspeed == PLAYER_RUNSPEED)) {
+        if (Player.Walkspeed == PLAYER_RUNSPEED) {
           Runflag++;
         };
 
@@ -1189,9 +1189,9 @@ inline void Handleplayer() {
   };
 
   // fly code
-  if ((Runflag == 2)) {
+  if (Runflag == 2) {
 
-    if ((Player.PrevFace == Player.Face)) {
+    if (Player.PrevFace == Player.Face) {
 
       // if(Player.Runcount<flycondition)
       if (Player.Runcount < (2 * flycondition))
@@ -1356,7 +1356,7 @@ void Player_handle_fireballs() {
 };
 
 // void Player_fireball_handler(smallshot *Fireball){
-void Player_fireball_handler(shot *Fireball) {
+void Player_fireball_handler(struct shot *Fireball) {
   // short C;
 
   //	Fireball->X += player_fireball_speed*Fireball->Mode;

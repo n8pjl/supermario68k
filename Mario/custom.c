@@ -1,8 +1,17 @@
+#include "custom.h"
+#include "compat/extgraph.h"
+#include "compat/graph.h"
+#include "compat/tios.h"
+#include "control.h"
+#include "gfx.h"
+#include "level.h"
+#include "menus.h"
+#include "render.h"
+#include "savegame.h"
+#include "scankeys.h"
+#include <string.h>
 
-
-#include "all.h"
-
-settings Settings;
+struct settings Settings;
 
 inline void Custom() {
 
@@ -157,7 +166,7 @@ void Key_configure() {
     return;
   }
   // write buffer to file
-  if (FWrite(&Settings, sizeof(settings), &fsPtr) !=
+  if (FWrite(&Settings, sizeof(struct settings), &fsPtr) !=
       FS_OK) { // write everythiong to file
     return;
   }
@@ -186,7 +195,7 @@ void Load_settings() {
 #endif
 
   } else {
-    memcpy(&Settings, HeapDeref(Conf) + 2, sizeof(settings));
+    memcpy(&Settings, HeapDeref(Conf) + 2, sizeof(struct settings));
   };
 };
 

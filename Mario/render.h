@@ -1,6 +1,7 @@
+#pragma once
 
-#ifndef __render__
-#define __render__
+#include "../ExtGraph/lib/tilemap.h"
+#include "objects.h"
 
 // ti 89 and ti 89T spesific code
 #ifdef PRODUCE_TI89_CODE
@@ -161,5 +162,3 @@ void DrawItem(short X, short Y, short Item);
 
 void Render_map();
 void DrawBg(short X, short Y);
-
-#endif

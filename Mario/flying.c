@@ -1,8 +1,12 @@
+#include "flying.h"
+#include "items.h"
+#include "level.h"
+#include "player.h"
+#include "render.h"
+#include "shells.h"
+#include <stdlib.h>
 
-
-#include "all.h"
-
-flying_platform *Flying_platforms;
+struct flying_platform *Flying_platforms;
 
 inline void Handle_flying_platforms() {
   short C;
@@ -22,7 +26,7 @@ inline void Handle_flying_platforms() {
   };
 };
 
-void Platform_handler_1(flying_platform *Platform) {
+void Platform_handler_1(struct flying_platform *Platform) {
   // this one handles all basic platform operations, such as motion and player
   // squeezed to death etc. Data2 is speed in x dir Data3 is speed in y dir
   // Data0 is motion length before change dir
@@ -129,7 +133,7 @@ void Platform_handler_1(flying_platform *Platform) {
   };
 };
 
-void Platform_handler_2(flying_platform *Platform) {
+void Platform_handler_2(struct flying_platform *Platform) {
   // handles platforms that starts to fall when player lands on it
   // Data0 and Data1 MUST initially be set to 0 !!! or else....
 
@@ -142,7 +146,7 @@ void Platform_handler_2(flying_platform *Platform) {
   Platform_handler_1(Platform);
 };
 
-void Platform_handler_3(flying_platform *Platform) {
+void Platform_handler_3(struct flying_platform *Platform) {
 
   // if((Platform->Active)<40){//shake time
   if ((Platform->Data1) < 40) { // shake time

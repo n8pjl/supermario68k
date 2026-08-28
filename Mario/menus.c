@@ -1,8 +1,23 @@
+#include "menus.h"
+#include "compat/alloc.h"
+#include "compat/extgraph.h"
+#include "compat/graph.h"
+#include "compat/tios.h"
+#include "control.h"
+#include "custom.h"
+#include "gameloop.h"
+#include "gfx.h"
+#include "level.h"
+#include "levelset.h"
+#include "render.h"
+#include "savegame.h"
+#include "scankeys.h"
+#include "stringcopy.h"
+#include "titlescreen.h"
+#include "version.h"
+#include <string.h>
 
-
-#include "all.h"
-
-/*char*/ short doMenu(char *Menudata, short Nr_of_options) {
+short doMenu(char *Menudata, short Nr_of_options) {
   // Renders and handles a menu with the menu items pointed to by parameter
   // Menudata, width 12+1 returns the selected menu item, esc controls:
   // up/down:
@@ -119,9 +134,9 @@ short Menus() {
       /*strcpy(Fg_plane.p.big_vscreen+Offset , HeapDeref (SymPtr->handle)+2
       +sizeof(levelsetdata) ); Offset +=
       strlen(Fg_plane.p.big_vscreen+Offset)+1;*/
-      Offset +=
-          StringCopy(TempBuffer /*Fg_plane.p.big_vscreen*/ + Offset,
-                     HeapDeref(SymPtr->handle) + 2 + sizeof(levelsetdata));
+      Offset += StringCopy(TempBuffer /*Fg_plane.p.big_vscreen*/ + Offset,
+                           HeapDeref(SymPtr->handle) + 2 +
+                               sizeof(struct levelsetdata));
       // strcpy
       StringCopy(TempBuffer /*Fg_plane.p.big_vscreen*/ + 512 + 9 * C,
                  SymPtr->name);
@@ -168,10 +183,10 @@ short Menus() {
 
   Temp = File_get_pointer_and_lock(Levelsetfile /*,Levelsetfile_sym*/);
 
-  memcpy(&Levelsetdata, HeapDeref(Temp) + 2, sizeof(levelsetdata));
+  memcpy(&Levelsetdata, HeapDeref(Temp) + 2, sizeof(struct levelsetdata));
 
   memcpy(&Commonfilename,
-         HeapDeref(Temp) + 2 + sizeof(levelsetdata) + 21 +
+         HeapDeref(Temp) + 2 + sizeof(struct levelsetdata) + 21 +
              9 * Levelsetdata.Commonfile,
          9);
 
@@ -187,7 +202,7 @@ short Menus() {
     return 1;
   };
 
-  memcpy(Filenames, HeapDeref(Temp) + 2 + sizeof(levelsetdata) + 21,
+  memcpy(Filenames, HeapDeref(Temp) + 2 + sizeof(struct levelsetdata) + 21,
          9 * Levelsetdata.Nr_of_files);
 
   // HeapUnlock(	SymPtr->handle );

@@ -1,6 +1,4 @@
-
-#ifndef __bosses__
-#define __bosses__
+#pragma once
 
 #include "enemies.h"
 
@@ -60,6 +58,4 @@ void Add_boss_shot(short X, short Y, char DirX, char DirY);
 
 void Add_big_fireball_shot(short X, short Y, char DirX, char DirY);
 
-void Boss_shot_handler(shot *Shot);
-
-#endif
+void Boss_shot_handler(struct shot *Shot);

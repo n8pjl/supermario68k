@@ -34,14 +34,15 @@ typedef struct {
   short Count; // used as a framecounter to ensure that mario is not killed
                // instantly when jumping on a shell,
 
-  enemy *Enemy; // Pointer to the enemy that might resurrect from this shell
+  struct enemy
+      *Enemy; // Pointer to the enemy that might resurrect from this shell
 } shell;
 
 extern shell *Shells;
 
 void Player_bounching_shell_hadler();
 
-void Add_shell(/*short X,short Y,*/ short Dir, char Type, enemy *Enemy);
+void Add_shell(/*short X,short Y,*/ short Dir, char Type, struct enemy *Enemy);
 
 // void Handle_collided_shells(object* Object);
 

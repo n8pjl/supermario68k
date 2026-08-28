@@ -1,12 +1,26 @@
-
-
-// Backup saved in the folder BU_temp
-
-#include "all.h"
+#include "level.h"
+#include "bosses.h"
+#include "comp.h"
+#include "compat/alloc.h"
+#include "compat/tios.h"
+#include "control.h"
+#include "flying.h"
+#include "gfx.h"
+#include "items.h"
+#include "levelset.h"
+#include "map.h"
+#include "objects.h"
+#include "player.h"
+#include "render.h"
+#include "rle.h"
+#include "savegame.h"
+#include "shells.h"
+#include <stdlib.h>
+#include <string.h>
 
 leveldata Leveldata;
 map_data Map_data;
-levelsetdata Levelsetdata;
+struct levelsetdata Levelsetdata;
 
 char Levelfilename[9];
 char Commonfilename[9];
@@ -233,10 +247,10 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
   Player.X = Leveldata.PlayerX;
   Player.Y = Leveldata.PlayerY - Player.Height;
 
-  Enemies = (enemy *)(Level + Leveldata.Height * Leveldata.Width +
-                      ((Leveldata.Height * Leveldata.Width) %
-                       2)); // last statement prevents address errors when
-                            // foreground size is an odd number
+  Enemies = (struct enemy *)(Level + Leveldata.Height * Leveldata.Width +
+                             ((Leveldata.Height * Leveldata.Width) %
+                              2)); // last statement prevents address errors
+                                   // when foreground size is an odd number
 
   // memset(Enemies,0,sizeof(enemy)*Leveldata.Nr_of_enemies);
 
@@ -757,9 +771,9 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
   // Leveldata.Nr_of_flying_platforms =
   // Leveldata.Boss = 0;
 
-  Triggers =
-      (void *)Enemies +
-      Leveldata.Nr_of_enemies * sizeof(enemy); // + Leveldata.Nr_of_triggers%2
+  Triggers = (void *)Enemies +
+             Leveldata.Nr_of_enemies *
+                 sizeof(struct enemy); // + Leveldata.Nr_of_triggers%2
 
   memcpy(Triggers, Raw,
          Leveldata.Nr_of_triggers * sizeof(trigger)); // copy triggers
@@ -879,7 +893,7 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
   */
   // Player.Test = Leveldata.Boss;
   BossG = (void *)Flying_platforms +
-          Leveldata.Nr_of_flying_platforms * sizeof(flying_platform);
+          Leveldata.Nr_of_flying_platforms * sizeof(struct flying_platform);
   Nr = 0;
   while (Nr < Leveldata.Boss) {
     // if(Leveldata.Boss){

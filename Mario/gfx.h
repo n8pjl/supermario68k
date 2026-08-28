@@ -1,6 +1,6 @@
+#pragma once
 
-#ifndef __gfx__
-#define __gfx__
+#include "compat/utils.h"
 
 // #define blank_sprite Tiles
 #define blank_sprite (unsigned short *)Fg_plane.p.sprites
@@ -387,5 +387,3 @@ extern unsigned short *Boss_sprites;
 // extern unsigned short *Itemmasks;
 
 short Load_gfx_from_file();
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef __levelset__
-#define __levelset__
-
+#pragma once
 // Reconstructed from the shipped levelset binary (sm68k). The original
 // levelset.h was not part of the released source drop, but all.h still
 // referenced it and the layout is pinned down by the data plus its use sites:
@@ -18,7 +16,7 @@
 // dereferences it and savegame.c:34 assigns a size to it), NOT a flag - the
 // name is misleading. A zero offset means "slot empty".
 
-typedef struct {
+struct levelsetdata {
   char Nr_of_files; // number of world files (common excluded)
   char Commonfile;  // index of the common file, i.e. Nr_of_files
   char Mode;        // 1 = map mode
@@ -27,8 +25,6 @@ typedef struct {
   unsigned short Savegames[3];  // offset of each save slot, 0 = empty
   unsigned short Savegame_size[3];
   unsigned short Spare;
-} levelsetdata;
+};
 
-extern levelsetdata Levelsetdata;
-
-#endif
+extern struct levelsetdata Levelsetdata;

@@ -1,6 +1,14 @@
-
-
-#include "all.h"
+#include "bosses.h"
+#include "compat/extgraph.h"
+#include "compat/graph.h"
+#include "control.h"
+#include "gfx.h"
+#include "items.h"
+#include "level.h"
+#include "player.h"
+#include "render.h"
+#include "scankeys.h"
+#include <string.h>
 
 boss *BossG;
 
@@ -884,20 +892,19 @@ void Add_boss_shot(short X, short Y, char DirX, char DirY) {
           };*/
 
   if ((C = Find_free_enemyshot()) >= 0) {
-    shot *Shot = &Enemyshots[C];
-    /*Enemyshots[C].*/ Shot->Data0 = DirX;
-    /*Enemyshots[C].*/ Shot->Data1 = DirY;
-    /*Enemyshots[C].*/ Shot->Height = 12;
-    /*Enemyshots[C].*/ Shot->Sprite = boss_shot_spr;
-    /*Enemyshots[C].*/ Shot->X = X + DirX;
-    /*Enemyshots[C].*/ Shot->Y = Y + DirY;
-    /*Enemyshots[C].*/ Shot->Mode = 1;
-    /*Enemyshots[C].*/ Shot->Handler = Boss_shot_handler;
+    struct shot *Shot = &Enemyshots[C];
+    Shot->Data0 = DirX;
+    Shot->Data1 = DirY;
+    Shot->Height = 12;
+    Shot->Sprite = boss_shot_spr;
+    Shot->X = X + DirX;
+    Shot->Y = Y + DirY;
+    Shot->Mode = 1;
+    Shot->Handler = Boss_shot_handler;
   }
 };
 
-void Boss_shot_handler(shot *Shot) {
-
+void Boss_shot_handler(struct shot *Shot) {
   Shot->X += Shot->Data0;
   Shot->Y += Shot->Data1;
 };
@@ -920,15 +927,15 @@ void Add_big_fireball_shot(short X, short Y, char DirX, char DirY) {
   };*/
 
   if ((C = Find_free_enemyshot()) >= 0) {
-    shot *Shot = &Enemyshots[C];
-    /*Enemyshots[C].*/ Shot->X = X;
-    /*Enemyshots[C].*/ Shot->Y = Y;
-    /*Enemyshots[C].*/ Shot->Data0 = DirX;
-    /*Enemyshots[C].*/ Shot->Data1 = DirY;
-    /*Enemyshots[C].*/ Shot->Handler = Boss_shot_handler;
-    /*Enemyshots[C].*/ Shot->Height = 10; // temp
-    /*Enemyshots[C].*/ Shot->Sprite =
+    struct shot *Shot = &Enemyshots[C];
+    Shot->X = X;
+    Shot->Y = Y;
+    Shot->Data0 = DirX;
+    Shot->Data1 = DirY;
+    Shot->Handler = Boss_shot_handler;
+    Shot->Height = 10; // temp
+    Shot->Sprite =
         (DirX > 0 ? big_fireball_right_spr : big_fireball_left_spr); // temp
-    /*Enemyshots[C].*/ Shot->Mode = 1;
+    Shot->Mode = 1;
   }
 };

@@ -1,7 +1,6 @@
+#include "bounch.h"
 
-#include "all.h"
-
-bounching_tile Bounching_tiles[nr_of_bounching_tiles];
+struct bounching_tile Bounching_tiles[nr_of_bounching_tiles];
 
 void Add_bounching_tile(short X, short Y) {
   short C;

@@ -1,8 +1,6 @@
+#pragma once
 
-#ifndef __flying__
-#define __flying__
-
-typedef struct flying_platform {
+struct flying_platform {
   short X;
   short Y;
 
@@ -22,18 +20,15 @@ typedef struct flying_platform {
   unsigned short Sprite;
 
   void (*Handler)(struct flying_platform *Flying_platform);
+};
 
-} flying_platform;
-
-extern flying_platform *Flying_platforms;
+extern struct flying_platform *Flying_platforms;
 
 void Handle_flying_platforms();
 
-void Platform_handler_1(flying_platform *Platform);
+void Platform_handler_1(struct flying_platform *Platform);
 
-void Platform_handler_2(flying_platform *Platform);
+void Platform_handler_2(struct flying_platform *Platform);
 
-void Platform_handler_3(flying_platform *Platform);
+void Platform_handler_3(struct flying_platform *Platform);
 // short Sign(short);
-
-#endif

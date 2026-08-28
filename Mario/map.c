@@ -1,6 +1,19 @@
 
-
-#include "all.h"
+#include "map.h"
+#include "compat/extgraph.h"
+#include "compat/graph.h"
+#include "compat/gray.h"
+#include "control.h"
+#include "gameloop.h"
+#include "gfx.h"
+#include "items.h"
+#include "level.h"
+#include "levelset.h"
+#include "player.h"
+#include "render.h"
+#include "scankeys.h"
+#include "shells.h"
+#include "smallgames.h"
 
 inline void Handle_player_map() {
   short OldFgX, OldFgY, Temp = 0, Temp2;
@@ -621,7 +634,7 @@ inline void Handle_player_map() {
 
           //						Levelsetdata.CurrentWorld
           //= Levelsetdata.Nr_of_files-2;
-          //Exit = 100;
+          // Exit = 100;
 
           // Exit=0;
 
@@ -741,7 +754,7 @@ void Enter_enemy_ship(map_object *Ship) {
       SavePlayer.Attribs & 0b01110111; // disable star and p-wing
   Map_plane.p.force_update = 1;
 
-  if ((Exit == 1)) { // mario failed,
+  if (Exit == 1) { // mario failed,
     // run away
 
     if (Leveldata.Condition && (Ship->Mode == 1)) { // ship and not anchored

@@ -1,10 +1,20 @@
 
 
-#include "all.h"
+#include "enemies.h"
+#include "bounch.h"
+#include "comp.h"
+#include "compat/extgraph.h"
+#include "gfx.h"
+#include "items.h"
+#include "level.h"
+#include "player.h"
+#include "render.h"
+#include "shells.h"
+#include <stdlib.h>
 
-enemy *Enemies;
+struct enemy *Enemies;
 
-shot Enemyshots[nr_of_enemyshots];
+struct shot Enemyshots[nr_of_enemyshots];
 
 inline void Handleenemies() {
   short Curr_enemy;
@@ -125,8 +135,7 @@ inline void Handleenemies() {
         // test for hit by fireball
         for (C = 0; C < nr_of_player_smallshots; C++) {
           if (Player_smallshots[C].Mode) { // if active
-            if (/*(Enemies[Curr_enemy].Attribs & 0b01000000) &&*/
-                BoundsCollide2(
+            if (BoundsCollide2(
                     Player_smallshots[C].X + 1, Player_smallshots[C].Y + 1, 6,
                     6, Enemies[Curr_enemy].X, Enemies[Curr_enemy].Y,
                     Enemies[Curr_enemy].Height, 16)) { // hit by fireball
@@ -188,8 +197,9 @@ inline void Handleenemies() {
 
 // enemy handlers. Handles the behavious of the enemies. see enemies.txt for
 // details
-void Enemy_handler_1(enemy *Enemy) { // walk in one dir,if not free walk to the
-                                     // opposite dir. fall down, no jump
+void Enemy_handler_1(
+    struct enemy *Enemy) { // walk in one dir,if not free walk to the
+                           // opposite dir. fall down, no jump
   // mode == true: change sprite when change direction
   // data0 == true: limited to walk only Data0 pixels before change dir
   // initialization: Data1 = Data0
@@ -257,9 +267,9 @@ void Enemy_handler_1(enemy *Enemy) { // walk in one dir,if not free walk to the
   };
 }
 
-void Enemy_handler_2(
-    enemy *Enemy) { // flower. rises from pipe (or similar). stays for n frames,
-                    // goes down, stays for n frames
+void Enemy_handler_2(struct enemy *Enemy) { // flower. rises from pipe (or
+                                            // similar). stays for n frames,
+                                            // goes down, stays for n frames
 
   unsigned char Mode = Enemy->Mode;
   // test if player is positioned on pipe above
@@ -305,9 +315,9 @@ void Enemy_handler_2(
   // Enemy->Mask = flower1_mask+15-Enemy->Height/2;
 }
 
-void Enemy_handler_3(
-    enemy *Enemy) { // flower. rises from pipe. stays for n frames, goes down,
-                    // stays for n frames. fires upon player
+void Enemy_handler_3(struct enemy *Enemy) { // flower. rises from pipe. stays
+                                            // for n frames, goes down,
+  // stays for n frames. fires upon player
   // maa gjoere noe sprell her...
 
   unsigned char Mode = Enemy->Mode;
@@ -389,7 +399,7 @@ void Enemy_handler_3(
   Enemy->Mode = Mode;
 }
 
-void Enemy_handler_4(enemy *Enemy) { // flying monster 1
+void Enemy_handler_4(struct enemy *Enemy) { // flying monster 1
 
   char Jumping = Enemy->Jumping;
   Enemy_move_x(Enemy);
@@ -503,7 +513,7 @@ void Enemy_handler_4(enemy *Enemy) { // flying monster 1
   Enemy->Height = Enemy->Height2 = Height;
 };
 
-void Enemy_handler_5(enemy *Enemy) {
+void Enemy_handler_5(struct enemy *Enemy) {
   Enemy->Mode--;
 
   if (Enemy->Mode == 0) {
@@ -511,7 +521,7 @@ void Enemy_handler_5(enemy *Enemy) {
   };
 }
 
-void Enemy_handler_6(enemy *Enemy) { // turtle/beetle shell
+void Enemy_handler_6(struct enemy *Enemy) { // turtle/beetle shell
 
   unsigned char Mode = Enemy->Mode;
   /*Enemy->*/ Mode--;
@@ -554,7 +564,7 @@ void Enemy_handler_6(enemy *Enemy) { // turtle/beetle shell
   Enemy->Mode = Mode;
 }
 
-void Enemy_handler_7(enemy *Enemy) { // crushed turtle skeleton
+void Enemy_handler_7(struct enemy *Enemy) { // crushed turtle skeleton
 
   unsigned char Mode = Enemy->Mode;
   /*Enemy->*/ Mode--;
@@ -588,7 +598,7 @@ void Enemy_handler_7(enemy *Enemy) { // crushed turtle skeleton
   Enemy->Mode = Mode;
 };
 
-void Enemy_handler_8(enemy *Enemy) { // flying turtle
+void Enemy_handler_8(struct enemy *Enemy) { // flying turtle
   // Mode config:	b7: x motion enable
   //							b6: y motion enable
   //							b5: x motion limit
@@ -676,8 +686,8 @@ void Enemy_handler_8(enemy *Enemy) { // flying turtle
 };
 
 static void
-Move_and_animate(enemy *Enemy) { // common func for all enemies using the
-                                 // boomerang guy sprites. saved some bytes...
+Move_and_animate(struct enemy *Enemy) { // common func for all enemies using the
+  // boomerang guy sprites. saved some bytes...
   Enemy_move_x(Enemy);
 
   if (Enemy->X > Player.X) {
@@ -687,7 +697,7 @@ Move_and_animate(enemy *Enemy) { // common func for all enemies using the
   };
 }
 
-void Enemy_handler_9(enemy *Enemy) { // boomerang guy
+void Enemy_handler_9(struct enemy *Enemy) { // boomerang guy
 
   //	Enemy_move_x(Enemy);
   Move_and_animate(Enemy);
@@ -736,7 +746,7 @@ void Enemy_handler_9(enemy *Enemy) { // boomerang guy
   Enemy->Mode++;
 };
 
-void Enemy_handler_10(enemy *Enemy) { // jumping fireball
+void Enemy_handler_10(struct enemy *Enemy) { // jumping fireball
   // Data0: Jumptime (nr of frames)
   // Face: Jumpspeed			(jumpheight = Data0 *  face)
   // Data1: Downtime
@@ -778,7 +788,7 @@ void Enemy_handler_10(enemy *Enemy) { // jumping fireball
   };
 };
 
-void Enemy_handler_11(enemy *Enemy) { // circulating fireball
+void Enemy_handler_11(struct enemy *Enemy) { // circulating fireball
   // radius = 32
   // static const char
   // Motion[30]={3,4,3,3,3,3,2,3,2,2,1,1,1,1,0,0,-1,-1,-1,-1,-2,-2,-3,-2,-3,-3,-3,-3,-4,-3};
@@ -811,7 +821,7 @@ void Enemy_handler_11(enemy *Enemy) { // circulating fireball
   Enemy->Data1 += Enemy->Jumping;
 };
 
-void Enemy_handler_12(enemy *Enemy) { // falling brick
+void Enemy_handler_12(struct enemy *Enemy) { // falling brick
 
   //	short X = Enemy->X;
   char Jumping = Enemy->Jumping;
@@ -856,7 +866,7 @@ void Enemy_handler_12(enemy *Enemy) { // falling brick
   Enemy->Jumping = Jumping;
 };
 
-void Enemy_handler_13(enemy *Enemy) { // handles the jumping brick
+void Enemy_handler_13(struct enemy *Enemy) { // handles the jumping brick
 
   short Temp;
   short Height = Enemy->Height;
@@ -935,7 +945,7 @@ void Enemy_handler_13(enemy *Enemy) { // handles the jumping brick
   };
 };
 
-void Enemy_handler_14(enemy *Enemy) { // handles horizontal cannon
+void Enemy_handler_14(struct enemy *Enemy) { // handles horizontal cannon
   // Data0: time between the shots
   // Face: Direction, 0=bidirectional
 
@@ -949,7 +959,7 @@ void Enemy_handler_14(enemy *Enemy) { // handles horizontal cannon
   };
 };
 
-void Enemy_handler_15(enemy *Enemy) { // handles diagonal cannons
+void Enemy_handler_15(struct enemy *Enemy) { // handles diagonal cannons
   // Face: X speed & dir
   // Data1: Y speed & dir
   // Data0: Time between the shots
@@ -961,7 +971,7 @@ void Enemy_handler_15(enemy *Enemy) { // handles diagonal cannons
   };
 };
 
-void Enemy_handler_16(enemy *Enemy) { // handles ghost
+void Enemy_handler_16(struct enemy *Enemy) { // handles ghost
   // turn your back at them, and they'll start chasing you!
 
   // Life == 4:
@@ -1066,7 +1076,8 @@ void Enemy_handler_16(enemy *Enemy) { // handles ghost
   Enemy->Y = Y;
 };
 
-void Enemy_handler_17(enemy *Enemy) { // handles mad jumping/walking flower
+void Enemy_handler_17(
+    struct enemy *Enemy) { // handles mad jumping/walking flower
 
   char Jumping = Enemy->Jumping;
 
@@ -1110,7 +1121,7 @@ void Enemy_handler_17(enemy *Enemy) { // handles mad jumping/walking flower
   Enemy->Jumping = Jumping;
 };
 
-void Enemy_handler_18(enemy *Enemy) { // fire monster
+void Enemy_handler_18(struct enemy *Enemy) { // fire monster
 
   //	Enemy_move_x(Enemy);
   Move_and_animate(Enemy);
@@ -1157,7 +1168,7 @@ void Enemy_handler_18(enemy *Enemy) { // fire monster
   } // end switch
 };
 
-void Enemy_handler_19(enemy *Enemy) { // flying fish
+void Enemy_handler_19(struct enemy *Enemy) { // flying fish
   // Data0: XLimit. Fish limited to move x pixels in x dir before turn. Handled
   // by Enemy_handler_1() Data1=Data0 when initialized Face: dir and xspeed
   // Life: Jumpspeed
@@ -1195,7 +1206,7 @@ void Enemy_handler_19(enemy *Enemy) { // flying fish
   Enemy->Jumping = Jumping;
 };
 
-void Enemy_handler_20(enemy *Enemy) { // jellyfish
+void Enemy_handler_20(struct enemy *Enemy) { // jellyfish
 
   if (!Enemy->Data0 && (Enemy->Y >= (Player.Y + 8))) {
     // initialize swim
@@ -1232,7 +1243,7 @@ void Enemy_handler_20(enemy *Enemy) { // jellyfish
 };
 
 void Enemy_handler_21(
-    enemy *Enemy) { // bomb. WARNING: This is a really messy function!
+    struct enemy *Enemy) { // bomb. WARNING: This is a really messy function!
   // Life:
   // 1: walking until jumpkilled, then initializing countdown
   // 2: walking until jumpkilled, then initializing countdown (more might come):
@@ -1429,7 +1440,7 @@ void Enemy_handler_21(
   };
 };
 
-void Spawn_bomb_common(enemy *Enemy) {
+void Spawn_bomb_common(struct enemy *Enemy) {
 
   Enemy->X = Enemy->RespawnX * 16;
   Enemy->Y = Enemy->RespawnY * 16; //-2;
@@ -1442,8 +1453,9 @@ void Spawn_bomb_common(enemy *Enemy) {
   Enemy->Respawn = -bomb;
 }
 
-void Spawn_bomb(enemy *Enemy) { //(Re)spawns bomb that is to be shot out from a
-                                // diagonal cannon
+void Spawn_bomb(
+    struct enemy *Enemy) { //(Re)spawns bomb that is to be shot out from a
+                           // diagonal cannon
 
   Spawn_bomb_common(Enemy);
   //	Enemy->X = Enemy->RespawnX*16;
@@ -1459,11 +1471,11 @@ void Spawn_bomb(enemy *Enemy) { //(Re)spawns bomb that is to be shot out from a
   Enemy->Life = 8;
   Enemy->Jumping = 0;
   //	Enemy->Active = 1;
-  //	(enemy *)Enemy->Handler = Enemy_handler_21;
-  //	(enemy *)Enemy->Die = Enemy_die_11;
+  //	(struct enemy *)Enemy->Handler = Enemy_handler_21;
+  //	(struct enemy *)Enemy->Die = Enemy_die_11;
 }
 
-void Spawn_bomb2(enemy *Enemy) { //(Re)spawns bomb
+void Spawn_bomb2(struct enemy *Enemy) { //(Re)spawns bomb
 
   Spawn_bomb_common(Enemy);
   Enemy->Height = Enemy->Height2 = 16;
@@ -1472,15 +1484,15 @@ void Spawn_bomb2(enemy *Enemy) { //(Re)spawns bomb
   //	Enemy->X = Enemy->RespawnX*16;
   //	Enemy->Y = Enemy->RespawnY*16;
   //	Enemy->Mode = 1;
-  //	(enemy *)Enemy->Handler = Enemy_handler_21;
-  //	(enemy *)Enemy->Die = Enemy_die_11;
+  //	(struct enemy *)Enemy->Handler = Enemy_handler_21;
+  //	(struct enemy *)Enemy->Die = Enemy_die_11;
   Enemy->Life = 4;
   //	Enemy->Active = 1;
   Enemy->Respawn2 = 4;
   // 	Enemy->Respawn = -bomb;
 }
 
-void Enemy_handler_22(enemy *Enemy) { // Handles hammerman
+void Enemy_handler_22(struct enemy *Enemy) { // Handles hammerman
 
   Move_and_animate(Enemy);
 
@@ -1544,7 +1556,7 @@ void Enemy_handler_22(enemy *Enemy) { // Handles hammerman
   };
 }
 
-void Enemy_handler_23(enemy *Enemy) { // bottom flower
+void Enemy_handler_23(struct enemy *Enemy) { // bottom flower
 
   if (!(Fg_plane.frame % 2)) { // slow down anim
 
@@ -1616,7 +1628,7 @@ void Enemy_handler_23(enemy *Enemy) { // bottom flower
   };
 };
 
-char Enemy_move_x(enemy *Enemy) {
+char Enemy_move_x(struct enemy *Enemy) {
   char Face = Enemy->Face;
 
   if (/*Enemy->*/ Face > 0) { // right
@@ -1647,7 +1659,7 @@ void Dummy_func_(void *P) {
   // nothing
 };
 
-void Handle_hardkilled_enemies(enemy *Enemy) {
+void Handle_hardkilled_enemies(struct enemy *Enemy) {
   Enemy->Mode++;
 
   if (Enemy->Mode < 3) {
@@ -1691,7 +1703,7 @@ void Handle_hardkilled_enemies(enemy *Enemy) {
   }
 };
 
-void Handle_dead_upside_down_enemies(enemy *Enemy) {
+void Handle_dead_upside_down_enemies(struct enemy *Enemy) {
   if ((Enemy->Y += 2) >= 16 * Leveldata.Height) {
     Enemy->Active = 0;
     // Enemy->Life = 0;
@@ -1700,7 +1712,7 @@ void Handle_dead_upside_down_enemies(enemy *Enemy) {
 
 // enemy die funcs. Handler the death sequence of the enemies. see enemies.txt
 // for details
-void Enemy_die_1(enemy *Enemy) {
+void Enemy_die_1(struct enemy *Enemy) {
 
   Enemy->Attribs = 0b00100000; // Enemy->Attribs & 0b00100111;//0b00100000;//
   Enemy->Height = Enemy->Height2 = 5;
@@ -1710,8 +1722,8 @@ void Enemy_die_1(enemy *Enemy) {
   (Enemy->Die) = (void *)Dummy_func_; // E_dummy_handler;
   Score_anim(Enemy->X, Enemy->Y - 8, score_100);
 }
-void Enemy_die_2(
-    enemy *Enemy) { // the death of the turtle and beetle. leaves behind a shell
+void Enemy_die_2(struct enemy *Enemy) { // the death of the turtle and beetle.
+                                        // leaves behind a shell
 
   Enemy->Attribs = 0b11100010;
   unsigned short *Sprite;
@@ -1728,7 +1740,7 @@ void Enemy_die_2(
   (Enemy->Die) = Enemy_die_5;
   Score_anim(Enemy->X, Enemy->Y - 8, score_100);
 }
-void Enemy_die_3(enemy *Enemy) { // flying goomba
+void Enemy_die_3(struct enemy *Enemy) { // flying goomba
   (Enemy->Handler) = Enemy_handler_1;
   Enemy->Sprite = monster1_sprite;
   Enemy->Height = Enemy->Height2 = 15;
@@ -1740,7 +1752,8 @@ void Enemy_die_3(enemy *Enemy) { // flying goomba
   Player.Yoffset = -4;
   Player.Jumpspeed = 4;
 }
-void Enemy_die_4(enemy *Enemy) { // flying turtle dies and becomes normal turtle
+void Enemy_die_4(
+    struct enemy *Enemy) { // flying turtle dies and becomes normal turtle
 
   // see if using Generate_handler1_enemy can save bytes
 
@@ -1762,7 +1775,7 @@ void Enemy_die_4(enemy *Enemy) { // flying turtle dies and becomes normal turtle
   Score_anim(Enemy->X, Enemy->Y - 8, score_200);
 }
 
-void Enemy_die_5(enemy *Enemy) {
+void Enemy_die_5(struct enemy *Enemy) {
 
   Player.Xoffset = (Player.X > Enemy->X ? 2 : -2);
 
@@ -1774,7 +1787,7 @@ void Enemy_die_5(enemy *Enemy) {
   Enemy->Life = 0;
 }
 
-void Enemy_die_6(enemy *Enemy) {
+void Enemy_die_6(struct enemy *Enemy) {
   Enemy->Life = -1;
   Enemy->Attribs = 0;
   Enemy->Y += Enemy->Height;
@@ -1783,7 +1796,7 @@ void Enemy_die_6(enemy *Enemy) {
       Handle_dead_upside_down_enemies; // maybe Handle_hardkilled_enemies  ?
 }
 
-void Enemy_die_7(enemy *Enemy) {
+void Enemy_die_7(struct enemy *Enemy) {
   Enemy->Attribs = 0; // b00100000;
   Enemy->Sprite = crushed_turtle_skeleton_sprite;
   Enemy->Height = Enemy->Height2 = 12;
@@ -1794,13 +1807,13 @@ void Enemy_die_7(enemy *Enemy) {
   Score_anim(Enemy->X, Enemy->Y - 8, score_100);
 };
 
-void Enemy_die_8(enemy *Enemy) {
+void Enemy_die_8(struct enemy *Enemy) {
   Enemy->Life = 0;
   Add_dustsky(Enemy->X, Enemy->Y + Enemy->Height - 8);
   Score_anim(Enemy->X, Enemy->Y - 8, score_100);
 };
 
-void Enemy_die_9(enemy *Enemy) { // The death of the jumping brick
+void Enemy_die_9(struct enemy *Enemy) { // The death of the jumping brick
   short C;
 
   Enemy->Life = 0;
@@ -1812,8 +1825,8 @@ void Enemy_die_9(enemy *Enemy) { // The death of the jumping brick
 
 #define scanwidth 7 * 16
 
-void Enemy_die_10(enemy *Enemy) { // handles the teath of boomerang guy,
-                                  // fireball guy and hammer man
+void Enemy_die_10(struct enemy *Enemy) { // handles the teath of boomerang guy,
+                                         // fireball guy and hammer man
   // when brothers and/or treasure
   short C, Y = Enemy->Y; //<=important!
 
@@ -1889,7 +1902,8 @@ void Enemy_die_10(enemy *Enemy) { // handles the teath of boomerang guy,
   Enemy_die_6(Enemy);
 };
 
-void Enemy_die_11(enemy *Enemy) { // death of the bomb. Initializes countdown
+void Enemy_die_11(
+    struct enemy *Enemy) { // death of the bomb. Initializes countdown
 
   if (Enemy->Mode < 2) {
     // initialize countdown
@@ -1920,9 +1934,8 @@ void Enemy_die_11(enemy *Enemy) { // death of the bomb. Initializes countdown
   };
 }
 
-void Enemy_die(enemy *Enemy) { // kills enemy and animates. Used when hit by
-                               // shells and fireballs
-
+void Enemy_die(struct enemy *Enemy) { // kills enemy and animates. Used when hit
+                                      // by shells and fireballs
   Enemy->Life = -1;
   Enemy->Attribs = 0;
   (Enemy->Handler) = Handle_hardkilled_enemies;
@@ -1989,14 +2002,14 @@ void Handle_enemyshots() {
   };
 };
 
-void Enemy_fireball_handler(shot *Fireball) {
+void Enemy_fireball_handler(struct shot *Fireball) {
 
   Fireball->X += Fireball->Data1; //*enemy_fireball_speed;
   Fireball->Y += Fireball->Data0; //*enemy_fireball_speed;
   Fireball->Sprite = fireball_anim_16_spr + 24 * Fg_plane.step;
 };
 
-void Hammer_handler(shot *Hammer) {
+void Hammer_handler(struct shot *Hammer) {
 
   Hammer->Mode++;
 
@@ -2036,16 +2049,16 @@ void Enemy_add_fireball(short X, short Y, /*char*/ short Xdir,
   if ((C = Find_free_enemyshot()) >= 0) {
     // for(C=0;C<nr_of_enemyshots;C++){
     //	if(!(Enemyshots[C].Mode)){
-    shot *Shot = &Enemyshots[C];
-    /*Enemyshots[C].*/ Shot->Mode = 2; // find free shot (Mode==0)
-    /*Enemyshots[C].*/ Shot->Data1 = Xdir;
-    /*Enemyshots[C].*/ Shot->Data0 = Ydir;
-    /*Enemyshots[C].*/ Shot->Height = 8;
-    /*Enemyshots[C].*/ Shot->Sprite = fireball_anim_16_spr;
-    /*Enemyshots[C].*/ Shot->X = X;
-    /*Enemyshots[C].*/ Shot->Y = Y;
-    /*Enemyshots[C].*/ Shot->Handler = Enemy_fireball_handler; // experiment
-                                                               // shot
+    struct shot *Shot = &Enemyshots[C];
+    Shot->Mode = 2; // find free shot (Mode==0)
+    Shot->Data1 = Xdir;
+    Shot->Data0 = Ydir;
+    Shot->Height = 8;
+    Shot->Sprite = fireball_anim_16_spr;
+    Shot->X = X;
+    Shot->Y = Y;
+    Shot->Handler = Enemy_fireball_handler; // experiment
+                                            // shot
     // break;//C = nr_of_enemyshots;
     //};
   };
@@ -2057,16 +2070,16 @@ void Enemy_add_hammer(short X, short Y, /*char*/ short Xdir) {
   if ((C = Find_free_enemyshot()) >= 0) {
     // for(C=0;C<nr_of_enemyshots;C++){
     // if(!(Enemyshots[C].Mode)){//find free shot (Mode==0)
-    shot *Shot = &Enemyshots[C];
-    /*Enemyshots[C].*/ Shot->Mode = 1;
-    /*Enemyshots[C].*/ Shot->Data0 = Xdir;
-    /*Enemyshots[C].*/ Shot->Data1 = -2;
-    /*Enemyshots[C].*/ Shot->Height = 16;
-    /*Enemyshots[C].*/ Shot->Sprite = hammer_anim_spr;
-    /*Enemyshots[C].*/ Shot->X = X;
-    /*Enemyshots[C].*/ Shot->Y = Y;
+    struct shot *Shot = &Enemyshots[C];
+    Shot->Mode = 1;
+    Shot->Data0 = Xdir;
+    Shot->Data1 = -2;
+    Shot->Height = 16;
+    Shot->Sprite = hammer_anim_spr;
+    Shot->X = X;
+    Shot->Y = Y;
 
-    /*Enemyshots[C].*/ Shot->Handler = Hammer_handler;
+    Shot->Handler = Hammer_handler;
     // break;//C = nr_of_enemyshots;
     //};
   };
@@ -2079,18 +2092,17 @@ void Enemy_add_bounching_fireball(short X, short Y, /*char*/ short Xdir,
   if ((C = Find_free_enemyshot()) >= 0) {
     // for(C=0;C<nr_of_enemyshots;C++){
     // if(!(Enemyshots[C].Mode)){//find free shot (Mode==0)
-    shot *Shot = &Enemyshots[C];
-    /*Enemyshots[C].*/ Shot->Mode = 3;
+    struct shot *Shot = &Enemyshots[C];
+    Shot->Mode = 3;
     // Enemyshots[C].Data1 = Xdir;
-    /*Enemyshots[C].*/ Shot->Data2 = Xdir;
-    /*Enemyshots[C].*/ Shot->Data0 = Ydir;
+    Shot->Data2 = Xdir;
+    Shot->Data0 = Ydir;
     //			Enemyshots[C].Data1 = 0;
-    /*Enemyshots[C].*/ Shot->Height = 8;
-    /*Enemyshots[C].*/ Shot->Sprite = fireball_anim_16_spr;
-    /*Enemyshots[C].*/ Shot->X = X;
-    /*Enemyshots[C].*/ Shot->Y = Y;
-    /*Enemyshots[C].*/ Shot->Handler =
-        Player_fireball_handler; // experiment shot
+    Shot->Height = 8;
+    Shot->Sprite = fireball_anim_16_spr;
+    Shot->X = X;
+    Shot->Y = Y;
+    Shot->Handler = Player_fireball_handler; // experiment shot
     // break;//C = nr_of_enemyshots;
     //};
   };
@@ -2102,16 +2114,15 @@ void Enemy_add_boomerang(short X, short Y, /*char*/ short Dir) {
   if ((C = Find_free_enemyshot()) >= 0) {
     // for(C=0;C<nr_of_enemyshots;C++){
     // if(!(Enemyshots[C].Mode)){//find free shot (Mode==0)
-    shot *Shot = &Enemyshots[C];
-    /*Enemyshots[C].*/ Shot->Mode = 4;
-    /*Enemyshots[C].*/ Shot->Data0 = Dir;
-    /*Enemyshots[C].*/ Shot->Data1 = Dir;
-    /*Enemyshots[C].*/ Shot->Height = 16;
-    /*Enemyshots[C].*/ Shot->Sprite = boomerang_anim_16_spr;
-    /*Enemyshots[C].*/ Shot->X = X + (Dir > 0 ? 8 : -8);
-    /*Enemyshots[C].*/ Shot->Y = Y;
-    /*Enemyshots[C].*/ Shot->Handler =
-        Enemy_boomerang_handler; // experiment shot
+    struct shot *Shot = &Enemyshots[C];
+    Shot->Mode = 4;
+    Shot->Data0 = Dir;
+    Shot->Data1 = Dir;
+    Shot->Height = 16;
+    Shot->Sprite = boomerang_anim_16_spr;
+    Shot->X = X + (Dir > 0 ? 8 : -8);
+    Shot->Y = Y;
+    Shot->Handler = Enemy_boomerang_handler; // experiment shot
     // break;//C = nr_of_enemyshots;
     //};
   };
@@ -2123,16 +2134,16 @@ void Enemy_add_cannonball_horiz(short X, short Y, char Dir) {
   if ((C = Find_free_enemyshot()) >= 0) {
     // for(C=0;C<nr_of_enemyshots;C++){
     // if(!(Enemyshots[C].Mode)){//find free shot (Mode==0)
-    shot *Shot = &Enemyshots[C];
-    /*Enemyshots[C].*/ Shot->Data0 = Dir;
-    /*Enemyshots[C].*/ Shot->Data1 = 0;
-    /*Enemyshots[C].*/ Shot->Height = 14;
-    /*Enemyshots[C].*/ Shot->Sprite =
+    struct shot *Shot = &Enemyshots[C];
+    Shot->Data0 = Dir;
+    Shot->Data1 = 0;
+    Shot->Height = 14;
+    Shot->Sprite =
         (Dir > 0 ? cannonball_horiz_right_spr : cannonball_horiz_left_spr);
-    /*Enemyshots[C].*/ Shot->X = X; // + (Dir>0?8:-8);
-    /*Enemyshots[C].*/ Shot->Y = Y;
-    /*Enemyshots[C].*/ Shot->Mode = -2;
-    /*Enemyshots[C].*/ Shot->Handler = Enemy_cannonball_horiz_handler;
+    Shot->X = X; // + (Dir>0?8:-8);
+    Shot->Y = Y;
+    Shot->Mode = -2;
+    Shot->Handler = Enemy_cannonball_horiz_handler;
     // break;//C = nr_of_enemyshots;
     //};
   };
@@ -2144,16 +2155,15 @@ void Enemy_add_cannonball(short X, short Y, char DirX, char DirY) {
   if ((C = Find_free_enemyshot()) >= 0) {
     // for(C=0;C<nr_of_enemyshots;C++){
     // if(!(Enemyshots[C].Mode)){//find free shot (Mode==0)
-    shot *Shot = &Enemyshots[C];
-    /*Enemyshots[C].*/ Shot->Data0 = DirX;
-    /*Enemyshots[C].*/ Shot->Data1 = DirY;
-    /*Enemyshots[C].*/ Shot->Height = 12;
-    /*Enemyshots[C].*/ Shot->Sprite = cannonball_spr;
-    /*Enemyshots[C].*/ Shot->X = X + DirX;
-    /*Enemyshots[C].*/ Shot->Y = Y + DirY;
-    /*Enemyshots[C].*/ Shot->Mode = -1;
-    /*Enemyshots[C].*/ Shot->Handler =
-        Enemy_cannonball_handler; // experiment shot
+    struct shot *Shot = &Enemyshots[C];
+    Shot->Data0 = DirX;
+    Shot->Data1 = DirY;
+    Shot->Height = 12;
+    Shot->Sprite = cannonball_spr;
+    Shot->X = X + DirX;
+    Shot->Y = Y + DirY;
+    Shot->Mode = -1;
+    Shot->Handler = Enemy_cannonball_handler; // experiment shot
     // break;//C = nr_of_enemyshots;
     //};
   };
@@ -2166,21 +2176,21 @@ void Enemy_add_underwater_shot(short X, short Y, /*char*/ short DirX) {
     // for(C=0;C<nr_of_enemyshots;C++){
     // if(!(Enemyshots[C].Mode)){//find free shot (Mode==0)
 
-    shot *Shot = &Enemyshots[C];
-    /*Enemyshots[C].*/ Shot->Data0 = DirX;
-    /*Enemyshots[C].*/ Shot->Data1 = 48;
-    /*Enemyshots[C].*/ Shot->Height = 8;
-    /*Enemyshots[C].*/ Shot->Sprite = underwater_shot;
-    /*Enemyshots[C].*/ Shot->X = X;
-    /*Enemyshots[C].*/ Shot->Y = Y;
-    /*Enemyshots[C].*/ Shot->Mode = 5;
-    /*Enemyshots[C].*/ Shot->Handler = Underwater_shot_handler;
+    struct shot *Shot = &Enemyshots[C];
+    Shot->Data0 = DirX;
+    Shot->Data1 = 48;
+    Shot->Height = 8;
+    Shot->Sprite = underwater_shot;
+    Shot->X = X;
+    Shot->Y = Y;
+    Shot->Mode = 5;
+    Shot->Handler = Underwater_shot_handler;
     // break;//C = nr_of_enemyshots;
     //};
   };
 };
 
-void Underwater_shot_handler(shot *Shot) {
+void Underwater_shot_handler(struct shot *Shot) {
 
   if (!(Fg_plane.frame % 2)) { // slow down
 
@@ -2197,18 +2207,17 @@ void Underwater_shot_handler(shot *Shot) {
   }
 };
 
-void Enemy_cannonball_horiz_handler(shot *Cannonball) {
-
+void Enemy_cannonball_horiz_handler(struct shot *Cannonball) {
   Cannonball->X += Cannonball->Data0;
 };
 
-void Enemy_cannonball_handler(shot *Cannonball) {
+void Enemy_cannonball_handler(struct shot *Cannonball) {
 
   Cannonball->X += Cannonball->Data0;
   Cannonball->Y += Cannonball->Data1;
 };
 
-void Enemy_boomerang_handler(shot *Boomerang) {
+void Enemy_boomerang_handler(struct shot *Boomerang) {
 
   // restricted to move 2 pixels in x dir each frame, for optimization.
   // to use variable speed: use commented out code

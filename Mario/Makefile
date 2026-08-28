@@ -83,7 +83,7 @@ $(TARGET): $(OBJS) .data-stamp Makefile
 	$(CC) $(CFLAGS) -c $< -o $@
 
 format: $(NON_COMPAT_SRCS) $(NON_COMPAT_HDRS)
-	clang-format -i $(NON_COMPAT_SRCS) $(NON_COMPAT_HDRS)
+	clang-format --sort-includes -i $(NON_COMPAT_SRCS) $(NON_COMPAT_HDRS)
 
 
 -include $(DEPS)

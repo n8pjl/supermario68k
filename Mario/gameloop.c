@@ -1,6 +1,25 @@
-
-
-#include "all.h"
+#include "gameloop.h"
+#include "bosses.h"
+#include "bounch.h"
+#include "compat/extgraph.h"
+#include "compat/graph.h"
+#include "compat/gray.h"
+#include "control.h"
+#include "custom.h"
+#include "flying.h"
+#include "gfx.h"
+#include "items.h"
+#include "level.h"
+#include "levelset.h"
+#include "map.h"
+#include "menus.h"
+#include "player.h"
+#include "render.h"
+#include "savegame.h"
+#include "scankeys.h"
+#include "shells.h"
+#include "stringcopy.h"
+#include <string.h>
 
 char *Filenames;
 

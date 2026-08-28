@@ -1,6 +1,6 @@
+#pragma once
 
-#ifndef __player__
-#define __player__
+#include "enemies.h"
 
 // mario sprites
 #define small_left_sprites Mariosprites
@@ -211,7 +211,7 @@ typedef struct {
 extern player Player;
 extern saveplayer SavePlayer;
 
-extern shot Player_smallshots[nr_of_player_smallshots];
+extern struct shot Player_smallshots[nr_of_player_smallshots];
 
 extern unsigned short *Mariosprites;
 extern unsigned short *Mariomasks;
@@ -248,6 +248,4 @@ void Player_handle_fireballs();
 
 void Player_add_fireball();
 
-void Player_fireball_handler(shot *Fireball);
-
-#endif
+void Player_fireball_handler(struct shot *Fireball);

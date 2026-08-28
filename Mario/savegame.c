@@ -1,6 +1,21 @@
-
-
-#include "all.h"
+#include "savegame.h"
+#include "compat/alloc.h"
+#include "compat/extgraph.h"
+#include "compat/graph.h"
+#include "compat/tios.h"
+#include "gameloop.h"
+#include "gfx.h"
+#include "items.h"
+#include "level.h"
+#include "levelset.h"
+#include "map.h"
+#include "player.h"
+#include "render.h"
+#include "rle.h"
+#include "scankeys.h"
+#include "smallgames.h"
+#include "stringcopy.h"
+#include <string.h>
 
 void Savegame(char Slot) {
   short C;
@@ -15,7 +30,7 @@ void Savegame(char Slot) {
 
   // levelsetdata, title and filenames
 
-  Size = sizeof(levelsetdata) + 21 + 9 * (Levelsetdata.Nr_of_files + 1);
+  Size = sizeof(struct levelsetdata) + 21 + 9 * (Levelsetdata.Nr_of_files + 1);
 
   char *TempBuffer = Fg_plane.p.big_vscreen;
   memcpy(TempBuffer /*Fg_plane.p.big_vscreen*/, HeapDeref(Temp) + 2, Size);
@@ -31,8 +46,8 @@ void Savegame(char Slot) {
              HeapDeref(Temp) + 2 + Levelsetdata.Savegames[C],
              Levelsetdata.Savegame_size[C]);
       // update saveslot pointer
-      ((levelsetdata *)TempBuffer /*Fg_plane.p.big_vscreen*/)->Savegames[C] =
-          Levelsetdata.Savegames[C] = Size;
+      ((struct levelsetdata *)TempBuffer /*Fg_plane.p.big_vscreen*/)
+          ->Savegames[C] = Levelsetdata.Savegames[C] = Size;
       // Levelsetdata.Savegames[C] = Size;
 
       Size += Levelsetdata.Savegame_size[C];
@@ -52,7 +67,7 @@ void Savegame(char Slot) {
 
   // update saveslot pointer
   // Levelsetdata.Savegames[(short)Slot] = Size;
-  ((levelsetdata *)TempBuffer /*Fg_plane.p.big_vscreen*/)
+  ((struct levelsetdata *)TempBuffer /*Fg_plane.p.big_vscreen*/)
       ->Savegames[(short)Slot] = Levelsetdata.Savegames[(short)Slot] = Size;
 
   SavePlayer.MapBorderLeft = Map_data.Border_left;
@@ -134,7 +149,7 @@ void Savegame(char Slot) {
   short Slotsize = sizeof(saveplayer) + 10 + 18 + RLESize;
   Size += RLESize;
 
-  ((levelsetdata *)TempBuffer /*Fg_plane.p.big_vscreen*/)
+  ((struct levelsetdata *)TempBuffer /*Fg_plane.p.big_vscreen*/)
       ->Savegame_size[(short)Slot] = Levelsetdata.Savegame_size[(short)Slot] =
       Slotsize;
   // Levelsetdata.Savegame_size[(short)Slot] = Slotsize;
@@ -331,7 +346,7 @@ void Loadgame(char Slot /* , char* Raw0*/) {
 
   Raw = Raw0;
 
-  Raw += ((levelsetdata *)Raw)->Savegames[(short)Slot];
+  Raw += ((struct levelsetdata *)Raw)->Savegames[(short)Slot];
   // load player
 
   memcpy(&SavePlayer, Raw, sizeof(saveplayer));

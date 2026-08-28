@@ -222,7 +222,7 @@ inline void Player_bounching_shell_hadler() {
               };*/
               //							Shells[C].Active
               //= 0;//kill shell
-              //Shells[D].Active = 0;
+              // Shells[D].Active = 0;
 
               // New: V 1.04 Function call instead of repeated code saved bytes
               Add_killed_shell(Shell, Shell2->X > Shell->X ? -4 : 4);
@@ -242,21 +242,20 @@ inline void Player_bounching_shell_hadler() {
   }; // end for
 }
 
-void Add_shell(/*short X,short Y,*/ short Dir, char Type, enemy *Enemy) {
+void Add_shell(/*short X,short Y,*/ short Dir, char Type, struct enemy *Enemy) {
   short C;
 
   for (C = 0; C < max_nr_of_shells; C++) { // loop through array of shells
     if (!(Shells[C].Active)) {             // free space ?
       shell *Shell = &Shells[C];
 
-      /*Shells[C].*/ Shell->X = Enemy->X; // add shell
-      /*Shells[C].*/ Shell->Y = Enemy->Y;
-      /*Shells[C].*/ Shell->Active = Type;
-      /*Shells[C].*/ Shell->Dir = Dir;
-      /*Shells[C].*/ Shell->Enemy = Enemy;
-      /*Shells[C].*/ Shell->Count =
-          4; // can't kill mario next 4 frames 8/shellspeed+1
-      break; // C=max_nr_of_shells;//exit loop
+      Shell->X = Enemy->X; // add shell
+      Shell->Y = Enemy->Y;
+      Shell->Active = Type;
+      Shell->Dir = Dir;
+      Shell->Enemy = Enemy;
+      Shell->Count = 4; // can't kill mario next 4 frames 8/shellspeed+1
+      break;            // C=max_nr_of_shells;//exit loop
     };
   };
 };

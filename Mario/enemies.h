@@ -1,7 +1,4 @@
-
-
-#ifndef __enemies__
-#define __enemies__
+#pragma once
 
 #define enemy_fallspeed 3
 
@@ -17,7 +14,7 @@
 #define active_y_lower (FgY + 160 + 16 * 4)
 #define active_y_upper (FgY - 16 * 4)
 
-typedef struct enemy {
+struct enemy {
   short X; // Xpos
   short Y; // Ypos
 
@@ -61,11 +58,11 @@ typedef struct enemy {
                            // secuence of the current kind of enemy. the reason
                            // for this is that enemies dies different ways (some
                            // must be hit 2 times, some are animated etc.)
-} enemy;
+};
 
-typedef struct shot { // experiment shot
-  short X;            // Xpos
-  short Y;            // Ypos
+struct shot { // experiment shot
+  short X;    // Xpos
+  short Y;    // Ypos
   short Height;
   /*char Mode;
   char Data0;
@@ -77,62 +74,61 @@ typedef struct shot { // experiment shot
   unsigned short *Sprite;
   // unsigned short* Mask;
   void (*Handler)(struct shot *Shot);
-} shot;
+};
 
-extern enemy *Enemies;
+extern struct enemy *Enemies;
 
-extern shot Enemyshots[nr_of_enemyshots];
+extern struct shot Enemyshots[nr_of_enemyshots];
 
 void Handleenemies();
 
-void Enemy_handler_1(enemy *Enemy);
-void Enemy_handler_2(enemy *Enemy);
-void Enemy_handler_3(enemy *Enemy);
-void Enemy_handler_4(enemy *Enemy);
-void Enemy_handler_5(enemy *Enemy);
-void Enemy_handler_6(enemy *Enemy);
-void Enemy_handler_7(enemy *Enemy);
-void Enemy_handler_8(enemy *Enemy);
-void Enemy_handler_9(enemy *Enemy);
-void Enemy_handler_10(enemy *Enemy);
-void Enemy_handler_11(enemy *Enemy);
-void Enemy_handler_12(enemy *Enemy);
-void Enemy_handler_13(enemy *Enemy);
-void Enemy_handler_14(enemy *Enemy);
-void Enemy_handler_15(enemy *Enemy);
-void Enemy_handler_16(enemy *Enemy);
-void Enemy_handler_17(enemy *Enemy);
-void Enemy_handler_18(enemy *Enemy);
-void Enemy_handler_19(enemy *Enemy);
-void Enemy_handler_20(enemy *Enemy);
-void Enemy_handler_21(enemy *Enemy);
-void Enemy_handler_22(enemy *Enemy);
-void Enemy_handler_23(enemy *Enemy);
+void Enemy_handler_1(struct enemy *Enemy);
+void Enemy_handler_2(struct enemy *Enemy);
+void Enemy_handler_3(struct enemy *Enemy);
+void Enemy_handler_4(struct enemy *Enemy);
+void Enemy_handler_5(struct enemy *Enemy);
+void Enemy_handler_6(struct enemy *Enemy);
+void Enemy_handler_7(struct enemy *Enemy);
+void Enemy_handler_8(struct enemy *Enemy);
+void Enemy_handler_9(struct enemy *Enemy);
+void Enemy_handler_10(struct enemy *Enemy);
+void Enemy_handler_11(struct enemy *Enemy);
+void Enemy_handler_12(struct enemy *Enemy);
+void Enemy_handler_13(struct enemy *Enemy);
+void Enemy_handler_14(struct enemy *Enemy);
+void Enemy_handler_15(struct enemy *Enemy);
+void Enemy_handler_16(struct enemy *Enemy);
+void Enemy_handler_17(struct enemy *Enemy);
+void Enemy_handler_18(struct enemy *Enemy);
+void Enemy_handler_19(struct enemy *Enemy);
+void Enemy_handler_20(struct enemy *Enemy);
+void Enemy_handler_21(struct enemy *Enemy);
+void Enemy_handler_22(struct enemy *Enemy);
+void Enemy_handler_23(struct enemy *Enemy);
 
-char Enemy_move_x(enemy *Enemy);
+char Enemy_move_x(struct enemy *Enemy);
 
 void Dummy_func_(void *P);
 
-void Handle_hardkilled_enemies(enemy *Enemy);
-void Handle_dead_upside_down_enemies(enemy *Enemy);
+void Handle_hardkilled_enemies(struct enemy *Enemy);
+void Handle_dead_upside_down_enemies(struct enemy *Enemy);
 
-void Enemy_die_1(enemy *Enemy);
-void Enemy_die_2(enemy *Enemy);
-void Enemy_die_3(enemy *Enemy);
-void Enemy_die_4(enemy *Enemy);
-void Enemy_die_5(enemy *Enemy);
-void Enemy_die_6(enemy *Enemy);
-void Enemy_die_7(enemy *Enemy);
-void Enemy_die_8(enemy *Enemy);
-void Enemy_die_9(enemy *Enemy);
-void Enemy_die_10(enemy *Enemy);
-void Enemy_die_11(enemy *Enemy);
+void Enemy_die_1(struct enemy *Enemy);
+void Enemy_die_2(struct enemy *Enemy);
+void Enemy_die_3(struct enemy *Enemy);
+void Enemy_die_4(struct enemy *Enemy);
+void Enemy_die_5(struct enemy *Enemy);
+void Enemy_die_6(struct enemy *Enemy);
+void Enemy_die_7(struct enemy *Enemy);
+void Enemy_die_8(struct enemy *Enemy);
+void Enemy_die_9(struct enemy *Enemy);
+void Enemy_die_10(struct enemy *Enemy);
+void Enemy_die_11(struct enemy *Enemy);
 
-void Enemy_die(enemy *Enemy);
+void Enemy_die(struct enemy *Enemy);
 
-// void Spawn_bomb(short Nr);
-void Spawn_bomb(enemy *Enemy);
-void Spawn_bomb2(enemy *Enemy);
+void Spawn_bomb(struct enemy *Enemy);
+void Spawn_bomb2(struct enemy *Enemy);
 
 void Handle_enemyshots();
 
@@ -152,17 +148,15 @@ void Enemy_add_bounching_fireball(short X, short Y, /*char*/ short Xdir,
 
 void Enemy_add_underwater_shot(short X, short Y, /*char*/ short Dirx);
 
-void Enemy_fireball_handler(shot *Fireball);
+void Enemy_fireball_handler(struct shot *Fireball);
 
-void Hammer_handler(shot *Fireball);
+void Hammer_handler(struct shot *Fireball);
 
-void Enemy_cannonball_horiz_handler(shot *Cannonball);
+void Enemy_cannonball_horiz_handler(struct shot *Cannonball);
 
-void Enemy_cannonball_handler(shot *Cannonball);
+void Enemy_cannonball_handler(struct shot *Cannonball);
 
-void Underwater_shot_handler(shot *Cannonball);
+void Underwater_shot_handler(struct shot *Cannonball);
 
-void Enemy_boomerang_handler(shot *Fireball);
+void Enemy_boomerang_handler(struct shot *Fireball);
 short Find_free_enemyshot(void);
-
-#endif

@@ -1,6 +1,4 @@
-
-#ifndef __gameloop__
-#define __gameloop__
+#pragma once
 
 #define map_speed 4
 
@@ -21,5 +19,3 @@ void Gameloop();
 short RunGame(char Saveslot);
 
 void Play_level();
-
-#endif

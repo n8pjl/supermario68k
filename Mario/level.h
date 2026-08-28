@@ -1,8 +1,4 @@
-
-#ifndef __level__
-#define __level__
-
-#include "all.h"
+#pragma once
 
 // old
 /*
@@ -328,5 +324,3 @@ extern leveldata Leveldata;
 
 extern char Levelfilename[9];
 extern char Commonfilename[9];
-
-#endif

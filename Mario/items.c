@@ -1,6 +1,19 @@
-
-
-#include "all.h"
+#include "items.h"
+#include "bounch.h"
+#include "compat/extgraph.h"
+#include "compat/graph.h"
+#include "compat/gray.h"
+#include "compat/utils.h"
+#include "control.h"
+#include "flying.h"
+#include "gfx.h"
+#include "level.h"
+#include "objects.h"
+#include "player.h"
+#include "render.h"
+#include "scankeys.h"
+#include "shells.h"
+#include <stdlib.h>
 
 item *Items;
 
