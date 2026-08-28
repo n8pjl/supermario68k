@@ -4,9 +4,12 @@
 // Port of the old TileMap engine's gray path. The shipped TileMap.a is m68k
 // COFF and cannot be linked here, so these are reimplementations.
 //
-// NOTE: the tile and sprite data is big-endian m68k data. Everything in this
-// file that reads 16-bit pixel rows out of the tile arrays must do so
-// big-endian; that is deliberate and is why the blobs are not byte-swapped.
+// Tile rows arrive already byte-swapped - tools/mkdata.py converts the 16-bit
+// regions of the GFX blobs at build time - so they can be read natively. The
+// big virtual screen this engine fills is a different matter: like the planes
+// it is a byte-addressed bitmap with the leftmost pixel in bit 7 of the first
+// byte, so 16-bit words in it are assembled a byte at a time. DrawBuffer_MASK
+// in extgraph.c reads it back the same way round.
 //
 // TODO: implement. Stubbed so the game links and the loop can be exercised.
 

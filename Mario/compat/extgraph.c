@@ -242,11 +242,62 @@ short TestCollide162h_R(short x0, short y0, short x1, short y1,
 }
 
 
-// Mono buffer blitter used for the foreground mask plane.
+// The TileMap engine's big virtual screen: 34 bytes (272 pixels) by 160 rows,
+// so a 240x128 window can be scrolled anywhere inside it without redrawing.
+#define VSCREEN_STRIDE 34
+
+// Mono buffer blitter used for the foreground mask plane: AND a scrolled
+// 240x128 window of the big virtual screen onto a plane.
+//
+// The window starts at pixel (x, y) of the buffer, with 0 <= x, y < 32, so the
+// caller can scroll a whole tile's worth before the engine has to rebuild the
+// buffer. Vertical scrolling is just a row offset. Horizontally, the original
+// splits x into a whole word plus a residual 0..15: if x >= 16 it steps the
+// source pointer on by one word and drops 16 from the shift. Each output word
+// is then stitched from two source words,
+//
+//	out[k] = (w[k] << shift) | (w[k+1] >> (16 - shift))
+//
+// which is what the original's rol.l/mask dance computes - it keeps the
+// carry-in for the next word in a register instead of re-reading it, and
+// unrolls all 15 words, but the result is the same. Reading each source word
+// twice is the cost of writing it plainly; it stays within one cache line and
+// this is not the hot path.
+//
+// Both the buffer and the plane are byte-addressed bitmaps with the leftmost
+// pixel in bit 7 of the first byte, so the 16-bit words are assembled and
+// written back a byte at a time rather than read as native shorts - on a
+// little-endian target that would transpose the two halves of every word. The
+// engine that fills this buffer is ported in compat/tilemap.c and writes it
+// the same way round.
 void DrawBuffer_MASK(const void *src, unsigned short x, unsigned short y,
 		     void *dest)
 {
-	(void)src; (void)x; (void)y; (void)dest;
+	const unsigned char *s = (const unsigned char *)src + y * VSCREEN_STRIDE;
+	unsigned char *d = (unsigned char *)dest;
+	unsigned shift = x;
+	short row, k;
+
+	if (shift >= 16) {
+		s += 2;
+		shift -= 16;
+	}
+
+	for (row = 0; row < LCD_HEIGHT; row++, s += VSCREEN_STRIDE,
+					      d += PLANE_STRIDE) {
+		for (k = 0; k < PLANE_STRIDE; k += 2) {
+			unsigned w0 = ((unsigned)s[k] << 8) | s[k + 1];
+			unsigned out = w0;
+
+			if (shift) {
+				unsigned w1 = ((unsigned)s[k + 2] << 8) | s[k + 3];
+				out = ((w0 << shift) | (w1 >> (16 - shift)))
+				      & 0xFFFF;
+			}
+			d[k] &= (unsigned char)(out >> 8);
+			d[k + 1] &= (unsigned char)out;
+		}
+	}
 }
 
 void GrayClearScreen2B(void *lightplane, void *darkplane)
