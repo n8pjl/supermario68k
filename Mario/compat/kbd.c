@@ -22,6 +22,10 @@ unsigned short _rowread(short rowmask)
 	}, rowmask);
 }
 
-EM_ASYNC_JS(void, browser_yield, (void), {
+EM_ASYNC_JS(void, _browser_yield, (void), {
 	await new Promise((resolve) => requestAnimationFrame(resolve));
 });
+
+void browser_yield(void) {
+	_browser_yield();
+}

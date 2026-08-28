@@ -1,13 +1,12 @@
 CC = emcc
-# TODO: maybe use -msimd128 ?
 # -fcommon: the sources rely on pre-C99 tentative definitions (globals declared
 # in headers without extern), which old GCC merged. Modern clang defaults to
 # -fno-common and would report them as duplicate symbols.
 # -fgnu89-inline: `inline` here means the pre-C99 GNU semantics the sources were
 # written against, where a header's inline declaration does not suppress the
 # out-of-line definition in the .c file.
-CFLAGS = -Os -std=gnu99 -g -fgnu89-inline
-LDFLAGS = -sJSPI \
+CFLAGS = -Os -std=gnu99 -fgnu89-inline -flto -msimd128
+LDFLAGS = -sJSPI -Os -flto \
           --preload-file data@/data
 
 TARGET = mario.js
