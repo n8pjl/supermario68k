@@ -25,7 +25,11 @@ CC = emcc
 # -fgnu89-inline: `inline` here means the pre-C99 GNU semantics the sources were
 # written against, where a header's inline declaration does not suppress the
 # out-of-line definition in the .c file.
-CFLAGS = -Os -std=gnu99 -fgnu89-inline -flto -msimd128 -D$(CALCDEF)
+# -MMD -MP: emit the header dependencies picked up below, so editing a header
+# rebuilds what includes it. Nearly every file here includes all.h, which
+# reaches most of the others, so without this a header edit is silently
+# ignored and the link fails - or worse, does not.
+CFLAGS = -Os -std=gnu99 -fgnu89-inline -flto -msimd128 -MMD -MP -D$(CALCDEF)
 LDFLAGS = -sJSPI -Os -flto \
           --preload-file data@/data
 
@@ -37,6 +41,7 @@ SRCS = main.c enemies.c gameloop.c  items.c player.c render.c \
        stringcopy.c error.c bosses.c gfx.c compat/alloc.c compat/tios.c compat/tilemap.c compat/extgraph.c compat/graph.c compat/font_data.c compat/kbd.c compat/gray.c
 
 OBJS = $(SRCS:.c=.o)
+DEPS = $(OBJS:.o=.d)
 
 .PHONY: all clean data FORCE
 
@@ -68,6 +73,8 @@ $(TARGET): $(OBJS) .data-stamp
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+-include $(DEPS)
+
 clean:
-	rm -f $(OBJS) $(TARGET) mario.wasm mario.data .calc-stamp .data-stamp
+	rm -f $(OBJS) $(DEPS) $(TARGET) mario.wasm mario.data .calc-stamp .data-stamp
 	rm -rf data

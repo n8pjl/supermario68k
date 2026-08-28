@@ -1,6 +1,8 @@
 #include "tilemap.h"
 #include "graph.h"
 
+#include <stddef.h>
+
 // Port of the old TileMap engine's plane renderers. The shipped TileMap.a is
 // m68k COFF and cannot be linked here, so these are reimplementations; the
 // library's original sources served as the reference, and for the routines
@@ -146,20 +148,26 @@ void DrawGrayBuffer2B_OR(const void *src, unsigned short x, unsigned short y,
 	gray_blit(src, x, y, lightplane, darkplane, 1);
 }
 
-// Render the 17x10 tiles starting at map tile (col0, row0) into the gray big
-// virtual screen. A gray 16x16 tile is 32 words, a row of the light plane and
-// a row of the dark plane alternating.
+// Render the 17x10 tiles starting at map tile (col0, row0) into the big
+// virtual screen.
 //
-// `wrap`, when nonzero, is the map width to take the column index modulo, so
-// the map repeats horizontally - see DrawGrayPlane16B2B_ROLL.
+// `anim` is the current step's row of the animation table, or NULL for a plain
+// plane: a plain plane's map holds tile numbers, an animated one's holds
+// animation numbers that the table turns into tile numbers for this step.
 //
-// The original walks the buffer in column-major order, which lets it keep one
-// running destination pointer and step the map pointer by `width` per row.
+// `gray` picks a 32-word tile whose light and dark rows alternate, written to
+// both halves of the buffer, over a 16-word mono tile written to one. `wrap`,
+// when nonzero, is the map width to take the column index modulo, so the map
+// repeats horizontally - see DrawGrayPlane16B2B_ROLL.
+//
+// The originals walk the buffer in column-major order, which lets them keep
+// one running destination pointer and step the map pointer by `width` per row.
 // Indexing both directly is the same traversal without the bookkeeping.
-static void refresh_gray_buffer16b(const unsigned char *matrix,
-				   unsigned short width, short col0, short row0,
-				   const unsigned short *sprites,
-				   unsigned char *buf, short wrap)
+static void refresh_buffer16b(const unsigned char *matrix, unsigned short width,
+			      short col0, short row0,
+			      const unsigned short *sprites,
+			      const unsigned short *anim, unsigned char *buf,
+			      short wrap, short gray)
 {
 	short col, row, r;
 
@@ -170,18 +178,26 @@ static void refresh_gray_buffer16b(const unsigned char *matrix,
 			mc %= wrap;
 
 		for (row = 0; row < VS_ROWS; row++) {
-			const unsigned short *t =
-				sprites + 32 * matrix[(row0 + row) * width + mc];
-			unsigned char *p = buf + row * 16 * VS_STRIDE + col * 2;
+			unsigned n = matrix[(row0 + row) * width + mc];
+			const unsigned short *t;
+			unsigned char *p;
+
+			if (anim)
+				n = anim[n];
+			t = sprites + (gray ? 32 : 16) * n;
+			p = buf + row * 16 * VS_STRIDE + col * 2;
 
 			for (r = 0; r < 16; r++, p += VS_STRIDE) {
-				unsigned l = t[2 * r];
-				unsigned d = t[2 * r + 1];
+				unsigned l = gray ? t[2 * r] : t[r];
 
 				p[0] = (unsigned char)(l >> 8);
 				p[1] = (unsigned char)l;
-				p[VS_SIZE] = (unsigned char)(d >> 8);
-				p[VS_SIZE + 1] = (unsigned char)d;
+				if (gray) {
+					unsigned d = t[2 * r + 1];
+
+					p[VS_SIZE] = (unsigned char)(d >> 8);
+					p[VS_SIZE + 1] = (unsigned char)d;
+				}
 			}
 		}
 	}
@@ -209,27 +225,53 @@ static short plane_stale(const Plane *plane, unsigned short x, unsigned short y)
 	       ((ox ^ (short)x) & 32) || ((oy ^ (short)y) & 32);
 }
 
-static void gray_plane16b(unsigned short x, unsigned short y, Plane *plane,
-			  void *lightplane, void *darkplane, TM_GrayMode mode,
-			  short wrap)
+static void plane_refresh(Plane *plane, unsigned short x, unsigned short y,
+			  const unsigned short *anim, short wrap, short gray)
 {
-	if (plane_stale(plane, x, y)) {
-		plane->force_update = 0;
-		refresh_gray_buffer16b((const unsigned char *)plane->matrix,
-				       plane->width, (short)(2 * (x >> 5)),
-				       (short)(2 * (y >> 5)),
-				       (const unsigned short *)plane->sprites,
-				       (unsigned char *)plane->big_vscreen,
-				       wrap);
-	}
+	plane->force_update = 0;
+	refresh_buffer16b((const unsigned char *)plane->matrix, plane->width,
+			  (short)(2 * (x >> 5)), (short)(2 * (y >> 5)),
+			  (const unsigned short *)plane->sprites, anim,
+			  (unsigned char *)plane->big_vscreen, wrap, gray);
+}
+
+static void plane_remember(Plane *plane, unsigned short x, unsigned short y)
+{
 	plane->reserved = (long)(((unsigned long)x << 16) | (unsigned short)y);
-	mode(plane->big_vscreen, x & 31, y & 31, lightplane, darkplane);
+}
+
+// Advance the animation one frame, and say whether the step changed - which is
+// what forces the buffer to be rebuilt, since every animated tile in it now
+// resolves to a different tile number.
+//
+// The frame counter runs up to step_length, then resets and moves to the next
+// of nb_step steps, wrapping. Note that the game drives the foreground mask
+// through here twice a frame, once per plane, and compensates by giving it
+// double the step_length of the foreground it has to stay in step with.
+static short plane_animate(AnimatedPlane *plane)
+{
+	if (++plane->frame != plane->step_length)
+		return 0;
+	plane->frame = 0;
+	if (++plane->step == plane->nb_step)
+		plane->step = 0;
+	return 1;
+}
+
+// The current step's row of the animation table: nb_anim words per step.
+static const unsigned short *anim_row(const AnimatedPlane *plane)
+{
+	return (const unsigned short *)plane->tabanim +
+	       (unsigned)plane->nb_anim * (unsigned)plane->step;
 }
 
 void DrawGrayPlane16B2B(unsigned short x, unsigned short y, Plane *plane,
 			void *lightplane, void *darkplane, TM_GrayMode mode)
 {
-	gray_plane16b(x, y, plane, lightplane, darkplane, mode, 0);
+	if (plane_stale(plane, x, y))
+		plane_refresh(plane, x, y, NULL, 0, 1);
+	plane_remember(plane, x, y);
+	mode(plane->big_vscreen, x & 31, y & 31, lightplane, darkplane);
 }
 
 // The game's own scrolling variant of the above, which it uses for the
@@ -246,20 +288,35 @@ void DrawGrayPlane16B2B(unsigned short x, unsigned short y, Plane *plane,
 void DrawGrayPlane16B2B_ROLL(unsigned short x, unsigned short y, Plane *plane,
 			     void *lightplane, void *darkplane, TM_GrayMode mode)
 {
-	gray_plane16b(x, y, plane, lightplane, darkplane, mode,
-		      (short)plane->width);
+	if (plane_stale(plane, x, y))
+		plane_refresh(plane, x, y, NULL, (short)plane->width, 1);
+	plane_remember(plane, x, y);
+	mode(plane->big_vscreen, x & 31, y & 31, lightplane, darkplane);
 }
 
-// Mono animated plane renderer (TileMap engine).
+// Mono animated plane, used for the foreground mask: the tiles that punch the
+// foreground's silhouette out of both planes before the foreground itself is
+// ORed in.
+//
+// An animation step always rebuilds the buffer, so the staleness test only
+// gets a look in on the frames that do not step - which is what the original
+// does, checking the animation first and branching straight to the refresh.
 void DrawAnimatedPlane16B(unsigned short x, unsigned short y,
 			  AnimatedPlane *plane, void *dest, TM_Mode mode)
 {
-	(void)x; (void)y; (void)plane; (void)dest; (void)mode;
+	if (plane_animate(plane) || plane_stale(&plane->p, x, y))
+		plane_refresh(&plane->p, x, y, anim_row(plane), 0, 0);
+	plane_remember(&plane->p, x, y);
+	mode(plane->p.big_vscreen, x & 31, y & 31, dest);
 }
 
+// Gray animated plane: the foreground layer itself, and the world map.
 void DrawGrayAnimatedPlane16B2B(unsigned short x, unsigned short y,
 				AnimatedPlane *plane, void *lightplane,
 				void *darkplane, TM_GrayMode mode)
 {
-	(void)x; (void)y; (void)plane; (void)lightplane; (void)darkplane; (void)mode;
+	if (plane_animate(plane) || plane_stale(&plane->p, x, y))
+		plane_refresh(&plane->p, x, y, anim_row(plane), 0, 1);
+	plane_remember(&plane->p, x, y);
+	mode(plane->p.big_vscreen, x & 31, y & 31, lightplane, darkplane);
 }

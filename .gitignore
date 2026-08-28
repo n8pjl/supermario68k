@@ -12,3 +12,5 @@ Mario/data/
 # Build target stamps
 .calc-stamp
 .data-stamp
+
+*.d
