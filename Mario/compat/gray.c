@@ -7,13 +7,14 @@
 #include <stdbool.h>
 #include <assert.h>
 
-// Hands the RGBA buffer to the canvas, then suspends via JSPI until the frame
-// is due. The calculator ran the game at 20fps, so pace to a 50ms period.
+// Hands the RGBA buffer to the canvas. Drawing straight into the active plane
+// showed up on the calculator's LCD the moment it was written, so the canvas
+// needs a way to be repainted without flipping buffers - see GrayDBufRefresh.
 //
 // Note for the preprocessor's sake: a top-level comma in an EM_*_JS body would
 // split the macro arguments, since only parentheses are balanced. Keep commas
 // inside parentheses.
-EM_ASYNC_JS(void, pageflip_sync, (const void *rgba, int w, int h), {
+EM_JS(void, pageflip, (const void *rgba, int w, int h), {
 	const canvas = Module.canvas;
 
 	// The canvas is sized from here rather than from the page, so the shell
@@ -29,7 +30,11 @@ EM_ASYNC_JS(void, pageflip_sync, (const void *rgba, int w, int h), {
 	const ctx = canvas.getContext("2d");
 	const view = new Uint8ClampedArray(HEAPU8.buffer, rgba, w * h * 4);
 	ctx.putImageData(new ImageData(view, w, h), 0, 0);
+});
 
+// Suspends via JSPI until the frame is due. The calculator ran the game at
+// 20fps, so pace to a 50ms period.
+EM_ASYNC_JS(void, pageflip_wait, (void), {
 	if (globalThis.__smPrevFrame === undefined) globalThis.__smPrevFrame = 0;
 	let now = performance.now();
 	let elapsed;
@@ -57,8 +62,8 @@ static void render(uint8_t *restrict light, uint8_t *restrict dark)
 
 			for (int j = 0; j < 8; j++) {
 				uint8_t color =
-					(((l >> (7 - j)) & 1) * 0b10101010) |
-					(((d >> (7 - j)) & 1) * 0b01010101);
+					(((l >> (7 - j)) & 1) * 0b01010101) |
+					(((d >> (7 - j)) & 1) * 0b10101010);
 				uint8_t *px = renderbuf[y][bx * 8 + j];
 
 				px[0] = color;
@@ -71,9 +76,13 @@ static void render(uint8_t *restrict light, uint8_t *restrict dark)
 }
 
 
-static inline uint8_t *dbuf_active_buf(void)
+// The two buffers each hold both planes back to back, light first, the way the
+// calculator's gray double buffer lays them out. Which buffer is on screen is
+// what alternates - the plane's offset within a buffer does not, so both
+// accessors index with the same !!plane.
+static inline uint8_t *dbuf_buf(bool no)
 {
-	return dbuf_buf_no ? dbuf1 : dbuf0;
+	return no ? dbuf1 : dbuf0;
 }
 
 void GrayDBufInit(void *buf)
@@ -83,17 +92,27 @@ void GrayDBufInit(void *buf)
 
 void *GrayDBufGetActivePlane(short plane)
 {
-	return dbuf_active_buf() + LCD_SIZE * !!plane;
+	return dbuf_buf(dbuf_buf_no) + LCD_SIZE * !!plane;
 }
 
 void *GrayDBufGetHiddenPlane(short plane)
 {
-	return dbuf_active_buf() + LCD_SIZE * !plane;
+	return dbuf_buf(!dbuf_buf_no) + LCD_SIZE * !!plane;
 }
 
 void GrayDBufToggleSync(void)
 {
 	dbuf_buf_no = !dbuf_buf_no;
+	GrayDBufRefresh();
+	pageflip_wait();
+}
+
+// Repaints the canvas from the planes that are already on screen. Code that
+// draws into the active plane - the world screen over the map, the level entry
+// wipe - relied on the LCD showing those writes without a page flip, and would
+// otherwise not appear at all until the next flip overwrote them.
+void GrayDBufRefresh(void)
+{
 	render(GrayDBufGetActivePlane(LIGHT_PLANE), GrayDBufGetActivePlane(DARK_PLANE));
-	pageflip_sync(renderbuf, LCD_WIDTH, LCD_HEIGHT);
+	pageflip(renderbuf, LCD_WIDTH, LCD_HEIGHT);
 }

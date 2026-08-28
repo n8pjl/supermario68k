@@ -12,3 +12,4 @@ void *GrayDBufGetActivePlane(short plane);
 void *GrayDBufGetHiddenPlane(short plane);
 
 void GrayDBufToggleSync(void);
+void GrayDBufRefresh(void);

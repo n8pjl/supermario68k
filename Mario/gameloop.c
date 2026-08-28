@@ -309,6 +309,9 @@ void New_world_screen(){
 	
 //	GrayDBufToggleSync_SetPointers();
 	
+	// This screen is drawn into the active plane, which the LCD showed as it
+	// was written; the canvas has to be told about it before we go and wait.
+	GrayDBufRefresh();
 	
 	/*while(_rowread(0));//wait until key released		
 	while(!_rowread(0));//wait until key pressed*/
