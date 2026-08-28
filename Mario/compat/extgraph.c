@@ -164,9 +164,16 @@ void GrayFastOutlineRect_R(void *dest0, void *dest1, unsigned short x1,
 	outline(dest1, (short)x1, (short)y1, (short)x2, (short)y2, color & 2);
 }
 
-// Write the 16-pixel row `val` at absolute pixel (x, y) of a plane, but only
-// where `mask` has a bit set; pixel 0 of both is bit 15. Anything falling off
-// the left or right edge is dropped.
+// Write the 16-pixel row `val` at absolute pixel (x, y) of a plane, under the
+// write-enable mask `wr`: pixels whose `wr` bit is clear keep the plane's
+// existing bit, and `val` is ORed in on top. Pixel 0 of both is bit 15.
+// Anything falling off the left or right edge is dropped.
+//
+// That OR is not an accident of the phrasing - the originals really do
+// `and.l` the mask into the destination and then `or.l` the sprite word in,
+// so a sprite bit set outside its own mask lights the pixel up instead of
+// being dropped. Well-formed sprites never have one, but the ports match the
+// hardware rather than assuming that.
 //
 // The originals reach this through four hand-written cases - fully on screen
 // split by whether x&15 is under 8, clipped left, clipped right - because the
@@ -175,11 +182,12 @@ void GrayFastOutlineRect_R(void *dest0, void *dest1, unsigned short x1,
 // window instead covers all of them at once: 16 pixels at a bit offset of 0..7
 // never span more than three bytes.
 //
-// Taking mask as a parameter is what lets the masked blitters share this: for
-// a plain replace it is all ones, for a sprite drawn through a mask it is the
-// mask row.
+// Taking the write mask as a parameter is what lets the masked blitters share
+// this: for a plain replace it is all ones, for a sprite drawn through a
+// SMASK-style mask it is that mask complemented, since there a set bit means
+// "keep the background".
 static void put_row16(unsigned char *plane, short x, short y, unsigned val,
-		      unsigned mask)
+		      unsigned wr)
 {
 	unsigned long v, m;
 	short xs, bx, sh, i;
@@ -194,8 +202,8 @@ static void put_row16(unsigned char *plane, short x, short y, unsigned val,
 	bx = (short)(xs >> 3) - 2;
 	sh = xs & 7;
 
-	v = (unsigned long)(val & mask & 0xFFFF) << (8 - sh);
-	m = (unsigned long)(mask & 0xFFFF) << (8 - sh);
+	v = (unsigned long)(val & 0xFFFF) << (8 - sh);
+	m = (unsigned long)(wr & 0xFFFF) << (8 - sh);
 
 	plane += y * PLANE_STRIDE;
 	for (i = 0; i < 3; i++) {
@@ -239,13 +247,42 @@ void GrayClipISprite16_RPLC_R(short x, short y, unsigned short height,
 	}
 }
 
+// Draw a 16-wide grayscale sprite through a mask, and clip it to the screen.
+//
+// Unlike the interlaced RPLC above, the two planes' rows live in separate
+// arrays, sprt0 and sprt1, and share one mask. The mask runs the other way
+// round from put_row16's write enable: a set bit means "keep the background",
+// which is why it is complemented on the way in. Per row and plane the
+// original is
+//
+//	dest = (dest & mask) | sprite
+//
+// The original reaches that through three hand-written cases - on screen,
+// clipped left, clipped right - differing only in whether the destination is
+// touched as a long or a word and which way the shift goes. put_row16's
+// sliding three-byte window covers all three, and its `moveq #-1` equivalent
+// (the ones outside the 16-pixel window that the original's rol.l shifts in)
+// falls out of only writing the bytes the window reaches.
 void GrayClipSprite16_SMASK_R(short x, short y, unsigned short height,
 			      const unsigned short *sprt0,
 			      const unsigned short *sprt1,
 			      const unsigned short *mask, void *dest0, void *dest1)
 {
-	(void)x; (void)y; (void)height; (void)sprt0; (void)sprt1; (void)mask;
-	(void)dest0; (void)dest1;
+	int first = y < 0 ? -y : 0;		// first sprite row on screen
+	int last = height;			// one past the last
+	int r;
+
+	if (last > LCD_HEIGHT - y)
+		last = LCD_HEIGHT - y;
+
+	for (r = first; r < last; r++) {
+		unsigned wr = (unsigned)(unsigned short)~mask[r];
+
+		put_row16((unsigned char *)dest0, x, (short)(y + r),
+			  sprt0[r], wr);
+		put_row16((unsigned char *)dest1, x, (short)(y + r),
+			  sprt1[r], wr);
+	}
 }
 
 void GrayClipSprite8_SMASK_R(short x, short y, unsigned short height,
