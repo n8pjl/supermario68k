@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../ExtGraph/lib/tilemap.h"
+#include "compat/tilemap.h"
 #include "objects.h"
 
 // ti 89 and ti 89T spesific code

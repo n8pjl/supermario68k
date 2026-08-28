@@ -43,8 +43,6 @@
 #include "compat/tios.h"
 #include "compat/utils.h"
 
-#include "../ExtGraph/lib/extgraph.h"
-#include "../ExtGraph/lib/tilemap.h"
 #include "bosses.h"
 #include "comp.h"
 #include "compat/extgraph.h"
