@@ -13,7 +13,7 @@ typedef struct{
 	
 }settings;
 
-settings Settings;
+extern settings Settings;
 
 void Custom();
 

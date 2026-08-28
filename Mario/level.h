@@ -303,13 +303,6 @@ short Load_map(char* Levelfile);
 void Free(void* Mem);
 
 extern leveldata Leveldata;
-typedef struct {
-	char CurrentWorld;
-	char Commonfile;
-	char Nr_of_files;
-	BOOL Savegames[3];
-} levelsetdata;
-extern levelsetdata Levelsetdata;
 
 
 

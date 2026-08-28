@@ -4,7 +4,7 @@
 
 
 
-/*char*/short doMenu(char** Menudata,short Nr_of_options){
+/*char*/short doMenu(char* Menudata,short Nr_of_options){
 //Renders and handles a menu with the menu items pointed to by parameter Menudata, width 12+1
 //returns the selected menu item, esc
 //controls: 
@@ -23,7 +23,7 @@
 	
 	
 	while(1){
-		//short Next = 0;
+		short Next = 0;
 		
 		//ClearGrayScreen2B(GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));//temp
 		//draw bg
@@ -34,7 +34,7 @@
 		//draw title
 		//GrayDrawStrExt(0,10,Menudata,A_REPLACE | A_CENTERED,F_8x10);
 		//DrawGrayStrExt2B(30,5,Menudata,A_REPLACE|A_SHADOWED,F_8x10,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
-		DrawString(30,5,Menudata[0],A_REPLACE|A_SHADOWED,F_8x10);
+		DrawString(30,5,Menudata,A_REPLACE|A_SHADOWED,F_8x10);
 		
 		//DrawGrayStrExt2B(24,screen_height-6,"http://tifreakware.net/lachprog/",A_REPLACE,F_4x6,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
 		DrawString(24,screen_height-6,"http://tifreakware.net/lachprog/",A_REPLACE,F_4x6);
@@ -44,12 +44,12 @@
 		while(C<Nr_of_options){//draw menu options
 //		for(C=Upper;C<=Lower;C++){//draw menu options
 			//find next string
-			//Next += strlen(Menudata+Next)+1;
+			Next += strlen(Menudata+Next)+1;
 			
 			if( (C>=Upper) && (C<=Lower) ){
 			//GrayDrawStrExt(0,30+10*C,(Menudata+Next),A_REPLACE | A_CENTERED,F_6x8);
 				//DrawGrayStrExt2B(30,25+15*(C-Upper),(Menudata+Next),A_NORMAL|A_SHADOWED,F_6x8,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
-				DrawString(30,25+15*(C-Upper),(Menudata[C+1]),A_NORMAL|A_SHADOWED,F_6x8);
+				DrawString(30,25+15*(C-Upper),(Menudata+Next),A_NORMAL|A_SHADOWED,F_6x8);
 			}
 			C++;
 		};				
@@ -199,7 +199,7 @@ short Menus(){
 		
 		while(Menu==mainMenu){
 			
-			Res = doMenu(GameTextData.main_menu,4);
+			Res = doMenu(Texts+GameTextData.main_menu,4);
 			
 			switch(Res){
 
@@ -260,7 +260,7 @@ short Menus(){
 			
 //			C = Offset = StringCopy(TempBuffer/*Fg_plane.p.big_vscreen*/,Texts+GameTextData.Load);
 			
-			Paste_saveslot_text(TempBuffer/*Fg_plane.p.big_vscreen*/,GameTextData.load_menu);//Offset);
+			Paste_saveslot_text(TempBuffer/*Fg_plane.p.big_vscreen*/,Texts+GameTextData.load_menu);//Offset);
 			Res = doMenu(TempBuffer/*Fg_plane.p.big_vscreen*/,3);
 
 			if( (Res>=1) && (Res<=3) ){
@@ -284,34 +284,30 @@ short Menus(){
 	return 0;
 };
 
-void Paste_saveslot_text(char** Buffer,const char* const* Text){
-	char TempBuffer[64];
-
+void Paste_saveslot_text(char* Buffer,char* Text){
 	//Dravs saveslot text (Title + save 1, save 2, <empty>)
 	//Languages fully supported
 	short Offset;//The position in the output buffer to write to
 	short L;//Position in the input buffer to fetch next string
 	short C;
 	
-	char* OutBuffer = Fg_mask.p.big_vscreen;
+	char* TempBuffer = Fg_mask.p.big_vscreen;
 	
-	Offset = L = StringCopy(Buffer[0],Text[0]);//title
+	Offset = L = StringCopy(Buffer,Text);//title
 	
-	L += StringCopy(TempBuffer,Text[1]);//save 1
-	StringCopy(TempBuffer+30,Text[2]);//Empty slot txt
+	L += StringCopy(TempBuffer,Text+L);//save 1
+	StringCopy(TempBuffer+30,Text+L);//Empty slot txt
 
 	for(C=0;C<3;C++){
-		Buffer[C+1] = OutBuffer + Offset;
-
 		if(Levelsetdata.Savegames[C]){
 
-			Offset += StringCopy(OutBuffer+Offset,TempBuffer);
+			Offset += StringCopy(Buffer+Offset,TempBuffer);
 			*(Buffer+Offset-2) += C;
 			
 		}
 		else{
 
-			Offset += StringCopy(OutBuffer+Offset,TempBuffer+30);
+			Offset += StringCopy(Buffer+Offset,TempBuffer+30);
 			
 		}
 	}

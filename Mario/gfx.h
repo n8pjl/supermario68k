@@ -282,6 +282,47 @@
 #define bowser_angry							bowser_run_right_spr+38*3*2						
 
 
+// Reconstructed from the shipped ma_texts binary; the original header was not
+// part of the released source drop. The file is a 48-byte table of 24 big-endian
+// offsets followed by a NUL-separated string pool, which is why
+// Texts = HeapDeref(h) + sizeof(gametextdata) + 2 lands on "Main menu:".
+//
+// Field names come from the 16 live GameTextData.* uses in the game sources;
+// each was matched to its slot by decoding the string it points at. The menu
+// entry counts corroborate the mapping independently - Options is called as
+// doMenu(...,3) and its slot is followed by exactly 3 entries, main_menu as
+// doMenu(...,4) by 4. Slots with no reference in the code keep descriptive
+// names and are listed here only to hold the layout together.
+typedef struct{
+	unsigned short main_menu;		// "Main menu:"
+	unsigned short Save;			// "Save game:"
+	unsigned short load_menu;		// "Load game:"
+	unsigned short Options;			// "Options:"
+	unsigned short Statusbar;		// "Statusbar:"      (unused)
+	unsigned short Statusbar2;		// "Statusbar:"      (unused, same offset)
+	unsigned short MidGameMap;		// "Mid-game menu:"  (3 entries, unused)
+	unsigned short MidGameLevel;		// "Mid-game menu:"  (2 entries)
+	unsigned short GameOver;		// "Game over:"      (unused)
+	unsigned short Ending1;			// "THANK YOU MARIO, BUT OUR"
+	unsigned short Ending2;			// "PRINCESS IS IN ANOTHER CASTLE!"
+	unsigned short Ending3;
+	unsigned short ThankU1;			// "THANK YOU MARIO!"
+	unsigned short ThankU2;			// "YOU ARE MY HERO!"
+	unsigned short ThankU3;			// "*KISS*"
+	unsigned short MemError;		// "Out of memory!"
+	unsigned short GfXErr;			// "Failed to open GFX file"
+	unsigned short MapError;		// "Could not load map"
+	unsigned short LevelError;		// "Could not load level"
+	unsigned short LevelsetError;		// "No levelset found!"
+	unsigned short GrayError;		// "Grayscale failed"
+	unsigned short LevelSetIncompatible;	// "Levelset incompatible"
+	unsigned short OverWrite;		// "Overwrite?"
+	unsigned short KeyConfigTexts;		// "Buttons:"
+}gametextdata;
+
+extern gametextdata GameTextData;
+extern char* Texts;
+
 /*
 typedef struct{//Optimize! Skip some unnesseccarry variables, use macros in calculations instead!
 	unsigned short Nr_of_fg_tiles;

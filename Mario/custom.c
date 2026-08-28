@@ -2,6 +2,8 @@
 
 #include "all.h"
 
+settings Settings;
+
 inline void Custom(){
 	
 		//contrast adjustment. Will change
