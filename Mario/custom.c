@@ -178,25 +178,41 @@ void Load_settings() {
 
   HANDLE Conf;
 
-  if ((Conf = File_get_pointer_and_lock("mario\\maconfig")) == H_NULL) {
-    // File not found, apply default settings
-
 #ifdef PRODUCE_TI89_CODE
-    Settings.Keys[0] = 0;
-    Settings.Keys[1] = 2;
+  const short DefJump = 0, DefRun = 2;
 #endif
 #ifdef PRODUCE_TI92PLUS_CODE
-    Settings.Keys[0] = 1;
-    Settings.Keys[1] = 2;
+  const short DefJump = 1, DefRun = 2;
 #endif
 #ifdef PRODUCE_V200_CODE
-    Settings.Keys[0] = 0;
-    Settings.Keys[1] = 1;
+  const short DefJump = 0, DefRun = 1;
 #endif
 
-  } else {
-    memcpy(&Settings, HeapDeref(Conf) + 2, sizeof(struct settings));
-  };
+  Settings.Keys[0] = DefJump;
+  Settings.Keys[1] = DefRun;
+
+  if ((Conf = File_get_pointer_and_lock("mario\\maconfig")) != H_NULL) {
+    const unsigned char *Raw = HeapDeref(Conf);
+    // Blobs carry a 2-byte big-endian payload size ahead of the data.
+    if (Raw && ((Raw[0] << 8) | Raw[1]) >= (short)sizeof(struct settings)) {
+      memcpy(&Settings, Raw + 2, sizeof(struct settings));
+    }
+  }
+
+  // The slots are indices into a 4-entry per-model key table that Scankeys()
+  // reads without bounds-checking. Reject a corrupt or foreign config rather
+  // than let it point jump/run at garbage.
+  for (short C = 0; C < 2; C++) {
+    if (Settings.Keys[C] < 0 || Settings.Keys[C] > 3) {
+      Settings.Keys[0] = DefJump;
+      Settings.Keys[1] = DefRun;
+      break;
+    }
+  }
+  if (Settings.Keys[0] == Settings.Keys[1]) {
+    Settings.Keys[0] = DefJump;
+    Settings.Keys[1] = DefRun;
+  }
 };
 
 // End of new

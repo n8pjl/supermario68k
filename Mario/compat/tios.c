@@ -8,6 +8,30 @@
 #define MAX_VARS 32
 #define DATA_DIR "/data"
 
+// Persisted saves live in localStorage under "sm68k/<name>". localStorage is
+// shared by every build served from one origin, so the key-config blob is
+// additionally namespaced by calculator target: its two slots are indices into
+// a per-model key table that Scankeys() reads unchecked, so a config written by
+// another model would silently rebind jump/run here. Savegames stay on the
+// shared key deliberately.
+#if defined(PRODUCE_TI89_CODE)
+#define CALC_TAG "89"
+#elif defined(PRODUCE_TI92PLUS_CODE)
+#define CALC_TAG "92p"
+#elif defined(PRODUCE_V200_CODE)
+#define CALC_TAG "v200"
+#else
+#error "no target calculator - build with make CALC=89|92p|v200"
+#endif
+
+static void storage_key(char *buf, size_t n, const char *name)
+{
+	if (!strcmp(name, "maconfig"))
+		snprintf(buf, n, "sm68k/" CALC_TAG "/%s", name);
+	else
+		snprintf(buf, n, "sm68k/%s", name);
+}
+
 typedef struct {
 	char name[9];		// bare variable name, no folder
 	unsigned char *data;	// [2-byte BE size][content], as HeapDeref returns
@@ -46,16 +70,19 @@ static unsigned char *load_from_storage(const char *name, size_t *out_len)
 	// back as "absent" and the shipped blob was loaded instead. The string
 	// is parked on globalThis between the two calls, as gray.c does for its
 	// frame timestamp, so localStorage is still only read once.
+	char key[32];
+	storage_key(key, sizeof key, name);
+
 	int b64len = EM_ASM_INT({
 		try {
-			var v = localStorage.getItem("sm68k/" + UTF8ToString($0));
+			var v = localStorage.getItem(UTF8ToString($0));
 			globalThis.__sm68kSave = v;
 			return v === null ? -1 : v.length;
 		} catch (e) {
 			globalThis.__sm68kSave = null;
 			return -1;
 		}
-	}, name);
+	}, key);
 	if (b64len < 0)
 		return NULL;
 
@@ -115,11 +142,13 @@ static void save_to_storage(const char *name, const unsigned char *data, size_t 
 		b64[o++] = (i + 2 < len) ? T[v & 63] : '=';
 	}
 	b64[o] = 0;
+	char key[32];
+	storage_key(key, sizeof key, name);
 	EM_ASM({
 		try {
-			localStorage.setItem("sm68k/" + UTF8ToString($0), UTF8ToString($1));
+			localStorage.setItem(UTF8ToString($0), UTF8ToString($1));
 		} catch (e) {}
-	}, name, b64);
+	}, key, b64);
 	free(b64);
 }
 
