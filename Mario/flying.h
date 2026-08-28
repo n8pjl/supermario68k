@@ -3,46 +3,37 @@
 #define __flying__
 
 typedef struct flying_platform {
-	short X;
-	short Y;
-	
-	short Width;//char ???
-	
-	//char Active;		
-	short Active;	
-	
-	short Data0;
-	short Data1;
-	short Data2;
-	short Data3;
-	
-	
-	//char PlayerOn;
-	short PlayerOn;
-//	short DrawMode;	
-	unsigned short Sprite;
-	
+  short X;
+  short Y;
 
-	void (*Handler)(struct flying_platform *Flying_platform);
+  short Width; // char ???
 
-	
-}flying_platform;
+  // char Active;
+  short Active;
 
-extern flying_platform* Flying_platforms;
+  short Data0;
+  short Data1;
+  short Data2;
+  short Data3;
 
+  // char PlayerOn;
+  short PlayerOn;
+  //	short DrawMode;
+  unsigned short Sprite;
 
+  void (*Handler)(struct flying_platform *Flying_platform);
+
+} flying_platform;
+
+extern flying_platform *Flying_platforms;
 
 void Handle_flying_platforms();
 
+void Platform_handler_1(flying_platform *Platform);
 
+void Platform_handler_2(flying_platform *Platform);
 
-void Platform_handler_1(flying_platform* Platform);
-
-void Platform_handler_2(flying_platform* Platform);
-
-void Platform_handler_3(flying_platform* Platform);
-//short Sign(short);
-
-
+void Platform_handler_3(flying_platform *Platform);
+// short Sign(short);
 
 #endif

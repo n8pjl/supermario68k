@@ -19,14 +19,14 @@
 // name is misleading. A zero offset means "slot empty".
 
 typedef struct {
-	char Nr_of_files;		// number of world files (common excluded)
-	char Commonfile;		// index of the common file, i.e. Nr_of_files
-	char Mode;			// 1 = map mode
-	char CurrentWorld;
-	unsigned short Compatibility;	// checked against `compatibility` in all.h
-	unsigned short Savegames[3];	// offset of each save slot, 0 = empty
-	unsigned short Savegame_size[3];
-	unsigned short Spare;
+  char Nr_of_files; // number of world files (common excluded)
+  char Commonfile;  // index of the common file, i.e. Nr_of_files
+  char Mode;        // 1 = map mode
+  char CurrentWorld;
+  unsigned short Compatibility; // checked against `compatibility` in all.h
+  unsigned short Savegames[3];  // offset of each save slot, 0 = empty
+  unsigned short Savegame_size[3];
+  unsigned short Spare;
 } levelsetdata;
 
 extern levelsetdata Levelsetdata;

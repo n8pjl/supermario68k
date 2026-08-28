@@ -3,15 +3,14 @@
 #ifndef __custom__
 #define __custom__
 
+typedef struct {
+  /*short Jumpkey;
+  short RunFireKey;*/
+  short Keys[2];
+  // 0: Jumpkey
+  // 1: RunFireKey
 
-typedef struct{
-	/*short Jumpkey;
-	short RunFireKey;*/
-	short Keys[2];
-	//0: Jumpkey
-	//1: RunFireKey
-	
-}settings;
+} settings;
 
 extern settings Settings;
 

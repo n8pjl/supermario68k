@@ -45,6 +45,11 @@ SRCS = main.c enemies.c gameloop.c  items.c player.c render.c \
 OBJS = $(SRCS:.c=.o)
 DEPS = $(OBJS:.o=.d)
 
+# Filter out anything under compat/ from SRCS
+NON_COMPAT_SRCS = $(filter-out compat/%,$(SRCS))
+# Grab only top-level header files (excluding compat/*.h)
+NON_COMPAT_HDRS = $(wildcard *.h)
+
 .PHONY: all clean data FORCE
 
 all: $(TARGET)
@@ -76,6 +81,10 @@ $(TARGET): $(OBJS) .data-stamp Makefile
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+format: $(NON_COMPAT_SRCS) $(NON_COMPAT_HDRS)
+	clang-format -i $(NON_COMPAT_SRCS) $(NON_COMPAT_HDRS)
+
 
 -include $(DEPS)
 
