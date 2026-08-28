@@ -33,15 +33,26 @@ EM_JS(void, pageflip, (const void *rgba, int w, int h), {
 });
 
 // Suspends via JSPI until the frame is due. The calculator ran the game at
-// 20fps, so pace to a 50ms period.
+// 20fps, so 50ms is the period unless the shell asks for another one: the
+// frame period is read out of Module.frameMs afresh every frame, so a shell
+// control can retune the speed while the game is running, and a shell that
+// sets nothing gets the calculator's pace. Anything not a positive number -
+// missing, zero, NaN from a bad parse - falls back to the 50ms default rather
+// than spinning.
+//
+// requestAnimationFrame is the only clock available to wait on, so the period
+// is a floor and not a promise: below about 17ms on a 60Hz display, every
+// frame is simply due when it is painted.
 EM_ASYNC_JS(void, pageflip_wait, (void), {
+	const period = Module.frameMs > 0 ? Module.frameMs : 50;
+
 	if (globalThis.__smPrevFrame === undefined) globalThis.__smPrevFrame = 0;
 	let now = performance.now();
 	let elapsed;
-	while (Math.round((elapsed = now - globalThis.__smPrevFrame)) < 50) {
+	while (Math.round((elapsed = now - globalThis.__smPrevFrame)) < period) {
 		now = await new Promise((resolve) => requestAnimationFrame(resolve));
 	}
-	globalThis.__smPrevFrame = now - (elapsed % 50);
+	globalThis.__smPrevFrame = now - (elapsed % period);
 });
 
 static uint8_t dbuf0[GRAYDBUFFER_SIZE] = { 0 };
