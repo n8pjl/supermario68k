@@ -30,18 +30,27 @@
 #undef MIN_AMS
 #define MIN_AMS 200
 
-#include <tigcclib.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+
+#include "compat/tilemap.h"
+#include "compat/utils.h"
+#include "compat/alloc.h"
+#include "compat/gray.h"
+#include "compat/graph.h"
+#include "compat/browser_io.h"
+
 #include "error.h"
 #include "savegame.h"
-#include "TileMap.h"
-#include "extgraph.h"
+#include "../ExtGraph/lib/tilemap.h"
+#include "../ExtGraph/lib/extgraph.h"
 #include "comp.h"
 #include "enemies.h"
 #include "player.h"
-#include "levelset.h"
+//#include "levelset.h"
 #include "level.h"
 #include "items.h"
-#include "text.h"
 #include "gfx.h"
 #include "control.h"
 #include "custom.h"
@@ -53,7 +62,7 @@
 #include "flying.h"
 #include "bosses.h"
 #include "smallgames.h"
-#include "DrawGrayPlane16BRoll.h"
+//#include "DrawGrayPlane16BRoll.h"
 #include "bounch.h"
 #include "map.h"
 #include "titlescreen.h"

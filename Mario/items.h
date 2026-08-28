@@ -21,7 +21,7 @@
 #define score_1000							24*2	
 #define score_1up								36*2
 
-typedef struct {
+typedef struct item {
 	short X;		//Xpos
 	short Y;		//Ypos
 	short Height;
@@ -34,8 +34,8 @@ typedef struct {
 	short Data1;
 	short Active;		//if positioned in the active area (inside big Vscreen) and "alive", in use
 
-	void (*Collect)(void *Item);
-  void (*Handler)(void *Item);
+	void (*Collect)(struct item *Item);
+  void (*Handler)(struct item *Item);
 	unsigned short* Sprite;
 //	unsigned short* Mask;
 	//void *Next;//removed. using array instead

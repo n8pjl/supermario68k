@@ -510,10 +510,10 @@ void Enemy_handler_6(enemy *Enemy){//turtle/beetle shell
 					Enemy->Sprite =  (/*Enemy->*/Life==1?turtle_left_sprite:beetle_right_sprite);
 					Enemy->Face = 1;
 				};
-				(enemy *)Enemy->Handler = Enemy_handler_1;
+				Enemy->Handler = Enemy_handler_1;
 				//New: V 1.01 Fixed bug where resurected turtle could't be killed by racoon tale: Changed 0b11111000:0b10111000 to 0b11111001:0b10111000
 				Enemy->Attribs = (/*Enemy->*/Life==1?0b11111001:0b10111000);
-				(enemy *)Enemy->Die = Enemy_die_2;
+				Enemy->Die = Enemy_die_2;
 				/*Enemy->*/Mode = 1;
 				
 				if(Life==1){
@@ -552,9 +552,9 @@ void Enemy_handler_7(enemy *Enemy){//crushed turtle skeleton
 				Enemy->Sprite =  turtle_skeleton_left_sprite;
 				//Enemy->Mask = turtle_skeleton_left_mask;
 			};
-			(enemy *)Enemy->Handler = Enemy_handler_1;
+			Enemy->Handler = Enemy_handler_1;
 			Enemy->Attribs = 0b10110000;
-			(enemy *)Enemy->Die = Enemy_die_7;
+			Enemy->Die = Enemy_die_7;
 			/*Enemy->*/Mode = 1;
 			Enemy->Height = Enemy->Height2 = 27;
 			Enemy->Y -= 15;
@@ -869,7 +869,7 @@ void Enemy_handler_13(enemy *Enemy){//handles the jumping brick
 
 	short Y = Enemy->Y;
 
-	if((Enemy->Mode==60)){
+	if(Enemy->Mode==60){
 		/*Enemy->*/Height = 16;
 		/*Enemy->*/Y+=5;
 	};
@@ -1359,7 +1359,7 @@ void Enemy_handler_21(enemy *Enemy){//bomb. WARNING: This is a really messy func
 //		if(Collision)
 //			Enemy->Active = 2;
 		
-		if( (Enemy->Life==8) /*&& (Collision == 0)*/ ){//shot
+		if( Enemy->Life==8 /*&& (Collision == 0)*/ ){//shot
 			Enemy->Data1++;
 			
 //			if( (Enemy->Jumping==0) && (Enemy->Active==1)/*(Enemy->Mode<=2)*/ )//&& (Enemy->Mode==1)  && (Enemy->Attribs!=0b10101011)
@@ -1414,7 +1414,7 @@ void Enemy_handler_21(enemy *Enemy){//bomb. WARNING: This is a really messy func
 					//Enemy->Mask = bomb_star_msk;
 					Enemy->Height2 = Enemy->Height = 8;
 					Enemy->Attribs = 0b00010100;//0b00011100;//
-					Enemy->Die = Dummy_func_;
+					Enemy->Die = (void*)Dummy_func_;
 //					Enemy->Jumping = 0;
 				}
 				else{
@@ -1466,8 +1466,8 @@ void Spawn_bomb_common(enemy *Enemy){
 	
 	Enemy->X = Enemy->RespawnX*16;
 	Enemy->Y = Enemy->RespawnY*16;//-2;
-	(enemy *)Enemy->Handler = Enemy_handler_21;
-	(enemy *)Enemy->Die = Enemy_die_11;
+	Enemy->Handler = Enemy_handler_21;
+	Enemy->Die = Enemy_die_11;
 //	Enemy->Height = Enemy->Height2 = 16;
 	Enemy->Sprite = bomb_walk_left_spr;
 	Enemy->Mode = 1;
@@ -1756,9 +1756,9 @@ void Enemy_die_1(enemy *Enemy){
 	Enemy->Attribs = 0b00100000;//Enemy->Attribs & 0b00100111;//0b00100000;//
 	Enemy->Height = Enemy->Height2 = 5;
 	Enemy->Sprite = monster1_dead_sprite;
-	(enemy *)(Enemy->Handler) =  Enemy_handler_5;
+	(Enemy->Handler) =  Enemy_handler_5;
 	Enemy->Mode = 60;//timer: nr of frames to show sprite
-	(enemy *)(Enemy->Die) = Dummy_func_;//E_dummy_handler;
+	(Enemy->Die) = (void *)Dummy_func_;//E_dummy_handler;
 	Score_anim(Enemy->X, Enemy->Y-8, score_100);
 	
 }
@@ -1775,16 +1775,16 @@ void Enemy_die_2(enemy *Enemy){//the death of the turtle and beetle. leaves behi
 	};
 	Enemy->Sprite = Sprite;
 	
-	(enemy *)(Enemy->Handler) = Enemy_handler_6;
+	(Enemy->Handler) = Enemy_handler_6;
 	Enemy->Mode = 60;//timer. Nr of frames to resurection
-	(enemy *)(Enemy->Die) = Enemy_die_5;
+	(Enemy->Die) = Enemy_die_5;
 	Score_anim(Enemy->X, Enemy->Y-8, score_100);
 }
 void Enemy_die_3(enemy *Enemy){//flying goomba
-	(enemy *)(Enemy->Handler) = Enemy_handler_1;
+	(Enemy->Handler) = Enemy_handler_1;
 	Enemy->Sprite = monster1_sprite;
 	Enemy->Height = Enemy->Height2 = 15;
-	(enemy *)(Enemy->Die) = Enemy_die_1;
+	(Enemy->Die) = Enemy_die_1;
 	Score_anim(Enemy->X, Enemy->Y-8, score_200);
 	Enemy->Mode = 0;
 	Enemy->Attribs = 0b11111001;//(Enemy->Attribs | 00100000);//gravity on
@@ -1806,9 +1806,9 @@ void Enemy_die_4(enemy *Enemy){//flying turtle dies and becomes normal turtle
 	
 	Enemy->Height = Enemy->Height2 = 26;
 	Enemy->Jumping = 0;
-	(enemy *)Enemy->Handler = Enemy_handler_1;
+	Enemy->Handler = Enemy_handler_1;
 	Enemy->Attribs = 0b11111000;
-	(enemy *)Enemy->Die = Enemy_die_2;
+	Enemy->Die = Enemy_die_2;
 	Enemy->Mode = 1;
 	Enemy->Data0 = 0;
 	Enemy->Active = 3;
@@ -1832,7 +1832,7 @@ void Enemy_die_6(enemy *Enemy){
 	Enemy->Attribs = 0;
 	Enemy->Y += Enemy->Height; 
 	Score_anim(Enemy->X, Enemy->Y-8, score_200);
-	(enemy *)(Enemy->Handler) = Handle_dead_upside_down_enemies;//maybe Handle_hardkilled_enemies  ?
+	(Enemy->Handler) = Handle_dead_upside_down_enemies;//maybe Handle_hardkilled_enemies  ?
 }
 
 void Enemy_die_7(enemy *Enemy){
@@ -1840,9 +1840,9 @@ void Enemy_die_7(enemy *Enemy){
 	Enemy->Sprite = crushed_turtle_skeleton_sprite;
 	Enemy->Height = Enemy->Height2 = 12;
 	Enemy->Y += 15;
-	(enemy *)(Enemy->Handler) = Enemy_handler_7;
+	(Enemy->Handler) = Enemy_handler_7;
 	Enemy->Mode = 120;//timer. Nr of frames to resurection
-	(enemy *)(Enemy->Die) = Dummy_func_;//E_dummy_handler;
+	(Enemy->Die) = (void *)Dummy_func_;//E_dummy_handler;
 	Score_anim(Enemy->X, Enemy->Y-8, score_100);
 };
 
@@ -1931,7 +1931,7 @@ void Enemy_die_10(enemy *Enemy){//handles the teath of boomerang guy, fireball g
 		(Enemy + Enemy->Active-2)->Active = 4;//set brother as alone
 	};
 	
-	Enemy->Die = Dummy_func_;//prevent this func to be executed twice, destroying treasure
+	Enemy->Die = (void *)Dummy_func_;//prevent this func to be executed twice, destroying treasure
 	Enemy_die_6(Enemy);
 	
 };
@@ -1980,8 +1980,8 @@ void Enemy_die(enemy *Enemy){//kills enemy and animates. Used when hit by shells
 	
 	Enemy->Life = -1;
 	Enemy->Attribs = 0;
-	(enemy *)(Enemy->Handler) = Handle_hardkilled_enemies;
-	(enemy *)(Enemy->Die) = Dummy_func_;//this might prevent strange bugs
+	(Enemy->Handler) = Handle_hardkilled_enemies;
+	(Enemy->Die) = (void *)Dummy_func_;//this might prevent strange bugs
 	Enemy->Mode = 0;
 	Enemy->Face = (Player.X>Enemy->X) ? -4:4 ;
 	Score_anim(Enemy->X, Enemy->Y-8, score_100);
@@ -2025,7 +2025,7 @@ void Handle_enemyshots(){
 						Objects[D].X = Enemyshots[C].X;
 						Objects[D].Y = Enemyshots[C].Y;
 						//(object*)Objects[D].Handler = Dummy_func_;//Handle_drop_down;
-						(object*)Objects[D].Draw = Draw_killed_cannonballs;
+						Objects[D].Draw = Draw_killed_cannonballs;
 					};
 					
 				}
@@ -2103,7 +2103,7 @@ void Enemy_add_fireball(short X,short Y, /*char*/short Xdir, /*char*/short Ydir)
 			/*Enemyshots[C].*/Shot->Sprite = fireball_anim_16_spr;
 			/*Enemyshots[C].*/Shot->X = X;
 			/*Enemyshots[C].*/Shot->Y = Y;
-			(shot*)/*Enemyshots[C].*/Shot->Handler = Enemy_fireball_handler;//experiment shot
+			/*Enemyshots[C].*/Shot->Handler = Enemy_fireball_handler;//experiment shot
 			//break;//C = nr_of_enemyshots;
 		//};
 	};
@@ -2125,7 +2125,7 @@ void Enemy_add_hammer(short X,short Y, /*char*/short Xdir){
 			/*Enemyshots[C].*/Shot->X = X;
 			/*Enemyshots[C].*/Shot->Y = Y;
 			
-			(shot*)/*Enemyshots[C].*/Shot->Handler = Hammer_handler;
+			/*Enemyshots[C].*/Shot->Handler = Hammer_handler;
 			//break;//C = nr_of_enemyshots;
 		//};
 	};
@@ -2149,7 +2149,7 @@ void Enemy_add_bounching_fireball(short X,short Y, /*char*/short Xdir, /*char*/s
 			/*Enemyshots[C].*/Shot->Sprite = fireball_anim_16_spr;
 			/*Enemyshots[C].*/Shot->X = X;
 			/*Enemyshots[C].*/Shot->Y = Y;
-			(shot*)/*Enemyshots[C].*/Shot->Handler = Player_fireball_handler;//experiment shot
+			/*Enemyshots[C].*/Shot->Handler = Player_fireball_handler;//experiment shot
 			//break;//C = nr_of_enemyshots;
 		//};
 	};
@@ -2172,7 +2172,7 @@ void Enemy_add_boomerang(short X,short Y, /*char*/short Dir){
 			/*Enemyshots[C].*/Shot->Sprite = boomerang_anim_16_spr;
 			/*Enemyshots[C].*/Shot->X = X + (Dir>0?8:-8);
 			/*Enemyshots[C].*/Shot->Y = Y;
-			(shot*)/*Enemyshots[C].*/Shot->Handler = Enemy_boomerang_handler;//experiment shot
+			/*Enemyshots[C].*/Shot->Handler = Enemy_boomerang_handler;//experiment shot
 			//break;//C = nr_of_enemyshots;
 		//};
 	};
@@ -2192,7 +2192,7 @@ void Enemy_add_cannonball_horiz(short X,short Y, char Dir){
 			/*Enemyshots[C].*/Shot->X = X;// + (Dir>0?8:-8);
 			/*Enemyshots[C].*/Shot->Y = Y;
 			/*Enemyshots[C].*/Shot->Mode = -2;
-			(shot*)/*Enemyshots[C].*/Shot->Handler = Enemy_cannonball_horiz_handler;
+			/*Enemyshots[C].*/Shot->Handler = Enemy_cannonball_horiz_handler;
 			//break;//C = nr_of_enemyshots;
 		//};
 	};
@@ -2212,7 +2212,7 @@ void Enemy_add_cannonball(short X,short Y, char DirX, char DirY){
 			/*Enemyshots[C].*/Shot->X = X+DirX;
 			/*Enemyshots[C].*/Shot->Y = Y+DirY;
 			/*Enemyshots[C].*/Shot->Mode = -1;
-			(shot*)/*Enemyshots[C].*/Shot->Handler = Enemy_cannonball_handler;//experiment shot
+			/*Enemyshots[C].*/Shot->Handler = Enemy_cannonball_handler;//experiment shot
 			//break;//C = nr_of_enemyshots;
 		//};
 	};
@@ -2233,7 +2233,7 @@ void Enemy_add_underwater_shot(short X,short Y, /*char*/short DirX){
 			/*Enemyshots[C].*/Shot->X = X;
 			/*Enemyshots[C].*/Shot->Y = Y;
 			/*Enemyshots[C].*/Shot->Mode = 5;
-			(shot*)/*Enemyshots[C].*/Shot->Handler = Underwater_shot_handler;
+			/*Enemyshots[C].*/Shot->Handler = Underwater_shot_handler;
 			//break;//C = nr_of_enemyshots;
 		//};
 	};

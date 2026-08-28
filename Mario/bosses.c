@@ -48,8 +48,8 @@ void Add_killed_boss(boss* Boss,short Type){
 	Items[0].Height2 = 16;
 	Items[0].Active = Type;
 	Items[0].Sprite = (Type==1?boss1_killed_spr:magic_wand_spr);//magic_wand_spr;
-	(item*)Items[0].Collect = Player_collect_dead_boss;
-	(item*)Items[0].Handler = Dead_boss_handler;
+	Items[0].Collect = Player_collect_dead_boss;
+	Items[0].Handler = Dead_boss_handler;
 				
 	Leveldata.Boss = 0;
 }
@@ -768,7 +768,7 @@ void Bowser_handler(boss *Boss1){
 			Objects[0].Active = 1;
 			Objects[0].Data0 = 0;
 //			(object*)Objects[0].Handler = Dummy_func_;
-			(object*)Objects[0].Draw = Draw_ending_text;
+			Objects[0].Draw = Draw_ending_text;
 			
 			Player.X = 5*16;
 			Player.Y = 8*16-27;
@@ -930,7 +930,7 @@ void Add_boss_shot(short X,short Y, char DirX, char DirY){
 		/*Enemyshots[C].*/Shot->X = X+DirX;
 		/*Enemyshots[C].*/Shot->Y = Y+DirY;
 		/*Enemyshots[C].*/Shot->Mode = 1;
-		(shot*)/*Enemyshots[C].*/Shot->Handler = Boss_shot_handler;
+		/*Enemyshots[C].*/Shot->Handler = Boss_shot_handler;
 		
 	}
 	
@@ -966,7 +966,7 @@ void Add_big_fireball_shot(short X,short Y, char DirX, char DirY){
 		/*Enemyshots[C].*/Shot->Y = Y;
 		/*Enemyshots[C].*/Shot->Data0 = DirX;
 		/*Enemyshots[C].*/Shot->Data1 = DirY;
-		(shot*)/*Enemyshots[C].*/Shot->Handler = Boss_shot_handler;
+		/*Enemyshots[C].*/Shot->Handler = Boss_shot_handler;
 		/*Enemyshots[C].*/Shot->Height = 10;//temp
 		/*Enemyshots[C].*/Shot->Sprite = ( DirX>0 ? big_fireball_right_spr:big_fireball_left_spr );//temp
 		/*Enemyshots[C].*/Shot->Mode = 1;

@@ -18,7 +18,7 @@
 #define active_y_upper						(FgY - 16*4)
 
 
-typedef struct {
+typedef struct enemy {
 	short X;					//Xpos
 	short Y;					//Ypos
 	
@@ -54,15 +54,15 @@ typedef struct {
 	unsigned char RespawnY;
 
 
-	void (*Handler)(void *Enemy);//func pointer to the func that deals with the current kind of enemy
-	void (*Die)(void *Enemy);//func pointer to the func that deals with the death secuence of the current kind of enemy. 
+	void (*Handler)(struct enemy *Enemy);//func pointer to the func that deals with the current kind of enemy
+	void (*Die)(struct enemy *Enemy);//func pointer to the func that deals with the death secuence of the current kind of enemy. 
 													//the reason for this is that enemies dies different ways (some must be hit 2 times, some are animated etc.)
 }enemy;
 
 
 
 
-typedef struct{//experiment shot
+typedef struct shot {//experiment shot
 	short X;					//Xpos
 	short Y;					//Ypos
 	short Height;
@@ -75,7 +75,7 @@ typedef struct{//experiment shot
 	short Data2;
 	unsigned short* Sprite;
 	//unsigned short* Mask;
-	void (*Handler)(void *Shot);
+	void (*Handler)(struct shot *Shot);
 }shot;
 
 
@@ -175,5 +175,6 @@ void Underwater_shot_handler(shot *Cannonball);
 
 
 void Enemy_boomerang_handler(shot *Fireball);
+short Find_free_enemyshot(void);
 
 #endif

@@ -6,24 +6,25 @@
 shell* Shells;
 
 
+//New: V 1.04 Added a function that adds killed shells, instead of repeated code. Saved some bytes
+void Add_killed_shell(shell* Shell,short DirSpeed){
+	// Possible optimization: shange DirSpeed parameter to the 2nd X coordinate that is used to determine the direction
+	short O;
+	if( (O=Find_free_object())!=-1){
+		Objects[O].Active = Shell->Active;			
+		Objects[O].Data0 = DirSpeed ;
+		Objects[O].X = Shell->X;
+		Objects[O].Y = Shell->Y;							
+		Objects[O].Draw = Draw_collided_shells;
+	};
+	Shell->Active = 0;
+}
+
 inline void Player_bounching_shell_hadler(){
 	short A,C,D;
 	unsigned char Temp;
 	short Dist=0;
 	
-	//New: V 1.04 Added a function that adds killed shells, instead of repeated code. Saved some bytes
-	void Add_killed_shell(shell* Shell,short DirSpeed){
-		// Possible optimization: shange DirSpeed parameter to the 2nd X coordinate that is used to determine the direction
-		short O;
-		if( (O=Find_free_object())!=-1){
-			Objects[O].Active = Shell->Active;			
-			Objects[O].Data0 = DirSpeed ;
-			Objects[O].X = Shell->X;
-			Objects[O].Y = Shell->Y;							
-			(object*)Objects[O].Draw = Draw_collided_shells;
-		};
-		Shell->Active = 0;
-	};
 	
 	
 	
@@ -126,7 +127,7 @@ inline void Player_bounching_shell_hadler(){
 							
 							/*Shells[C].*/Shell->Active = 0;
 							/*Shells[C].*/Shell->Enemy->Attribs = 0b11100010;
-							(enemy *)(/*Shells[C].*/Shell->Enemy->Handler) = Enemy_handler_6;
+							(/*Shells[C].*/Shell->Enemy->Handler) = Enemy_handler_6;
 							/*Shells[C].*/Shell->Enemy->Life = /*Shells[C].*/Shell->Enemy->Mode;
 							/*Shells[C].*/Shell->Enemy->Mode = 60;
 							/*Shells[C].*/Shell->Enemy->X = /*Shells[C].*/Shell->X;
@@ -139,7 +140,7 @@ inline void Player_bounching_shell_hadler(){
 								Shells[C].Enemy->Life = 2;
 							};*/							
 							
-							(enemy *)(/*Shells[C].*/Shell->Enemy->Die) = Enemy_die_5;
+							(/*Shells[C].*/Shell->Enemy->Die) = Enemy_die_5;
 							
 							Player.IsJumping = 0.75*jumpheight;//enable rejump
 							Player.Yoffset = -2;

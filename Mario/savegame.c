@@ -355,18 +355,18 @@ void Loadgame(char Slot/* , char* Raw0*/){
 		void (*Handler)(void *Map_object);
 		
 		if(Map_objects[C].Mode==30){
-			(map_object*)/*Map_objects[C].*/Handler = Handle_boat;
+			/*Map_objects[C].*/Handler = (void (*)(void *)) Handle_boat;
 		}
 		else{
 			if( (Map_objects[C].Mode>=2) && (Map_objects[C].Mode<=8) ){
-				(map_object*)/*Map_objects[C].*/Handler = Handle_map_monster;
+				/*Map_objects[C].*/Handler = (void (*)(void *)) Handle_map_monster;
 			}
 			else{
-				(map_object*)/*Map_objects[C].*/Handler = Handle_ship;
+				/*Map_objects[C].*/Handler = (void (*)(void *)) Handle_ship;
 			}
 		}
 		
-		(map_object*)Map_objects[C].Handler = Handler;
+		Map_objects[C].Handler = Handler;
 		
 		//Handle_map_monster
 	}	

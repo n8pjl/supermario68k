@@ -22,20 +22,20 @@ void GrayDBufToggleSync_SetPointers(){
 	
 }
 
-void FilledRectEraseDark(short X1 asm("%d0"),short Y1 asm("%d1"),short X2 asm("%d2"),short Y2 asm("%d3")){
+void FilledRectEraseDark(short X1,short Y1,short X2,short Y2){
 	FastFilledRect_Erase_R(dBufHPD_G, X1 , Y1 , X2 , Y2 );
 };
 
-void FilledRectEraseLight(short X1 asm("%d0"),short Y1 asm("%d1"),short X2 asm("%d2"),short Y2 asm("%d3")){
+void FilledRectEraseLight(short X1,short Y1,short X2,short Y2){
 	FastFilledRect_Erase_R(dBufHPL_G, X1 , Y1 , X2 , Y2 );
 };
 
 
-void FilledRectDark(short X1 asm("%d0"),short Y1 asm("%d1"),short X2 asm("%d2"),short Y2 asm("%d3")){
+void FilledRectDark(short X1,short Y1,short X2,short Y2){
 	FastFilledRect_Draw_R(dBufHPD_G, X1 , Y1 , X2 , Y2 );
 }
 
-void GrayOutlineRect(short X1 asm("%d0"),short Y1 asm("%d1"),short X2 asm("%d2"),short Y2 asm("%d3"),short Color){
+void GrayOutlineRect(short X1,short Y1,short X2,short Y2,short Color){
 	GrayFastOutlineRect_R( dBufHPL_G , dBufHPD_G ,  X1 , Y1 , X2 , Y2 , Color);
 };
 
@@ -43,20 +43,20 @@ void DrawString(short X,short Y,const char* Str,short Attr,short Font){
 	DrawGrayStrExt2B(X,Y,Str,Attr,Font,dBufHPL_G,dBufHPD_G);
 }
  
-void DrawSprite16SMASKR(short X asm("%d0"),short Y asm("%d1"),short H asm("%d2"),const unsigned short *sprt0,const unsigned short *sprt1,const unsigned short *mask){
+void DrawSprite16SMASKR(short X,short Y,short H,const unsigned short *sprt0,const unsigned short *sprt1,const unsigned short *mask){
 	GrayClipSprite16_SMASK_R(X,Y,H,sprt0,sprt1,mask,dBufHPL_G,dBufHPD_G);
 };
 
 
-void DrawSprite(register short X asm("%d0"),register short  Y asm("%d1"),
-register short H asm("%d2"),const unsigned short *sprt0, short H2){
+void DrawSprite(register short X,register short  Y,
+register short H,const unsigned short *sprt0, short H2){
 	
 //	GrayClipSprite16_SMASK_R(X-FgX,Y-FgY,H,sprt0,sprt0+H2,sprt0+2*H2,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
 	GrayClipSprite16_SMASK_R(X-FgX,Y-FgY,H,sprt0,sprt0+H2,sprt0+H2+H2,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
 	
 }
 
-/*void DrawSprite_HP(register short x asm("%d0"),register short y asm("%d1"),register short h asm("%d2"),
+/*void DrawSprite_HP(register short x,register short y,register short h,
 const unsigned short *sprt0,const unsigned short *sprt1,const unsigned short *mask);*/
 
 void DrawMarioCursor(short X, short Y){
@@ -64,14 +64,14 @@ void DrawMarioCursor(short X, short Y){
 	DrawSprite16SMASKR(X,Y,16,Mariosprites+2*Marioanimtab[1][0],Mariosprites+2*Marioanimtab[1][0]+16,Mariomasks+Marioanimtab[1][0]);
 };
 
-void DrawSpriteUpsideDown(register short X asm("%d0"),register short Y asm("%d1"),register short H asm("%d2"), unsigned short *sprt0, short H2){
+void DrawSpriteUpsideDown(register short X,register short Y,register short H, unsigned short *sprt0, short H2){
 	
 //	UpsideDownGrayClipSprite16_MASK_R(X-FgX,Y-FgY,H,sprt0,sprt0+H2,sprt0+2*H2,sprt0+2*H2,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
 	UpsideDownGrayClipSprite16_MASK_R(X-FgX,Y-FgY,H,sprt0,sprt0+H2,sprt0+H2+H2,sprt0+H2+H2,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
 
 }
 
-// UpsideDownGrayClipSprite16_MASK_R(register short x asm("%d0"),register short y asm("%d1"),register short h asm("%d2"),unsigned short *sprt0,unsigned short *sprt1,unsigned short *mask0,unsigned short *mask1,register void *dest0 asm("%a0"),register void *dest1 asm("%a1")) __attribute__((__stkparm__));
+// UpsideDownGrayClipSprite16_MASK_R(register short x,register short y,register short h,unsigned short *sprt0,unsigned short *sprt1,unsigned short *mask0,unsigned short *mask1,register void *dest0,register void *dest1) __attribute__((__stkparm__));
 /*
 void DrawSprite( short X , short  Y , short H , const unsigned short *sprt0 , short H2){
 	
@@ -80,8 +80,8 @@ void DrawSprite( short X , short  Y , short H , const unsigned short *sprt0 , sh
 }*/
 
 /*
-(register short x asm("%d0"),register short y asm("%d1"),register short h asm("%d2"),const unsigned short *sprt0,const
-unsigned short *sprt1,const unsigned short *mask,register void *dest0 asm("%a0"),register void *dest1 asm("%a1")) __attribute__((__stkparm__));
+(register short x,register short y,register short h,const unsigned short *sprt0,const
+unsigned short *sprt1,const unsigned short *mask,register void *dest0,register void *dest1) __attribute__((__stkparm__));
 */
 
 void DrawBg(short X,short Y){

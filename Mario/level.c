@@ -2,7 +2,6 @@
 
 // Backup saved in the folder BU_temp
 
-#include <tigcclib.h>
 #include "all.h"
 
 leveldata Leveldata;
@@ -196,7 +195,7 @@ short Load_level(char* Levelfile, short Level_nr){
 	
 	
 	
-	(void*)Enemies = (Level + Leveldata.Height*Leveldata.Width + ((Leveldata.Height*Leveldata.Width)%2) ) ;//last statement prevents address errors when foreground size is an odd number
+	Enemies = (enemy*)(Level + Leveldata.Height*Leveldata.Width + ((Leveldata.Height*Leveldata.Width)%2) ) ;//last statement prevents address errors when foreground size is an odd number
   
   //memset(Enemies,0,sizeof(enemy)*Leveldata.Nr_of_enemies);
    
@@ -284,7 +283,7 @@ short Load_level(char* Levelfile, short Level_nr){
   		
   	if( (Model >= 23) && (Model <= 30) ){//common for all flowers
   		/*Enemies[Nr].*/Attribs = 0b01010001;
-  		(enemy *)/*Enemies[Nr].*/Die = Enemy_die_8;
+  		/*Enemies[Nr].*/Die = Enemy_die_8;
   		Enemies[Nr].Height2 = 32;
   		Height1OK = 1;
   		//Enemies[Nr].Height = 0;
@@ -296,7 +295,7 @@ short Load_level(char* Levelfile, short Level_nr){
   		/*Enemies[Nr].Height =*/ Enemies[Nr].Height2 = 23;
   		Enemies[Nr].Y -= 23;
   		/*Enemies[Nr].*/Attribs = 0b11111001;
-  		(enemy *)/*Enemies[Nr].*/Die = Enemy_die_6;
+  		/*Enemies[Nr].*/Die = Enemy_die_6;
   		/*Enemies[Nr].*/Face = -1;
 			Enemies[Nr].Mode = 0;
 			
@@ -308,7 +307,7 @@ short Load_level(char* Levelfile, short Level_nr){
   			//((unsigned char)(*(Raw+3)));
   			/*Enemies[Nr].*/Life = (Byte3&0b01111111);
   			NextRaw = 4;
-  			(enemy *)/*Enemies[Nr].*/Die = Enemy_die_10;
+  			/*Enemies[Nr].*/Die = Enemy_die_10;
   			Enemies[Nr].Active = 4;
   		}
   		if( (Model%4)<2 ){//brother
@@ -316,7 +315,7 @@ short Load_level(char* Levelfile, short Level_nr){
   			Enemies[Nr].Active = ( (Byte3 & 0b10000000) ? 1:3 );
   			/*Enemies[Nr].*/Attribs = 0b11110001;
   			NextRaw = 4;
-  			(enemy *)/*Enemies[Nr].*/Die = Enemy_die_10;
+  			/*Enemies[Nr].*/Die = Enemy_die_10;
   		}
   		
   			
@@ -396,7 +395,7 @@ short Load_level(char* Levelfile, short Level_nr){
   		case flower1-2:*/
   		case flower1:
   			/*Enemies[Nr].*/Sprite = flower1_sprite;
-  			(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_2;
+  			/*Enemies[Nr].*/Handler = Enemy_handler_2;
   		break;
   		
   		case flower2_upside_down:
@@ -405,7 +404,7 @@ short Load_level(char* Levelfile, short Level_nr){
   		case flower2-2:*/
   		case flower2:
   			/*Enemies[Nr].*/Sprite = flower2_sprite_left_down;
-  			(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_3;
+  			/*Enemies[Nr].*/Handler = Enemy_handler_3;
   			/*Enemies[Nr].Sprite = flower1_sprite;
   			(enemy *)Enemies[Nr].Handler = Enemy_handler_2;*/
   		break;
@@ -415,7 +414,7 @@ short Load_level(char* Levelfile, short Level_nr){
   		case boomerang_guy_b:
   		case boomerang_guy_t:
   			Enemies[Nr].Data0 = Enemies[Nr].Data1 = 48;
-  			(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_9;
+  			/*Enemies[Nr].*/Handler = Enemy_handler_9;
   		break;
   		
   		case fireball_guy_s:
@@ -423,7 +422,7 @@ short Load_level(char* Levelfile, short Level_nr){
   		case fireball_guy_b:
   		case fireball_guy_t:
   			Enemies[Nr].Data1 = 48;
-  			(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_18;
+  			/*Enemies[Nr].*/Handler = Enemy_handler_18;
   		break;
   			
   		case hammerman_s:
@@ -431,7 +430,7 @@ short Load_level(char* Levelfile, short Level_nr){
   		case hammerman_b:
   		case hammerman_t:
   			Enemies[Nr].Data1 = 1;//is this really needed???
-  			(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_22;
+  			/*Enemies[Nr].*/Handler = Enemy_handler_22;
   		break;
   		
   		/*case lavaball://Jumping fireball
@@ -451,8 +450,8 @@ short Load_level(char* Levelfile, short Level_nr){
 				Enemies[Nr].Data1 = 29;
 				Enemies[Nr].Jumping = -1;
   			/*Enemies[Nr].*/Attribs = 0b00010000;
-  			(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_11;
-  			(enemy *)/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
+  			/*Enemies[Nr].*/Handler = Enemy_handler_11;
+  			/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
   		break;
   			
   		case falling_brick://Falling brick
@@ -462,8 +461,8 @@ short Load_level(char* Levelfile, short Level_nr){
   			/*Enemies[Nr].*/Face = 3;
 				Enemies[Nr].Mode = 1;
   			Enemies[Nr].Y -= 2;
-  			(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_12;
-  			(enemy *)/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
+  			/*Enemies[Nr].*/Handler = Enemy_handler_12;
+  			/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
   		break;
   			
   		case jumping_brick://Jumping brick
@@ -471,8 +470,8 @@ short Load_level(char* Levelfile, short Level_nr){
   			Enemies[Nr].Height2 = 21;
 				Enemies[Nr].Height = 16;
 				/*Enemies[Nr].*/Attribs = 0b10010101;
-				(enemy *)/*Enemies[Nr].*/Die = Enemy_die_9;
-  			(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_13;
+				/*Enemies[Nr].*/Die = Enemy_die_9;
+  			/*Enemies[Nr].*/Handler = Enemy_handler_13;
   			//Enemies[Nr].Face = -1;
 				//Enemies[Nr].Mode = 0;  
 				Height1OK = 1;			
@@ -483,8 +482,8 @@ short Load_level(char* Levelfile, short Level_nr){
   			/*Enemies[Nr].*/Face = Byte3;//(*((unsigned char*)Raw+3));//((unsigned char)(*(Raw+4)));
   			Enemies[Nr].Data0 = Byte4;//(*((unsigned char*)Raw+4));
 //  			Enemies[Nr].Attribs = 0b00000000;//not neccessarry, done in memset
-				(enemy *)/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
-  			(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_14;
+				/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
+  			/*Enemies[Nr].*/Handler = Enemy_handler_14;
   			
   			NextRaw = 5;
   		break;
@@ -497,8 +496,8 @@ short Load_level(char* Levelfile, short Level_nr){
   			/*Enemies[Nr].*/Face = ((Byte4>>4)-8);
   				
 //				Enemies[Nr].Attribs = 0b00000000;//not neccessarry, done in memset
-				(enemy *)/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
-  			(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_15;
+				/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
+  			/*Enemies[Nr].*/Handler = Enemy_handler_15;
   			
   			NextRaw = 5;
   		break;
@@ -519,8 +518,8 @@ short Load_level(char* Levelfile, short Level_nr){
   			/*Enemies[Nr].Height =*/ Enemies[Nr].Height2 = 16;
   			/*Enemies[Nr].*/Attribs = 0b00010000;
   			
-  			(enemy *)/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
-  			(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_16; 
+  			/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
+  			/*Enemies[Nr].*/Handler = Enemy_handler_16; 
   				
   					
   		break;
@@ -543,9 +542,9 @@ short Load_level(char* Levelfile, short Level_nr){
 					Enemies[Nr].Mode = 10;
 					Enemies[Nr].Data0 = Byte4;//(*((unsigned char*)Raw+4));
 					Enemies[Nr].Data1 = Byte5;//(*((unsigned char*)Raw+5));
-					(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_10;
+					/*Enemies[Nr].*/Handler = Enemy_handler_10;
 					/*Enemies[Nr].*/Attribs = 0b00010000;
-					(enemy *)/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;  			
+					/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;  			
 				
 					NextRaw = 6;
   			break;	
@@ -561,9 +560,9 @@ short Load_level(char* Levelfile, short Level_nr){
 				/*Enemies[Nr].*/Sprite = mad_flower_o_right_spr;
 				/*if(Model==mad_flower)
 					Enemies[Nr].Mode = 0;*/
-				(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_17;
+				/*Enemies[Nr].*/Handler = Enemy_handler_17;
 				/*Enemies[Nr].*/Attribs = 0b01111001;
-				(enemy *)/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
+				/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
   		break;
   			
   		case flying_turtle://flying turtle
@@ -574,9 +573,9 @@ short Load_level(char* Levelfile, short Level_nr){
   			Enemies[Nr].Data0 = Enemies[Nr].Data1 = Byte4*16;//( (*((unsigned char*)Raw+4)) *16);
   			Enemies[Nr].Jumping = 1;
   			/*Enemies[Nr].*/Face = -1;//!!!!!!!!!!!!!! more !!!!!!!!!!!!!!!!!!!!!!
-				(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_8;
+				/*Enemies[Nr].*/Handler = Enemy_handler_8;
 				/*Enemies[Nr].*/Attribs = 0b11111001;
-				(enemy *)/*Enemies[Nr].*/Die = Enemy_die_4;	
+				/*Enemies[Nr].*/Die = Enemy_die_4;	
 					
 				NextRaw += 2;
   		break;
@@ -587,9 +586,9 @@ short Load_level(char* Levelfile, short Level_nr){
 				Enemies[Nr].Sprite = bottom_flower_l1;
 				//Enemies[Nr].Mode = 1;
 				Enemies[Nr].Data0 = 10;
-				(enemy *)Enemies[Nr].Handler = Enemy_handler_23;
+				Enemies[Nr].Handler = Enemy_handler_23;
 				Enemies[Nr].Attribs = 0b00010000;
-				(enemy *)Enemies[Nr].Die = Dummy_func_;//E_dummy_handler;
+				Enemies[Nr].Die = (void (*)(struct enemy *)) Dummy_func_;//E_dummy_handler;
 	
 	
 	
@@ -597,9 +596,9 @@ short Load_level(char* Levelfile, short Level_nr){
 				Enemies[Nr+1].Y = Enemies[Nr].Y;
 				/*Enemies[Nr+1].Height =*/ Enemies[Nr+1].Height2 = 28;
 				/*Enemies[Nr+1].*/Sprite = bottom_flower_r1;
-				(enemy *)/*Enemies[Nr+1].*/Handler = Enemy_handler_23;
+				/*Enemies[Nr+1].*/Handler = Enemy_handler_23;
 				/*Enemies[Nr+1].*/Attribs = 0b00010000;
-				(enemy *)/*Enemies[Nr+1].*/Die = Dummy_func_;//E_dummy_handler;
+				/*Enemies[Nr+1].*/Die = Dummy_func_;//E_dummy_handler;
 				Enemies[Nr+1].Active = Enemies[Nr+1].Life = 1;
 	
 				
@@ -615,9 +614,9 @@ short Load_level(char* Levelfile, short Level_nr){
   			Enemies[Nr].Mode = Byte5*16;//( (*((unsigned char*)Raw+5)) *16);
   			Enemies[Nr].Data0 = Enemies[Nr].Data1 = ( (*((unsigned char*)Raw+6)) *16);
  // 			Enemies[Nr].Jumping = 0;//not neccessarry, done in memset
-  			(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_19;				
+  			/*Enemies[Nr].*/Handler = Enemy_handler_19;				
 				/*Enemies[Nr].*/Attribs = 0b01011101;
-				(enemy *)/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;	
+				/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;	
 				
 				NextRaw = 7; 
  			break;
@@ -630,9 +629,9 @@ short Load_level(char* Levelfile, short Level_nr){
 				/*Enemies[Nr].*/Face = -1;
 				Enemies[Nr].Mode = 0;
 				Enemies[Nr].Jumping = 1;
-				(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_4;
+				/*Enemies[Nr].*/Handler = Enemy_handler_4;
 				/*Enemies[Nr].*/Attribs = 0b11111001;
-				(enemy *)/*Enemies[Nr].*/Die = Enemy_die_3;
+				/*Enemies[Nr].*/Die = Enemy_die_3;
  			break;
  			
  			case jellyfish:
@@ -642,9 +641,9 @@ short Load_level(char* Levelfile, short Level_nr){
 				/*Enemies[Nr].*/Sprite = jellyfish_spr;
 				Enemies[Nr].Active = 2;
 				/*Enemies[Nr].*/Face = -1;
-				(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_20;
+				/*Enemies[Nr].*/Handler = Enemy_handler_20;
 				/*Enemies[Nr].*/Attribs = 0b01011001;
-				(enemy *)/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
+				/*Enemies[Nr].*/Die = Dummy_func_;//E_dummy_handler;
  			break;
  			
  			case bomb://bomb
@@ -661,9 +660,9 @@ short Load_level(char* Levelfile, short Level_nr){
  				/*Enemies[Nr].Height =*/ Enemies[Nr].Height2 = 16;
 				/*Enemies[Nr].*/Face = Byte3;//(*((unsigned char*)Raw+3));
 				/*Enemies[Nr].*/Sprite = (Face<0?bomb_walk_left_spr:bomb_walk_right_spr);
-				(enemy *)/*Enemies[Nr].*/Handler = Enemy_handler_21;
+				/*Enemies[Nr].*/Handler = Enemy_handler_21;
 				/*Enemies[Nr].*/Attribs = 0b10111001;
-				(enemy *)/*Enemies[Nr].*/Die = Enemy_die_11;
+				/*Enemies[Nr].*/Die = Enemy_die_11;
  				if(/*Enemies[Nr].*/Life==8){//shot out from cannon
 // 					Enemies[Nr].RespawnX = Enemies[Nr].X>>4;
 // 					Enemies[Nr].RespawnY = Enemies[Nr].Y>>4;
@@ -753,7 +752,7 @@ short Load_level(char* Levelfile, short Level_nr){
 					Flying_platforms[Nr].Data0 = (*((unsigned char*)Raw+4));
 					Flying_platforms[Nr].Data2 = (*(( char*)Raw+5));
 					Flying_platforms[Nr].Data3 = (*(( char*)Raw+6));
-					(flying_platform*)Flying_platforms[Nr].Handler = Platform_handler_1;
+					Flying_platforms[Nr].Handler = Platform_handler_1;
 					NextRaw = 7;
 					if(Model==11){
 						Flying_platforms[Nr].Data0 = Flying_platforms[Nr].Data0*16;
@@ -765,7 +764,7 @@ short Load_level(char* Levelfile, short Level_nr){
 				break;
 				
 				case 21:
-					(flying_platform*)Flying_platforms[Nr].Handler = Platform_handler_2;
+					Flying_platforms[Nr].Handler = Platform_handler_2;
 				
 					NextRaw = 4;
 				break;
@@ -857,8 +856,8 @@ short Load_level(char* Levelfile, short Level_nr){
 				BossG->Sprite = boss1_spikes_spr;
 
 				Height = 23;//BossG->Height = BossG->Height2 = 23;
-				(boss *)BossG->Handler = Boss_handler_1;
-				(boss *)BossG->Die = Boss_die_1;
+				BossG->Handler = (void (*)(void *)) Boss_handler_1;
+				BossG->Die = (void (*)(void *)) Boss_die_1;
 			break;
 			case boss_2://Koopa kid
 
@@ -866,8 +865,8 @@ short Load_level(char* Levelfile, short Level_nr){
 				
 		
 				Height = 30;//BossG->Height = BossG->Height2 = 30;
-				(boss *)BossG->Handler = Boss_handler_2;
-				(boss *)BossG->Die = Boss_die_1;//2
+				BossG->Handler = (void (*)(void *)) Boss_handler_2;
+				BossG->Die = (void (*)(void *)) Boss_die_1;//2
 			break;
 			case bowser://boss_1:
 				
@@ -875,8 +874,8 @@ short Load_level(char* Levelfile, short Level_nr){
 				BossG->Life = 10;
 				Height = 38;//BossG->Height = BossG->Height2 = 38;
 				
-				(boss *)BossG->Handler = Bowser_handler;//Dummy_boss;
-				(boss *)BossG->Die = Bowser_die;
+				BossG->Handler = (void (*)(void *)) Bowser_handler;//Dummy_boss;
+				BossG->Die = (void (*)(void *)) Bowser_die;
 				
 				BossG->Y -= 16;
 				
@@ -935,7 +934,7 @@ short Generate_handler_1_enemy(short Nr,char Model,char Face,unsigned char D0D1)
   Enemies[Nr].Mode = 1;
   Enemies[Nr].Life = 1;
 	
- 	(enemy *)Enemies[Nr].Handler = Enemy_handler_1;//common for all 1-20
+ 	Enemies[Nr].Handler = Enemy_handler_1;//common for all 1-20
  	Enemies[Nr].Face = Face;//common for all 1-20
 // 	/*Enemies[Nr].Height = */Enemies[Nr].Height2 = 16;//common for most 1-20
 
@@ -1020,7 +1019,7 @@ short Generate_handler_1_enemy(short Nr,char Model,char Face,unsigned char D0D1)
 	
 	Enemies[Nr].Attribs = Attribs;
 //	if(Enemies[Nr].Die==NULL)
-		(enemy *)Enemies[Nr].Die = Die;
+		Enemies[Nr].Die = Die;
 //	if(Sprite==NULL)
 		Enemies[Nr].Sprite = Sprite;
 	Enemies[Nr].Height = Enemies[Nr].Height2 = Height2;//Height is neccessarry for goomba resurrection!
@@ -1178,11 +1177,11 @@ short Load_map(char* Levelfile){
 			//Map_objects[C].Mask = Masks + (long)Map_objects[C].Mask;
 			
 			if((long)Map_objects[C].Handler==1)
-				(map_object*)Map_objects[C].Handler = Handle_ship;
+				Map_objects[C].Handler = (void (*)(void *)) Handle_ship;
 			if((long)Map_objects[C].Handler==2)
-				(map_object*)Map_objects[C].Handler = Handle_map_monster;
+				Map_objects[C].Handler = (void (*)(void *)) Handle_map_monster;
 			if((long)Map_objects[C].Handler==3)
-				(map_object*)Map_objects[C].Handler = Handle_boat;
+				Map_objects[C].Handler = (void (*)(void *)) Handle_boat;
 				
 				
 		};

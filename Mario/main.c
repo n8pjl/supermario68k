@@ -75,9 +75,9 @@ DEFINE_INT_HANDLER (TESTCOUNTER) {//speed test
 
 
 // Main Function
-void _main(void)
+int main(void)
 {
-	short C;//test
+	//short C;//test
 	ErrorCode = 0;
 	Skip_anim = 1;
 	
@@ -85,18 +85,18 @@ void _main(void)
 	StatBarHeight = 8;
 		
 	
-	INT_HANDLER ai1,/*ai4,*/ai5;
+	//INT_HANDLER ai1,/*ai4,*/ai5;
 	//initializations
 	
-	ai1 = GetIntVec(AUTO_INT_1);
+	//ai1 = GetIntVec(AUTO_INT_1);
 //	ai4 = GetIntVec(AUTO_INT_4);
-	ai5 = GetIntVec(AUTO_INT_5);
-	SetIntVec(AUTO_INT_5,DUMMY_HANDLER);//speed test
+	//ai5 = GetIntVec(AUTO_INT_5);
+	//SetIntVec(AUTO_INT_5,DUMMY_HANDLER);//speed test
 	#ifdef speedtest
-	SetIntVec(AUTO_INT_1,TESTCOUNTER);//DUMMY_HANDLER);
+	//SetIntVec(AUTO_INT_1,TESTCOUNTER);//DUMMY_HANDLER);
 	#endif
 	#ifndef speedtest
-	SetIntVec(AUTO_INT_1,DUMMY_HANDLER);//);
+	//SetIntVec(AUTO_INT_1,DUMMY_HANDLER);//);
 	#endif
 //	SetIntVec(AUTO_INT_4,DUMMY_HANDLER);
 
@@ -111,7 +111,7 @@ void _main(void)
 	//Error: Memory possible
 	Block = malloc((unsigned long)GRAYDBUFFER_SIZE+2*GRAY_BIG_VSCREEN_SIZE+BIG_VSCREEN_SIZE+480);	//allocate 1 drawbuffer and 2 big_vsceens(1 for each plane)
 	
-	if( (Block==NULL) ){
+	if(Block==NULL){
 		ErrorCode = 1;
 		goto Quit;//OUT OF MEMORY, terminate
 	}
@@ -126,7 +126,7 @@ void _main(void)
 	//Error: Memory possible
 	Items = (item*)malloc(sizeof(item)*nr_of_items+sizeof(shell)*max_nr_of_shells+sizeof(object)*nr_of_objects+18);//18 is for the card game
 	
-	if( (Items==NULL) ){
+	if(Items==NULL){
 		ErrorCode = 1;
 		goto Quit;//OUT OF MEMORY, terminate
 	}
@@ -203,13 +203,13 @@ void _main(void)
 	
 	Exit = 0;
 		
-	char CurrFolder[9];
+	//char CurrFolder[9];
 	
-	FolderGetCur(CurrFolder);	
+	//FolderGetCur(CurrFolder);	
 		
 	ErrorCode = Menus();//This function enters the game itself. See "menus.c"
 		
-	FolderCur( SYMSTR(CurrFolder) , TRUE );
+	//FolderCur( SYMSTR(CurrFolder) , TRUE );
 	//exit stuff here
 	//free allocated mem
 	Quit:
@@ -254,14 +254,14 @@ void _main(void)
 	HeapUnlock( TextFile_sym_h );
 	
 	//reinstall all timers/interrupts
-	SetIntVec(AUTO_INT_5,ai5);
-	SetIntVec(AUTO_INT_1,ai1);
+	// SetIntVec(AUTO_INT_5,ai5);
+	// SetIntVec(AUTO_INT_1,ai1);
 //	SetIntVec(AUTO_INT_4,ai4);
 //	while(_rowread(0));//wait until key released
 		
 		
-	for(C=0;C<SHRT_MAX;C++);
+	//for(C=0;C<SHRT_MAX;C++);
 	
-	GKeyFlush();
+	//GKeyFlush();
 	
 }

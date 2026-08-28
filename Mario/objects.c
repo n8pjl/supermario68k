@@ -167,7 +167,7 @@ void Splash(short X,short Y){
 		Objects[C].Data1 = 0;
 		Objects[C].Active = 25;
 		//(object*)Objects[C].Handler = Dummy_func_;
-		(object*)Objects[C].Draw = Draw_splash;
+		Objects[C].Draw = Draw_splash;
 		
 	}	
 	

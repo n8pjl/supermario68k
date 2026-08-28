@@ -42,4 +42,6 @@ void Add_shell(/*short X,short Y,*/short Dir,char Type, enemy *Enemy);
 //void Handle_collided_shells(object* Object);
 
 
+void Add_killed_shell(shell* Shell,short DirSpeed);
+
 #endif

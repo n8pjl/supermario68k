@@ -156,7 +156,7 @@ void Trigger_pow_item( short X, short Y){
 	if( (C=Find_free_object())!=-1){
 		Objects[C].Active = 1;
 		//(object*)Objects[C].Handler = Handle_timed_coinconvert;
-		(object*)Objects[C].Draw = Handle_timed_coinconvert;//Dummy_func_;
+		Objects[C].Draw = Handle_timed_coinconvert;//Dummy_func_;
 		Objects[C].X=0;
 	};
 
@@ -330,7 +330,7 @@ void Add_break_brick_anim( short X, short Y){
 			Objects[C].X = X;
 			Objects[C].Y = Y;
 			//(object*)Objects[C].Handler = Dummy_func_;//Handle_brick_fragments;
-			(object*)Objects[C].Draw = Draw_brick_fragments;
+			Objects[C].Draw = Draw_brick_fragments;
 		};
 }
 
@@ -370,7 +370,7 @@ void Falling_block_handler( short X, short Y){
 			Flying_platforms[C].Sprite = 60000;//190;
 			Flying_platforms[C].X = X&0xfff0;//16*(X>>4);///16);
 			Flying_platforms[C].Y = Y&0xfff0;//16*(Y>>4);///16);
-			(flying_platform*)Flying_platforms[C].Handler = Platform_handler_3;
+			Flying_platforms[C].Handler = Platform_handler_3;
 			
 			
 			Put_tile(X,Y,blank_solid);//make tile invincible
@@ -435,8 +435,8 @@ void Bonus_box_1up( short X, short Y){
 		Items[C].Height2 = 16;
 		Items[C].Active = ((Player.X>/*Items[C].*/X) ? -one_up_mushrom_speed:one_up_mushrom_speed );
 		Items[C].Sprite = one_up_mushrom_sprite;
-		(item*)Items[C].Collect = Player_collect_one_up_mushrom;
-		(item*)Items[C].Handler = Mushrom_handler;
+		Items[C].Collect = Player_collect_one_up_mushrom;
+		Items[C].Handler = Mushrom_handler;
 	};
 
 	//*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16)) )=bonusbox_after;
@@ -465,8 +465,8 @@ void Bonus_box_star( short X, short Y){
 		Items[C].Data0 = 16;
 		Items[C].Data1 = -2;
 		Items[C].Sprite = star_anim;
-		(item*)Items[C].Collect = Player_collect_star;
-		(item*)Items[C].Handler = Star_handler;
+		Items[C].Collect = Player_collect_star;
+		Items[C].Handler = Star_handler;
 				
 	};
 	
@@ -486,7 +486,7 @@ void Bonus_box_climbing_flower( short X, short Y){
 	Objects[C].X = (X & 0xfff0);//16*(X/16);//X & 0xfff0;
 	Objects[C].Y = (Y & 0xfff0)-2;//16*(Y/16)-2;//; & 0xfff0
 	//(object*)Objects[C].Handler = Dummy_func_;//Handle_climbing_flower;
-	(object*)Objects[C].Draw = Draw_climbing_flower;
+	Objects[C].Draw = Draw_climbing_flower;
 	
 	/*
 	Fg_plane.p.force_update=1;
@@ -1276,7 +1276,7 @@ void Elastic_tile_animate(short X, short Y, unsigned char After, char Attribs, u
 		Objects[C].X = X & 0xfff0;//16*(X/16);
 		Objects[C].Y = Y & 0xfff0;//16*(Y/16);
 		//(object*)Objects[C].Handler = Dummy_func_;//Handle_elastic_tile;
-		(object*)Objects[C].Draw = Draw_elastic_tiles;
+		Objects[C].Draw = Draw_elastic_tiles;
 		//*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16)) ) = (Get_tile(X,Y+16)==water?dark_gray_solid:blank_solid);
 		
 		Put_tile(X,Y,(Get_tile(X,Y+16)==water?dark_gray_solid:blank_solid));
@@ -1302,7 +1302,7 @@ void Bonusbox_coin_animate(short X, short Y){
 		Objects[C].X = X & 0xfff0;//16*(X/16);
 		Objects[C].Y = Y & 0xfff0;//16*(Y/16);
 		//(object*)Objects[C].Handler = Dummy_func_;//Handle_bb_coin;
-		(object*)Objects[C].Draw = Draw_bb_coin;
+		Objects[C].Draw = Draw_bb_coin;
 	};	
 	
 	Player_get_coin(X,Y);
@@ -1362,8 +1362,8 @@ void Add_power_up_2(short X, short Y, short Height){
 			//Items[C].Data1 = 12;
 			Items[C].Sprite = leaf_r_sprite;
 			//Items[C].Mask = leaf_r_mask;
-			(item*)Items[C].Collect = Player_collect_leaf;
-			(item*)Items[C].Handler = Leaf_handler;
+			Items[C].Collect = Player_collect_leaf;
+			Items[C].Handler = Leaf_handler;
 		};		
 		
 	};	
@@ -1381,8 +1381,8 @@ void Add_pu_mushrom(short X, short Y, short Height){
 			Items[C].Active = (Player.X>Items[C].X) ? -pu_mushrom_speed:pu_mushrom_speed ;
 			Items[C].Sprite = pu_mushrom_sprite;
 			//Items[C].Mask = mushrom_mask;
-			(item*)Items[C].Collect = Player_collect_pu_mushrom;
-			(item*)Items[C].Handler = Mushrom_handler;
+			Items[C].Collect = Player_collect_pu_mushrom;
+			Items[C].Handler = Mushrom_handler;
 		};
 		
 }
@@ -1396,7 +1396,7 @@ void Score_anim(short X, short Y, char Score){
 		Objects[C].X = X;
 		Objects[C].Y = Y;
 		//(object*)Objects[C].Handler = Dummy_func_;//Handle_score;
-		(object*)Objects[C].Draw = Draw_score;
+		Objects[C].Draw = Draw_score;
 	};	
 	
 
@@ -2088,9 +2088,11 @@ void Levelend_handler(short X, short Y){
 	
 	GrayDBufToggleSync_SetPointers();//GrayDBufToggleSync();
 
+	/*
 	for(X=0;X<SHRT_MAX;X++){//delay
 		for(Y=0;Y<100;Y++);
 	};
+	*/
 
 	
 	Exit = 2;//Exit == 2: level completed
@@ -2107,7 +2109,7 @@ void Add_dustsky(short X, short Y){
 		Objects[C].X = X;
 		Objects[C].Y = Y;
 		//(object*)Objects[C].Handler = Dummy_func_;//Handle_killed_fireball;
-		(object*)Objects[C].Draw = Draw_killed_fireballs;
+		Objects[C].Draw = Draw_killed_fireballs;
 	};
 	
 };

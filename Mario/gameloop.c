@@ -1,6 +1,7 @@
 
 
 #include "all.h"
+#include "compat/browser_io.h"
 
 char* Filenames;
 
@@ -165,8 +166,11 @@ void Gameloop(){
 			Scankeys();
 			if(Keystate.Esc){//mid game menu
 			
-				/*char*/short Res = doMenu(Texts+GameTextData.MidGameMap,3);
-									
+				char *menu_strings[4];
+				get_menu_string(mid_game_map_text, menu_strings, 4);
+				/*char*/short Res = doMenu(menu_strings,3);
+				free_menu_strings(menu_strings, 4);					
+
 				switch(Res){
 					short Offset;
 					case 1://continue
@@ -179,10 +183,13 @@ void Gameloop(){
 						/*strcpy(Fg_plane.p.big_vscreen,Texts+GameTextData.Save);//Title
 						C = Offset = strlen(Fg_plane.p.big_vscreen)+1;*/
 						{
-							char* TempBuffer = Fg_plane.p.big_vscreen;
+							char** TempBuffer = (char **)Fg_plane.p.big_vscreen;
 //							C = Offset = StringCopy(TempBuffer/*Fg_plane.p.big_vscreen*/,Texts+GameTextData.Save);
 						
-							Paste_saveslot_text(TempBuffer/*Fg_plane.p.big_vscreen*/,Texts+GameTextData.Save);//Offset);
+							char *menu_strings[3];
+							get_menu_string(save_menu_text, menu_strings, 3);
+							Paste_saveslot_text(TempBuffer/*Fg_plane.p.big_vscreen*/,menu_strings);//Offset);
+							free_menu_strings(menu_strings, 3);
 							Res = doMenu(TempBuffer/*Fg_plane.p.big_vscreen*/,3);
 						}
 						
@@ -195,9 +202,12 @@ void Gameloop(){
 							if(Levelsetdata.Savegames[Res-1]!=0){
 								
 								//New: V 1.03 Added confirmation when overwriting a saveslot
-															
-								if(doMenu(Texts+GameTextData.OverWrite,2)==1)
+													
+								char *menu_strings[3];
+								get_menu_string(overwrite_text, menu_strings, 3);
+								if(doMenu(menu_strings,2)==1)
 									SaveOk = 0;
+								free_menu_strings(menu_strings, 3);
 							}
 							//End of New
 							if(SaveOk)
@@ -365,7 +375,7 @@ short RunGame(char Saveslot){
 		if(Saveslot<0)
 			
 			Load_map(Levelfilename);	
-			New_world_screen();
+		New_world_screen();
 /*		if(Warp)
 			Load_map(Commonfilename);
 		
@@ -379,7 +389,10 @@ short RunGame(char Saveslot){
 		if(SavePlayer.Lives<=0){//==0){//BUG!
 			//Game over
 			//menu: Game Over, Continue, Quit
-			short Res = doMenu(Texts+GameTextData.GameOver,2);
+			char *menu_strings[3];
+			get_menu_string(game_over_text, menu_strings, 3);
+			short Res = doMenu(menu_strings,2);
+			free_menu_strings(menu_strings, 3);
 			
 			if(Res==1){
 								

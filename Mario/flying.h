@@ -2,7 +2,7 @@
 #ifndef __flying__
 #define __flying__
 
-typedef struct{
+typedef struct flying_platform {
 	short X;
 	short Y;
 	
@@ -23,7 +23,7 @@ typedef struct{
 	unsigned short Sprite;
 	
 
-	void (*Handler)(void *Flying_platform);
+	void (*Handler)(struct flying_platform *Flying_platform);
 
 	
 }flying_platform;

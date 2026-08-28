@@ -1,0 +1,8 @@
+# Build artifacts
+*.o
+Mario/mario
+Mario/mario.js
+Mario/mario.wasm
+Mario/mario.html
+Mario/mario.data
+ExtGraph/

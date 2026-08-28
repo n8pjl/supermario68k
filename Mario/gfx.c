@@ -1,12 +1,7 @@
-
-
-#include <tigcclib.h>
 #include "all.h"
 
 //SYM_ENTRY *Tilefile_sym, *Spritefile_sym, *Bg_file_sym, *TextFile_sym;
 HANDLE Tilefile_sym_h, Spritefile_sym_h, Bg_file_sym_h, TextFile_sym_h;
-gametextdata GameTextData;
-char* Texts;
 
 inline short Load_gfx_from_file(){//sets up the pointers to gfx arrays in external files
 
@@ -14,14 +9,16 @@ inline short Load_gfx_from_file(){//sets up the pointers to gfx arrays in extern
 	HANDLE Temp;
 	
 	//New: V 1.01 Changed "ma_texts" to "mario\\ma_texts"
+#if 0
 	if( !(/*Temp =*/ TextFile_sym_h = File_get_pointer_and_lock("mario\\ma_texts")) ){
 		return 7;//error "failed to open txt file"
 	}
 	
 	Texts = HeapDeref (/*Temp*/TextFile_sym_h) + sizeof(gametextdata) + 2;
+#endif
   
 //  memcpy (&GameTextData, HeapDeref (Temp)+2, sizeof(gametextdata));
-  memcpy (&GameTextData, Texts - sizeof(gametextdata), sizeof(gametextdata));//same as above, but a little smaller
+  //memcpy (&GameTextData, Texts - sizeof(gametextdata), sizeof(gametextdata));//same as above, but a little smaller
 	
 	
 	//New: V 1.01 Changed "ma_tiles" to "mario\\ma_tiles"
@@ -56,7 +53,7 @@ inline short Load_gfx_from_file(){//sets up the pointers to gfx arrays in extern
 		
 
 	Mariomasks = Mariosprites + /*Spritefiledata.*/Size_of_mariosprites;
-	(short*)Marioanimtab = (short*)Mariomasks + /*Spritefiledata.*/Size_of_mariomasks;
+	Marioanimtab = (short(*)[11])((short*)Mariomasks + /*Spritefiledata.*/Size_of_mariomasks);
 	
 	Enemysprites = (unsigned short*)Marioanimtab + /*Spritefiledata.*/Size_of_marioanimtab;//Mariomasks + Spritefiledata.Size_of_mariomasks;
 	

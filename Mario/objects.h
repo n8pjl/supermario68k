@@ -6,7 +6,7 @@
 
 
 
-typedef struct {
+typedef struct object {
 	short X;
 	short Y;
 
@@ -19,7 +19,7 @@ typedef struct {
 	short Data2;
 	short Active;
 //	void (*Handler)(void *Object);
-	void (*Draw)(void *Object);//the function that draws the spesific object
+	void (*Draw)(struct object *Object);//the function that draws the spesific object
 }object;
 
 

@@ -392,7 +392,7 @@ inline void Handle_player_map(){
 								Map_objects[C].Data1 = 1;
 								Map_objects[C].Sprite = ship_spr;
 								Map_objects[C].Mask = ship_msk;
-								(map_object*)Map_objects[C].Handler = Handle_ship;
+								Map_objects[C].Handler = (void (*)(void *)) Handle_ship;
 								//C=Map_data.Nr_of_objects;
 								Temp = big_castle_visited;
 								break;
@@ -1459,7 +1459,7 @@ void Add_map_event(unsigned char Event){
 				Map_objects[C].Y = Leveldata.EY*16;
 				Map_objects[C].Data0 = 0;
 				Map_objects[C].Data1 = 1;
-				(map_object*)Map_objects[C].Handler = Handle_ship;
+				Map_objects[C].Handler = (void (*)(void *)) Handle_ship;
 			
 				unsigned short* Sprite;
 				char Mode;

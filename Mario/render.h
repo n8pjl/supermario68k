@@ -99,15 +99,15 @@ void Render();
 
 void DrawMarioCursor(short X,short Y);
 
-void DrawSprite16SMASKR(short x asm("%d0"),short y asm("%d1"),short h asm("%d2"),const unsigned short *sprt0,const unsigned short *sprt1,const unsigned short *mask);
+void DrawSprite16SMASKR(short x,short y,short h,const unsigned short *sprt0,const unsigned short *sprt1,const unsigned short *mask);
 
-void GrayOutlineRect(short X1 asm("%d0"),short Y1 asm("%d1"),short X2 asm("%d2"),short Y2 asm("%d3"),short Color);
+void GrayOutlineRect(short X1,short Y1,short X2,short Y2,short Color);
 
-void FilledRectDark(short X1 asm("%d0"),short Y1 asm("%d1"),short X2 asm("%d2"),short Y2 asm("%d3"));
+void FilledRectDark(short X1,short Y1,short X2,short Y2);
 
-void FilledRectEraseLight(short X1 asm("%d0"),short Y1 asm("%d1"),short X2 asm("%d2"),short Y2 asm("%d3"));
+void FilledRectEraseLight(short X1,short Y1,short X2,short Y2);
 
-void FilledRectEraseDark(short X1 asm("%d0"),short Y1 asm("%d1"),short X2 asm("%d2"),short Y2 asm("%d3"));
+void FilledRectEraseDark(short X1,short Y1,short X2,short Y2);
 
 
 //void Draw_player();	//the following commented out functions are inlined manually in Render()!
@@ -149,9 +149,9 @@ void Draw_splash(object* Object);
 
 
 
-//void UpsideDownGrayClipSprite16_MASK_R(register short x asm("%d0"),register short y asm("%d1"),register short h asm("%d2"),unsigned short *sprt0,unsigned short *sprt1,unsigned short *mask0,unsigned short *mask1,register void *dest0 asm("%a0"),register void *dest1 asm("%a1")) __attribute__((__stkparm__));
+//void UpsideDownGrayClipSprite16_MASK_R(register short x,register short y,register short h,unsigned short *sprt0,unsigned short *sprt1,unsigned short *mask0,unsigned short *mask1,register void *dest0,register void *dest1) __attribute__((__stkparm__));
 
-//void GrayClipSprite16_SMASKBLIT_R(short x asm("%d0"),short y asm("%d1"),short h asm("%d2"),unsigned short *sprt0,unsigned short *sprt1,unsigned short *mask,unsigned short maskval asm("%d3"),void *dest0 asm("%a0"),void *dest1 asm("%a1")) __attribute__((__stkparm__));
+//void GrayClipSprite16_SMASKBLIT_R(short x,short y,short h,unsigned short *sprt0,unsigned short *sprt1,unsigned short *mask,unsigned short maskval,void *dest0,void *dest1) __attribute__((__stkparm__));
 
 void Update_statusbar(/*char Force_update*/);
 
@@ -163,5 +163,6 @@ void Draw_player();
 void DrawItem(short X,short Y,short Item);
 
 void Render_map();
+void DrawBg(short X,short Y);
 
 #endif

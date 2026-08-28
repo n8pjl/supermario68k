@@ -186,7 +186,7 @@ void Platform_handler_3(flying_platform* Platform){
 			Platform->Data0 = 0;
 			Platform->Active = 1;
 //			Platform->DrawMode = 1;
-			(flying_platform*)Platform->Handler = Platform_handler_1;
+			Platform->Handler = Platform_handler_1;
 	//	}
 		
 		//Platform_handler_1(Platform);
