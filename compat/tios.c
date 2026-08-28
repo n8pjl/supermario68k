@@ -32,14 +32,14 @@ static void storage_key(char *buf, size_t n, const char *name)
 		snprintf(buf, n, "sm68k/%s", name);
 }
 
-typedef struct {
+struct var_t {
 	char name[9];		// bare variable name, no folder
 	unsigned char *data;	// [2-byte BE size][content], as HeapDeref returns
 	size_t size;
 	int loaded;		// 0 = slot unused, -1 = known missing
-} var_t;
+} ;
 
-static var_t Vars[MAX_VARS];
+static struct var_t Vars[MAX_VARS];
 static short Var_count;
 
 // The game addresses variables as "folder\name"; we only care about the name.
@@ -49,7 +49,7 @@ static const char *basename_of(const char *path)
 	return p ? p + 1 : path;
 }
 
-static var_t *find_slot(const char *name)
+static struct var_t *find_slot(const char *name)
 {
 	for (short i = 0; i < Var_count; i++)
 		if (!strcmp(Vars[i].name, name))
@@ -154,10 +154,10 @@ static void save_to_storage(const char *name, const unsigned char *data, size_t 
 
 // Pull a variable into memory: a localStorage save if one exists, otherwise the
 // shipped blob preloaded into MEMFS at /data.
-static var_t *load_var(const char *path)
+static struct var_t *load_var(const char *path)
 {
 	const char *name = basename_of(path);
-	var_t *v = find_slot(name);
+	struct var_t *v = find_slot(name);
 	if (v)
 		return v->loaded > 0 ? v : NULL;
 
@@ -200,7 +200,7 @@ static var_t *load_var(const char *path)
 SYM_ENTRY *SymFindPtr(SYM_STR name, short flags)
 {
 	(void)flags;
-	var_t *v = load_var((const char *)name);
+	struct var_t *v = load_var((const char *)name);
 	if (!v)
 		return NULL;
 
@@ -229,7 +229,7 @@ void *HToESI(HANDLE handle)
 {
 	if (!handle || handle > Var_count)
 		return NULL;
-	var_t *v = &Vars[handle - 1];
+	struct var_t *v = &Vars[handle - 1];
 	return v->data + v->size - 1;
 }
 
@@ -251,7 +251,7 @@ BOOL FolderCur(SYM_STR name, BOOL create)
 static const char *Find_tag;
 static short Find_pos;
 
-static int has_tag(var_t *v, const char *tag)
+static int has_tag(struct var_t *v, const char *tag)
 {
 	size_t tl = strlen(tag);
 	if (v->size < tl + 3)
@@ -281,7 +281,7 @@ SYM_ENTRY *FFindNext(void)
 {
 	while (Known[Find_pos]) {
 		const char *name = Known[Find_pos++];
-		var_t *v = load_var(name);
+		struct var_t *v = load_var(name);
 		if (v && has_tag(v, Find_tag))
 			return SymFindPtr(SYMSTR(name), 0);
 	}
@@ -351,7 +351,7 @@ unsigned short FClose(FILES *f)
 	*t++ = 0;
 	*t = OTH_TAG;
 
-	var_t *v = find_slot(f->name);
+	struct var_t *v = find_slot(f->name);
 	if (!v) {
 		if (Var_count >= MAX_VARS) {
 			free(blob);

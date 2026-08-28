@@ -1,7 +1,9 @@
 // C Source File
 // Created 23.10.2006; 20:08:16
 
-#include "all.h"
+#include "compat/graph.h"
+#include "gfx.h"
+#include "scankeys.h"
 
 void Errorhandler(char Error) {
 
@@ -63,7 +65,5 @@ void Errorhandler(char Error) {
 
   // DrawStr(10,30,(Msg?Msg:"Textfile not found!"),A_REPLACE);
 
-  /*while( (_rowread(0)) );
-  while( !(_rowread(0)) );*/
   WaitKeyPress();
 };

@@ -67,7 +67,7 @@
 
 #define itemlist_length 20
 
-typedef struct {
+struct player {
   short X; // Xpos
   short Y; // Ypos
 
@@ -160,10 +160,9 @@ typedef struct {
   short White_magic_box_counter;
 
   short RacoonTaleAnim;
+};
 
-} player;
-
-typedef struct {
+struct saveplayer {
 
   unsigned short Score;
 
@@ -205,11 +204,10 @@ typedef struct {
   char CurrCard;
 
   char Itemlist[itemlist_length];
+};
 
-} saveplayer;
-
-extern player Player;
-extern saveplayer SavePlayer;
+extern struct player Player;
+extern struct saveplayer SavePlayer;
 
 extern struct shot Player_smallshots[nr_of_player_smallshots];
 

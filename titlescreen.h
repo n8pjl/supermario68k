@@ -1,7 +1,3 @@
-
-#ifndef __titlescreen__
-#define __titlescreen__
+#pragma once
 
 short Show_titlescreen(); // New: V 1.01 Changed return type from void to short
-
-#endif

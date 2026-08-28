@@ -1,14 +1,28 @@
-
-
-#include "all.h"
+#include "render.h"
+#include "bosses.h"
+#include "compat/extgraph.h"
+#include "compat/graph.h"
+#include "compat/gray.h"
+#include "compat/tilemap.h"
+#include "control.h"
+#include "flying.h"
+#include "gfx.h"
+#include "items.h"
+#include "level.h"
+#include "levelset.h"
+#include "map.h"
+#include "player.h"
+#include "shells.h"
+#include <limits.h>
+#include <string.h>
 
 short BgX, BgY, FgX, FgY; // screen render points (upper left corner of visual
                           // screen,coordinates in level...)
 
 short Update_FG;
 
-Plane Bg_plane;
-AnimatedPlane Fg_plane, Fg_mask, Map_plane;
+struct Plane Bg_plane;
+struct AnimatedPlane Fg_plane, Fg_mask, Map_plane;
 unsigned char StatBarHeight;
 // statusbardata Statusbardata;
 
@@ -134,10 +148,9 @@ void Render() // this function renders all graphics
   // DrawGrayPlane(BgX,BgY,&Bg_plane,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G,drawmode_bg/*TM_GRPLC89*/,TM_G16B_ROLL/*TM_G16B*/);
   DrawBg(BgX, BgY);
 
-  if (Player.Behind_fg /*SavePlayer.Attribs & 0b00010000*/) {
-
+  if (Player.Behind_fg) {
     Draw_player();
-  };
+  }
 
   if (Update_FG) {
     Fg_plane.p.force_update = 1;
@@ -359,7 +372,7 @@ void Adjust_renderpoint() { // adjusts the FG renderpoint
                          // BG plane
 }
 
-void Draw_brick_fragments(object *Object) {
+void Draw_brick_fragments(struct object *Object) {
   /*
   GrayClipSprite8_MASK_R((Object->X-Object->Active)-FgX,(Object->Y-8*Object->Data0)-FgY,8,brick_fragment_sprite,brick_fragment_sprite+8,brick_fragment_mask,brick_fragment_mask,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
   GrayClipSprite8_MASK_R((Object->X+Object->Active)-FgX,(Object->Y-8*Object->Data0)-FgY,8,brick_fragment_sprite,brick_fragment_sprite+8,brick_fragment_mask,brick_fragment_mask,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
@@ -413,7 +426,7 @@ void Draw_brick_fragments(object *Object) {
                           Sprite + 8, Sprite + 16, dBufHPL_G, dBufHPD_G);
 };
 
-void Draw_killed_fireballs(object *Object) {
+void Draw_killed_fireballs(struct object *Object) {
 
   Object->Active++;
 
@@ -443,7 +456,7 @@ void Draw_killed_fireballs(object *Object) {
 };
 
 void Draw_elastic_tiles(
-    object *Object) { // data2: b7:up b6:down b5:left b4:right
+    struct object *Object) { // data2: b7:up b6:down b5:left b4:right
 
   if ((--Object->Active) == 0) {
     //*(
@@ -478,7 +491,7 @@ void Draw_elastic_tiles(
       /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
 };
 
-void Draw_bb_coin(object *Object) {
+void Draw_bb_coin(struct object *Object) {
   // GrayClipSprite16_MASK_R(Object->X-FgX,Object->Y-FgY-8,Object->Data1,bb_coin_anim_sprite+(2*Object->Data0),bb_coin_anim_sprite+(2*Object->Data0)+Object->Data1,bb_coin_anim_mask+Object->Data0,bb_coin_anim_mask+Object->Data0,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
   // GrayClipSprite16_SMASK_R(Object->X-FgX,Object->Y-FgY-8,Object->Data1,bb_coin_anim_sprite+(2*Object->Data0),bb_coin_anim_sprite+(2*Object->Data0)+Object->Data1,bb_coin_anim_sprite+(2*Object->Data0)+2*Object->Data1,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
   Object->Active--;
@@ -513,7 +526,7 @@ void Draw_bb_coin(object *Object) {
   // bb_coin_anim_mask+Object->Data0
 };
 
-void Draw_score(object *Object) {
+void Draw_score(struct object *Object) {
   // GrayClipSprite16_MASK_R(Object->X-FgX,Object->Y-FgY,8,score_sprites+(2*Object->Data0),score_sprites+(2*Object->Data0)+8,score_masks+Object->Data0*8,score_masks+Object->Data0*8,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
   // GrayClipSprite16_SMASK_R(Object->X-FgX,Object->Y-FgY,8,score_sprites+(Object->Data0),score_sprites+(Object->Data0)+8,score_sprites+(Object->Data0)+16,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
 
@@ -524,7 +537,7 @@ void Draw_score(object *Object) {
   // score_masks+Object->Data0*8
 };
 
-void Draw_collided_shells(object *Object) {
+void Draw_collided_shells(struct object *Object) {
   // Do you see a bug? Hint: Active!
   Object->Active++;
 
@@ -549,7 +562,7 @@ void Draw_collided_shells(object *Object) {
       (Object->Active == 2 ? beetle_shell_sprite : shell_0_sprite), 16);
 };
 
-void Draw_climbing_flower(object *Object) {
+void Draw_climbing_flower(struct object *Object) {
 
   if (Object->Data0 < 16) { // coming out of box
     Object->Data0 += 2;
@@ -576,7 +589,7 @@ void Draw_climbing_flower(object *Object) {
              32);
 };
 
-void Draw_killed_cannonballs(object *Object) {
+void Draw_killed_cannonballs(struct object *Object) {
 
   if ((Object->Y += 3) >= FgY + screen_height) {
     Object->Active = 0;
@@ -586,7 +599,7 @@ void Draw_killed_cannonballs(object *Object) {
              cannonball_horiz_left_spr + Object->Data0, Object->Data1);
 };
 
-void Draw_splash(object *Object) {
+void Draw_splash(struct object *Object) {
 
   short Data0 = Object->Data0;
   short Data1 = Object->Data1;

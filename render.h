@@ -80,8 +80,8 @@
 extern short Update_FG;
 
 extern short BgX, BgY, FgX, FgY; // screen render points,PROBABLY UNNESSESSARRY
-extern Plane Bg_plane;
-extern AnimatedPlane Fg_plane, Fg_mask, Map_plane;
+extern struct Plane Bg_plane;
+extern struct AnimatedPlane Fg_plane, Fg_mask, Map_plane;
 extern void *Buffer;
 // extern unsigned short *Tiles;
 
@@ -125,23 +125,23 @@ void FilledRectEraseDark(short X1, short Y1, short X2, short Y2);
 
 void Adjust_renderpoint(); // scrolling hysteresis
 
-void Draw_brick_fragments(object *Object);
+void Draw_brick_fragments(struct object *Object);
 
-void Draw_killed_fireballs(object *Object);
+void Draw_killed_fireballs(struct object *Object);
 
-void Draw_elastic_tiles(object *Object);
+void Draw_elastic_tiles(struct object *Object);
 
-void Draw_bb_coin(object *Object);
+void Draw_bb_coin(struct object *Object);
 
-void Draw_score(object *Object);
+void Draw_score(struct object *Object);
 
-void Draw_collided_shells(object *Object);
+void Draw_collided_shells(struct object *Object);
 
-void Draw_climbing_flower(object *Object);
+void Draw_climbing_flower(struct object *Object);
 
-void Draw_killed_cannonballs(object *Object);
+void Draw_killed_cannonballs(struct object *Object);
 
-void Draw_splash(object *Object);
+void Draw_splash(struct object *Object);
 
 // void UpsideDownGrayClipSprite16_MASK_R(register short x,register short
 // y,register short h,unsigned short *sprt0,unsigned short *sprt1,unsigned short

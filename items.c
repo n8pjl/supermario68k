@@ -15,9 +15,9 @@
 #include "shells.h"
 #include <stdlib.h>
 
-item *Items;
+struct item *Items;
 
-trigger *Triggers;
+struct trigger *Triggers;
 
 inline void Handleitems() {
   short C, D;
@@ -903,7 +903,8 @@ void Water_surface_handler(short X, short Y) {
 }
 
 // item handlers
-void Mushrom_handler(item *Item) { // handles power up mushrom and 1 up mushrom
+void Mushrom_handler(
+    struct item *Item) { // handles power up mushrom and 1 up mushrom
   short Temp;
 
   if (Item->Height < 16) {
@@ -931,7 +932,7 @@ void Mushrom_handler(item *Item) { // handles power up mushrom and 1 up mushrom
   };
 }
 
-void Leaf_handler(item *Item) {
+void Leaf_handler(struct item *Item) {
 
   if (Item->Data1) {
     Item->Y -= 2;
@@ -960,7 +961,7 @@ void Leaf_handler(item *Item) {
   };
 };
 
-void Star_handler(item *Item) {
+void Star_handler(struct item *Item) {
 
   if (Item->Height < 16) { // coming out of box
     Item->Height++;
@@ -1000,13 +1001,13 @@ void Star_handler(item *Item) {
   };
 }
 
-void Dead_boss_handler(item *Item) {
+void Dead_boss_handler(struct item *Item) {
 
   if (Free_down(Item->X, Item->Y + 16))
     Item->Y += 2;
 }
 
-void Player_collect_dead_boss(item *Item) {
+void Player_collect_dead_boss(struct item *Item) {
   unsigned short C; //,E;
 
   for (C = 0; C < 20; C++) {
@@ -1039,7 +1040,7 @@ void Player_collect_dead_boss(item *Item) {
   Map_plane.p.force_update = 1;
 }
 
-void Player_collect_pu_mushrom(item *Item) {
+void Player_collect_pu_mushrom(struct item *Item) {
   unsigned char C;
   unsigned short D;
 
@@ -1077,7 +1078,7 @@ void Player_collect_pu_mushrom(item *Item) {
   };
 }
 
-void Player_collect_one_up_mushrom(item *Item) {
+void Player_collect_one_up_mushrom(struct item *Item) {
 
   SavePlayer.Lives++;
   // Statusbardata.Update_lives=1;
@@ -1087,7 +1088,7 @@ void Player_collect_one_up_mushrom(item *Item) {
   Item->Active = 0;
 }
 
-void Player_collect_star(item *Item) {
+void Player_collect_star(struct item *Item) {
 
   SavePlayer.Attribs = SavePlayer.Attribs | 0b10000000;
   Player.Immortal = star_immortal_time;
@@ -1097,7 +1098,7 @@ void Player_collect_star(item *Item) {
   Item->Active = 0;
 }
 
-void Player_collect_leaf(item *Item) {
+void Player_collect_leaf(struct item *Item) {
 
   if (SavePlayer.Life == 1) {
 

@@ -2,7 +2,7 @@
 
 #include "enemies.h"
 
-typedef struct {
+struct boss {
   short X; // Xpos
   short Y; // Ypos
   char Active;
@@ -27,30 +27,29 @@ typedef struct {
                                // current kind of boss
   void (*Die)(void *Boss); // func pointer to the func that deals with the death
                            // secuence of the current kind of boss.
+};
 
-} boss;
-
-extern boss *BossG;
+extern struct boss *BossG;
 
 inline void Handlebosses();
 
-short Boss_free_down(boss *Boss);
+short Boss_free_down(struct boss *Boss);
 
-short Boss_free_up(boss *Boss);
+short Boss_free_up(struct boss *Boss);
 
-void Boss_handler_1(boss *Boss);
+void Boss_handler_1(struct boss *Boss);
 
-void Boss_handler_2(boss *Boss);
+void Boss_handler_2(struct boss *Boss);
 
-void Bowser_handler(boss *Boss);
+void Bowser_handler(struct boss *Boss);
 
 // void Dummy_boss(boss *Boss);
 
 // void Boss_dummy_h(boss *Boss);
 
-void Boss_die_1(boss *Boss);
+void Boss_die_1(struct boss *Boss);
 
-void Bowser_die(boss *Boss);
+void Bowser_die(struct boss *Boss);
 
 // void Boss_die_2(boss *Boss);
 

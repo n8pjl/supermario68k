@@ -1,10 +1,8 @@
-
-#ifndef __objects__
-#define __objects__
+#pragma once
 
 #define nr_of_objects 10
 
-typedef struct object {
+struct object {
   short X;
   short Y;
 
@@ -19,10 +17,10 @@ typedef struct object {
   //	void (*Handler)(void *Object);
   void (*Draw)(
       struct object *Object); // the function that draws the spesific object
-} object;
+};
 
 // extern object Objects[nr_of_objects];
-extern object *Objects;
+extern struct object *Objects;
 
 // void Handle_objects();
 // Using a macro to inline this func saved some bytes
@@ -42,7 +40,7 @@ extern object *Objects;
 
 // void Handle_killed_fireball(object *Object);
 
-void Handle_timed_coinconvert(object *Object);
+void Handle_timed_coinconvert(struct object *Object);
 
 // void Handle_elastic_tile(object *Object);
 
@@ -55,5 +53,3 @@ void Handle_timed_coinconvert(object *Object);
 void Splash(short X, short Y);
 
 short Find_free_object();
-
-#endif

@@ -281,7 +281,7 @@
 // doMenu(...,3) and its slot is followed by exactly 3 entries, main_menu as
 // doMenu(...,4) by 4. Slots with no reference in the code keep descriptive
 // names and are listed here only to hold the layout together.
-typedef struct {
+struct gametextdata {
   unsigned short main_menu;    // "Main menu:"
   unsigned short Save;         // "Save game:"
   unsigned short load_menu;    // "Load game:"
@@ -306,9 +306,9 @@ typedef struct {
   unsigned short LevelSetIncompatible; // "Levelset incompatible"
   unsigned short OverWrite;            // "Overwrite?"
   unsigned short KeyConfigTexts;       // "Buttons:"
-} gametextdata;
+};
 
-extern gametextdata GameTextData;
+extern struct gametextdata GameTextData;
 extern char *Texts;
 
 /*

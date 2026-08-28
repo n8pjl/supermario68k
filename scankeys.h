@@ -1,7 +1,6 @@
-#ifndef __scankeys__
-#define __scankeys__
+#pragma once
 
-typedef struct {
+struct keystate {
   short Enter;
   short Esc;
   short Jump;
@@ -15,14 +14,12 @@ typedef struct {
   //	short Fire;//not in use any more
 
   //	short Keydetect;//not neccessarry
-} keystate;
+};
 
-extern keystate Keystate, Previous_keystate;
+extern struct keystate Keystate, Previous_keystate;
 
 void WaitKeyReleased();
 
 void WaitKeyPress();
 
 void Scankeys();
-
-#endif

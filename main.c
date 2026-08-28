@@ -20,11 +20,25 @@
 
 // switch that gives warnings when inlineing fails: -Winline
 
+#include "compat/alloc.h"
+#include "compat/gray.h"
+#include "compat/kbd.h"
+#include "control.h"
+#include "custom.h"
+#include "error.h"
+#include "gameloop.h"
+#include "gfx.h"
+#include "items.h"
+#include "level.h"
+#include "menus.h"
+#include "render.h"
+#include "shells.h"
+#include "smallgames.h"
+#include <stdlib.h>
+
 #define Life_the_universe_and_everything 42
 
 // #define OPTIMIZE_ROM_CALLS // Use ROM Call Optimization
-
-#include "all.h" // Include All Header Files
 
 void *Block;
 void *Buffer; // pointer to video memory (gray doublebuffering mem and
@@ -126,17 +140,18 @@ int main(void) {
 
   //
   // Error: Memory possible
-  Items = (item *)malloc(
-      sizeof(item) * nr_of_items + sizeof(shell) * max_nr_of_shells +
-      sizeof(object) * nr_of_objects + 18); // 18 is for the card game
+  Items = (struct item *)malloc(sizeof(struct item) * nr_of_items +
+                                sizeof(struct shell) * max_nr_of_shells +
+                                sizeof(struct object) * nr_of_objects +
+                                18); // 18 is for the card game
 
   if (Items == NULL) {
     ErrorCode = 1;
     goto Quit; // OUT OF MEMORY, terminate
   }
 
-  Shells = (shell *)(Items + nr_of_items);
-  Objects = (object *)(Shells + max_nr_of_shells);
+  Shells = (struct shell *)(Items + nr_of_items);
+  Objects = (struct object *)(Shells + max_nr_of_shells);
   CardGame = (char *)(Objects + nr_of_objects);
 
   // Error: File(s) might be missing

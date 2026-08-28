@@ -18,8 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-leveldata Leveldata;
-map_data Map_data;
+struct leveldata Leveldata;
+struct map_data Map_data;
 struct levelsetdata Levelsetdata;
 
 char Levelfilename[9];
@@ -42,7 +42,7 @@ char Commonfilename[9];
 // and EY are bytes. The compressed foreground and the enemy, trigger and
 // platform arrays that follow the header are byte data too, which is why
 // mkdata.py leaves the level payloads alone.
-static void Swap_leveldata(leveldata *Data) {
+static void Swap_leveldata(struct leveldata *Data) {
 
   Data->Width = be16(Data->Width);
   Data->Height = be16(Data->Height);
@@ -65,7 +65,7 @@ static void Swap_leveldata(leveldata *Data) {
 short Load_level(char *Levelfile, short Level_nr) {
   SYM_ENTRY *Levelfile_sym;
   HANDLE Temp;
-  levelfiledata *Levelfileinfo;
+  struct levelfiledata *Levelfileinfo;
 
   // char buffer[20];
   short C, Byte;
@@ -97,9 +97,9 @@ short Load_level(char *Levelfile, short Level_nr) {
   // Not useable yet, need more modifications
   // memset(Items,0,sizeof(item)*nr_of_items+sizeof(shell)*max_nr_of_shells+sizeof(object)*nr_of_objects);
 
-  for (C = 0;
-       C < sizeof(item) * nr_of_items + sizeof(shell) * max_nr_of_shells +
-               sizeof(object) * nr_of_objects;
+  for (C = 0; C < sizeof(struct item) * nr_of_items +
+                      sizeof(struct shell) * max_nr_of_shells +
+                      sizeof(struct object) * nr_of_objects;
        C++)
     *(((char *)Items) + C) = 0;
 
@@ -145,10 +145,10 @@ if( !(Temp = Levelfile_sym->handle) ){
 
   void *RawData = HeapDeref(Temp) + 2;
   //	memcpy( &Levelfileinfo, HeapDeref (Temp)+2, sizeof(levelfiledata) );
-  Levelfileinfo = (levelfiledata *)(/*HeapDeref (Temp)+2*/ RawData);
+  Levelfileinfo = (struct levelfiledata *)(/*HeapDeref (Temp)+2*/ RawData);
   memcpy(&Leveldata,
          /*HeapDeref (Temp)+2*/ RawData + Levelfileinfo->Levels[Level_nr],
-         sizeof(leveldata));
+         sizeof(struct leveldata));
 
   Swap_leveldata(&Leveldata);
 
@@ -191,7 +191,7 @@ if( !(Temp = Levelfile_sym->handle) ){
   */
 
   void *Raw = /*HeapDeref (Temp)+2*/ RawData + Levelfileinfo->Levels[Level_nr] +
-              sizeof(leveldata);
+              sizeof(struct leveldata);
 
   // RLEDecompress(Level, HeapDeref (Temp)+2 + Levelfileinfo.Levels[Level_nr] +
   // sizeof(leveldata),/*(int)*/(Leveldata.Height*Leveldata.Width));//+(Leveldata.Height*Leveldata.Width)%2
@@ -776,14 +776,14 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
                  sizeof(struct enemy); // + Leveldata.Nr_of_triggers%2
 
   memcpy(Triggers, Raw,
-         Leveldata.Nr_of_triggers * sizeof(trigger)); // copy triggers
+         Leveldata.Nr_of_triggers * sizeof(struct trigger)); // copy triggers
 
   // Player.Test = Triggers[0].X;
 
-  Raw += Leveldata.Nr_of_triggers * sizeof(trigger);
+  Raw += Leveldata.Nr_of_triggers * sizeof(struct trigger);
 
   Flying_platforms = (void *)Triggers +
-                     Leveldata.Nr_of_triggers * sizeof(trigger) +
+                     Leveldata.Nr_of_triggers * sizeof(struct trigger) +
                      (Leveldata.Nr_of_triggers % 2); //
 
   // memset(Flying_platforms,0,sizeof(flying_platform)*Leveldata.Nr_of_flying_platforms);
@@ -1095,23 +1095,23 @@ void SetBg(short Bg_nr /*,HANDLE Temp*/) { // this func sets the pointer to th
 
   //	 HANDLE Temp = Bg_file_sym->handle;
 
-  bg_data Bg_data;
-  bg_filedata *Bg_fileinfo;
+  struct bg_data Bg_data;
+  struct bg_filedata *Bg_fileinfo;
 
   //	HANDLE Temp = Bg_file_sym_h;
 
   char *Raw = HeapDeref(Bg_file_sym_h) + 2;
 
   //	memcpy(&Bg_fileinfo,HeapDeref (Temp)+2,sizeof(bg_filedata));
-  Bg_fileinfo = (bg_filedata *)(Raw); // HeapDeref (Temp)+2);
+  Bg_fileinfo = (struct bg_filedata *)(Raw); // HeapDeref (Temp)+2);
   Raw += Bg_fileinfo->Backgrounds[Bg_nr];
   memcpy(&Bg_data,
          /*HeapDeref (Temp)+2*/ Raw /*+Bg_fileinfo->Backgrounds[Bg_nr]*/,
-         sizeof(bg_data));
+         sizeof(struct bg_data));
 
   Bg_plane.matrix =
       /*HeapDeref (Temp)+2*/ Raw /*+Bg_fileinfo->Backgrounds[Bg_nr]*/ +
-      sizeof(bg_data);
+      sizeof(struct bg_data);
   Bg_plane.width = Bg_data.Width;
   Bg_plane.force_update = 1;
   Leveldata.Bg_height = Bg_data.Height;
@@ -1153,8 +1153,8 @@ static void Swap_map_payload() {
 
   { // a map_trigger is fourteen shorts and nothing else
     short *Field = (short *)Map_triggers;
-    long Fields =
-        (long)Map_data.Nr_of_triggers * (sizeof(map_trigger) / sizeof(short));
+    long Fields = (long)Map_data.Nr_of_triggers *
+                  (sizeof(struct map_trigger) / sizeof(short));
 
     for (I = 0; I < Fields; I++)
       Field[I] = be16(Field[I]);
@@ -1179,7 +1179,7 @@ static void Swap_map_payload() {
 short Load_map(char *Levelfile) {
   SYM_ENTRY *Levelfile_sym;
   HANDLE Temp;
-  levelfiledata *Levelfileinfo;
+  struct levelfiledata *Levelfileinfo;
   short C;
 
   // Error: Map not found
@@ -1204,12 +1204,13 @@ if( !(Temp = Levelfile_sym->handle) ){
   //	memcpy( &Levelfileinfo, HeapDeref (Temp)+2, sizeof(levelfiledata) );
 
   void *RawData = HeapDeref(Temp) + 2;
-  Levelfileinfo = (levelfiledata *)(RawData /*HeapDeref (Temp)+2*/);
+  Levelfileinfo = (struct levelfiledata *)(RawData /*HeapDeref (Temp)+2*/);
 
   if (Levelfileinfo->Mode == 1) {
 
-    memcpy(&Map_data, RawData /*HeapDeref (Temp)+2*/ + sizeof(levelfiledata),
-           sizeof(map_data));
+    memcpy(&Map_data,
+           RawData /*HeapDeref (Temp)+2*/ + sizeof(struct levelfiledata),
+           sizeof(struct map_data));
 
     /*if(Map)
                   free(Map);*/
@@ -1221,8 +1222,8 @@ if( !(Temp = Levelfile_sym->handle) ){
     // Error: Memory
 
     if (!(Map = malloc(Map_data.Height * Map_data.Width +
-                       sizeof(map_trigger) * Map_data.Nr_of_triggers +
-                       sizeof(map_object) * (Map_data.Nr_of_objects)))) {
+                       sizeof(struct map_trigger) * Map_data.Nr_of_triggers +
+                       sizeof(struct map_object) * (Map_data.Nr_of_objects)))) {
       ErrorCode = 1;
       Exit = 3;
       return 1;
@@ -1233,17 +1234,17 @@ if( !(Temp = Levelfile_sym->handle) ){
     // );
 
     for (C = 0; C < Map_data.Height * Map_data.Width +
-                        Map_data.Nr_of_triggers * sizeof(map_trigger) +
-                        sizeof(map_object) * Map_data.Nr_of_objects;
+                        Map_data.Nr_of_triggers * sizeof(struct map_trigger) +
+                        sizeof(struct map_object) * Map_data.Nr_of_objects;
          C++)
       *(((char *)Map) + C) = 0; // optimizaton
 
     memcpy(Map,
-           RawData /*HeapDeref (Temp)+2*/ + sizeof(levelfiledata) +
-               sizeof(map_data),
+           RawData /*HeapDeref (Temp)+2*/ + sizeof(struct levelfiledata) +
+               sizeof(struct map_data),
            Map_data.Height * Map_data.Width +
-               sizeof(map_trigger) * Map_data.Nr_of_triggers +
-               sizeof(map_object) * (Map_data.Nr_of_objects - 3));
+               sizeof(struct map_trigger) * Map_data.Nr_of_triggers +
+               sizeof(struct map_object) * (Map_data.Nr_of_objects - 3));
 
     Map_plane.p.matrix = Map;
     Map_plane.p.width = Map_data.Width;
@@ -1261,8 +1262,8 @@ if( !(Temp = Levelfile_sym->handle) ){
   //(void*)
   Map_triggers = ((void *)Map + Map_data.Height * Map_data.Width);
 
-  Map_objects =
-      ((void *)Map_triggers + Map_data.Nr_of_triggers * sizeof(map_trigger));
+  Map_objects = ((void *)Map_triggers +
+                 Map_data.Nr_of_triggers * sizeof(struct map_trigger));
   // Map_objects = (void*)Map + Map_data.Height*Map_data.Width;
 
   Swap_map_payload();

@@ -1,6 +1,4 @@
-
-#ifndef __menus__
-#define __menus__
+#pragma once
 
 enum Menus {
   none = 0,
@@ -18,5 +16,3 @@ void Paste_saveslot_text(char *Buffer, char *Text);
 // void Paste_saveslot_text(char* Buffer,char* Text);//short L);
 
 #define nr_of_visible_options 4
-
-#endif

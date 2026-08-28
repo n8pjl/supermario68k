@@ -1,8 +1,8 @@
+#include "scankeys.h"
+#include "compat/kbd.h"
+#include "custom.h"
 
-
-#include "all.h"
-
-keystate Keystate, Previous_keystate;
+struct keystate Keystate, Previous_keystate;
 
 void WaitKeyReleased() {
   while (_rowread(0))

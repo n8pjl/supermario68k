@@ -44,9 +44,6 @@ DEPS = $(OBJS:.o=.d)
 
 # Filter out anything under compat/ from SRCS
 NON_COMPAT_SRCS = $(filter-out compat/%,$(SRCS))
-# Grab only top-level header files (excluding compat/*.h)
-NON_COMPAT_HDRS = $(wildcard *.h)
-
 .PHONY: all clean data FORCE
 
 all: $(TARGET)
@@ -79,8 +76,8 @@ $(TARGET): $(OBJS) .data-stamp Makefile
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-format: $(NON_COMPAT_SRCS) $(NON_COMPAT_HDRS)
-	clang-format --sort-includes -i $(NON_COMPAT_SRCS) $(NON_COMPAT_HDRS)
+format: $(NON_COMPAT_SRCS) $(HDRS)
+	clang-format --sort-includes -i $(NON_COMPAT_SRCS) $(HDRS)
 
 
 -include $(DEPS)

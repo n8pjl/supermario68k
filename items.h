@@ -1,6 +1,4 @@
-
-#ifndef __items__
-#define __items__
+#pragma once
 
 #define pow_item_time 300
 #define star_immortal_time 500
@@ -20,7 +18,7 @@
 #define score_1000 24 * 2
 #define score_1up 36 * 2
 
-typedef struct item {
+struct item {
   short X; // Xpos
   short Y; // Ypos
   short Height;
@@ -40,9 +38,8 @@ typedef struct item {
   unsigned short *Sprite;
   //	unsigned short* Mask;
   // void *Next;//removed. using array instead
-} item;
-
-typedef struct {
+};
+struct trigger {
   unsigned char X; // XY-pos of the trigger
   unsigned char Y;
   unsigned char NewX; // player's new pos
@@ -57,12 +54,12 @@ typedef struct {
                       // 5: flying up
   char NewBg;
   char NewBgOffset;
-} trigger;
+};
 
 // extern item Items[nr_of_items];
-extern item *Items;
+extern struct item *Items;
 
-extern trigger *Triggers;
+extern struct trigger *Triggers;
 
 extern unsigned short *Itemsprites;
 // extern unsigned short *Itemmasks;
@@ -79,15 +76,15 @@ void Player_collect_coin(short X, short Y);
 
 void Player_collect_flower(short X, short Y);
 
-void Player_collect_pu_mushrom(item *Item);
+void Player_collect_pu_mushrom(struct item *Item);
 
-void Player_collect_one_up_mushrom(item *Item);
+void Player_collect_one_up_mushrom(struct item *Item);
 
-void Player_collect_star(item *Item);
+void Player_collect_star(struct item *Item);
 
-void Player_collect_leaf(item *Item);
+void Player_collect_leaf(struct item *Item);
 
-void Player_collect_dead_boss(item *Item);
+void Player_collect_dead_boss(struct item *Item);
 
 void Trigger_pow_item(short X, short Y);
 
@@ -185,13 +182,13 @@ void Elastic_tile_animate(short X, short Y, unsigned char After, char Attribs,
 
 void Bonusbox_coin_animate(short X, short Y);
 
-void Mushrom_handler(item *Item);
+void Mushrom_handler(struct item *Item);
 
-void Leaf_handler(item *Item);
+void Leaf_handler(struct item *Item);
 
-void Star_handler(item *Item);
+void Star_handler(struct item *Item);
 
-void Dead_boss_handler(item *Item);
+void Dead_boss_handler(struct item *Item);
 
 short Find_free_item();
 
@@ -208,5 +205,3 @@ void Animate_out_of_wrapper(short T);
 void Levelend_handler(short X, short Y);
 
 void Add_dustsky(short X, short Y);
-
-#endif

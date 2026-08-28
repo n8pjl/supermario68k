@@ -1,6 +1,3 @@
-#ifndef __stringcopy__
-#define __stringcopy__
+#pragma once
 
 short StringCopy(char *dest, char *src);
-
-#endif

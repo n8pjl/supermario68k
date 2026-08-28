@@ -24,8 +24,8 @@
 char *Filenames;
 
 char Levelsetfile[9];
-map_object *Map_objects;
-map_trigger *Map_triggers;
+struct map_object *Map_objects;
+struct map_trigger *Map_triggers;
 
 char Move_map_objects;
 
@@ -253,7 +253,7 @@ void Gameloop() {
       Keystate.Jump  = 0;
       Keystate.Run   = 0;*/
 
-      memset(&Keystate, 0, sizeof(keystate));
+      memset(&Keystate, 0, sizeof(struct keystate));
     };
 
     Handle_player_map();

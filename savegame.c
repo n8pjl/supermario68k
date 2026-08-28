@@ -75,9 +75,9 @@ void Savegame(char Slot) {
   SavePlayer.MapColor = Map_data.Color;
 
   memcpy(TempBuffer /*Fg_plane.p.big_vscreen*/ + Size, &SavePlayer,
-         sizeof(saveplayer));
+         sizeof(struct saveplayer));
 
-  Size += sizeof(saveplayer);
+  Size += sizeof(struct saveplayer);
 
   // Map_data.Height*Map_data.Width+sizeof(map_trigger)*Map_data.Nr_of_triggers+sizeof(map_object)*(Map_data.Nr_of_objects)
   // ))
@@ -96,8 +96,8 @@ void Savegame(char Slot) {
   Size += (18 + 10);
 
   short MapSize = Map_data.Height * Map_data.Width +
-                  sizeof(map_trigger) * Map_data.Nr_of_triggers +
-                  sizeof(map_object) * Map_data.Nr_of_objects;
+                  sizeof(struct map_trigger) * Map_data.Nr_of_triggers +
+                  sizeof(struct map_object) * Map_data.Nr_of_objects;
 
   char *TempBuffer2 = Fg_mask.p.big_vscreen;
   memcpy(TempBuffer2 /*Fg_mask.p.big_vscreen*/, Map,
@@ -146,7 +146,7 @@ void Savegame(char Slot) {
   Map_data.Border_left = SavePlayer.MapBorderLeft;
   Map_data.Border_right = SavePlayer.MapBorderRight;
 
-  short Slotsize = sizeof(saveplayer) + 10 + 18 + RLESize;
+  short Slotsize = sizeof(struct saveplayer) + 10 + 18 + RLESize;
   Size += RLESize;
 
   ((struct levelsetdata *)TempBuffer /*Fg_plane.p.big_vscreen*/)
@@ -309,7 +309,7 @@ void Loadgame(char Slot /* , char* Raw0*/) {
 
   Raw += Levelsetdata.Savegames[(short)Slot];
 
-  Raw += sizeof(saveplayer);
+  Raw += sizeof(struct saveplayer);
 
   Levelsetdata.CurrentWorld = *(Raw + 9);
 
@@ -333,8 +333,8 @@ void Loadgame(char Slot /* , char* Raw0*/) {
   // Error: map not found
 
   short MapSize = Map_data.Height * Map_data.Width +
-                  sizeof(map_trigger) * Map_data.Nr_of_triggers +
-                  sizeof(map_object) * Map_data.Nr_of_objects;
+                  sizeof(struct map_trigger) * Map_data.Nr_of_triggers +
+                  sizeof(struct map_object) * Map_data.Nr_of_objects;
 
   // memset(Fg_plane.p.big_vscreen,0x0000,MapSize);
 
@@ -349,7 +349,7 @@ void Loadgame(char Slot /* , char* Raw0*/) {
   Raw += ((struct levelsetdata *)Raw)->Savegames[(short)Slot];
   // load player
 
-  memcpy(&SavePlayer, Raw, sizeof(saveplayer));
+  memcpy(&SavePlayer, Raw, sizeof(struct saveplayer));
 
   if (SavePlayer.Spritebase >= 2) { // large,fire or racoon
     Player.Height = Player.Height2 = 27;

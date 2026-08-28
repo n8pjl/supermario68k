@@ -1,12 +1,19 @@
-
-#include "all.h"
+#include "shells.h"
+#include "compat/extgraph.h"
+#include "compat/utils.h"
+#include "gfx.h"
+#include "items.h"
+#include "level.h"
+#include "objects.h"
+#include "player.h"
+#include "render.h"
 
 // shell Shells[max_nr_of_shells];
-shell *Shells;
+struct shell *Shells;
 
 // New: V 1.04 Added a function that adds killed shells, instead of repeated
 // code. Saved some bytes
-void Add_killed_shell(shell *Shell, short DirSpeed) {
+void Add_killed_shell(struct shell *Shell, short DirSpeed) {
   // Possible optimization: shange DirSpeed parameter to the 2nd X coordinate
   // that is used to determine the direction
   short O;
@@ -26,7 +33,7 @@ inline void Player_bounching_shell_hadler() {
   short Dist = 0;
 
   for (C = 0; C < max_nr_of_shells; C++) {
-    shell *Shell = &Shells[C];
+    struct shell *Shell = &Shells[C];
     if (/*Shells[C].*/ Shell->Active) { // test if Active(existing)
 
       if (/*Shells[C].*/ Shell->Count)
@@ -196,7 +203,7 @@ inline void Player_bounching_shell_hadler() {
         // test if collide with each other
         for (D = 0; D < max_nr_of_shells; D++) {
           if (C != D) {
-            shell *Shell2 = &Shells[D];
+            struct shell *Shell2 = &Shells[D];
             if (BOUNDS_COLLIDE16(
                     /*Shells[C].*/ Shell->X, /*Shells[C].*/ Shell->Y,
                     /*Shells[D].*/ Shell2->X, /*Shells[D].*/ Shell2->Y) &&
@@ -247,7 +254,7 @@ void Add_shell(/*short X,short Y,*/ short Dir, char Type, struct enemy *Enemy) {
 
   for (C = 0; C < max_nr_of_shells; C++) { // loop through array of shells
     if (!(Shells[C].Active)) {             // free space ?
-      shell *Shell = &Shells[C];
+      struct shell *Shell = &Shells[C];
 
       Shell->X = Enemy->X; // add shell
       Shell->Y = Enemy->Y;

@@ -1,6 +1,4 @@
-
-#ifndef __map__
-#define __map__
+#pragma once
 
 #include <stddef.h> //offsetof, for the layout assertions below
 
@@ -29,7 +27,7 @@
 extern char Move_map_objects;
 extern unsigned char Treasure;
 
-typedef struct {
+struct map_data {
   short Width;
   short Height;
 
@@ -55,8 +53,7 @@ typedef struct {
   // 2: Dark world
 
   short Spare; // For future purposes
-
-} map_data;
+};
 
 // Load_map() casts this straight onto the map file's bytes, so its layout is
 // the file format and has to stay the 68000's: that ABI aligns a long to 2, so
@@ -65,7 +62,7 @@ typedef struct {
 // up to 24 - every field past Treasure read from the wrong bytes, drifting a
 // further 2 per object. This is the only structure read from a file that has
 // pointers in it, and so the only one where the two ABIs disagree.
-typedef struct {
+struct map_object {
   short X;
   short Y;
 
@@ -82,18 +79,18 @@ typedef struct {
   unsigned short *Sprite;
   unsigned short *Mask;
 
-} __attribute__((packed)) map_object;
+} __attribute__((packed));
 
-_Static_assert(offsetof(map_object, Handler) == 10,
+_Static_assert(offsetof(struct map_object, Handler) == 10,
                "map_object must match the file's 68K layout");
-_Static_assert(offsetof(map_object, Sprite) == 14,
+_Static_assert(offsetof(struct map_object, Sprite) == 14,
                "map_object must match the file's 68K layout");
-_Static_assert(offsetof(map_object, Mask) == 18,
+_Static_assert(offsetof(struct map_object, Mask) == 18,
                "map_object must match the file's 68K layout");
-_Static_assert(sizeof(map_object) == 22,
+_Static_assert(sizeof(struct map_object) == 22,
                "map_object must match the file's 68K layout");
 
-typedef struct {
+struct map_trigger {
   short X; // XY-pos of the trigger
   short Y;
   short NewX; // player's new pos
@@ -114,10 +111,9 @@ typedef struct {
   // 0: Bright ground (grass/desert)
   // 1: White ground (Sky)
   // 2: Dark world
+};
 
-} map_trigger;
-
-_Static_assert(sizeof(map_trigger) == 28,
+_Static_assert(sizeof(struct map_trigger) == 28,
                "map_trigger must match the file's layout");
 
 /*
@@ -148,9 +144,9 @@ enum Maptiles {
   locked_door_2 = 97,
 };
 
-extern map_data Map_data;
-extern map_trigger *Map_triggers;
-extern map_object *Map_objects;
+extern struct map_data Map_data;
+extern struct map_trigger *Map_triggers;
+extern struct map_object *Map_objects;
 
 unsigned char Get_map_tile(short X, short Y);
 
@@ -160,17 +156,17 @@ inline void Handle_player_map();
 
 inline void Handle_map_objects();
 
-void Handle_boat(map_object *Ship);
+void Handle_boat(struct map_object *Ship);
 
-void Handle_ship(map_object *Ship);
+void Handle_ship(struct map_object *Ship);
 
-void Handle_map_monster(map_object *Monster);
+void Handle_map_monster(struct map_object *Monster);
 
-void Enter_enemy_ship(map_object *Ship);
+void Enter_enemy_ship(struct map_object *Ship);
 
 void Enter_mushrom_house(unsigned char Treasure);
 
-void Fight_monster(map_object *Monster);
+void Fight_monster(struct map_object *Monster);
 
 void Enter_map_anim();
 
@@ -194,5 +190,3 @@ void Add_money_ship();
 void Add_card_game();
 */
 void Add_map_event(unsigned char Event);
-
-#endif

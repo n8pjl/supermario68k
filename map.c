@@ -727,7 +727,7 @@ void Enter_mushrom_house(unsigned char Treasure) {
   Exit = 0;
 };
 
-void Enter_enemy_ship(map_object *Ship) {
+void Enter_enemy_ship(struct map_object *Ship) {
   short OldFgX, OldFgY, C;
 
   Load_level(Levelfilename, 7);
@@ -982,7 +982,7 @@ void Put_map_tile(short X, short Y, unsigned char Tile) {
       Tile;
 }
 
-void Handle_boat(map_object *Boat) {
+void Handle_boat(struct map_object *Boat) {
 
   short Dx = 0, Dy = 0;
 
@@ -1020,8 +1020,7 @@ void Handle_boat(map_object *Boat) {
   };
 }
 
-void Handle_ship(map_object *Ship) {
-
+void Handle_ship(struct map_object *Ship) {
   if (Ship->Data0 == -4)
     Ship->Data1 = 1;
   if (Ship->Data0 == 4)
@@ -1031,7 +1030,7 @@ void Handle_ship(map_object *Ship) {
   Ship->Data0 += Ship->Data1;
 }
 
-void Handle_map_monster(map_object *Monster) {
+void Handle_map_monster(struct map_object *Monster) {
   short C;
 
   C = 0;
@@ -1213,7 +1212,7 @@ void Enter_level_anim() {
   // asm("%d2"),register short y2 asm("%d3"),short mode)
 };
 
-void Fight_monster(map_object *Monster) {
+void Fight_monster(struct map_object *Monster) {
   short OldFgX, OldFgY, C;
 
   Load_level(Commonfilename, Monster->Mode - 1);

@@ -1,9 +1,17 @@
+#include "player.h"
+#include "bounch.h"
+#include "compat/utils.h"
+#include "control.h"
+#include "flying.h"
+#include "items.h"
+#include "level.h"
+#include "render.h"
+#include "scankeys.h"
+#include "smallgames.h"
+#include <string.h>
 
-
-#include "all.h"
-
-player Player;
-saveplayer SavePlayer;
+struct player Player;
+struct saveplayer SavePlayer;
 
 // smallshot Player_smallshots[nr_of_player_smallshots];
 struct shot Player_smallshots[nr_of_player_smallshots];
@@ -154,8 +162,8 @@ void (*Bonushandlers[20])(short X, short Y) = {Player_collect_coin,
 // be fetched from graphics file in Loadgfx()
 
 void Playerinit() {
-  memset(&Player, 0, sizeof(player));
-  memset(&SavePlayer, 0, sizeof(saveplayer));
+  memset(&Player, 0, sizeof(struct player));
+  memset(&SavePlayer, 0, sizeof(struct saveplayer));
   SavePlayer.Life = 1; // 2;
   SavePlayer.Lives = 98;
 

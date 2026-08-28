@@ -42,31 +42,29 @@
 // unroll all 15 words of a row, but the result is the same. Reading each
 // source word twice is the cost of writing it plainly; it stays within one
 // cache line and this is not the hot path.
-static unsigned vs_word(const unsigned char *row, short k, unsigned shift)
-{
-	unsigned w0 = ((unsigned)row[k] << 8) | row[k + 1];
-	unsigned w1;
+static unsigned vs_word(const unsigned char *row, short k, unsigned shift) {
+  unsigned w0 = ((unsigned)row[k] << 8) | row[k + 1];
+  unsigned w1;
 
-	if (!shift)
-		return w0;
-	w1 = ((unsigned)row[k + 2] << 8) | row[k + 3];
-	return ((w0 << shift) | (w1 >> (16 - shift))) & 0xFFFF;
+  if (!shift)
+    return w0;
+  w1 = ((unsigned)row[k + 2] << 8) | row[k + 3];
+  return ((w0 << shift) | (w1 >> (16 - shift))) & 0xFFFF;
 }
 
 // Split the window origin into the source offset and the residual shift the
 // stitch above needs. The callers guarantee 0 <= x, y < 32; the whole word of
 // horizontal offset is folded into the pointer, leaving 0..15 to shift.
 static const unsigned char *vs_window(const void *src, unsigned short x,
-				      unsigned short y, unsigned *shift)
-{
-	const unsigned char *s = (const unsigned char *)src + y * VS_STRIDE;
+                                      unsigned short y, unsigned *shift) {
+  const unsigned char *s = (const unsigned char *)src + y * VS_STRIDE;
 
-	*shift = x;
-	if (*shift >= 16) {
-		s += 2;
-		*shift -= 16;
-	}
-	return s;
+  *shift = x;
+  if (*shift >= 16) {
+    s += 2;
+    *shift -= 16;
+  }
+  return s;
 }
 
 // Mono buffer blitter used for the foreground mask plane: AND a scrolled
@@ -78,22 +76,20 @@ static const unsigned char *vs_window(const void *src, unsigned short x,
 // 30-byte plane row either way. Sized from LCD_LINE_BYTES/LCD_HEIGHT, one
 // function covers both.
 void DrawBuffer_MASK(const void *src, unsigned short x, unsigned short y,
-		     void *dest)
-{
-	unsigned shift;
-	const unsigned char *s = vs_window(src, x, y, &shift);
-	unsigned char *d = (unsigned char *)dest;
-	short row, k;
+                     void *dest) {
+  unsigned shift;
+  const unsigned char *s = vs_window(src, x, y, &shift);
+  unsigned char *d = (unsigned char *)dest;
+  short row, k;
 
-	for (row = 0; row < LCD_HEIGHT; row++, s += VS_STRIDE,
-					      d += PLANE_STRIDE) {
-		for (k = 0; k < LCD_LINE_BYTES; k += 2) {
-			unsigned w = vs_word(s, k, shift);
+  for (row = 0; row < LCD_HEIGHT; row++, s += VS_STRIDE, d += PLANE_STRIDE) {
+    for (k = 0; k < LCD_LINE_BYTES; k += 2) {
+      unsigned w = vs_word(s, k, shift);
 
-			d[k] &= (unsigned char)(w >> 8);
-			d[k + 1] &= (unsigned char)w;
-		}
-	}
+      d[k] &= (unsigned char)(w >> 8);
+      d[k + 1] &= (unsigned char)w;
+    }
+  }
 }
 
 // Gray buffer blitters: copy a scrolled window of the gray big virtual screen
@@ -106,46 +102,42 @@ void DrawBuffer_MASK(const void *src, unsigned short x, unsigned short y,
 // allocates the two planes back to back. Here they take the two planes the
 // game's own macros already pass separately, which does not assume that.
 static void gray_blit(const void *src, unsigned short x, unsigned short y,
-		      void *lightplane, void *darkplane, short combine)
-{
-	unsigned shift;
-	const unsigned char *s = vs_window(src, x, y, &shift);
-	unsigned char *dl = (unsigned char *)lightplane;
-	unsigned char *dd = (unsigned char *)darkplane;
-	short row, k;
+                      void *lightplane, void *darkplane, short combine) {
+  unsigned shift;
+  const unsigned char *s = vs_window(src, x, y, &shift);
+  unsigned char *dl = (unsigned char *)lightplane;
+  unsigned char *dd = (unsigned char *)darkplane;
+  short row, k;
 
-	for (row = 0; row < LCD_HEIGHT; row++, s += VS_STRIDE,
-					      dl += PLANE_STRIDE,
-					      dd += PLANE_STRIDE) {
-		for (k = 0; k < LCD_LINE_BYTES; k += 2) {
-			unsigned l = vs_word(s, k, shift);
-			unsigned d = vs_word(s + VS_SIZE, k, shift);
+  for (row = 0; row < LCD_HEIGHT;
+       row++, s += VS_STRIDE, dl += PLANE_STRIDE, dd += PLANE_STRIDE) {
+    for (k = 0; k < LCD_LINE_BYTES; k += 2) {
+      unsigned l = vs_word(s, k, shift);
+      unsigned d = vs_word(s + VS_SIZE, k, shift);
 
-			if (combine) {
-				dl[k] |= (unsigned char)(l >> 8);
-				dl[k + 1] |= (unsigned char)l;
-				dd[k] |= (unsigned char)(d >> 8);
-				dd[k + 1] |= (unsigned char)d;
-			} else {
-				dl[k] = (unsigned char)(l >> 8);
-				dl[k + 1] = (unsigned char)l;
-				dd[k] = (unsigned char)(d >> 8);
-				dd[k + 1] = (unsigned char)d;
-			}
-		}
-	}
+      if (combine) {
+        dl[k] |= (unsigned char)(l >> 8);
+        dl[k + 1] |= (unsigned char)l;
+        dd[k] |= (unsigned char)(d >> 8);
+        dd[k + 1] |= (unsigned char)d;
+      } else {
+        dl[k] = (unsigned char)(l >> 8);
+        dl[k + 1] = (unsigned char)l;
+        dd[k] = (unsigned char)(d >> 8);
+        dd[k + 1] = (unsigned char)d;
+      }
+    }
+  }
 }
 
 void DrawGrayBuffer2B_RPLC(const void *src, unsigned short x, unsigned short y,
-			   void *lightplane, void *darkplane)
-{
-	gray_blit(src, x, y, lightplane, darkplane, 0);
+                           void *lightplane, void *darkplane) {
+  gray_blit(src, x, y, lightplane, darkplane, 0);
 }
 
 void DrawGrayBuffer2B_OR(const void *src, unsigned short x, unsigned short y,
-			 void *lightplane, void *darkplane)
-{
-	gray_blit(src, x, y, lightplane, darkplane, 1);
+                         void *lightplane, void *darkplane) {
+  gray_blit(src, x, y, lightplane, darkplane, 1);
 }
 
 // Render the 17x10 tiles starting at map tile (col0, row0) into the big
@@ -164,43 +156,42 @@ void DrawGrayBuffer2B_OR(const void *src, unsigned short x, unsigned short y,
 // one running destination pointer and step the map pointer by `width` per row.
 // Indexing both directly is the same traversal without the bookkeeping.
 static void refresh_buffer16b(const unsigned char *matrix, unsigned short width,
-			      short col0, short row0,
-			      const unsigned short *sprites,
-			      const unsigned short *anim, unsigned char *buf,
-			      short wrap, short gray)
-{
-	short col, row, r;
+                              short col0, short row0,
+                              const unsigned short *sprites,
+                              const unsigned short *anim, unsigned char *buf,
+                              short wrap, short gray) {
+  short col, row, r;
 
-	for (col = 0; col < VS_COLS; col++) {
-		short mc = col0 + col;
+  for (col = 0; col < VS_COLS; col++) {
+    short mc = col0 + col;
 
-		if (wrap)
-			mc %= wrap;
+    if (wrap)
+      mc %= wrap;
 
-		for (row = 0; row < VS_ROWS; row++) {
-			unsigned n = matrix[(row0 + row) * width + mc];
-			const unsigned short *t;
-			unsigned char *p;
+    for (row = 0; row < VS_ROWS; row++) {
+      unsigned n = matrix[(row0 + row) * width + mc];
+      const unsigned short *t;
+      unsigned char *p;
 
-			if (anim)
-				n = anim[n];
-			t = sprites + (gray ? 32 : 16) * n;
-			p = buf + row * 16 * VS_STRIDE + col * 2;
+      if (anim)
+        n = anim[n];
+      t = sprites + (gray ? 32 : 16) * n;
+      p = buf + row * 16 * VS_STRIDE + col * 2;
 
-			for (r = 0; r < 16; r++, p += VS_STRIDE) {
-				unsigned l = gray ? t[2 * r] : t[r];
+      for (r = 0; r < 16; r++, p += VS_STRIDE) {
+        unsigned l = gray ? t[2 * r] : t[r];
 
-				p[0] = (unsigned char)(l >> 8);
-				p[1] = (unsigned char)l;
-				if (gray) {
-					unsigned d = t[2 * r + 1];
+        p[0] = (unsigned char)(l >> 8);
+        p[1] = (unsigned char)l;
+        if (gray) {
+          unsigned d = t[2 * r + 1];
 
-					p[VS_SIZE] = (unsigned char)(d >> 8);
-					p[VS_SIZE + 1] = (unsigned char)d;
-				}
-			}
-		}
-	}
+          p[VS_SIZE] = (unsigned char)(d >> 8);
+          p[VS_SIZE + 1] = (unsigned char)d;
+        }
+      }
+    }
+  }
 }
 
 // The buffer holds the map from tile (2*(x/32), 2*(y/32)) on, so it stays
@@ -208,36 +199,35 @@ static void refresh_buffer16b(const unsigned char *matrix, unsigned short width,
 // and the blitters take the leftover 0..31 pixels as their window origin. The
 // distance tests catch a jump that skipped over a boundary without changing
 // bit 5. `reserved` is the Plane field the engine keeps that last origin in.
-static short plane_stale(const Plane *plane, unsigned short x, unsigned short y)
-{
-	short ox = (short)((unsigned long)plane->reserved >> 16);
-	short oy = (short)((unsigned long)plane->reserved & 0xFFFF);
-	short dx = (short)(ox - (short)x);
-	short dy = (short)(oy - (short)y);
+static short plane_stale(const struct Plane *plane, unsigned short x,
+                         unsigned short y) {
+  short ox = (short)((unsigned long)plane->reserved >> 16);
+  short oy = (short)((unsigned long)plane->reserved & 0xFFFF);
+  short dx = (short)(ox - (short)x);
+  short dy = (short)(oy - (short)y);
 
-	if (plane->force_update)
-		return 1;
-	if (dx < 0)
-		dx = -dx;
-	if (dy < 0)
-		dy = -dy;
-	return dx >= 32 || dy >= 32 ||
-	       ((ox ^ (short)x) & 32) || ((oy ^ (short)y) & 32);
+  if (plane->force_update)
+    return 1;
+  if (dx < 0)
+    dx = -dx;
+  if (dy < 0)
+    dy = -dy;
+  return dx >= 32 || dy >= 32 || ((ox ^ (short)x) & 32) ||
+         ((oy ^ (short)y) & 32);
 }
 
-static void plane_refresh(Plane *plane, unsigned short x, unsigned short y,
-			  const unsigned short *anim, short wrap, short gray)
-{
-	plane->force_update = 0;
-	refresh_buffer16b((const unsigned char *)plane->matrix, plane->width,
-			  (short)(2 * (x >> 5)), (short)(2 * (y >> 5)),
-			  (const unsigned short *)plane->sprites, anim,
-			  (unsigned char *)plane->big_vscreen, wrap, gray);
+static void plane_refresh(struct Plane *plane, unsigned short x, unsigned short y,
+                          const unsigned short *anim, short wrap, short gray) {
+  plane->force_update = 0;
+  refresh_buffer16b((const unsigned char *)plane->matrix, plane->width,
+                    (short)(2 * (x >> 5)), (short)(2 * (y >> 5)),
+                    (const unsigned short *)plane->sprites, anim,
+                    (unsigned char *)plane->big_vscreen, wrap, gray);
 }
 
-static void plane_remember(Plane *plane, unsigned short x, unsigned short y)
-{
-	plane->reserved = (long)(((unsigned long)x << 16) | (unsigned short)y);
+static void plane_remember(struct Plane *plane, unsigned short x,
+                           unsigned short y) {
+  plane->reserved = (long)(((unsigned long)x << 16) | (unsigned short)y);
 }
 
 // Advance the animation one frame, and say whether the step changed - which is
@@ -248,30 +238,27 @@ static void plane_remember(Plane *plane, unsigned short x, unsigned short y)
 // of nb_step steps, wrapping. Note that the game drives the foreground mask
 // through here twice a frame, once per plane, and compensates by giving it
 // double the step_length of the foreground it has to stay in step with.
-static short plane_animate(AnimatedPlane *plane)
-{
-	if (++plane->frame != plane->step_length)
-		return 0;
-	plane->frame = 0;
-	if (++plane->step == plane->nb_step)
-		plane->step = 0;
-	return 1;
+static short plane_animate(struct AnimatedPlane *plane) {
+  if (++plane->frame != plane->step_length)
+    return 0;
+  plane->frame = 0;
+  if (++plane->step == plane->nb_step)
+    plane->step = 0;
+  return 1;
 }
 
 // The current step's row of the animation table: nb_anim words per step.
-static const unsigned short *anim_row(const AnimatedPlane *plane)
-{
-	return (const unsigned short *)plane->tabanim +
-	       (unsigned)plane->nb_anim * (unsigned)plane->step;
+static const unsigned short *anim_row(const struct AnimatedPlane *plane) {
+  return (const unsigned short *)plane->tabanim +
+         (unsigned)plane->nb_anim * (unsigned)plane->step;
 }
 
-void DrawGrayPlane16B2B(unsigned short x, unsigned short y, Plane *plane,
-			void *lightplane, void *darkplane, TM_GrayMode mode)
-{
-	if (plane_stale(plane, x, y))
-		plane_refresh(plane, x, y, NULL, 0, 1);
-	plane_remember(plane, x, y);
-	mode(plane->big_vscreen, x & 31, y & 31, lightplane, darkplane);
+void DrawGrayPlane16B2B(unsigned short x, unsigned short y, struct Plane *plane,
+                        void *lightplane, void *darkplane, TM_GrayMode mode) {
+  if (plane_stale(plane, x, y))
+    plane_refresh(plane, x, y, NULL, 0, 1);
+  plane_remember(plane, x, y);
+  mode(plane->big_vscreen, x & 31, y & 31, lightplane, darkplane);
 }
 
 // The game's own scrolling variant of the above, which it uses for the
@@ -285,13 +272,13 @@ void DrawGrayPlane16B2B(unsigned short x, unsigned short y, Plane *plane,
 // clamps that would otherwise be needed are commented out, while the matching
 // vertical clamp on BgY is still live - so the horizontal wrap, and only the
 // horizontal one, moved into this function.
-void DrawGrayPlane16B2B_ROLL(unsigned short x, unsigned short y, Plane *plane,
-			     void *lightplane, void *darkplane, TM_GrayMode mode)
-{
-	if (plane_stale(plane, x, y))
-		plane_refresh(plane, x, y, NULL, (short)plane->width, 1);
-	plane_remember(plane, x, y);
-	mode(plane->big_vscreen, x & 31, y & 31, lightplane, darkplane);
+void DrawGrayPlane16B2B_ROLL(unsigned short x, unsigned short y,
+                             struct Plane *plane, void *lightplane,
+                             void *darkplane, TM_GrayMode mode) {
+  if (plane_stale(plane, x, y))
+    plane_refresh(plane, x, y, NULL, (short)plane->width, 1);
+  plane_remember(plane, x, y);
+  mode(plane->big_vscreen, x & 31, y & 31, lightplane, darkplane);
 }
 
 // Mono animated plane, used for the foreground mask: the tiles that punch the
@@ -302,21 +289,20 @@ void DrawGrayPlane16B2B_ROLL(unsigned short x, unsigned short y, Plane *plane,
 // gets a look in on the frames that do not step - which is what the original
 // does, checking the animation first and branching straight to the refresh.
 void DrawAnimatedPlane16B(unsigned short x, unsigned short y,
-			  AnimatedPlane *plane, void *dest, TM_Mode mode)
-{
-	if (plane_animate(plane) || plane_stale(&plane->p, x, y))
-		plane_refresh(&plane->p, x, y, anim_row(plane), 0, 0);
-	plane_remember(&plane->p, x, y);
-	mode(plane->p.big_vscreen, x & 31, y & 31, dest);
+                          struct AnimatedPlane *plane, void *dest,
+                          TM_Mode mode) {
+  if (plane_animate(plane) || plane_stale(&plane->p, x, y))
+    plane_refresh(&plane->p, x, y, anim_row(plane), 0, 0);
+  plane_remember(&plane->p, x, y);
+  mode(plane->p.big_vscreen, x & 31, y & 31, dest);
 }
 
 // Gray animated plane: the foreground layer itself, and the world map.
 void DrawGrayAnimatedPlane16B2B(unsigned short x, unsigned short y,
-				AnimatedPlane *plane, void *lightplane,
-				void *darkplane, TM_GrayMode mode)
-{
-	if (plane_animate(plane) || plane_stale(&plane->p, x, y))
-		plane_refresh(&plane->p, x, y, anim_row(plane), 0, 1);
-	plane_remember(&plane->p, x, y);
-	mode(plane->p.big_vscreen, x & 31, y & 31, lightplane, darkplane);
+                                struct AnimatedPlane *plane, void *lightplane,
+                                void *darkplane, TM_GrayMode mode) {
+  if (plane_animate(plane) || plane_stale(&plane->p, x, y))
+    plane_refresh(&plane->p, x, y, anim_row(plane), 0, 1);
+  plane_remember(&plane->p, x, y);
+  mode(plane->p.big_vscreen, x & 31, y & 31, lightplane, darkplane);
 }

@@ -1,7 +1,4 @@
-
-
-#ifndef __smallgames__
-#define __smallgames__
+#pragma once
 
 extern char *CardGame;
 
@@ -12,5 +9,3 @@ void Enter_game_house();
 void New_card_game();
 
 void Play_card_game();
-
-#endif

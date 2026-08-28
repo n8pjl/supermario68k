@@ -1,6 +1,11 @@
 
 
-#include "all.h"
+#include "titlescreen.h"
+#include "control.h"
+#include "gfx.h"
+#include "level.h"
+#include "render.h"
+#include "scankeys.h"
 
 short Show_titlescreen() { // New: V 1.01 Changed return type from void to short
   short C, H = 19;

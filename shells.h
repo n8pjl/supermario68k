@@ -1,6 +1,4 @@
-
-#ifndef __shells__
-#define __shells__
+#pragma once
 
 #define shell_speed 3
 // 3
@@ -16,7 +14,7 @@
 #define BoundsCollide2(x0, y0, h0, w0, x1, y1, h1, w1)                         \
   (((x0 + w0) > x1) && ((x1 + w1) > x0) && ((y0 + h0) > y1) && ((y1 + h1) > y0))
 
-typedef struct {
+struct shell {
   short X;
   short Y;
   /*
@@ -36,9 +34,9 @@ typedef struct {
 
   struct enemy
       *Enemy; // Pointer to the enemy that might resurrect from this shell
-} shell;
+};
 
-extern shell *Shells;
+extern struct shell *Shells;
 
 void Player_bounching_shell_hadler();
 
@@ -46,6 +44,4 @@ void Add_shell(/*short X,short Y,*/ short Dir, char Type, struct enemy *Enemy);
 
 // void Handle_collided_shells(object* Object);
 
-void Add_killed_shell(shell *Shell, short DirSpeed);
-
-#endif
+void Add_killed_shell(struct shell *Shell, short DirSpeed);

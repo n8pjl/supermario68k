@@ -1,6 +1,14 @@
-
-
-#include "all.h"
+#include "smallgames.h"
+#include "compat/extgraph.h"
+#include "compat/graph.h"
+#include "gfx.h"
+#include "items.h"
+#include "player.h"
+#include "render.h"
+#include "scankeys.h"
+#include "stringcopy.h"
+#include <stdlib.h>
+#include <string.h>
 
 char *CardGame;
 
@@ -174,7 +182,7 @@ void Enter_game_house() {
         break;
       case 1:
         // Stopping = (Find_stop_pos(X2) - X2) - 176;//denne virker nesten: noen
-        // få pixler for langt til høyre
+        // fï¿½ pixler for langt til hï¿½yre
         Stopping =
             -(176 + (X2 - Find_stop_pos(X2))); //(Find_stop_pos(X2) - X2) - 176;
 

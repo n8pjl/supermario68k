@@ -1,5 +1,5 @@
-
-#include "all.h"
+#include "stringcopy.h"
+#include <string.h>
 
 // StringCopy copies the string at dest to src, returning the length of the
 // string, including the null termination character This was made to replace

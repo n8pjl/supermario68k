@@ -235,7 +235,7 @@ enum Tiles {
   bounching_brick = 227
 };
 
-typedef struct {
+struct leveldata {
   short Width;
   short Height;
   //	short Bg_width;
@@ -275,10 +275,9 @@ typedef struct {
 
   short Spare1; // For future purposes
   short Spare2; // For future purposes
+};
 
-} leveldata;
-
-typedef struct {
+struct levelfiledata {
   short Nr_of_levels;
   // TIGCC compiles with 16-bit int (-mshort); this field is 2 bytes in the
   // data files, so it must stay 16-bit here or every level offset shifts.
@@ -291,21 +290,21 @@ typedef struct {
   // more to come
   char Mode;
   char Name[20]; // name of the levelset
-} levelfiledata;
+};
 
-typedef struct {
+struct bg_data {
   short Height;
   short Width;
-} bg_data;
+};
 
-typedef struct {
+struct bg_filedata {
   char Nr_of_bgs;
 
   unsigned short Backgrounds[20]; // holds the offset from start of file to
                                   // start of the bg_struct
 
   unsigned short Size;
-} bg_filedata;
+};
 
 extern char *Level, *Map;
 
@@ -320,7 +319,7 @@ short Load_map(char *Levelfile);
 
 void Free(void *Mem);
 
-extern leveldata Leveldata;
+extern struct leveldata Leveldata;
 
 extern char Levelfilename[9];
 extern char Commonfilename[9];

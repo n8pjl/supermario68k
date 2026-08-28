@@ -9,9 +9,11 @@ An object can be: fragments of crushed bricks, dead enemy flying through the
 air, animations etc,
 */
 
-#include "all.h"
+#include "objects.h"
+#include "items.h"
+#include "render.h"
 
-object *Objects;
+struct object *Objects;
 
 /*
 inline void Handle_objects(){
@@ -69,7 +71,7 @@ void Handle_killed_fireball(object *Object){
 
 };*/
 
-void Handle_timed_coinconvert(object *Object) {
+void Handle_timed_coinconvert(struct object *Object) {
   Object->X++;
 
   if (Object->X >= pow_item_time) {

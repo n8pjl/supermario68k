@@ -24,21 +24,21 @@
 
 enum fileMode { FM_CLOSED = 0, FM_READ = 1, FM_WRITE = 2, FM_APPEND = 3 };
 enum FileStatusEnum {
-	FS_OK = 0x0000,
-	FS_EOF = 0xFFFF,
-	FS_ERROR = 0xFFFE,
-	FS_BAD_NAME = 0xFFFD,
-	FS_MEMORY = 0xFFFC,
-	FS_NOT_FOUND = 0xFFFB
+  FS_OK = 0x0000,
+  FS_EOF = 0xFFFF,
+  FS_ERROR = 0xFFFE,
+  FS_BAD_NAME = 0xFFFD,
+  FS_MEMORY = 0xFFFC,
+  FS_NOT_FOUND = 0xFFFB
 };
 
 // Field layout mirrors TIGCC's vat.h; only `name` and `handle` are ever read
 // by the game, but the rest is kept so the struct stays recognisable.
 typedef struct {
-	char name[8];
-	unsigned short compat;
-	unsigned short flags;
-	HANDLE handle;
+  char name[8];
+  unsigned short compat;
+  unsigned short flags;
+  HANDLE handle;
 } SYM_ENTRY;
 
 typedef const char *SYM_STR;
@@ -48,12 +48,12 @@ typedef const char *SYM_STR;
 #define SYMSTR(s) ((SYM_STR)(s))
 
 typedef struct {
-	char name[9];
-	char tag[8];
-	unsigned char *buf;
-	size_t len;
-	size_t cap;
-	short mode;
+  char name[9];
+  char tag[8];
+  unsigned char *buf;
+  size_t len;
+  size_t cap;
+  short mode;
 } FILES;
 
 SYM_ENTRY *SymFindPtr(SYM_STR name, short flags);

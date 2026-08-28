@@ -9,7 +9,7 @@
 
 // SYM_ENTRY *Tilefile_sym, *Spritefile_sym, *Bg_file_sym, *TextFile_sym;
 HANDLE Tilefile_sym_h, Spritefile_sym_h, Bg_file_sym_h, TextFile_sym_h;
-gametextdata GameTextData;
+struct gametextdata GameTextData;
 char *Texts;
 
 inline short
@@ -23,10 +23,10 @@ Load_gfx_from_file() { // sets up the pointers to gfx arrays in external files
     return 7; // error "failed to open txt file"
   }
 
-  Texts = HeapDeref(/*Temp*/ TextFile_sym_h) + sizeof(gametextdata) + 2;
+  Texts = HeapDeref(/*Temp*/ TextFile_sym_h) + sizeof(struct gametextdata) + 2;
 
-  memcpy(&GameTextData, Texts - sizeof(gametextdata),
-         sizeof(gametextdata)); // same as above, but a little smaller
+  memcpy(&GameTextData, Texts - sizeof(struct gametextdata),
+         sizeof(struct gametextdata)); // same as above, but a little smaller
 
   // New: V 1.01 Changed "ma_tiles" to "mario\\ma_tiles"
   if (!(Temp = Tilefile_sym_h = File_get_pointer_and_lock("mario\\ma_tiles"))) {

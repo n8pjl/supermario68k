@@ -1,6 +1,5 @@
-
-
-#include "all.h"
+#include "rle.h"
+#include <string.h>
 
 /*
 Decompress a RLE buffer

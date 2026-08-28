@@ -10,7 +10,7 @@
 #include "scankeys.h"
 #include <string.h>
 
-boss *BossG;
+struct boss *BossG;
 
 inline void Handlebosses() {
 
@@ -44,18 +44,18 @@ inline void Handlebosses() {
   };
 };
 
-short Boss_free_down(boss *Boss) {
+short Boss_free_down(struct boss *Boss) {
 
   return min(Free_down(Boss->X, Boss->Y + Boss->Height),
              Free_down(Boss->X + 15, Boss->Y + Boss->Height));
 }
 
-short Boss_free_up(boss *Boss) {
+short Boss_free_up(struct boss *Boss) {
 
   return min(Free_up(Boss->X, Boss->Y), Free_up(Boss->X + 15, Boss->Y));
 }
 
-void Add_killed_boss(boss *Boss, short Type) {
+void Add_killed_boss(struct boss *Boss, short Type) {
 
   Items[0].X = Boss->X + 8;
   Items[0].Y = Boss->Y + 1 - 16;
@@ -70,7 +70,7 @@ void Add_killed_boss(boss *Boss, short Type) {
   Leveldata.Boss = 0;
 }
 
-void Boss_handler_1(boss *Boss) {
+void Boss_handler_1(struct boss *Boss) {
   short C, Temp, Temp2;
   char Face = Boss->Face;
   char Data0 = Boss->Data0;
@@ -207,7 +207,7 @@ void Boss_handler_1(boss *Boss) {
 
 #define threshold 5 * 16
 
-void Boss_handler_2(boss *Boss) {
+void Boss_handler_2(struct boss *Boss) {
   short xDist, C, Temp, Temp2;
   char Face = Boss->Face;
   char Data0 = Boss->Data0;
@@ -380,7 +380,7 @@ void Boss_handler_2(boss *Boss) {
 
 }*/
 
-void Draw_ending_text(object *Object) {
+void Draw_ending_text(struct object *Object) {
   //	void* lp = GrayDBufGetActivePlane (LIGHT_PLANE);
   //	void* dp = GrayDBufGetActivePlane (DARK_PLANE);
 
@@ -408,12 +408,11 @@ void Draw_ending_text(object *Object) {
   };
 }
 
-void Bowser_handler(boss *Boss1) {
+void Bowser_handler(struct boss *Boss1) {
+  struct boss TempBoss;
+  struct boss *Boss = &TempBoss;
 
-  boss TempBoss;
-  boss *Boss = &TempBoss;
-
-  memcpy(&TempBoss, Boss1, sizeof(boss));
+  memcpy(&TempBoss, Boss1, sizeof(struct boss));
 
   if (Boss->Active && (Boss->Mode == 0)) {
 
@@ -787,12 +786,12 @@ void Bowser_handler(boss *Boss1) {
     }
   }
 
-  memcpy(Boss1, &TempBoss, sizeof(boss));
+  memcpy(Boss1, &TempBoss, sizeof(struct boss));
 }
 
 #undef threshold
 
-void Boss_die_1(boss *Boss) { // Boss_die_1 and Boss_die_2 merged together for
+void Boss_die_1(struct boss *Boss) { // Boss_die_1 and Boss_die_2 merged together for
                               // size optimization.
 
   if (!Boss->Mode) {
@@ -817,7 +816,7 @@ void Boss_die_1(boss *Boss) { // Boss_die_1 and Boss_die_2 merged together for
   };
 };
 
-void Bowser_die(boss *Boss) {
+void Bowser_die(struct boss *Boss) {
 
   if (!Boss->Mode) {
     if ((--Boss->Life) == 0) {
