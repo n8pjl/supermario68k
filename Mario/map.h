@@ -2,6 +2,8 @@
 #ifndef __map__
 #define __map__
 
+#include <stddef.h>	//offsetof, for the layout assertions below
+
 //map macros
 /*
 //Old
@@ -57,6 +59,13 @@ typedef struct{
 		
 }map_data;
 
+//Load_map() casts this straight onto the map file's bytes, so its layout is
+//the file format and has to stay the 68000's: that ABI aligns a long to 2, so
+//nothing here is padded and an entry is 22 bytes. wasm32 aligns a pointer to
+//4, which would put two bytes of padding after Treasure and round the struct
+//up to 24 - every field past Treasure read from the wrong bytes, drifting a
+//further 2 per object. This is the only structure read from a file that has
+//pointers in it, and so the only one where the two ABIs disagree.
 typedef struct{
 	short X;
 	short Y;
@@ -74,7 +83,12 @@ typedef struct{
 	unsigned short* Sprite;
 	unsigned short* Mask;
 	
-}map_object;
+}__attribute__((packed)) map_object;
+
+_Static_assert(offsetof(map_object, Handler) == 10, "map_object must match the file's 68K layout");
+_Static_assert(offsetof(map_object, Sprite)  == 14, "map_object must match the file's 68K layout");
+_Static_assert(offsetof(map_object, Mask)    == 18, "map_object must match the file's 68K layout");
+_Static_assert(sizeof(map_object) == 22, "map_object must match the file's 68K layout");
 
 typedef struct {
 	short X;	//XY-pos of the trigger
@@ -98,6 +112,8 @@ typedef struct {
 	//2: Dark world
 	
 }map_trigger;
+
+_Static_assert(sizeof(map_trigger) == 28, "map_trigger must match the file's layout");
 
 /*
 //Old

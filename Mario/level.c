@@ -1124,6 +1124,45 @@ void SetBg(short Bg_nr/*,HANDLE Temp*/){//this func sets the pointer to th bg ti
 };
 
 
+// The map payload - the tile matrix, then the triggers, then the objects - is
+// the one block mkdata.py cannot reach: where it starts depends on
+// Height*Width and Nr_of_triggers, which are fields of the very header it is
+// swapping. So it swaps here instead, once Load_map() has the copy in place,
+// the same bargain Swap_leveldata() strikes.
+//
+// The tile matrix is bytes and needs nothing. Every field of a map_trigger is
+// a short, so that array swaps uniformly. A map_object mixes widths: X and Y
+// are shorts, Mode through Treasure are bytes, and Handler, Sprite and Mask
+// are 32-bit - holding a handler tag and a sprite index at this point, which
+// the loop in Load_map() turns into real pointers once this has run.
+static void Swap_map_payload(){
+
+	long I;
+	short C;
+
+	{//a map_trigger is fourteen shorts and nothing else
+		short* Field = (short*)Map_triggers;
+		long Fields = (long)Map_data.Nr_of_triggers * (sizeof(map_trigger)/sizeof(short));
+
+		for(I=0;I<Fields;I++)
+			Field[I] = be16(Field[I]);
+	}
+
+	//Only the objects that came out of the file: Load_map() adds three slots of
+	//its own - doom ship, money ship and card game - which it left zeroed.
+	for(C=0;C<Map_data.Nr_of_objects-3;C++){
+
+		Map_objects[C].X       = be16(Map_objects[C].X);
+		Map_objects[C].Y       = be16(Map_objects[C].Y);
+
+		Map_objects[C].Handler = (void (*)(void *))be32((unsigned long)Map_objects[C].Handler);
+		Map_objects[C].Sprite  = (unsigned short*) be32((unsigned long)Map_objects[C].Sprite);
+		Map_objects[C].Mask    = (unsigned short*) be32((unsigned long)Map_objects[C].Mask);
+
+	}
+
+}
+
 short Load_map(char* Levelfile){
 	SYM_ENTRY *Levelfile_sym;
 	HANDLE Temp; 
@@ -1208,6 +1247,8 @@ short Load_map(char* Levelfile){
 			
 	Map_objects = ( (void*)Map_triggers + Map_data.Nr_of_triggers*sizeof(map_trigger) );
 	//Map_objects = (void*)Map + Map_data.Height*Map_data.Width;
+	
+	Swap_map_payload();
 		
 	
 	for(C=0;C<Map_data.Nr_of_objects;C++){
