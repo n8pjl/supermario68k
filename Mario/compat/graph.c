@@ -35,9 +35,28 @@ static const unsigned char *font_glyph(short font, unsigned char c, short *h,
 	return Font4x6[c];
 }
 
+// Draw one glyph. `adv` is the width of its character cell - what the string
+// advances by - which is the glyph's own width for the fixed faces and the
+// per-character advance for the proportional 4x6 one.
+//
+// The cell is what separates A_REPLACE from A_NORMAL. A_NORMAL ORs the ink and
+// leaves everything else as it found it; A_REPLACE writes the whole cell, so
+// the background inside it is cleared whether or not the glyph has ink there.
+// Text drawn over something therefore erases what it covers, which is what
+// most of the game's text relies on: the status bar redraws the coin and score
+// counters in place, and Draw_time() blanks its field by drawing a run of
+// spaces in A_REPLACE, which does nothing at all if the attribute only ORs.
+//
+// For the 4x6 face the cell includes the blank spacing column the advance
+// carries past the ink, and its blank sixth row - so a replaced line of text
+// clears the gaps between its characters too, as the ROM's DrawStr does.
 static void blit_glyph(unsigned char *plane, short x, short y,
-		       const unsigned char *g, short h, short attr)
+		       const unsigned char *g, short h, short adv, short attr)
 {
+	// The glyph is one byte wide, so the cell cannot usefully be wider.
+	short cw = adv > 8 ? 8 : adv;
+	unsigned char cell = cw > 0 ? (unsigned char)(0xFF << (8 - cw)) : 0;
+
 	for (short r = 0; r < h; r++) {
 		short py = y + r;
 		if (py < 0 || py >= PLANE_HEIGHT)
@@ -45,12 +64,14 @@ static void blit_glyph(unsigned char *plane, short x, short y,
 		// Place the 8-bit glyph row into a 16-bit window so a glyph
 		// straddling a byte boundary writes both bytes.
 		unsigned short win = (unsigned short)g[r] << (8 - (x & 7));
+		unsigned short cellwin = (unsigned short)cell << (8 - (x & 7));
 		short col = x >> 3;
 		for (short b = 0; b < 2; b++) {
 			short cc = col + b;
 			if (cc < 0 || cc >= PLANE_STRIDE)
 				continue;
 			unsigned char bits = (win >> (8 - 8 * b)) & 0xFF;
+			unsigned char cbits = (cellwin >> (8 - 8 * b)) & 0xFF;
 			unsigned char *p = plane + py * PLANE_STRIDE + cc;
 			switch (attr) {
 			case A_REVERSE:
@@ -58,6 +79,9 @@ static void blit_glyph(unsigned char *plane, short x, short y,
 				break;
 			case A_XOR:
 				*p ^= bits;
+				break;
+			case A_REPLACE:
+				*p = (unsigned char)((*p & ~cbits) | bits);
 				break;
 			default:
 				*p |= bits;
@@ -73,7 +97,7 @@ static void draw_str_plane(void *plane, short x, short y, const char *s,
 	short h, adv;
 	for (; *s; s++) {
 		const unsigned char *g = font_glyph(font, (unsigned char)*s, &h, &adv);
-		blit_glyph((unsigned char *)plane, x, y, g, h, attr);
+		blit_glyph((unsigned char *)plane, x, y, g, h, adv, attr);
 		x += adv;
 	}
 }
