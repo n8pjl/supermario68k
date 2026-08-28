@@ -263,6 +263,8 @@ int main(void)
 		
 		
 	//for(C=0;C<SHRT_MAX;C++);
+	DelayNFrames(DEFAULT_FPS);
+
 	
 	//GKeyFlush();
 	

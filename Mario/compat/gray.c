@@ -55,6 +55,12 @@ EM_ASYNC_JS(void, pageflip_wait, (void), {
 	globalThis.__smPrevFrame = now - (elapsed % period);
 });
 
+void DelayNFrames(unsigned int frames)
+{
+	for (int i = 0; i < frames; i++)
+		pageflip_wait();
+}
+
 static uint8_t dbuf0[GRAYDBUFFER_SIZE] = { 0 };
 static uint8_t *dbuf1;
 static bool dbuf_buf_no;

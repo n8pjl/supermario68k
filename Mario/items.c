@@ -2059,7 +2059,9 @@ void Levelend_handler(short X, short Y){
 		
 		/*for(X=0;X<SHRT_MAX;Y++){
 				for(Y=0;Y<SHRT_MAX;Y++);
-		};*/	
+		};*/
+		DelayNFrames(DEFAULT_FPS);
+
 		for(C=0;C<=2;C++){
 			//GrayClipISprite16_RPLC_R(83+17*C,50,16,(unsigned short*)Fg_plane.p.sprites+(79+SavePlayer.Cards[C])*32,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
 			GrayClipISprite16_RPLC_R(screen_width-77+17*C,50,16,(unsigned short*)Fg_plane.p.sprites+(79+SavePlayer.Cards[C])*32,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
@@ -2093,6 +2095,8 @@ void Levelend_handler(short X, short Y){
 		for(Y=0;Y<100;Y++);
 	};
 	*/
+	DelayNFrames(DEFAULT_FPS);
+
 
 	
 	Exit = 2;//Exit == 2: level completed
