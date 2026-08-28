@@ -1,85 +1,39 @@
 <!doctype html>
-<meta charset="utf-8">
-<title>Super Mario 68K</title>
-<style>
-  body { background:#1a1a1a; color:#ddd; font:14px system-ui,sans-serif;
-         display:flex; flex-direction:column; align-items:center; gap:1rem; padding:2rem; }
-  /* Pixel and CSS size are set from compat/gray.c, which knows the target
-     calculator's screen size. */
-  canvas { image-rendering:pixelated; background:#9ca88b; border:2px solid #444; }
-  table { border-collapse:collapse; font-size:13px; }
-  td { padding:.15rem .6rem; } td:first-child { color:#888; text-align:right; }
-  kbd { background:#333; border:1px solid #555; border-radius:3px; padding:0 .3rem; }
-  #log { font-family:ui-monospace,monospace; font-size:12px; color:#7a7;
-         white-space:pre-wrap; max-width:720px; }
-  #speed { display:flex; align-items:center; gap:.6rem; }
-  #speed label { color:#888; }
-  #fps { width:220px; }
-  #fpsval { font-variant-numeric:tabular-nums; min-width:11ch; }
-  #fpsval.tuned { color:#dd8; }
-</style>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Super Mario 68K</title>
+  <link rel="stylesheet" href="shell.css" />
+</head>
+<body>
+  <h1>Super <span>Mario</span> 68K</h1>
 
-<h1>Super Mario 68K</h1>
-<canvas id="canvas"></canvas>
+  <div class="console">
+    <canvas id="canvas"></canvas>
+  </div>
 
-<table>
-  <tr><td>Move</td><td><kbd>&larr;</kbd><kbd>&uarr;</kbd><kbd>&rarr;</kbd><kbd>&darr;</kbd></td></tr>
-  <tr><td>Jump</td><td><kbd>Space</kbd> / <kbd>Z</kbd></td></tr>
-  <tr><td>Run / fire</td><td><kbd>Shift</kbd> / <kbd>X</kbd></td></tr>
-  <tr><td>Enter / Esc</td><td><kbd>Enter</kbd> <kbd>Esc</kbd></td></tr>
-  <tr><td>Contrast</td><td><kbd>+</kbd> <kbd>-</kbd></td></tr>
-</table>
+  <dl class="controls">
+    <dt>Move</dt>
+    <dd><kbd>&larr;</kbd> <kbd>&uarr;</kbd> <kbd>&rarr;</kbd> <kbd>&darr;</kbd></dd>
 
-<div id="speed">
-  <label for="fps">Speed</label>
-  <input id="fps" type="range" min="5" max="60" step="1" value="30">
-  <output id="fpsval" for="fps"></output>
-</div>
+    <dt>Jump</dt>
+    <dd><kbd>Space</kbd> / <kbd>Z</kbd></dd>
 
-<div id="log"></div>
+    <dt>Run / fire</dt>
+    <dd><kbd>Shift</kbd> / <kbd>X</kbd></dd>
 
-<script>
-// The calculator's 10-row key matrix, as _rowread() in compat/kbd.c reads it.
-// Bit positions below are the ones scankeys.c tests for the V200 build.
-// Key handling lives in compat/kbd.c: which row and bit each key maps to
-// depends on the calculator this was built for, and only the C side knows
-// that. It installs keyMap/keyMatrix and the listeners at startup.
+    <dt>Enter / Esc</dt>
+    <dd><kbd>Enter</kbd> <kbd>Esc</kbd></dd>
+  </dl>
 
-const log = m => { document.getElementById("log").textContent += m + "\n"; };
+  <footer>
+    Original game by Lachprog. Web port by Saladin.<br />
+    Source available under GPLv3 on
+    <a href="https://github.com/n8pjl/supermario68k">GitHub</a>.
+  </footer>
 
-// Frame pacing. pageflip_wait() in compat/gray.c reads Module.frameMs before
-// every frame, so moving the slider retunes the running game; leaving it out
-// of Module entirely would still give the same 20fps. requestAnimationFrame is
-// what the wait is built on, so the top of the range is only reachable on a
-// display that refreshes at least that fast - on a 60Hz screen the game stops
-// getting faster somewhere around 60fps however far the slider goes.
-//
-// The slider is worked by mouse: the key handler in compat/kbd.c preventDefaults
-// the arrow keys, so they stay Mario's controls even while it has focus.
-const CALC_FPS = 30;			// what the calculator ran at
-
-var Module = {
-  canvas: document.getElementById("canvas"),
-  frameMs:  1000 / CALC_FPS,
-  print:    t => log(t),
-  printErr: t => log("stderr: " + t),
-  onRuntimeInitialized: () => log("runtime ready, data mounted at /data"),
-  onAbort:  w => log("ABORT: " + w),
-};
-
-const fps = document.getElementById("fps");
-const fpsval = document.getElementById("fpsval");
-
-const setFps = n => {
-  Module.frameMs = 1000 / n;
-  fpsval.textContent = n + " fps" + (n === CALC_FPS ? " (calculator)" : "");
-  fpsval.classList.toggle("tuned", n !== CALC_FPS);
-};
-
-fps.addEventListener("input", () => setFps(+fps.value));
-// Double-clicking the slider puts it back to the speed the game was written
-// for, which is otherwise fiddly to hit again once it has been dragged.
-fps.addEventListener("dblclick", () => { fps.value = CALC_FPS; setFps(CALC_FPS); });
-setFps(+fps.value);
-</script>
-<script src="mario.js"></script>
+  <script type="module" src="shell.js"></script>
+  <script defer src="mario.js"></script>
+</body>
+</html>
