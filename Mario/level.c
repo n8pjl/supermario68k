@@ -17,6 +17,44 @@ char Commonfilename[9];
 
 
 
+// Byte-swap a level header just read out of a level file.
+//
+// This is the one structure tools/mkdata.py cannot convert at build time,
+// because it cannot tell where the headers are. levelfiledata.Nr_of_levels
+// would be the obvious answer and is wrong: it says 1 for common.9xy, which
+// holds at least eight levels - the title screen is level 7 of it - and 2 for
+// world5. Nothing writes the field and the game never reads it, indexing
+// Levels[] directly, so it was free to rot. The trailing entries of Levels[]
+// are junk for the same reason, which rules out simply converting all twenty.
+//
+// The loader, by contrast, knows exactly which level it was asked for. It also
+// swaps the copy rather than the file, so loading a level twice is safe.
+//
+// Only the 16-bit fields move; Bg_scrollrate, Background, Event, Condition, EX
+// and EY are bytes. The compressed foreground and the enemy, trigger and
+// platform arrays that follow the header are byte data too, which is why
+// mkdata.py leaves the level payloads alone.
+static void Swap_leveldata(leveldata* Data){
+
+	Data->Width                 = be16(Data->Width);
+	Data->Height                = be16(Data->Height);
+	Data->Bg_height             = be16(Data->Bg_height);
+	Data->Border_left           = be16(Data->Border_left);
+	Data->Border_right          = be16(Data->Border_right);
+	Data->PlayerX               = be16(Data->PlayerX);
+	Data->PlayerY               = be16(Data->PlayerY);
+	Data->Boss                  = be16(Data->Boss);
+	Data->Nr_of_enemies         = be16(Data->Nr_of_enemies);
+	Data->Nr_of_triggers        = be16(Data->Nr_of_triggers);
+	Data->Nr_of_flying_platforms= be16(Data->Nr_of_flying_platforms);
+	Data->Bg_offset             = be16(Data->Bg_offset);
+	Data->Size                  = be16(Data->Size);
+	Data->TCSize                = be16(Data->TCSize);
+	Data->Spare1                = be16(Data->Spare1);
+	Data->Spare2                = be16(Data->Spare2);
+
+}
+
 short Load_level(char* Levelfile, short Level_nr){
 	SYM_ENTRY *Levelfile_sym;
 	HANDLE Temp; 
@@ -102,6 +140,8 @@ short Load_level(char* Levelfile, short Level_nr){
 //	memcpy( &Levelfileinfo, HeapDeref (Temp)+2, sizeof(levelfiledata) );
 	Levelfileinfo = (levelfiledata*)(/*HeapDeref (Temp)+2*/RawData);
 	memcpy( &Leveldata, /*HeapDeref (Temp)+2*/RawData + Levelfileinfo->Levels[Level_nr], sizeof(leveldata) );
+
+	Swap_leveldata(&Leveldata);
 	
 	
 	

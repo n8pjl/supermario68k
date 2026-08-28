@@ -13,7 +13,9 @@ Two jobs:
    the game reads a byte at a time:
 
      - Level payloads (enemies, flying platforms, triggers) are read one
-       unsigned char at a time by level.c, so they are NOT touched.
+       unsigned char at a time by level.c, so they are NOT touched. Neither
+       are the level headers, which Load_level() swaps as it reads them - see
+       Swap_leveldata() there for why they cannot be done here.
      - Inside the GFX blobs, the two byte-addressed regions - Smallsprites
        (8-pixel-wide sprites, one byte per row) and the Games blob - are NOT
        touched. Everything else in them is.
@@ -43,9 +45,6 @@ LEVELFILEDATA = [(0, 22)]        # Nr_of_levels, Total_size, Levels[20]
 SIZEOF_LEVELFILEDATA = 66        # + char Mode + char Name[20], padded to even
 MAPDATA = [(0, 15)]              # 15 shorts
 SIZEOF_MAPDATA = 30
-# leveldata: shorts, then two chars, then two shorts, then four chars, then two
-LEVELDATA = [(0, 12), (26, 2), (34, 2)]
-SIZEOF_LEVELDATA = 38
 BGFILEDATA = [(2, 21)]           # char Nr_of_bgs + pad, then Backgrounds[20], Size
 SIZEOF_BGFILEDATA = 44
 BGDATA = [(0, 2)]                # Height, Width
@@ -193,14 +192,13 @@ def convert(content, tag, name):
     elif tag == "MTXT":
         swap(b, 0, GAMETEXTDATA)
     elif tag == "MLEV":
-        swap(b, 0, LEVELFILEDATA)          # header first, so the offsets below
-        n = struct.unpack_from("<H", b, 0)[0]   # read back native-endian
+        # Only the two structures at fixed offsets. The per-level headers are
+        # swapped by Load_level() at load time instead: their offsets are in
+        # Levels[], whose valid length is not recorded anywhere - Nr_of_levels
+        # says 1 for common, which has at least eight levels - and whose
+        # trailing entries are junk. See Swap_leveldata() in level.c.
+        swap(b, 0, LEVELFILEDATA)
         swap(b, SIZEOF_LEVELFILEDATA, MAPDATA)
-        for i in range(n):
-            off = struct.unpack_from("<H", b, 4 + i * 2)[0]
-            if off + SIZEOF_LEVELDATA > len(b):
-                raise ValueError("%s: level %d offset %d out of range" % (name, i, off))
-            swap(b, off, LEVELDATA)
     elif tag == "MBG":
         swap(b, 0, BGFILEDATA)
         swap_backgrounds(b, name, len(content) - (len(tag) + 3))
