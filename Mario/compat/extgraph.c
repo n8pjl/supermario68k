@@ -68,14 +68,6 @@ short TestCollide162h_R(short x0, short y0, short x1, short y1,
 	return 0;
 }
 
-// Needs a substitute bitmap font: the 4x6/6x8/8x10 fonts these render with are
-// TIOS ROM data and are not part of this source drop.
-void GrayDrawStrExt2B(unsigned short x, unsigned short y, const char *s,
-		      short attr, short font, void *lightplane, void *darkplane)
-{
-	(void)x; (void)y; (void)s; (void)attr; (void)font;
-	(void)lightplane; (void)darkplane;
-}
 
 // Mono buffer blitter used for the foreground mask plane.
 void DrawBuffer_MASK(const void *src, unsigned short x, unsigned short y,

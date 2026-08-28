@@ -17,7 +17,7 @@ TARGET = mario
 SRCS = main.c enemies.c gameloop.c  items.c player.c render.c \
        scankeys.c shells.c custom.c objects.c flying.c smallgames.c \
        bounch.c map.c titlescreen.c menus.c rle.c level.c savegame.c \
-       stringcopy.c error.c bosses.c gfx.c compat/alloc.c compat/tios.c compat/tilemap.c compat/extgraph.c compat/graph.c compat/kbd.c compat/gray.c
+       stringcopy.c error.c bosses.c gfx.c compat/alloc.c compat/tios.c compat/tilemap.c compat/extgraph.c compat/graph.c compat/font_data.c compat/kbd.c compat/gray.c
 
 OBJS = $(SRCS:.c=.o)
 
