@@ -70,9 +70,3 @@ SYM_ENTRY *FFindNext(void);
 uint16_t FOpen(const char *name, FILES *f, int16_t mode, const char *tag);
 uint16_t FWrite(const void *data, int16_t len, FILES *f);
 uint16_t FClose(FILES *f);
-
-// Archive memory management: there is no archive here, so these all succeed.
-int16_t EM_findEmptySlot(int32_t size);
-int16_t EM_moveSymFromExtMem(SYM_STR name, HANDLE h);
-int16_t EM_moveSymToExtMem(SYM_STR name, HANDLE h);
-int16_t EM_GC(BOOL all);

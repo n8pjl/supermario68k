@@ -171,10 +171,9 @@ void Enter_game_house() {
 
     Previous_keystate = Keystate;
 
-    Scankeys();
+    ScanKeys();
 
-    if (Keystate.Run && !(Previous_keystate.Run) && !(Stopping)) {
-
+    if (Keystate.run && !(Previous_keystate.run) && !(Stopping)) {
       int16_t TempX;
 
       switch (State) {
@@ -476,26 +475,20 @@ void Play_card_game() {
                     32; // Sprite = (unsigned short*)Fg_plane.p.sprites + 4*32;
                 StringCopy(String, "20");
                 break;
+              }
 
-              default:
-              };
-
-              // DrawGrayStrExt2B(8+screen_offset_sg_x+26*C,9+screen_offset_sg_y+15+32*D,String,A_NORMAL,F_4x6,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD);
               DrawString(8 + screen_offset_sg_x + 26 * C,
                          9 + screen_offset_sg_y + 15 + 32 * D, String, A_NORMAL,
                          F_4x6);
-              // A_REPLACE|A_SHADOWED
 
-              GrayClipISprite16_RPLC_R(
-                  6 + screen_offset_sg_x + 26 * C,
-                  7 + screen_offset_sg_y + 32 * D, 16, Sprite,
-                  /*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
-                  /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
-            };
-          };
-        };
-      };
-    };
+              GrayClipISprite16_RPLC_R(6 + screen_offset_sg_x + 26 * C,
+                                       7 + screen_offset_sg_y + 32 * D, 16,
+                                       Sprite, dBufHPL_G, dBufHPD_G);
+            }
+          }
+        }
+      }
+    }
 
     GrayDBufToggleSync_SetPointers(); // GrayDBufToggleSync();//set drawbuffer
                                       // as active screen
@@ -538,35 +531,35 @@ void Play_card_game() {
       };
     };
 
-    Scankeys();
+    ScanKeys();
 
     if (!Wait) {
 
-      if (Keystate.Left) {
+      if (Keystate.left) {
         if (CX > 0) {
           CX--;
         };
       } else {
-        if (Keystate.Right) {
+        if (Keystate.right) {
           if (CX < 5) {
             CX++;
           };
         };
       };
 
-      if (Keystate.Up) {
+      if (Keystate.up) {
         if (CY > 0) {
           CY--;
         };
       } else {
-        if (Keystate.Down) {
+        if (Keystate.down) {
           if (CY < 2) {
             CY++;
           };
         };
       };
 
-      if (Keystate.Jump) {
+      if (Keystate.jump) {
         if (CardGame[CX + 6 * CY] < 0) { // unturned
           CardGame[CX + 6 * CY] = -CardGame[CX + 6 * CY];
 

@@ -45,6 +45,3 @@ void ClrScr(void);
 void DrawStr(int16_t x, int16_t y, const char *s, int16_t attr);
 void DrawChar(int16_t x, int16_t y, char c, int16_t attr);
 
-// Contrast has no meaning on a canvas; kept so the key handler still links.
-void OSContrastUp(void);
-void OSContrastDn(void);

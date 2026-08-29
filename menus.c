@@ -79,23 +79,21 @@ int16_t doMenu(char *Menudata, int16_t Nr_of_options) {
     while(!_rowread(0));//wait until key pressed*/
     WaitKeyPress();
 
-    Scankeys();
+    ScanKeys();
 
-    Contrast_adj();
-
-    if (Keystate.Esc) {
+    if (Keystate.esc) {
       return 0;
     };
-    if (Keystate.Enter || Keystate.Jump) {
+    if (Keystate.enter || Keystate.jump) {
       return X;
     };
 
-    if (Keystate.Up) {
+    if (Keystate.up) {
       X--;
       if (X < 1)
         X = Nr_of_options;
     };
-    if (Keystate.Down) {
+    if (Keystate.down) {
       X++;
       if (X > Nr_of_options)
         X = 1;

@@ -13,8 +13,6 @@ extern struct settings Settings;
 
 void Custom();
 
-void Contrast_adj();
-
 void Key_configure();
 
 void Load_settings();

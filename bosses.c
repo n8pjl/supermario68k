@@ -791,9 +791,8 @@ void Bowser_handler(struct boss *Boss1) {
 
 #undef threshold
 
-void Boss_die_1(
-    struct boss *Boss) { // Boss_die_1 and Boss_die_2 merged together for
-                         // size optimization.
+void Boss_die_1(struct boss *Boss) { // Boss_die_1 and Boss_die_2 merged
+                                     // together for size optimization.
 
   if (!Boss->Mode) {
     if (Boss->Height == 27) {

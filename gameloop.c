@@ -93,7 +93,7 @@ void Playloop() {
 
 #endif
 
-    Scankeys();
+    ScanKeys();
 
     /*		if(Keystate.Enter && !Previous_keystate.Enter)
                             Slow = (Slow==0?1:0);*/
@@ -168,9 +168,6 @@ void Gameloop() {
 
     Render_map();
 
-    if (Map_plane.frame % 2)
-      Contrast_adj();
-
     for (C = 0; C < 10000; C++)
       ; // time delay, will probably do it different later...
 
@@ -179,8 +176,8 @@ void Gameloop() {
     Previous_keystate = Keystate;
 
     if (!Player.Offset) {
-      Scankeys();
-      if (Keystate.Esc) { // mid game menu
+      ScanKeys();
+      if (Keystate.esc) { // mid game menu
 
         /*char*/ int16_t Res = doMenu(Texts + GameTextData.MidGameMap, 3);
 
@@ -236,8 +233,8 @@ void Gameloop() {
           break;
         };
 
-        WaitKeyReleased(); // while( (_rowread(0)) );
-        Keystate.Jump = 0;
+        WaitKeyReleased();
+        Keystate.jump = false;
 
       }; // Keystate.Esc
     } else {
@@ -364,7 +361,8 @@ int16_t RunGame(char Saveslot) {
   char Warp = 0;
   do {
 
-    Keystate.Esc = Exit = 0;
+    Keystate.esc = false;
+    Exit = 0;
 
     // memcpy( &Levelfilename, HeapDeref (Temp)+2+sizeof(levelsetdata)+21+9*C, 9
     // ); memcpy( &Levelfilename, HeapDeref

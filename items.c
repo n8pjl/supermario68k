@@ -67,7 +67,7 @@ void Dark_gray_magic_mode_handler(int16_t X, int16_t Y) {
 
 void White_magic_box_handler(int16_t X, int16_t Y) {
 
-  if (Keystate.Down) {
+  if (Keystate.down) {
     if ((++Player.White_magic_box_counter) == 100) {
       Player.Behind_fg = 200;
       Player.White_magic_box_counter = 0;
@@ -195,10 +195,9 @@ void Pipe_down_handler(int16_t X, int16_t Y) {
   /*char*/ int16_t Height = Player.Height;
   int16_t C;
 
-  if (Keystate.Down) {
-
+  if (Keystate.down) {
     SavePlayer.Spritenr = 9;
-    Keystate.Down = 0;
+    Keystate.down = false;
 
     while (Player.Height - 1) {
       Player.Y++;
@@ -230,10 +229,9 @@ void Pipe_up_handler(int16_t X, int16_t Y) {
 
   int16_t Height = Player.Height;
 
-  if (Keystate.Up) {
-
+  if (Keystate.up) {
     SavePlayer.Spritenr = 9;
-    Keystate.Down = 0;
+    Keystate.down = false;
     while (Player.Height - 1) {
 
       Player.SpriteOffset++;
@@ -256,7 +254,7 @@ void Pipe_right_handler(int16_t X, int16_t Y) {
   // (Player.Y>=((Y/16)*16-16)) ){
   if (((Player.Y + Player.Height) <= ((int16_t)(Y & 0xfff0) + 16)) &&
       (Player.Y >= ((int16_t)(Y & 0xfff0) - 16))) {
-    if (Keystate.Right) {
+    if (Keystate.right) {
 
       // animate
       Player.Y -= 2;
@@ -288,8 +286,7 @@ void Pipe_left_handler(int16_t X, int16_t Y) {
   // (Player.Y>=((Y/16)*16-16)) ){
   if (((Player.Y + Player.Height) <= ((int16_t)(Y & 0xfff0) + 16)) &&
       (Player.Y >= ((int16_t)(Y & 0xfff0) - 16))) {
-    if (Keystate.Left) {
-
+    if (Keystate.left) {
       // animate
       Player.Y -= 2;
       Player.Blit = 0x7fff;
@@ -307,8 +304,7 @@ void Pipe_left_handler(int16_t X, int16_t Y) {
       // Player.Attribs = Player.Attribs & 0b11101111;//draw player before fg
       // OFF
 
-      // Execute_trigger( (X/16),(Y/16) );
-      Execute_trigger((X >> 4), (Y >> 4));
+      Execute_trigger(X / 16, Y / 16);
     };
   };
 };
@@ -561,8 +557,7 @@ void Dark_note_handler(int16_t X, int16_t Y) {
     // if(Keystate.Jump && (Player.X>=((X/16)*16-2)) &&
     // (Player.X<=((X/16)*16+2)) ){
     X = X & 0xfff0;
-    if (Keystate.Jump && (Player.X >= ((int16_t)(X /*&0xfff0*/) - 2)) &&
-        (Player.X <= ((int16_t)(X /*&0xfff0*/) + 2))) {
+    if (Keystate.jump && Player.X >= X - 2 && Player.X <= X + 2) {
       // animate
       SavePlayer.Spritenr = 7;
       while (Player.Y >= 0) {
@@ -606,11 +601,10 @@ void Door_handler(int16_t X, int16_t Y) {
 
   //	if( (Player.X>=X-4) && (Player.X<=X+4) ){
   if (abs(Player.X - X) <= 4) {
-    if (Keystate.Up && !(Previous_keystate.Up)) {
-
+    if (Keystate.up && !(Previous_keystate.up)) {
       Execute_trigger((X >> 4), (Y >> 4));
 
-      Previous_keystate.Up = 1;
+      Previous_keystate.up = true;
     };
   };
 };
@@ -778,15 +772,14 @@ void Ladder_handler(int16_t X, int16_t Y) {
 
   if (abs((Player.X) - (int16_t)(X & 0xfff0)) <= 6) {
 
-    if (Keystate.Up || Player.IsClimbing) {
-
+    if (Keystate.up || Player.IsClimbing) {
       SavePlayer.Spritenr = 4;
 
       if (Player.IsClimbing == 1) {
-        if (Keystate.Up && (Free_up(Player.X, Player.Y) >= 2))
+        if (Keystate.up && (Free_up(Player.X, Player.Y) >= 2))
           Player.Y -= 2;
 
-        if (Keystate.Down &&
+        if (Keystate.down &&
             (Free_down(Player.X, Player.Y + Player.Height - 1) >= 2))
           Player.Y += 2;
       };
@@ -828,9 +821,9 @@ void Water_handler(int16_t X, int16_t Y) { // optimize!!!!!!!!!!
     Temp = Free_down(Player.X, Player.Y + Player.Height);
 
     if (Temp > 0) {
-      if (!Keystate.Jump)
+      if (!Keystate.jump)
         Player.Y++;
-      if (Keystate.Down && (Temp >= 2))
+      if (Keystate.down && (Temp >= 2))
         Player.Y++;
       SavePlayer.Spritenr = 6;
     };
@@ -839,21 +832,21 @@ void Water_handler(int16_t X, int16_t Y) { // optimize!!!!!!!!!!
 
     Player.IsJumping = jumpheight; // 40;//jumpheight/2;
 
-    if ((Keystate.Jump) || (Player.Xoffset /*>8*/)) {
+    if ((Keystate.jump) || (Player.Xoffset /*>8*/)) {
       Player.Walkspeed = 2;
       Player.Walkspeed2 = 2;
-      if (Keystate.Jump)
+      if (Keystate.jump)
         Player.Yoffset = -4;
       if (Fg_plane.step % 2) {
         SavePlayer.Spritenr = 5;
       }
 
-      if ((Keystate.Jump) &&
+      if ((Keystate.jump) &&
           (Player.Xoffset == 0)) { //&& (Keystate.Left || Keystate.Right) ){
-        if (Keystate.Left) {
+        if (Keystate.left) {
           Player.Xoffset = -16;
         } else {
-          if (Keystate.Right) {
+          if (Keystate.right) {
             Player.Xoffset = 16;
           };
         };
@@ -887,8 +880,8 @@ void Water_surface_handler(int16_t X, int16_t Y) {
   }
 
   if ((Player.Y) <= ((int16_t)(Y & 0xfff0) + 2)) {
-    if (Keystate.Jump &&
-        (Keystate.Up /*|| !Free_down(Player.X,Player.Y+Player.Height)*/)) {
+    if (Keystate.jump &&
+        (Keystate.up /*|| !Free_down(Player.X,Player.Y+Player.Height)*/)) {
       Player.Max_jumpheight = 40;
 
     } else {
@@ -1547,9 +1540,9 @@ void Animate_out_of_wrapper(int16_t T) {
   // New: V 1.04
   // Clearing all arrow keypresses: Prevents that other triggers is executed
   // when mario comes out of pipes
-  Keystate.Down = Keystate.Left = Keystate.Right = 0;
+  Keystate.down = Keystate.left = Keystate.right = false;
   if (Anim)
-    Keystate.Up = 0;
+    Keystate.up = false;
 
   // Player.Attribs = Player.Attribs & 0b11101111;//draw player before fg OFF
 };
@@ -1707,7 +1700,7 @@ void Handle_treasure_all(int16_t X, int16_t Y) {
   uint8_t TileAbove = Get_tile(X, Y - 16);
   uint8_t NewTile = 0;
 
-  if ((Leveldata.Background == 6) && (Keystate.Run == 0)) // UGLY CODE !
+  if ((Leveldata.Background == 6) && !Keystate.run) // UGLY CODE !
     return; // This makes sure you have to use the "Run" key to open a treasure
             // box in mushrom houses if not in a mushrom house the box will
             // automaticly open on contact Mushrom house is detected by

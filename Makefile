@@ -40,13 +40,11 @@ TARGET = mario.mjs
 SRCS = main.c enemies.c gameloop.c  items.c player.c render.c \
        scankeys.c shells.c custom.c objects.c flying.c smallgames.c \
        bounch.c map.c titlescreen.c menus.c rle.c level.c savegame.c \
-       stringcopy.c error.c bosses.c gfx.c compat/alloc.c compat/tios.c compat/tilemap.c compat/extgraph.c compat/graph.c compat/font_data.c compat/kbd.c compat/gray.c
+       stringcopy.c error.c bosses.c gfx.c compat/alloc.c compat/tios.c compat/tilemap.c compat/extgraph.c compat/graph.c compat/font_data.c compat/gray.c
 
 OBJS = $(SRCS:.c=.o)
 DEPS = $(OBJS:.o=.d)
 
-# Filter out anything under compat/ from SRCS
-NON_COMPAT_SRCS = $(filter-out compat/%,$(SRCS))
 .PHONY: all clean data FORCE
 
 all: $(TARGET)
@@ -79,8 +77,8 @@ $(TARGET): $(OBJS) .data-stamp Makefile
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-format: $(NON_COMPAT_SRCS) $(HDRS)
-	clang-format --sort-includes -i $(NON_COMPAT_SRCS) $(HDRS)
+format: $(SRCS) $(HDRS)
+	clang-format --sort-includes -i $(SRCS) $(HDRS)
 
 
 -include $(DEPS)

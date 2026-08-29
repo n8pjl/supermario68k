@@ -32,7 +32,7 @@ inline void Handle_player_map() {
 
   // Player.Test = L;
 
-  if (Keystate.Run && !Previous_keystate.Run) { // toggle map statusbar state
+  if (Keystate.run && !Previous_keystate.run) { // toggle map statusbar state
 
     if (Map_statusbar == status) {
       Map_statusbar = itemlist;
@@ -46,7 +46,7 @@ inline void Handle_player_map() {
 
     if ((CX == 0) && (CY == 0)) {
 
-      if (Keystate.Right /*&& ((Player.MapX)<(Map_data.Border_right))*/ &&
+      if (Keystate.right /*&& ((Player.MapX)<(Map_data.Border_right))*/ &&
           ((SavePlayer.L == 0) || (SavePlayer.L == 2))) {
         CX = 0;
         Player.Face = 1;
@@ -99,7 +99,7 @@ inline void Handle_player_map() {
         };
       } else {
 
-        if (Keystate.Left /*&& (Player.MapX>Map_data.Border_left)*/ &&
+        if (Keystate.left /*&& (Player.MapX>Map_data.Border_left)*/ &&
             ((SavePlayer.L == 0) || (SavePlayer.L == 1))) {
           CX = 0;
           Player.Face = -1;
@@ -152,7 +152,7 @@ inline void Handle_player_map() {
           };
         } else {
 
-          if (Keystate.Up && (SavePlayer.MapY > 0) &&
+          if (Keystate.up && (SavePlayer.MapY > 0) &&
               ((SavePlayer.L == 0) || (SavePlayer.L == 4))) {
             CY = 0;
             /*
@@ -207,7 +207,7 @@ inline void Handle_player_map() {
             };
           } else {
 
-            if (Keystate.Down &&
+            if (Keystate.down &&
                 (SavePlayer.MapY < (16 * Map_data.Height - 1)) &&
                 ((SavePlayer.L == 0) || (SavePlayer.L == 3))) {
               CY = 0;
@@ -295,7 +295,7 @@ inline void Handle_player_map() {
       };
     };
 
-    if (Keystate.Jump && !Previous_keystate.Jump) {
+    if (Keystate.jump && !Previous_keystate.jump) {
 
       Temp2 = Get_map_tile(SavePlayer.MapX, SavePlayer.MapY);
 
@@ -510,15 +510,15 @@ inline void Handle_player_map() {
     };
 
   } else { // Map_statusbar==itemlist
-    if (Keystate.Left && !Previous_keystate.Left && Player.Curr_item > 0) {
+    if (Keystate.left && !Previous_keystate.left && Player.Curr_item > 0) {
       Player.Curr_item--;
     };
-    if (Keystate.Right && !Previous_keystate.Right &&
+    if (Keystate.right && !Previous_keystate.right &&
         SavePlayer.Itemlist[Player.Curr_item + 1] &&
         Player.Curr_item < (itemlist_length - 1)) {
       Player.Curr_item++;
     };
-    if (Keystate.Jump && !Previous_keystate.Jump) {
+    if (Keystate.jump && !Previous_keystate.jump) {
       if (SavePlayer.Itemlist[(int16_t)Player.Curr_item]) {
         // collect item
         int16_t Remove = 1;

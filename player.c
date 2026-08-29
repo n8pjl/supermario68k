@@ -699,7 +699,7 @@ inline void Handleplayer() {
     };
   };
 
-  if (Keystate.Right || (Player.Xoffset > 0)) {
+  if (Keystate.right || (Player.Xoffset > 0)) {
 
     // animate walksprite
     if (SavePlayer.Life == 1) {
@@ -780,7 +780,7 @@ inline void Handleplayer() {
 
   } // end of right
   //		else{//qbqbqbqbqb
-  if (Keystate.Left || (Player.Xoffset < 0)) {
+  if (Keystate.left || (Player.Xoffset < 0)) {
 
     // animate walksprite
 
@@ -875,7 +875,7 @@ inline void Handleplayer() {
 
   };*/
 
-  if ((!Keystate.Left) && (!Keystate.Right) && (Player.Xoffset == 0)) {
+  if ((!Keystate.left) && (!Keystate.right) && (Player.Xoffset == 0)) {
 
     Anim_step = 0; //-1;
     Player.Offset = 0;
@@ -904,7 +904,7 @@ inline void Handleplayer() {
     };
   };
 
-  if (Keystate.Run) {
+  if (Keystate.run) {
     Player.Walkspeed = PLAYER_RUNSPEED;
     Player.Walkspeed2 = PLAYER_WALKSPEED;
 
@@ -914,7 +914,7 @@ inline void Handleplayer() {
             };
     };*/
 
-    if (!Previous_keystate.Run) {
+    if (!Previous_keystate.run) {
 
       if ((SavePlayer.Attribs & 0b01000000)) { // able to throw fireballs ?
         Player_add_fireball();
@@ -942,7 +942,7 @@ inline void Handleplayer() {
     Player.Walkspeed2 = PLAYER_WALKSPEED;
   };
 
-  if ((Keystate.Jump || (Player.Yoffset < 0)) && (!Player.IsClimbing)) {
+  if ((Keystate.jump || (Player.Yoffset < 0)) && (!Player.IsClimbing)) {
 
     // fly code
     if ((SavePlayer.Attribs & 0b00100000) &&
@@ -968,7 +968,7 @@ inline void Handleplayer() {
           Player.IsJumping = 0;
       } else { // NOT allready jumping
         Set_player_attribs_down(Attribs2);
-        if ((Attribs2[5] == 0) && (!Previous_keystate.Jump)) { // not free down
+        if ((Attribs2[5] == 0) && (!Previous_keystate.jump)) { // not free down
           Player.Y -= (Attribs[5] > Player.Jumpspeed)
                           ? (Player.Jumpspeed)
                           : (Attribs[5]); // the largest one
@@ -986,7 +986,7 @@ inline void Handleplayer() {
       // ){//adjust right
       if ((!(Player.SlopeAbove)) && (Attribs[1] >= solid_low) &&
           (Attribs[2] < solid_low) && ((16 - (Player.X & 0x000f)) <= 6) &&
-          !(Keystate.Left)) { // adjust right
+          !(Keystate.left)) { // adjust right
         // Player.X += (16-(Player.X%16));
         Player.X += (16 - (Player.X & 0x000f));
       } else {
@@ -995,7 +995,7 @@ inline void Handleplayer() {
         // ){//adjust left
         if ((!(Player.SlopeAbove)) && (Attribs[1] < solid_low) &&
             (Attribs[2] >= solid_low) && ((Player.X & 0x000f) <= 6) &&
-            !(Keystate.Right)) { // adjust left
+            !(Keystate.right)) { // adjust left
           // Player.X -= (Player.X%16);
           Player.X -= (Player.X & 0x000f);
         } else {
@@ -1037,7 +1037,7 @@ inline void Handleplayer() {
 
     if (!Player.IsJumping) { // fall
 
-      if (Keystate.Jump && (SavePlayer.Attribs & 0b00100000)) {
+      if (Keystate.jump && (SavePlayer.Attribs & 0b00100000)) {
         Player.Fallspeed = 2;
         Player.RacoonTaleAnim = 1;
       }
@@ -1096,7 +1096,7 @@ inline void Handleplayer() {
       Player.White_magic_box_counter = 0;
     }
 
-    if (Keystate.Down && !Keystate.Right && !Keystate.Left &&
+    if (Keystate.down && !Keystate.right && !Keystate.left &&
         (SavePlayer.Life >= 2) && !Player.IsClimbing &&
         !(Player.IsInWater && Free_down(Player.X, Player.Y + Player.Height))) {
       // duck

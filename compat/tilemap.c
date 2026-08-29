@@ -1,6 +1,6 @@
-#include <stdint.h>
 #include "tilemap.h"
 #include "graph.h"
+#include <stdint.h>
 
 #include <stddef.h>
 
@@ -56,8 +56,8 @@ static uint16_t vs_word(const uint8_t *row, int16_t k, uint16_t shift) {
 // Split the window origin into the source offset and the residual shift the
 // stitch above needs. The callers guarantee 0 <= x, y < 32; the whole word of
 // horizontal offset is folded into the pointer, leaving 0..15 to shift.
-static const uint8_t *vs_window(const void *src, uint16_t x,
-                                      uint16_t y, uint16_t *shift) {
+static const uint8_t *vs_window(const void *src, uint16_t x, uint16_t y,
+                                uint16_t *shift) {
   const uint8_t *s = (const uint8_t *)src + y * VS_STRIDE;
 
   *shift = x;
@@ -76,8 +76,7 @@ static const uint8_t *vs_window(const void *src, uint16_t x,
 // 128 rows against 20 bytes on 100, and both step the destination by a full
 // 30-byte plane row either way. Sized from LCD_LINE_BYTES/LCD_HEIGHT, one
 // function covers both.
-void DrawBuffer_MASK(const void *src, uint16_t x, uint16_t y,
-                     void *dest) {
+void DrawBuffer_MASK(const void *src, uint16_t x, uint16_t y, void *dest) {
   uint16_t shift;
   const uint8_t *s = vs_window(src, x, y, &shift);
   uint8_t *d = (uint8_t *)dest;
@@ -102,8 +101,8 @@ void DrawBuffer_MASK(const void *src, uint16_t x, uint16_t y,
 // dest+3840, which holds on the calculator because the gray double buffer
 // allocates the two planes back to back. Here they take the two planes the
 // game's own macros already pass separately, which does not assume that.
-static void gray_blit(const void *src, uint16_t x, uint16_t y,
-                      void *lightplane, void *darkplane, int16_t combine) {
+static void gray_blit(const void *src, uint16_t x, uint16_t y, void *lightplane,
+                      void *darkplane, int16_t combine) {
   uint16_t shift;
   const uint8_t *s = vs_window(src, x, y, &shift);
   uint8_t *dl = (uint8_t *)lightplane;
@@ -158,9 +157,8 @@ void DrawGrayBuffer2B_OR(const void *src, uint16_t x, uint16_t y,
 // Indexing both directly is the same traversal without the bookkeeping.
 static void refresh_buffer16b(const uint8_t *matrix, uint16_t width,
                               int16_t col0, int16_t row0,
-                              const uint16_t *sprites,
-                              const uint16_t *anim, uint8_t *buf,
-                              int16_t wrap, int16_t gray) {
+                              const uint16_t *sprites, const uint16_t *anim,
+                              uint8_t *buf, int16_t wrap, int16_t gray) {
   int16_t col, row, r;
 
   for (col = 0; col < VS_COLS; col++) {
@@ -200,8 +198,7 @@ static void refresh_buffer16b(const uint8_t *matrix, uint16_t width,
 // and the blitters take the leftover 0..31 pixels as their window origin. The
 // distance tests catch a jump that skipped over a boundary without changing
 // bit 5. `reserved` is the Plane field the engine keeps that last origin in.
-static int16_t plane_stale(const struct Plane *plane, uint16_t x,
-                         uint16_t y) {
+static int16_t plane_stale(const struct Plane *plane, uint16_t x, uint16_t y) {
   int16_t ox = (int16_t)((uint32_t)plane->reserved >> 16);
   int16_t oy = (int16_t)((uint32_t)plane->reserved & 0xFFFF);
   int16_t dx = (int16_t)(ox - (int16_t)x);
@@ -226,8 +223,7 @@ static void plane_refresh(struct Plane *plane, uint16_t x, uint16_t y,
                     (uint8_t *)plane->big_vscreen, wrap, gray);
 }
 
-static void plane_remember(struct Plane *plane, uint16_t x,
-                           uint16_t y) {
+static void plane_remember(struct Plane *plane, uint16_t x, uint16_t y) {
   plane->reserved = (int32_t)(((uint32_t)x << 16) | (uint16_t)y);
 }
 
@@ -273,9 +269,9 @@ void DrawGrayPlane16B2B(uint16_t x, uint16_t y, struct Plane *plane,
 // clamps that would otherwise be needed are commented out, while the matching
 // vertical clamp on BgY is still live - so the horizontal wrap, and only the
 // horizontal one, moved into this function.
-void DrawGrayPlane16B2B_ROLL(uint16_t x, uint16_t y,
-                             struct Plane *plane, void *lightplane,
-                             void *darkplane, TM_GrayMode mode) {
+void DrawGrayPlane16B2B_ROLL(uint16_t x, uint16_t y, struct Plane *plane,
+                             void *lightplane, void *darkplane,
+                             TM_GrayMode mode) {
   if (plane_stale(plane, x, y))
     plane_refresh(plane, x, y, NULL, (int16_t)plane->width, 1);
   plane_remember(plane, x, y);
@@ -289,9 +285,8 @@ void DrawGrayPlane16B2B_ROLL(uint16_t x, uint16_t y,
 // An animation step always rebuilds the buffer, so the staleness test only
 // gets a look in on the frames that do not step - which is what the original
 // does, checking the animation first and branching straight to the refresh.
-void DrawAnimatedPlane16B(uint16_t x, uint16_t y,
-                          struct AnimatedPlane *plane, void *dest,
-                          TM_Mode mode) {
+void DrawAnimatedPlane16B(uint16_t x, uint16_t y, struct AnimatedPlane *plane,
+                          void *dest, TM_Mode mode) {
   if (plane_animate(plane) || plane_stale(&plane->p, x, y))
     plane_refresh(&plane->p, x, y, anim_row(plane), 0, 0);
   plane_remember(&plane->p, x, y);

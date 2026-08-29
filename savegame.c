@@ -165,106 +165,25 @@ void Savegame(char Slot) {
 
   FILES fsPtr;
 
-  // check if archived...
-
-  // New: V 1.01 Modified the file saving to automaticly archive save game file,
-  // doing a garbage collection if neccessarry
-  int16_t Tries = 0;
-
-  while (Tries < 2) { // 0 or 1 try
-
-    if (EM_findEmptySlot(Size +
-                         100)) { // large enough empty slot in archive mem?
-      // save:
-      // Unarchive
-      if (!EM_moveSymFromExtMem(SYMSTR(Levelsetfile), HS_NULL)) {
-        goto failure; // while(1);
-      }
-      // Open the file
-      if (FOpen(Levelsetfile, &fsPtr, FM_WRITE, "MLST") != FS_OK) {
-        goto failure; // while(1);
-      }
-      // write buffer to file
-      if (FWrite(TempBuffer /*Fg_plane.p.big_vscreen*/, Size, &fsPtr) !=
-          FS_OK) { // write everythiong to file
-        goto failure;
-      }
-      // close file
-      FClose(&fsPtr);
-
-      // archive
-      if (!EM_moveSymToExtMem(SYMSTR(Levelsetfile), HS_NULL)) {
-        goto failure; // while(1);
-      }
-      break; // break out of while
-    } else { // No free flash mem blocks that are large enough
-      // Garbage collect, no dialog
-
-      if (Tries >
-          0) // tried garbage collection already, no point in trying twice
-        goto failure;
-
-      if (EM_GC(FALSE)) {
-        Load_gfx_from_file(); // Retrieve pointers to GFX files, might be
-                              // invalid after garbage collection
-      };
-      Tries++;
-    }
+  // Open the file
+  if (FOpen(Levelsetfile, &fsPtr, FM_WRITE, "MLST") != FS_OK) {
+    goto failure;
   }
-  // End of new
-
-  /*
-  //unarchive
-  if( !EM_moveSymFromExtMem ( SYMSTR(Levelsetfile), HS_NULL ) ){
-          goto failure;//while(1);
+  // write buffer to file
+  if (FWrite(TempBuffer, Size, &fsPtr) != FS_OK) { // write everythiong to file
+    goto failure;
   }
-
-  if(FOpen (Levelsetfile, &fsPtr, FM_WRITE, "MLST")!=FS_OK){
-          goto failure;//while(1);
-  }
-
-  //write buffer to file
-  if(FWrite (TempBuffer, Size, &fsPtr)!=FS_OK){//write everythiong to file
-          goto failure;
-  }
-
-
-  FClose (&fsPtr);//close file
-  */
-  // archive
-  /*	if( !EM_moveSymToExtMem ( SYMSTR(Levelsetfile), HS_NULL ) ){
-                  goto failure;//while(1);
-          }*/
-  //		while(1);
+  // close file
+  FClose(&fsPtr);
 
   /*
   1. Find required file size
   2. Check if a memory block of that size is available in archive mem
       If no: Run a garbage collection, go back to 2.
 
-  3. If step 2 has been performed 2 times unsuccessfully, it is not possible to
-  archive. If step 2 has been performed successfully, the required archive is
-  available. Unarchive the file, write to it and archive it
-  */
-
-  /*Autoarchive stuff
-          short Tries = 0;
-
-          while(Tries<2){//0 or 1 try
-
-                  if( EM_findEmptySlot() ){//large enough empty slot in archive
-     mem?
-                          //archive
-                          EM_moveSymToExtMem ( SYMSTR(Levelsetfile), HS_NULL );
-                          break;//break out of while
-                  }
-                  else{//No free flash mem blocks that are large enough
-                          //Garbage collect, no dialog
-                          EM_GC (FALSE);
-                          Tries++;
-                  }
-
-          }
+  3. If step 2 has been performed 2 times unsuccessfully, it is not possible
+  to archive. If step 2 has been performed successfully, the required archive
+  is available. Unarchive the file, write to it and archive it
   */
 
   return;

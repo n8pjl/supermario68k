@@ -15,12 +15,7 @@
 struct settings Settings;
 
 inline void Custom() {
-
-  // contrast adjustment. Will change
-  if (Fg_plane.frame % 2)
-    Contrast_adj();
-
-  if (Keystate.Esc) {
+  if (Keystate.esc) {
     // handle midgame menu
 
     char OldBg = Leveldata.Background;
@@ -42,17 +37,6 @@ inline void Custom() {
     // DrawStr(0,20,"wee!!!",A_NORMAL);//used as indicator during tests
   };
 }
-
-void Contrast_adj() {
-
-  if (Keystate.Plus) {
-    OSContrastUp();
-  } else {
-    if (Keystate.Minus) {
-      OSContrastDn();
-    };
-  };
-};
 
 // New V 1.03: Configureable keys
 
@@ -121,14 +105,14 @@ void Key_configure() {
     while(!_rowread(0));//wait until key pressed*/
     WaitKeyPress();
 
-    Scankeys();
+    ScanKeys();
 
-    if (Keystate.Down) {
+    if (Keystate.down) {
       if ((++Curr) > (nr_of_config_keys - 1)) {
         Curr = 0;
       }
     };
-    if (Keystate.Up) {
+    if (Keystate.up) {
       if ((--Curr) < 0) {
         Curr = (nr_of_config_keys - 1);
       }
@@ -136,12 +120,12 @@ void Key_configure() {
 
     do {
 
-      if (Keystate.Left) {
+      if (Keystate.left) {
         if ((--Settings.Keys[Curr]) < 0) {
           Settings.Keys[Curr] = 3;
         }
       };
-      if (Keystate.Right) {
+      if (Keystate.right) {
         if ((++Settings.Keys[Curr]) > 3) {
           Settings.Keys[Curr] = 0;
         }
@@ -150,16 +134,10 @@ void Key_configure() {
     } while (Settings.Keys[0] ==
              Settings.Keys[1]); // Prevent assigning the same key to both
 
-    if (Keystate.Enter || Keystate.Esc) {
+    if (Keystate.enter || Keystate.esc) {
       Back = 1;
     }
   }
-
-  // Save new config
-  /*if( !EM_moveSymFromExtMem ( SYMSTR("maconfig"), HS_NULL ) ){
-          return;
-  }*/
-  EM_moveSymFromExtMem(SYMSTR("mario\\maconfig"), HS_NULL);
 
   FILES fsPtr;
 

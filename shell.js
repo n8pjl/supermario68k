@@ -10,11 +10,52 @@ import createMario from "./mario.mjs";
 // display refreshing slower than that the game just tracks the refresh rate.
 const CALC_FPS = 30;
 
+const gameKeys = new Set([
+  "Enter",
+  "Escape",
+  " ",
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "Shift",
+]);
+
+// Passed the resolve function by code in scankeys.c
+const keyPressPromises = { keydown: null, keyup: null };
+
+let pressedKeys = new Set();
+
+addEventListener("keydown", (e) => {
+  if (!gameKeys.has(e.key)) return;
+
+  e.preventDefault();
+  pressedKeys.add(e.key);
+  keyPressPromises.keydown?.();
+});
+
+addEventListener("keyup", (e) => {
+  if (!gameKeys.has(e.key)) return;
+
+  e.preventDefault();
+  pressedKeys.delete(e.key);
+  keyPressPromises.keyup?.();
+});
+
+// A window that loses focus never sees the keyup, which would otherwise
+// leave the game running into a wall.
+addEventListener("blur", () => {
+  pressedKeys.clear();
+});
+
 createMario({
   canvas: document.getElementById("canvas"),
   frameMs: 1000 / CALC_FPS,
   print: (t) => console.log(t),
   printErr: (t) => console.error(t),
-  onRuntimeInitialized: () => console.log("runtime ready, data mounted at /data"),
+  onRuntimeInitialized: () =>
+    console.log("runtime ready, data mounted at /data"),
   onAbort: (w) => console.error("ABORT: " + w),
+  pressedKeys,
+  keyPressPromises,
 }).catch((e) => console.error("failed to start:", e));
