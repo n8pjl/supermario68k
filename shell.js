@@ -20,11 +20,10 @@ const gameKeys = new Set([
   "ArrowRight",
   "Shift",
 ]);
+const pressedKeys = new Set();
 
-// Passed the resolve function by code in scankeys.c
+// Passed by the resolve function by code in scankeys.c
 const keyPressPromises = { keydown: null, keyup: null };
-
-let pressedKeys = new Set();
 
 addEventListener("keydown", (e) => {
   if (!gameKeys.has(e.key)) return;
@@ -32,6 +31,7 @@ addEventListener("keydown", (e) => {
   e.preventDefault();
   pressedKeys.add(e.key);
   keyPressPromises.keydown?.();
+  keyPressPromises.keydown = null;
 });
 
 addEventListener("keyup", (e) => {
@@ -40,6 +40,7 @@ addEventListener("keyup", (e) => {
   e.preventDefault();
   pressedKeys.delete(e.key);
   keyPressPromises.keyup?.();
+  keyPressPromises.keyup = null;
 });
 
 // A window that loses focus never sees the keyup, which would otherwise
