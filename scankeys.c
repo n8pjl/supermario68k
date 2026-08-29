@@ -86,14 +86,14 @@ void ScanKeys(void) {
         for (const gp of navigator.getGamepads()) {
           if (gp?.mapping !== "standard") continue;
 
-          keystate[enter] |= gp.buttons[9].pressed;
-          keystate[esc] |= gp.buttons[8].pressed;
-          keystate[jump] |= gp.buttons[0].pressed | gp.buttons[1].pressed;
-          keystate[up] |= gp.buttons[12].pressed;
-          keystate[down] |= gp.buttons[13].pressed;
-          keystate[left] |= gp.buttons[14].pressed;
-          keystate[right] |= gp.buttons[15].pressed;
-          keystate[run] |= gp.buttons[2].pressed | gp.buttons[3].pressed;
+          keystate[enter] |= gp.buttons[9]?.pressed;
+          keystate[esc] |= gp.buttons[8]?.pressed;
+          keystate[jump] |= gp.buttons[0]?.pressed | gp.buttons[1]?.pressed;
+          keystate[up] |= gp.buttons[12]?.pressed;
+          keystate[down] |= gp.buttons[13]?.pressed;
+          keystate[left] |= gp.buttons[14]?.pressed;
+          keystate[right] |= gp.buttons[15]?.pressed;
+          keystate[run] |= gp.buttons[2]?.pressed | gp.buttons[3]?.pressed;
 
           const ud = Math.round(gp.axes[1]);
           keystate[up] |= ud === -1;

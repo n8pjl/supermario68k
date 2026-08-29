@@ -56,8 +56,6 @@ addEventListener("keyup", (e) => {
 
   e.preventDefault();
   pressedKeys.delete(e.key);
-  keyPressPromises.keyup?.();
-  keyPressPromises.keyup = null;
 });
 
 // A window that loses focus never sees the keyup, which would otherwise
