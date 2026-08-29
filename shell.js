@@ -20,10 +20,27 @@ const gameKeys = new Set([
   "ArrowRight",
   "Shift",
 ]);
+const gameGpButtons = new Set([0, 1, 2, 3, 8, 9, 12, 13, 14, 15]);
 const pressedKeys = new Set();
 
+function pressedGpButtons() {
+  const ret = new Set();
+
+  for (const gp of navigator.getGamepads()) {
+    if (gp?.mapping !== "standard") continue;
+
+    for (const button of gameGpButtons) {
+      if (gp.buttons[button].pressed) {
+        ret.add(button);
+      }
+    }
+  }
+
+  return ret;
+}
+
 // Passed by the resolve function by code in scankeys.c
-const keyPressPromises = { keydown: null, keyup: null };
+const keyPressPromises = { keydown: null };
 
 addEventListener("keydown", (e) => {
   if (!gameKeys.has(e.key)) return;
@@ -58,5 +75,6 @@ createMario({
     console.log("runtime ready, data mounted at /data"),
   onAbort: (w) => console.error("ABORT: " + w),
   pressedKeys,
+  pressedGpButtons,
   keyPressPromises,
 }).catch((e) => console.error("failed to start:", e));
