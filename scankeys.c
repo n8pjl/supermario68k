@@ -86,8 +86,8 @@ void ScanKeys(void) {
         for (const gp of navigator.getGamepads()) {
           if (gp?.mapping !== "standard") continue;
 
-          keystate[enter] |= gp.buttons[9]?.pressed;
-          keystate[esc] |= gp.buttons[8]?.pressed;
+          keystate[enter] |= gp.buttons[8]?.pressed;
+          keystate[esc] |= gp.buttons[9]?.pressed;
           keystate[jump] |= gp.buttons[0]?.pressed | gp.buttons[1]?.pressed;
           keystate[up] |= gp.buttons[12]?.pressed;
           keystate[down] |= gp.buttons[13]?.pressed;
@@ -95,12 +95,14 @@ void ScanKeys(void) {
           keystate[right] |= gp.buttons[15]?.pressed;
           keystate[run] |= gp.buttons[2]?.pressed | gp.buttons[3]?.pressed;
 
-          const ud = Math.round(gp.axes[1]);
-          keystate[up] |= ud === -1;
-          keystate[down] |= ud === 1;
-          const lr = Math.round(gp.axes[0]);
-          keystate[left] |= lr === -1;
-          keystate[right] |= lr === 1;
+          const ud1 = Math.round(gp.axes[1]);
+          const ud2 = Math.round(gp.axes[3]);
+          keystate[up] |= ud1 === -1 | ud2 === -1;
+          keystate[down] |= ud1 === 1 | ud2 === 1;
+          const lr1 = Math.round(gp.axes[0]);
+          const lr2 = Math.round(gp.axes[2]);
+          keystate[left] |= lr1 === -1 | lr2 === -1;
+          keystate[right] |= lr1 === 1 | lr2 === 1;
         }
         // clang-format on
       },

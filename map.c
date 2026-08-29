@@ -1186,9 +1186,14 @@ GrayFastFillRect2B240_R(GrayDBufGetActivePlane(LIGHT_PLANE),GrayDBufGetActivePla
 
 void Enter_level_anim() {
 
-  int16_t LX = 0, RX = screen_width, HY = 0, LY = screen_height, C;
+  int16_t LX = 0, RX = screen_width, HY = 0, LY = screen_height;
+  uint8_t display = 0;
 
   while ((LX < RX) || (LY > HY)) {
+    GrayFastOutlineRect_R(GrayDBufGetActivePlane(LIGHT_PLANE),
+                          GrayDBufGetActivePlane(DARK_PLANE), LX, HY, RX, LY,
+                          COLOR_DARKGRAY);
+
     if (LX < (SavePlayer.MapX - FgX))
       LX++;
     if (RX > (SavePlayer.MapX - FgX))
@@ -1198,18 +1203,13 @@ void Enter_level_anim() {
     if (HY < (SavePlayer.MapY - FgY))
       HY++;
 
-    GrayFastOutlineRect_R(GrayDBufGetActivePlane(LIGHT_PLANE),
-                          GrayDBufGetActivePlane(DARK_PLANE), LX, HY, RX, LY,
-                          COLOR_DARKGRAY);
+    if (display == 0) {
+      GrayDBufRefresh();
+      DelayNFrames(1);
+    }
 
-    for (C = 0; C < 2500; C++)
-      ;
-  };
-
-  // GrayDBufGetHiddenPlane(LIGHT_PLANE)
-  // FastDrawLine_R(register unsigned char* plane asm("%a0"),register short x1
-  // asm("%d0"),register short y1 asm("%d1"),register short x2
-  // asm("%d2"),register short y2 asm("%d3"),short mode)
+    display = (display + 1) % 8;
+  }
 };
 
 void Fight_monster(struct map_object *Monster) {
