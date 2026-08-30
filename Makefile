@@ -18,19 +18,35 @@ CFLAGS = -Os -std=gnu99 -fgnu89-inline -flto -msimd128 -MMD -MP
 LDFLAGS = -sJSPI -Os -flto -sENVIRONMENT=web -sEXPORT_ES6=1 \
           --preload-file data@/data
 
-TARGET = mario.mjs
+SRCDIR = src
 
-SRCS = main.c enemies.c gameloop.c  items.c player.c render.c \
-       scankeys.c shells.c custom.c objects.c flying.c smallgames.c \
-       bounch.c map.c titlescreen.c menus.c rle.c level.c savegame.c \
-       stringcopy.c error.c bosses.c gfx.c compat/alloc.c compat/tios.c compat/tilemap.c compat/extgraph.c compat/graph.c compat/font_data.c compat/gray.c
+OUTDIR = dist
 
+TARGET = $(OUTDIR)/mario.mjs
+
+# Static files served alongside the wasm. COPIES is the list of their built
+# locations: $(OUTDIR)/$(COPY) would only prefix the first word.
+COPY = index.html shell.js shell.css
+COPIES = $(addprefix $(OUTDIR)/,$(COPY))
+
+NAMES = main.c enemies.c gameloop.c items.c player.c render.c \
+        scankeys.c shells.c custom.c objects.c flying.c smallgames.c \
+        bounch.c map.c titlescreen.c menus.c rle.c level.c savegame.c \
+        stringcopy.c error.c bosses.c gfx.c \
+        compat/alloc.c compat/tios.c compat/tilemap.c compat/extgraph.c \
+        compat/graph.c compat/font_data.c compat/gray.c
+
+SRCS = $(addprefix $(SRCDIR)/,$(NAMES))
+HDRS = $(wildcard $(SRCDIR)/*.h $(SRCDIR)/compat/*.h)
+
+# Objects land beside their sources, so $(SRCDIR)/compat already exists and
+# the %.o: %.c rule needs no per-directory handling.
 OBJS = $(SRCS:.c=.o)
 DEPS = $(OBJS:.o=.d)
 
 .PHONY: all clean data FORCE
 
-all: $(TARGET)
+all: $(TARGET) $(COPIES)
 
 # Both the objects and the data depend on which calculator is being built for,
 # so record it in a stamp file that changes whenever CALC does. Without this,
@@ -54,8 +70,16 @@ data: .data-stamp
 # relink - the same reason the data and the headers are prerequisites.
 $(OBJS): .calc-stamp Makefile
 
-$(TARGET): $(OBJS) .data-stamp Makefile
+# Order-only: the link also drops mario.wasm and mario.data next to $@, so the
+# directory has to exist, but its timestamp must not force a relink.
+$(TARGET): $(OBJS) .data-stamp Makefile | $(OUTDIR)
 	$(CC) $(OBJS) $(LDFLAGS) -o $@
+
+$(OUTDIR)/%: % | $(OUTDIR)
+	cp $< $@
+
+$(OUTDIR):
+	mkdir -p $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -67,5 +91,5 @@ format: $(SRCS) $(HDRS)
 -include $(DEPS)
 
 clean:
-	rm -f $(OBJS) $(DEPS) $(TARGET) mario.js mario.wasm mario.data .calc-stamp .data-stamp
-	rm -rf data
+	rm -f $(OBJS) $(DEPS) .calc-stamp .data-stamp
+	rm -rf $(OUTDIR) data

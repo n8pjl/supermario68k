@@ -50,7 +50,7 @@ SIZEOF_BGFILEDATA = 44
 BGDATA = [(0, 2)]                # Height, Width
 
 
-GFX_HEADER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "gfx.h")
+GFX_HEADER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "gfx.h")
 
 
 def gfx_constants():
