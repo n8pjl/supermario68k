@@ -29,12 +29,12 @@ Show_titlescreen() { // New: V 1.01 Changed return type from void to short
 #endif
 
 #ifdef PRODUCE_V200_CODE
-  /*FgX = */ FgY = 0;
+  FgY = 0;
   BgY = 32;
 #endif
 
 #ifdef PRODUCE_TI92PLUS_CODE
-  /*FgX = */ FgY = 0;
+  FgY = 0;
   BgY = 32;
 #endif
 
@@ -55,14 +55,6 @@ Show_titlescreen() { // New: V 1.01 Changed return type from void to short
   }
 
   for (C = 0; C < 4; C++) {
-
-    // GrayClipSprite16_SMASK_R(46+16*C,44,21,titlescreen_gfx +6*19*2+20*2+
-    // 2*21*C,titlescreen_gfx +6*19*2+20*2+
-    // +2*21*C+21,blank_sprite,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
-    // GrayClipSprite16_SMASK_R(screen_offset_sg_x+54+16*C,37,21,titlescreen_gfx
-    // +6*19*3+20*3+ 3*21*C,titlescreen_gfx +6*19*3+20*3+
-    // +3*21*C+21,titlescreen_gfx +6*19*3+20*3+
-    // +3*21*C+2*21,dBufHPL_G,dBufHPD_G);
     DrawSprite16SMASKR(screen_offset_sg_x + 54 + 16 * C, 37, 21,
                        titlescreen_gfx + 6 * 19 * 3 + 20 * 3 + 3 * 21 * C,
                        titlescreen_gfx + 6 * 19 * 3 + 20 * 3 + +3 * 21 * C + 21,
@@ -70,10 +62,8 @@ Show_titlescreen() { // New: V 1.01 Changed return type from void to short
                            2 * 21);
   }
 
-  GrayDBufToggleSync_SetPointers(); // GrayDBufToggleSync();
+  GrayDBufToggleSync_SetPointers();
 
-  /*while(_rowread(0));//wait until key released
-  while(!_rowread(0));//wait until key pressed*/
   WaitKeyPress();
 
   return 0;

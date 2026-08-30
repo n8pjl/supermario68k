@@ -416,9 +416,7 @@ void Bowser_handler(struct boss *Boss1) {
   memcpy(&TempBoss, Boss1, sizeof(struct boss));
 
   if (Boss->Active && (Boss->Mode == 0)) {
-
     if (!Boss->Data0) { // not in a jump
-
       if ((++Boss->State) > 182) {
         Boss->State = 1; // restart cycle
       }
@@ -723,7 +721,7 @@ void Bowser_handler(struct boss *Boss1) {
                                 }
         */
         // mushrom house with princess (remove treasure boxes)
-        Skip_anim = 1;
+        Skip_anim = true;
         Load_level(Commonfilename, 0);
 
         /*	Put_tile(5*16,7*16,0);
@@ -817,7 +815,6 @@ void Boss_die_1(struct boss *Boss) { // Boss_die_1 and Boss_die_2 merged
 };
 
 void Bowser_die(struct boss *Boss) {
-
   if (!Boss->Mode) {
     if ((--Boss->Life) == 0) {
       Boss->Active = 0; // die

@@ -30,7 +30,6 @@ uint8_t StatBarHeight;
 void *dBufHPL_G, *dBufHPD_G;
 
 void GrayDBufToggleSync_SetPointers() {
-
   GrayDBufToggleSync(); // set drawbuffer as active screen
 
   dBufHPL_G = GrayDBufGetHiddenPlane(LIGHT_PLANE);
@@ -293,7 +292,6 @@ void Render() // this function renders all graphics
   };
 
   if (Leveldata.Boss) {
-
     C = LIGHT_PLANE;
     D = DARK_PLANE;
     if (BossG->Mode) {

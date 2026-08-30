@@ -15,6 +15,7 @@
 #include "rle.h"
 #include "savegame.h"
 #include "shells.h"
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,7 +45,6 @@ char Commonfilename[9];
 // platform arrays that follow the header are byte data too, which is why
 // mkdata.py leaves the level payloads alone.
 static void Swap_leveldata(struct leveldata *Data) {
-
   Data->Width = be16(Data->Width);
   Data->Height = be16(Data->Height);
   Data->Bg_height = be16(Data->Bg_height);
@@ -75,7 +75,7 @@ int16_t Load_level(char *Levelfile, int16_t Level_nr) {
     Enter_level_anim();
   };
 
-  Skip_anim = 0;
+  Skip_anim = false;
 
   //	SavePlayer.Spritebase += (Player.Face%2?0:1);
   //	Player.Face = 1;
@@ -791,11 +791,9 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
   Nr = 0;
 
   while (Nr < Leveldata.Nr_of_flying_platforms) {
-
     Model = *((char *)Raw);
 
     if (Model > 0) {
-
       Flying_platforms[Nr].X = (*((uint8_t *)Raw + 1)) * 16; // COMMON FOR ALL
       Flying_platforms[Nr].Y = (*((uint8_t *)Raw + 2)) * 16; // COMMON FOR ALL
       Flying_platforms[Nr].Width = (*((uint8_t *)Raw + 3));  // COMMON FOR ALL
@@ -803,10 +801,8 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
       Flying_platforms[Nr].Sprite = 100; // platform_sprite;
 
       switch (Model) {
-
       case 11:
       case 12:
-
         Flying_platforms[Nr].Data0 = (*((uint8_t *)Raw + 4));
         Flying_platforms[Nr].Data2 = (*((char *)Raw + 5));
         Flying_platforms[Nr].Data3 = (*((char *)Raw + 6));

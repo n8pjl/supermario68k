@@ -166,7 +166,7 @@ void Playerinit() {
   memset(&Player, 0, sizeof(struct player));
   memset(&SavePlayer, 0, sizeof(struct saveplayer));
   SavePlayer.Life = 1; // 2;
-  SavePlayer.Lives = 98;
+  SavePlayer.Lives = 5;
 
   Player.Face = 1;
 

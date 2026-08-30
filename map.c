@@ -1436,7 +1436,7 @@ void Add_map_event(uint8_t Event) {
   if ((Event >= 240) && (Event <= 250)) { //
     Exit = 0;
     // Fg_plane.p.force_update = Fg_mask.p.force_update = 0;
-    Skip_anim = 1;
+    Skip_anim = true;
     Enter_mushrom_house(Event - 187);
 
   } else {

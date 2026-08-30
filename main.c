@@ -33,6 +33,7 @@
 #include "render.h"
 #include "shells.h"
 #include "smallgames.h"
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -64,7 +65,7 @@ void *Statusbar;
 
 char Exit;
 char ErrorCode;
-char Skip_anim;
+bool Skip_anim;
 
 char Map_statusbar;
 uint8_t Treasure;
