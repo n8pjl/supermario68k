@@ -124,15 +124,66 @@ try {
 sizeCanvas(select.value);
 select.addEventListener("change", () => sizeCanvas(select.value));
 
+// START on the gamepad submits the settings form, so the game can be started
+// without touching the keyboard. Polling only happens while the menu is up,
+// and only once there is a gamepad to poll: with none connected this waits on
+// gamepadconnected instead of burning a callback every frame.
+const GP_START = 9;
+let gamepadStart = null;
+
+function startPressed() {
+  for (const gp of navigator.getGamepads()) {
+    if (gp?.mapping !== "standard") continue;
+    if (gp.buttons[GP_START]?.pressed) return true;
+  }
+  return false;
+}
+
+async function listenForGamepadStart(signal) {
+  // The game itself exits on START, so it can still be held down when the menu
+  // comes back. Only a fresh press counts.
+  let wasPressed = true;
+
+  while (!signal.aborted) {
+    if (navigator.getGamepads().filter(Boolean).length === 0) {
+      wasPressed = false;
+      await new Promise((resolve) => {
+        addEventListener("gamepadconnected", resolve, { once: true, signal });
+        signal.addEventListener("abort", resolve, { once: true });
+      });
+      continue;
+    }
+
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    if (signal.aborted) return;
+
+    const pressed = startPressed();
+    if (pressed && !wasPressed) {
+      settings.requestSubmit();
+      return;
+    }
+    wasPressed = pressed;
+  }
+}
+
+function watchGamepadStart() {
+  gamepadStart = new AbortController();
+  listenForGamepadStart(gamepadStart.signal);
+}
+
+watchGamepadStart();
+
 // Putting the menu back after the game exits. Resizing the canvas also clears
 // the last frame the game left on it.
 function showSettings() {
   sizeCanvas(select.value);
   consoleBox.append(settings);
+  watchGamepadStart();
 }
 
 settings.addEventListener("submit", (e) => {
   e.preventDefault();
+  gamepadStart.abort();
 
   const calc = select.value;
   try {
