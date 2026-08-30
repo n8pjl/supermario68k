@@ -19,6 +19,7 @@
 #include "scankeys.h"
 #include "shells.h"
 #include "stringcopy.h"
+#include "version.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -30,407 +31,404 @@ struct map_trigger *Map_triggers;
 
 char Move_map_objects;
 
-void Play_level() {
-  int16_t OldFgX = FgX;
-  int16_t OldFgY = FgY;
+void Play_level()
+{
+	int16_t OldFgX = FgX;
+	int16_t OldFgY = FgY;
 
-  //	Adjust_renderpoint();
-  //	Render();
-  Playloop();
+	//	Adjust_renderpoint();
+	//	Render();
+	Playloop();
 
-  FgX = OldFgX;
-  FgY = OldFgY;
+	FgX = OldFgX;
+	FgY = OldFgY;
 }
 
-void Playloop() {
-  /*short OldFgX,OldFgY;
+void Playloop()
+{
+	/*short OldFgX,OldFgY;
   OldFgX=FgX;	OldFgY=FgY;*/
 
-  //	int frames=0;//test
-  int16_t C;
-  int32_t D; // test
+	//	int frames=0;//test
+	int16_t C;
+	int32_t D; // test
 
-  // New: V 1.01:
-  char PrevLives = SavePlayer.Lives;
-  // end of New
+	// New: V 1.01:
+	char PrevLives = SavePlayer.Lives;
+	// end of New
 
-  while (!(Exit)) {
-
+	while (!(Exit)) {
 #ifdef speedtest
-    Fps++; // speed test
+		Fps++; // speed test
 #endif
 
-    Adjust_renderpoint();
+		Adjust_renderpoint();
 
-// Apply frame skipping on TI 92+ and V200 to gain speed
-#ifdef PRODUCE_TI92PLUS_CODE
+		if (!ti89_mode) {
+			// Apply frame skipping on TI 92+ and V200 to gain speed
+			static int16_t FrameSkip = 0;
+			if (++FrameSkip ==
+			    4) { // skipping each n'th frame (don't draw it, still calculated)
+				FrameSkip = 0; // gives a good speed increase
+			} else {
+				Render();
+			}
+		} else {
+			// No need for frame skipping on TI 89
+			Render();
+		}
 
-    static int16_t FrameSkip = 0;
-    if ((++FrameSkip) ==
-        4) { // skipping each n'th frame (don't draw it, still calculated)
-      FrameSkip = 0; // gives a good speed increase
-    } else {
-      Render();
-    }
+		ScanKeys();
 
-#endif
-
-#ifdef PRODUCE_V200_CODE
-
-    static int16_t FrameSkip = 0;
-    if ((++FrameSkip) ==
-        4) { // skipping each n'th frame (don't draw it, still calculated)
-      FrameSkip = 0; // gives a good speed increase
-    } else {
-      Render();
-    }
-
-#endif
-// No need for frame skipping on TI 89
-#ifdef PRODUCE_TI89_CODE
-
-    Render();
-
-#endif
-
-    ScanKeys();
-
-    /*		if(Keystate.Enter && !Previous_keystate.Enter)
+		/*		if(Keystate.Enter && !Previous_keystate.Enter)
                             Slow = (Slow==0?1:0);*/
 
 #ifdef immortal_mode
-    // Immortal mode for debugging
-    SavePlayer.Attribs = SavePlayer.Attribs | 0b10000000;
-    Player.Immortal = star_immortal_time;
+		// Immortal mode for debugging
+		SavePlayer.Attribs = SavePlayer.Attribs | 0b10000000;
+		Player.Immortal = star_immortal_time;
 #endif
 
-    for (C = 0; C < nr_of_bounching_tiles; C++) {
-      if (Bounching_tiles[C].Active)
-        Bounching_tiles[C].Active--; // decrement timer
-    };
+		for (C = 0; C < nr_of_bounching_tiles; C++) {
+			if (Bounching_tiles[C].Active)
+				Bounching_tiles[C].Active--; // decrement timer
+		};
 
-    Handleplayer();
+		Handleplayer();
 
-    Player_handle_fireballs();
+		Player_handle_fireballs();
 
-    Handle_enemyshots();
+		Handle_enemyshots();
 
-    Player_bounching_shell_hadler();
+		Player_bounching_shell_hadler();
 
-    Handleenemies();
+		Handleenemies();
 
-    Handleitems();
+		Handleitems();
 
-    // Handle_objects();
+		// Handle_objects();
 
-    Handle_flying_platforms();
+		Handle_flying_platforms();
 
-    Custom();
+		Custom();
 
-    if (Leveldata.Boss)
-      Handlebosses();
+		if (Leveldata.Boss)
+			Handlebosses();
 
-    Previous_keystate = Keystate;
+		Previous_keystate = Keystate;
 
-    /*if(Slow)
+		/*if(Slow)
             for(D=0;D<160000;D++);//slow motion stuff, to study details...*/
-  };
+	};
 
-  // FgX=OldFgX;	FgY=OldFgY;
+	// FgX=OldFgX;	FgY=OldFgY;
 
-  if (Player.Height == 18) {
-    Player.Height = Player.Height2 = 27;
-  }
-  SavePlayer.Attribs =
-      SavePlayer.Attribs & 0b01110111; // disable star and p-wing
+	if (Player.Height == 18) {
+		Player.Height = Player.Height2 = 27;
+	}
+	SavePlayer.Attribs = SavePlayer.Attribs &
+			     0b01110111; // disable star and p-wing
 
-  // New: V 1.05: Maximum lives = 99. Prevents player from getting game over
-  // when lives exceeds 127
-  //  Also prevents displaying problems
-  if (SavePlayer.Lives > 99) {
-    SavePlayer.Lives = 99;
-  };
+	// New: V 1.05: Maximum lives = 99. Prevents player from getting game over
+	// when lives exceeds 127
+	//  Also prevents displaying problems
+	if (SavePlayer.Lives > 99) {
+		SavePlayer.Lives = 99;
+	};
 
-  // New: V 1.01:
-  if (PrevLives > SavePlayer.Lives) {
-    SavePlayer.Lives =
-        PrevLives - 1; // Make sure you never loose more that 1 life at a time.
-                       // There are some indications that it occurs rarely...
-  }
-  // end of New
+	// New: V 1.01:
+	if (PrevLives > SavePlayer.Lives) {
+		SavePlayer.Lives =
+			PrevLives -
+			1; // Make sure you never loose more that 1 life at a time.
+		// There are some indications that it occurs rarely...
+	}
+	// end of New
 }
 
-void Gameloop() {
-  int16_t C;
-  // long D;//for test
+void Gameloop()
+{
+	int16_t C;
+	// long D;//for test
 
-  while ((!Exit) && (ErrorCode == 0) && (SavePlayer.Lives > 0)) {
+	while ((!Exit) && (ErrorCode == 0) && (SavePlayer.Lives > 0)) {
+		Render_map();
 
-    Render_map();
+		for (C = 0; C < 10000; C++)
+			; // time delay, will probably do it different later...
 
-    for (C = 0; C < 10000; C++)
-      ; // time delay, will probably do it different later...
+		// for(D=0;D<80000;D++);
 
-    // for(D=0;D<80000;D++);
+		Previous_keystate = Keystate;
 
-    Previous_keystate = Keystate;
+		if (!Player.Offset) {
+			ScanKeys();
+			if (Keystate.esc) { // mid game menu
 
-    if (!Player.Offset) {
-      ScanKeys();
-      if (Keystate.esc) { // mid game menu
+				/*char*/ int16_t Res = doMenu(
+					Texts + GameTextData.MidGameMap, 3);
 
-        /*char*/ int16_t Res = doMenu(Texts + GameTextData.MidGameMap, 3);
+				switch (Res) {
+					int16_t Offset;
+				case 1: // continue
+					//					Render_map();
+					//					while(1);
+					break;
+				case 2: // save
+					// Savegame(0);
 
-        switch (Res) {
-          int16_t Offset;
-        case 1: // continue
-          //					Render_map();
-          //					while(1);
-          break;
-        case 2: // save
-          // Savegame(0);
-
-          /*strcpy(Fg_plane.p.big_vscreen,Texts+GameTextData.Save);//Title
+					/*strcpy(Fg_plane.p.big_vscreen,Texts+GameTextData.Save);//Title
           C = Offset = strlen(Fg_plane.p.big_vscreen)+1;*/
-          {
-            char *TempBuffer = Fg_plane.p.big_vscreen;
-            //							C = Offset =
-            // StringCopy(TempBuffer/*Fg_plane.p.big_vscreen*/,Texts+GameTextData.Save);
+					{
+						char *TempBuffer =
+							Fg_plane.p.big_vscreen;
+						//							C = Offset =
+						// StringCopy(TempBuffer/*Fg_plane.p.big_vscreen*/,Texts+GameTextData.Save);
 
-            Paste_saveslot_text(TempBuffer /*Fg_plane.p.big_vscreen*/,
-                                Texts + GameTextData.Save); // Offset);
-            Res = doMenu(TempBuffer /*Fg_plane.p.big_vscreen*/, 3);
-          }
+						Paste_saveslot_text(
+							TempBuffer /*Fg_plane.p.big_vscreen*/
+							,
+							Texts + GameTextData
+									.Save); // Offset);
+						Res = doMenu(
+							TempBuffer /*Fg_plane.p.big_vscreen*/
+							,
+							3);
+					}
 
-          WaitKeyReleased(); // while(_rowread(0));//wait until key released
-          //						while(!_rowread(0)){//wait
-          // until key pressed
+					WaitKeyReleased(); // while(_rowread(0));//wait until key released
+					//						while(!_rowread(0)){//wait
+					// until key pressed
 
-          if ((Res >= 1) && (Res <= 3)) {
-            //
-            int16_t SaveOk = 1;
-            if (Levelsetdata.Savegames[Res - 1] != 0) {
+					if ((Res >= 1) && (Res <= 3)) {
+						//
+						int16_t SaveOk = 1;
+						if (Levelsetdata.Savegames[Res -
+									   1] !=
+						    0) {
+							// New: V 1.03 Added confirmation when overwriting a saveslot
 
-              // New: V 1.03 Added confirmation when overwriting a saveslot
+							if (doMenu(Texts + GameTextData
+										   .OverWrite,
+								   2) == 1)
+								SaveOk = 0;
+						}
+						// End of New
+						if (SaveOk)
+							Savegame(Res - 1);
+					}
 
-              if (doMenu(Texts + GameTextData.OverWrite, 2) == 1)
-                SaveOk = 0;
-            }
-            // End of New
-            if (SaveOk)
-              Savegame(Res - 1);
-          }
+					break;
+				case 3: // quit
+					Exit = 1;
+					break;
+				case 0: // esc => continue
 
-          break;
-        case 3: // quit
-          Exit = 1;
-          break;
-        case 0: // esc => continue
+					//					Keystate.Esc = 0;
 
-          //					Keystate.Esc = 0;
+					// while( !(_rowread(0)) );
+					break;
+				};
 
-          // while( !(_rowread(0)) );
-          break;
-        };
+				WaitKeyReleased();
+				Keystate.jump = false;
 
-        WaitKeyReleased();
-        Keystate.jump = false;
+			}; // Keystate.Esc
+		} else {
+			Player.Passified = 1;
+		};
 
-      }; // Keystate.Esc
-    } else {
-      Player.Passified = 1;
-    };
+		Move_map_objects = 0;
 
-    Move_map_objects = 0;
-
-    if (Player.Passified) {
-      /*Keystate.Up    = 0;
+		if (Player.Passified) {
+			/*Keystate.Up    = 0;
       Keystate.Left  = 0;
       Keystate.Right = 0;
       Keystate.Down  = 0;
       Keystate.Jump  = 0;
       Keystate.Run   = 0;*/
 
-      memset(&Keystate, 0, sizeof(struct keystate));
-    };
+			memset(&Keystate, 0, sizeof(struct keystate));
+		};
 
-    Handle_player_map();
+		Handle_player_map();
 
-    Player.Passified = 0;
+		Player.Passified = 0;
 
-    Handle_map_objects();
-  };
+		Handle_map_objects();
+	};
 };
 
-void New_world_screen() {
-
-  /*FastFilledRect_Erase_R(dBufHPL_G,0,0,239,127);
+void New_world_screen()
+{
+	/*FastFilledRect_Erase_R(dBufHPL_G,0,0,239,127);
   FastFilledRect_Draw_R(dBufHPD_G,0,0,239,127);
   FastFilledRect_Erase_R(dBufHPD_G,32,32,128,68);*/
 
-  //	GrayDBufToggleSync_SetPointers();
+	//	GrayDBufToggleSync_SetPointers();
 
-  Render_map();
+	Render_map();
 
-  uint16_t *ActiveLight = GrayDBufGetActivePlane(LIGHT_PLANE);
-  uint16_t *ActiveDark = GrayDBufGetActivePlane(DARK_PLANE);
+	uint16_t *ActiveLight = GrayDBufGetActivePlane(LIGHT_PLANE);
+	uint16_t *ActiveDark = GrayDBufGetActivePlane(DARK_PLANE);
 
-  /*	FastFilledRect_Erase_R(ActiveLight,32,32,128,68);
+	/*	FastFilledRect_Erase_R(ActiveLight,32,32,128,68);
           FastFilledRect_Erase_R(ActiveDark,32,32,128,68);
           GrayFastOutlineRect_R(ActiveLight,ActiveDark,31,31,129,69,COLOR_BLACK);*/
 
-  FastFilledRect_Erase_R(ActiveLight, screen_width / 2 - 40,
-                         screen_height / 2 - 20, screen_width / 2 + 40,
-                         screen_height / 2 + 20);
-  FastFilledRect_Erase_R(ActiveDark, screen_width / 2 - 40,
-                         screen_height / 2 - 20, screen_width / 2 + 40,
-                         screen_height / 2 + 20);
-  //	GrayFastFillRect_R(ActiveLight,ActiveDark,
-  // screen_width/2-40,screen_height/2-20,screen_width/2+40,screen_height/2+20,COLOR_WHITE);
-  GrayFastOutlineRect_R(ActiveLight, ActiveDark, screen_width / 2 - 41,
-                        screen_height / 2 - 21, screen_width / 2 + 41,
-                        screen_height / 2 + 21, COLOR_BLACK);
+	FastFilledRect_Erase_R(ActiveLight, screen_width / 2 - 40,
+			       screen_height / 2 - 20, screen_width / 2 + 40,
+			       screen_height / 2 + 20);
+	FastFilledRect_Erase_R(ActiveDark, screen_width / 2 - 40,
+			       screen_height / 2 - 20, screen_width / 2 + 40,
+			       screen_height / 2 + 20);
+	//	GrayFastFillRect_R(ActiveLight,ActiveDark,
+	// screen_width/2-40,screen_height/2-20,screen_width/2+40,screen_height/2+20,COLOR_WHITE);
+	GrayFastOutlineRect_R(ActiveLight, ActiveDark, screen_width / 2 - 41,
+			      screen_height / 2 - 21, screen_width / 2 + 41,
+			      screen_height / 2 + 21, COLOR_BLACK);
 
-  char String[11] = "WORLD  ";
+	char String[11] = "WORLD  ";
 
-  String[6] = Levelsetdata.CurrentWorld + '1';
+	String[6] = Levelsetdata.CurrentWorld + '1';
 
-  //	DrawGrayStrExt2B(36,36,String,A_REPLACE|A_SHADOWED,F_6x8,ActiveLight,ActiveDark);
-  DrawGrayStrExt2B(screen_width / 2 - 42 / 2, screen_height / 2 - (6 + 8),
-                   String, A_REPLACE | A_SHADOWED, F_6x8, ActiveLight,
-                   ActiveDark);
-  // DrawString(screen_width/2-42/2,screen_height/2-(6+8),String,A_REPLACE|A_SHADOWED,F_6x8);
+	//	DrawGrayStrExt2B(36,36,String,A_REPLACE|A_SHADOWED,F_6x8,ActiveLight,ActiveDark);
+	DrawGrayStrExt2B(screen_width / 2 - 42 / 2, screen_height / 2 - (6 + 8),
+			 String, A_REPLACE | A_SHADOWED, F_6x8, ActiveLight,
+			 ActiveDark);
+	// DrawString(screen_width/2-42/2,screen_height/2-(6+8),String,A_REPLACE|A_SHADOWED,F_6x8);
 
-  StringCopy(String, "MARIO x ");
+	StringCopy(String, "MARIO x ");
 
-  char Lives = SavePlayer.Lives;
+	char Lives = SavePlayer.Lives;
 
-  if (Lives >= 10) {
-    String[8] = '0' + Lives / 10;
-  } else {
-    String[8] = ' ';
-  };
+	if (Lives >= 10) {
+		String[8] = '0' + Lives / 10;
+	} else {
+		String[8] = ' ';
+	};
 
-  String[9] = '0' + Lives % 10;
+	String[9] = '0' + Lives % 10;
 
-  String[10] = 0;
+	String[10] = 0;
 
-  DrawGrayStrExt2B(screen_width / 2 - 60 / 2, screen_height / 2 + 6, String,
-                   A_REPLACE | A_SHADOWED, F_6x8, ActiveLight, ActiveDark);
-  // DrawString(screen_width/2-60/2,screen_height/2+6,String,A_REPLACE|A_SHADOWED,F_6x8);
+	DrawGrayStrExt2B(screen_width / 2 - 60 / 2, screen_height / 2 + 6,
+			 String, A_REPLACE | A_SHADOWED, F_6x8, ActiveLight,
+			 ActiveDark);
+	// DrawString(screen_width/2-60/2,screen_height/2+6,String,A_REPLACE|A_SHADOWED,F_6x8);
 
-  //	unsigned short* Sprite = Mariosprites+2*Marioanimtab[0][9];
+	//	unsigned short* Sprite = Mariosprites+2*Marioanimtab[0][9];
 
-  //	GrayClipSprite16_SMASK_R(80,50,16,Sprite,Sprite+16,Sprite+32,ActiveLight,ActiveDark);
+	//	GrayClipSprite16_SMASK_R(80,50,16,Sprite,Sprite+16,Sprite+32,ActiveLight,ActiveDark);
 
-  //	GrayDBufToggleSync_SetPointers();
+	//	GrayDBufToggleSync_SetPointers();
 
-  // This screen is drawn into the active plane, which the LCD showed as it
-  // was written; the canvas has to be told about it before we go and wait.
-  GrayDBufRefresh();
+	// This screen is drawn into the active plane, which the LCD showed as it
+	// was written; the canvas has to be told about it before we go and wait.
+	GrayDBufRefresh();
 
-  /*while(_rowread(0));//wait until key released
+	/*while(_rowread(0));//wait until key released
   while(!_rowread(0));//wait until key pressed*/
-  WaitKeyPress();
+	WaitKeyPress();
 };
 
-int16_t RunGame(char Saveslot) {
-  //	SYM_ENTRY *Levelsetfile_sym;
-  HANDLE Temp;
-  int16_t C;
+int16_t RunGame(char Saveslot)
+{
+	//	SYM_ENTRY *Levelsetfile_sym;
+	HANDLE Temp;
+	int16_t C;
 
-  // memcpy( Filenames, HeapDeref (Temp)+2+sizeof(levelsetdata)+21,
-  // 9*Levelsetdata.Nr_of_files );
-  Playerinit();
+	// memcpy( Filenames, HeapDeref (Temp)+2+sizeof(levelsetdata)+21,
+	// 9*Levelsetdata.Nr_of_files );
+	Playerinit();
 
-  if (Saveslot >= 0) { // load game
-    Player.Offset = 0;
-    Loadgame(Saveslot /*,HeapDeref (Temp)+2*/);
+	if (Saveslot >= 0) { // load game
+		Player.Offset = 0;
+		Loadgame(Saveslot /*,HeapDeref (Temp)+2*/);
 
-  } else { // new game
-    Levelsetdata.CurrentWorld = 0;
-  }
+	} else { // new game
+		Levelsetdata.CurrentWorld = 0;
+	}
 
-  //	HeapUnlock(	Levelsetfile_sym->handle );
-  // DrawGrayStrExt2B(142,88,Buffer,A_REPLACE,F_4x6,GrayDBufGetActivePlane(LIGHT_PLANE),GrayDBufGetActivePlane(DARK_PLANE));
+	//	HeapUnlock(	Levelsetfile_sym->handle );
+	// DrawGrayStrExt2B(142,88,Buffer,A_REPLACE,F_4x6,GrayDBufGetActivePlane(LIGHT_PLANE),GrayDBufGetActivePlane(DARK_PLANE));
 
-  // DrawStr (20, 20, buffer, A_NORMAL);//test
+	// DrawStr (20, 20, buffer, A_NORMAL);//test
 
-  // for(C=0;C<Levelsetdata.Nr_of_files;C++){
+	// for(C=0;C<Levelsetdata.Nr_of_files;C++){
 
-  char Warp = 0;
-  do {
+	char Warp = 0;
+	do {
+		Keystate.esc = false;
+		Exit = 0;
 
-    Keystate.esc = false;
-    Exit = 0;
+		// memcpy( &Levelfilename, HeapDeref (Temp)+2+sizeof(levelsetdata)+21+9*C, 9
+		// ); memcpy( &Levelfilename, HeapDeref
+		// (Temp)+2+sizeof(levelsetdata)+21+9*Levelsetdata.CurrentWorld, 9 );
 
-    // memcpy( &Levelfilename, HeapDeref (Temp)+2+sizeof(levelsetdata)+21+9*C, 9
-    // ); memcpy( &Levelfilename, HeapDeref
-    // (Temp)+2+sizeof(levelsetdata)+21+9*Levelsetdata.CurrentWorld, 9 );
-
-    StringCopy(Levelfilename, Filenames + 9 * Levelsetdata.CurrentWorld);
-    // memcpy(Levelfilename,Filenames+9*Levelsetdata.CurrentWorld,9);
-    /*
+		StringCopy(Levelfilename,
+			   Filenames + 9 * Levelsetdata.CurrentWorld);
+		// memcpy(Levelfilename,Filenames+9*Levelsetdata.CurrentWorld,9);
+		/*
     DrawGrayStrExt2B(17,30,Levelfilename,A_REPLACE,F_6x8,GrayDBufGetActivePlane(LIGHT_PLANE),GrayDBufGetActivePlane(DARK_PLANE));
     while(_rowread(0));//wait until key released
     while(!_rowread(0));//wait until key pressed
     */
-    //		Draw_statusbar();
+		//		Draw_statusbar();
 
-    // if(Levelsetdata.Mode==1){//map mode
+		// if(Levelsetdata.Mode==1){//map mode
 
-    if (Saveslot < 0)
+		if (Saveslot < 0)
 
-      Load_map(Levelfilename);
-    New_world_screen();
-    /*		if(Warp)
+			Load_map(Levelfilename);
+		New_world_screen();
+		/*		if(Warp)
                             Load_map(Commonfilename);
 
                     Warp=0;*/
 
-    Saveslot = -1;
+		Saveslot = -1;
 
-    Gameloop();
+		Gameloop();
 
-    // New: V 1.01: Changed ==0 to <=0
-    if (SavePlayer.Lives <= 0) { //==0){//BUG!
-      // Game over
-      // menu: Game Over, Continue, Quit
-      int16_t Res = doMenu(Texts + GameTextData.GameOver, 2);
+		// New: V 1.01: Changed ==0 to <=0
+		if (SavePlayer.Lives <= 0) { //==0){//BUG!
+			// Game over
+			// menu: Game Over, Continue, Quit
+			int16_t Res = doMenu(Texts + GameTextData.GameOver, 2);
 
-      if (Res == 1) {
+			if (Res == 1) {
+				Exit = 0;
+				Playerinit();
+				Player.Offset = 1;
+			} else {
+				Exit = 9;
+			}
+		};
 
-        Exit = 0;
-        Playerinit();
-        Player.Offset = 1;
-      } else {
-        Exit = 9;
-      }
-    };
-
-    if (Exit == 2) {
-      Levelsetdata.CurrentWorld++;
-      Exit = 0;
-    };
+		if (Exit == 2) {
+			Levelsetdata.CurrentWorld++;
+			Exit = 0;
+		};
 #ifdef debug
-    if (Exit == 1) { // temp,debug
-      Levelsetdata.CurrentWorld++;
-      Exit = 0;
-    };
+		if (Exit == 1) { // temp,debug
+			Levelsetdata.CurrentWorld++;
+			Exit = 0;
+		};
 #endif
-    if (Exit == 3) {
-      Exit = 0;
-    };
+		if (Exit == 3) {
+			Exit = 0;
+		};
 
-    /*		if(Exit==100){//Warp Zone
+		/*		if(Exit==100){//Warp Zone
                             Warp = 1;
                             Exit=0;
                     }*/
 
-  } while ((Levelsetdata.CurrentWorld < Levelsetdata.Nr_of_files) &&
-           (ErrorCode == 0) && (Exit == 0));
+	} while ((Levelsetdata.CurrentWorld < Levelsetdata.Nr_of_files) &&
+		 (ErrorCode == 0) && (Exit == 0));
 
-  //	free(Filenames);
+	//	free(Filenames);
 
-  return 1;
+	return 1;
 }

@@ -1,4 +1,5 @@
 #include "tilemap.h"
+#include "../render.h"
 #include "graph.h"
 #include <stdint.h>
 
@@ -43,29 +44,31 @@
 // unroll all 15 words of a row, but the result is the same. Reading each
 // source word twice is the cost of writing it plainly; it stays within one
 // cache line and this is not the hot path.
-static uint16_t vs_word(const uint8_t *row, int16_t k, uint16_t shift) {
-  uint16_t w0 = ((uint16_t)row[k] << 8) | row[k + 1];
-  uint16_t w1;
+static uint16_t vs_word(const uint8_t *row, int16_t k, uint16_t shift)
+{
+	uint16_t w0 = ((uint16_t)row[k] << 8) | row[k + 1];
+	uint16_t w1;
 
-  if (!shift)
-    return w0;
-  w1 = ((uint16_t)row[k + 2] << 8) | row[k + 3];
-  return ((w0 << shift) | (w1 >> (16 - shift))) & 0xFFFF;
+	if (!shift)
+		return w0;
+	w1 = ((uint16_t)row[k + 2] << 8) | row[k + 3];
+	return ((w0 << shift) | (w1 >> (16 - shift))) & 0xFFFF;
 }
 
 // Split the window origin into the source offset and the residual shift the
 // stitch above needs. The callers guarantee 0 <= x, y < 32; the whole word of
 // horizontal offset is folded into the pointer, leaving 0..15 to shift.
 static const uint8_t *vs_window(const void *src, uint16_t x, uint16_t y,
-                                uint16_t *shift) {
-  const uint8_t *s = (const uint8_t *)src + y * VS_STRIDE;
+				uint16_t *shift)
+{
+	const uint8_t *s = (const uint8_t *)src + y * VS_STRIDE;
 
-  *shift = x;
-  if (*shift >= 16) {
-    s += 2;
-    *shift -= 16;
-  }
-  return s;
+	*shift = x;
+	if (*shift >= 16) {
+		s += 2;
+		*shift -= 16;
+	}
+	return s;
 }
 
 // Mono buffer blitter used for the foreground mask plane: AND a scrolled
@@ -76,20 +79,22 @@ static const uint8_t *vs_window(const void *src, uint16_t x, uint16_t y,
 // 128 rows against 20 bytes on 100, and both step the destination by a full
 // 30-byte plane row either way. Sized from LCD_LINE_BYTES/LCD_HEIGHT, one
 // function covers both.
-void DrawBuffer_MASK(const void *src, uint16_t x, uint16_t y, void *dest) {
-  uint16_t shift;
-  const uint8_t *s = vs_window(src, x, y, &shift);
-  uint8_t *d = (uint8_t *)dest;
-  int16_t row, k;
+void DrawBuffer_MASK(const void *src, uint16_t x, uint16_t y, void *dest)
+{
+	uint16_t shift;
+	const uint8_t *s = vs_window(src, x, y, &shift);
+	uint8_t *d = (uint8_t *)dest;
+	int16_t row, k;
 
-  for (row = 0; row < LCD_HEIGHT; row++, s += VS_STRIDE, d += PLANE_STRIDE) {
-    for (k = 0; k < LCD_LINE_BYTES; k += 2) {
-      uint16_t w = vs_word(s, k, shift);
+	for (row = 0; row < screen_height;
+	     row++, s += VS_STRIDE, d += PLANE_STRIDE) {
+		for (k = 0; k < screen_width / 8; k += 2) {
+			uint16_t w = vs_word(s, k, shift);
 
-      d[k] &= (uint8_t)(w >> 8);
-      d[k + 1] &= (uint8_t)w;
-    }
-  }
+			d[k] &= (uint8_t)(w >> 8);
+			d[k + 1] &= (uint8_t)w;
+		}
+	}
 }
 
 // Gray buffer blitters: copy a scrolled window of the gray big virtual screen
@@ -102,42 +107,45 @@ void DrawBuffer_MASK(const void *src, uint16_t x, uint16_t y, void *dest) {
 // allocates the two planes back to back. Here they take the two planes the
 // game's own macros already pass separately, which does not assume that.
 static void gray_blit(const void *src, uint16_t x, uint16_t y, void *lightplane,
-                      void *darkplane, int16_t combine) {
-  uint16_t shift;
-  const uint8_t *s = vs_window(src, x, y, &shift);
-  uint8_t *dl = (uint8_t *)lightplane;
-  uint8_t *dd = (uint8_t *)darkplane;
-  int16_t row, k;
+		      void *darkplane, int16_t combine)
+{
+	uint16_t shift;
+	const uint8_t *s = vs_window(src, x, y, &shift);
+	uint8_t *dl = (uint8_t *)lightplane;
+	uint8_t *dd = (uint8_t *)darkplane;
+	int16_t row, k;
 
-  for (row = 0; row < LCD_HEIGHT;
-       row++, s += VS_STRIDE, dl += PLANE_STRIDE, dd += PLANE_STRIDE) {
-    for (k = 0; k < LCD_LINE_BYTES; k += 2) {
-      uint16_t l = vs_word(s, k, shift);
-      uint16_t d = vs_word(s + VS_SIZE, k, shift);
+	for (row = 0; row < screen_height;
+	     row++, s += VS_STRIDE, dl += PLANE_STRIDE, dd += PLANE_STRIDE) {
+		for (k = 0; k < screen_width / 8; k += 2) {
+			uint16_t l = vs_word(s, k, shift);
+			uint16_t d = vs_word(s + VS_SIZE, k, shift);
 
-      if (combine) {
-        dl[k] |= (uint8_t)(l >> 8);
-        dl[k + 1] |= (uint8_t)l;
-        dd[k] |= (uint8_t)(d >> 8);
-        dd[k + 1] |= (uint8_t)d;
-      } else {
-        dl[k] = (uint8_t)(l >> 8);
-        dl[k + 1] = (uint8_t)l;
-        dd[k] = (uint8_t)(d >> 8);
-        dd[k + 1] = (uint8_t)d;
-      }
-    }
-  }
+			if (combine) {
+				dl[k] |= (uint8_t)(l >> 8);
+				dl[k + 1] |= (uint8_t)l;
+				dd[k] |= (uint8_t)(d >> 8);
+				dd[k + 1] |= (uint8_t)d;
+			} else {
+				dl[k] = (uint8_t)(l >> 8);
+				dl[k + 1] = (uint8_t)l;
+				dd[k] = (uint8_t)(d >> 8);
+				dd[k + 1] = (uint8_t)d;
+			}
+		}
+	}
 }
 
 void DrawGrayBuffer2B_RPLC(const void *src, uint16_t x, uint16_t y,
-                           void *lightplane, void *darkplane) {
-  gray_blit(src, x, y, lightplane, darkplane, 0);
+			   void *lightplane, void *darkplane)
+{
+	gray_blit(src, x, y, lightplane, darkplane, 0);
 }
 
 void DrawGrayBuffer2B_OR(const void *src, uint16_t x, uint16_t y,
-                         void *lightplane, void *darkplane) {
-  gray_blit(src, x, y, lightplane, darkplane, 1);
+			 void *lightplane, void *darkplane)
+{
+	gray_blit(src, x, y, lightplane, darkplane, 1);
 }
 
 // Render the 17x10 tiles starting at map tile (col0, row0) into the big
@@ -156,41 +164,42 @@ void DrawGrayBuffer2B_OR(const void *src, uint16_t x, uint16_t y,
 // one running destination pointer and step the map pointer by `width` per row.
 // Indexing both directly is the same traversal without the bookkeeping.
 static void refresh_buffer16b(const uint8_t *matrix, uint16_t width,
-                              int16_t col0, int16_t row0,
-                              const uint16_t *sprites, const uint16_t *anim,
-                              uint8_t *buf, int16_t wrap, int16_t gray) {
-  int16_t col, row, r;
+			      int16_t col0, int16_t row0,
+			      const uint16_t *sprites, const uint16_t *anim,
+			      uint8_t *buf, int16_t wrap, int16_t gray)
+{
+	int16_t col, row, r;
 
-  for (col = 0; col < VS_COLS; col++) {
-    int16_t mc = col0 + col;
+	for (col = 0; col < VS_COLS; col++) {
+		int16_t mc = col0 + col;
 
-    if (wrap)
-      mc %= wrap;
+		if (wrap)
+			mc %= wrap;
 
-    for (row = 0; row < VS_ROWS; row++) {
-      uint16_t n = matrix[(row0 + row) * width + mc];
-      const uint16_t *t;
-      uint8_t *p;
+		for (row = 0; row < VS_ROWS; row++) {
+			uint16_t n = matrix[(row0 + row) * width + mc];
+			const uint16_t *t;
+			uint8_t *p;
 
-      if (anim)
-        n = anim[n];
-      t = sprites + (gray ? 32 : 16) * n;
-      p = buf + row * 16 * VS_STRIDE + col * 2;
+			if (anim)
+				n = anim[n];
+			t = sprites + (gray ? 32 : 16) * n;
+			p = buf + row * 16 * VS_STRIDE + col * 2;
 
-      for (r = 0; r < 16; r++, p += VS_STRIDE) {
-        uint16_t l = gray ? t[2 * r] : t[r];
+			for (r = 0; r < 16; r++, p += VS_STRIDE) {
+				uint16_t l = gray ? t[2 * r] : t[r];
 
-        p[0] = (uint8_t)(l >> 8);
-        p[1] = (uint8_t)l;
-        if (gray) {
-          uint16_t d = t[2 * r + 1];
+				p[0] = (uint8_t)(l >> 8);
+				p[1] = (uint8_t)l;
+				if (gray) {
+					uint16_t d = t[2 * r + 1];
 
-          p[VS_SIZE] = (uint8_t)(d >> 8);
-          p[VS_SIZE + 1] = (uint8_t)d;
-        }
-      }
-    }
-  }
+					p[VS_SIZE] = (uint8_t)(d >> 8);
+					p[VS_SIZE + 1] = (uint8_t)d;
+				}
+			}
+		}
+	}
 }
 
 // The buffer holds the map from tile (2*(x/32), 2*(y/32)) on, so it stays
@@ -198,33 +207,36 @@ static void refresh_buffer16b(const uint8_t *matrix, uint16_t width,
 // and the blitters take the leftover 0..31 pixels as their window origin. The
 // distance tests catch a jump that skipped over a boundary without changing
 // bit 5. `reserved` is the Plane field the engine keeps that last origin in.
-static int16_t plane_stale(const struct Plane *plane, uint16_t x, uint16_t y) {
-  int16_t ox = (int16_t)((uint32_t)plane->reserved >> 16);
-  int16_t oy = (int16_t)((uint32_t)plane->reserved & 0xFFFF);
-  int16_t dx = (int16_t)(ox - (int16_t)x);
-  int16_t dy = (int16_t)(oy - (int16_t)y);
+static int16_t plane_stale(const struct Plane *plane, uint16_t x, uint16_t y)
+{
+	int16_t ox = (int16_t)((uint32_t)plane->reserved >> 16);
+	int16_t oy = (int16_t)((uint32_t)plane->reserved & 0xFFFF);
+	int16_t dx = (int16_t)(ox - (int16_t)x);
+	int16_t dy = (int16_t)(oy - (int16_t)y);
 
-  if (plane->force_update)
-    return 1;
-  if (dx < 0)
-    dx = -dx;
-  if (dy < 0)
-    dy = -dy;
-  return dx >= 32 || dy >= 32 || ((ox ^ (int16_t)x) & 32) ||
-         ((oy ^ (int16_t)y) & 32);
+	if (plane->force_update)
+		return 1;
+	if (dx < 0)
+		dx = -dx;
+	if (dy < 0)
+		dy = -dy;
+	return dx >= 32 || dy >= 32 || ((ox ^ (int16_t)x) & 32) ||
+	       ((oy ^ (int16_t)y) & 32);
 }
 
 static void plane_refresh(struct Plane *plane, uint16_t x, uint16_t y,
-                          const uint16_t *anim, int16_t wrap, int16_t gray) {
-  plane->force_update = 0;
-  refresh_buffer16b((const uint8_t *)plane->matrix, plane->width,
-                    (int16_t)(2 * (x >> 5)), (int16_t)(2 * (y >> 5)),
-                    (const uint16_t *)plane->sprites, anim,
-                    (uint8_t *)plane->big_vscreen, wrap, gray);
+			  const uint16_t *anim, int16_t wrap, int16_t gray)
+{
+	plane->force_update = 0;
+	refresh_buffer16b((const uint8_t *)plane->matrix, plane->width,
+			  (int16_t)(2 * (x >> 5)), (int16_t)(2 * (y >> 5)),
+			  (const uint16_t *)plane->sprites, anim,
+			  (uint8_t *)plane->big_vscreen, wrap, gray);
 }
 
-static void plane_remember(struct Plane *plane, uint16_t x, uint16_t y) {
-  plane->reserved = (int32_t)(((uint32_t)x << 16) | (uint16_t)y);
+static void plane_remember(struct Plane *plane, uint16_t x, uint16_t y)
+{
+	plane->reserved = (int32_t)(((uint32_t)x << 16) | (uint16_t)y);
 }
 
 // Advance the animation one frame, and say whether the step changed - which is
@@ -235,27 +247,30 @@ static void plane_remember(struct Plane *plane, uint16_t x, uint16_t y) {
 // of nb_step steps, wrapping. Note that the game drives the foreground mask
 // through here twice a frame, once per plane, and compensates by giving it
 // double the step_length of the foreground it has to stay in step with.
-static int16_t plane_animate(struct AnimatedPlane *plane) {
-  if (++plane->frame != plane->step_length)
-    return 0;
-  plane->frame = 0;
-  if (++plane->step == plane->nb_step)
-    plane->step = 0;
-  return 1;
+static int16_t plane_animate(struct AnimatedPlane *plane)
+{
+	if (++plane->frame != plane->step_length)
+		return 0;
+	plane->frame = 0;
+	if (++plane->step == plane->nb_step)
+		plane->step = 0;
+	return 1;
 }
 
 // The current step's row of the animation table: nb_anim words per step.
-static const uint16_t *anim_row(const struct AnimatedPlane *plane) {
-  return (const uint16_t *)plane->tabanim +
-         (uint16_t)plane->nb_anim * (uint16_t)plane->step;
+static const uint16_t *anim_row(const struct AnimatedPlane *plane)
+{
+	return (const uint16_t *)plane->tabanim +
+	       (uint16_t)plane->nb_anim * (uint16_t)plane->step;
 }
 
 void DrawGrayPlane16B2B(uint16_t x, uint16_t y, struct Plane *plane,
-                        void *lightplane, void *darkplane, TM_GrayMode mode) {
-  if (plane_stale(plane, x, y))
-    plane_refresh(plane, x, y, NULL, 0, 1);
-  plane_remember(plane, x, y);
-  mode(plane->big_vscreen, x & 31, y & 31, lightplane, darkplane);
+			void *lightplane, void *darkplane, TM_GrayMode mode)
+{
+	if (plane_stale(plane, x, y))
+		plane_refresh(plane, x, y, NULL, 0, 1);
+	plane_remember(plane, x, y);
+	mode(plane->big_vscreen, x & 31, y & 31, lightplane, darkplane);
 }
 
 // The game's own scrolling variant of the above, which it uses for the
@@ -270,12 +285,13 @@ void DrawGrayPlane16B2B(uint16_t x, uint16_t y, struct Plane *plane,
 // vertical clamp on BgY is still live - so the horizontal wrap, and only the
 // horizontal one, moved into this function.
 void DrawGrayPlane16B2B_ROLL(uint16_t x, uint16_t y, struct Plane *plane,
-                             void *lightplane, void *darkplane,
-                             TM_GrayMode mode) {
-  if (plane_stale(plane, x, y))
-    plane_refresh(plane, x, y, NULL, (int16_t)plane->width, 1);
-  plane_remember(plane, x, y);
-  mode(plane->big_vscreen, x & 31, y & 31, lightplane, darkplane);
+			     void *lightplane, void *darkplane,
+			     TM_GrayMode mode)
+{
+	if (plane_stale(plane, x, y))
+		plane_refresh(plane, x, y, NULL, (int16_t)plane->width, 1);
+	plane_remember(plane, x, y);
+	mode(plane->big_vscreen, x & 31, y & 31, lightplane, darkplane);
 }
 
 // Mono animated plane, used for the foreground mask: the tiles that punch the
@@ -286,19 +302,21 @@ void DrawGrayPlane16B2B_ROLL(uint16_t x, uint16_t y, struct Plane *plane,
 // gets a look in on the frames that do not step - which is what the original
 // does, checking the animation first and branching straight to the refresh.
 void DrawAnimatedPlane16B(uint16_t x, uint16_t y, struct AnimatedPlane *plane,
-                          void *dest, TM_Mode mode) {
-  if (plane_animate(plane) || plane_stale(&plane->p, x, y))
-    plane_refresh(&plane->p, x, y, anim_row(plane), 0, 0);
-  plane_remember(&plane->p, x, y);
-  mode(plane->p.big_vscreen, x & 31, y & 31, dest);
+			  void *dest, TM_Mode mode)
+{
+	if (plane_animate(plane) || plane_stale(&plane->p, x, y))
+		plane_refresh(&plane->p, x, y, anim_row(plane), 0, 0);
+	plane_remember(&plane->p, x, y);
+	mode(plane->p.big_vscreen, x & 31, y & 31, dest);
 }
 
 // Gray animated plane: the foreground layer itself, and the world map.
 void DrawGrayAnimatedPlane16B2B(uint16_t x, uint16_t y,
-                                struct AnimatedPlane *plane, void *lightplane,
-                                void *darkplane, TM_GrayMode mode) {
-  if (plane_animate(plane) || plane_stale(&plane->p, x, y))
-    plane_refresh(&plane->p, x, y, anim_row(plane), 0, 1);
-  plane_remember(&plane->p, x, y);
-  mode(plane->p.big_vscreen, x & 31, y & 31, lightplane, darkplane);
+				struct AnimatedPlane *plane, void *lightplane,
+				void *darkplane, TM_GrayMode mode)
+{
+	if (plane_animate(plane) || plane_stale(&plane->p, x, y))
+		plane_refresh(&plane->p, x, y, anim_row(plane), 0, 1);
+	plane_remember(&plane->p, x, y);
+	mode(plane->p.big_vscreen, x & 31, y & 31, lightplane, darkplane);
 }

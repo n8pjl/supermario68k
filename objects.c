@@ -72,13 +72,14 @@ void Handle_killed_fireball(object *Object){
 
 };*/
 
-void Handle_timed_coinconvert(struct object *Object) {
-  Object->X++;
+void Handle_timed_coinconvert(struct object *Object)
+{
+	Object->X++;
 
-  if (Object->X >= pow_item_time) {
-    Convert_brick_coin();
-    Object->Active = 0;
-  };
+	if (Object->X >= pow_item_time) {
+		Convert_brick_coin();
+		Object->Active = 0;
+	};
 };
 
 /*
@@ -157,28 +158,29 @@ void Handle_climbing_flower(object* Object){
 
 };
 */
-void Splash(int16_t X, int16_t Y) {
-  int16_t C;
+void Splash(int16_t X, int16_t Y)
+{
+	int16_t C;
 
-  if ((C = Find_free_object()) != -1) {
-
-    Objects[C].X = X;
-    Objects[C].Y = Y;
-    Objects[C].Data0 = 7;
-    Objects[C].Data1 = 0;
-    Objects[C].Active = 25;
-    //(object*)Objects[C].Handler = Dummy_func_;
-    Objects[C].Draw = Draw_splash;
-  }
+	if ((C = Find_free_object()) != -1) {
+		Objects[C].X = X;
+		Objects[C].Y = Y;
+		Objects[C].Data0 = 7;
+		Objects[C].Data1 = 0;
+		Objects[C].Active = 25;
+		//(object*)Objects[C].Handler = Dummy_func_;
+		Objects[C].Draw = Draw_splash;
+	}
 };
 
-int16_t Find_free_object() {
-  int16_t C;
+int16_t Find_free_object()
+{
+	int16_t C;
 
-  for (C = 0; C < nr_of_objects; C++) {
-    if (!(Objects[C].Active)) {
-      return C;
-    };
-  };
-  return -1;
+	for (C = 0; C < nr_of_objects; C++) {
+		if (!(Objects[C].Active)) {
+			return C;
+		};
+	};
+	return -1;
 }

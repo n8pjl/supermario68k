@@ -7,15 +7,15 @@
 struct keystate Keystate, Previous_keystate;
 
 EM_ASYNC_JS(void, browser_wait_no_keys_held, (void), {
-  // clang-format off
+	// clang-format off
   while (Module.pressedKeys.size !== 0 || Module.pressedGpButtons().size !== 0) {
     await new Promise((resolve) => { requestAnimationFrame(resolve) });
   }
-  // clang-format on
+	// clang-format on
 });
 
 EM_ASYNC_JS(void, browser_keydown_event, (void), {
-  // clang-format off
+	// clang-format off
   const abortController = new AbortController();
   const signal = abortController.signal;
 
@@ -47,20 +47,25 @@ EM_ASYNC_JS(void, browser_keydown_event, (void), {
   await Promise.any([keydown, gpPress]);
   Module.keyPressPromises.keydown = null;
   abortController.abort();
-  // clang-format on
+	// clang-format on
 });
 
-void WaitKeyReleased() { browser_wait_no_keys_held(); }
+void WaitKeyReleased()
+{
+	browser_wait_no_keys_held();
+}
 // TODO: support analog sticks in the menus
-void WaitKeyPress() {
-  browser_wait_no_keys_held();
-  browser_keydown_event();
+void WaitKeyPress()
+{
+	browser_wait_no_keys_held();
+	browser_keydown_event();
 };
 
-void ScanKeys(void) {
-  EM_ASM(
-      {
-        // clang-format off
+void ScanKeys(void)
+{
+	EM_ASM(
+		{
+			// clang-format off
         const enter = $1;
         const esc = $2;
         const jump = $3;
@@ -104,22 +109,23 @@ void ScanKeys(void) {
           keystate[left] |= lr1 === -1 | lr2 === -1;
           keystate[right] |= lr1 === 1 | lr2 === 1;
         }
-        // clang-format on
-      },
-      &Keystate, offsetof(struct keystate, enter),
-      offsetof(struct keystate, esc), offsetof(struct keystate, jump),
-      offsetof(struct keystate, up), offsetof(struct keystate, down),
-      offsetof(struct keystate, left), offsetof(struct keystate, right),
-      offsetof(struct keystate, run));
+			// clang-format on
+		},
+		&Keystate, offsetof(struct keystate, enter),
+		offsetof(struct keystate, esc), offsetof(struct keystate, jump),
+		offsetof(struct keystate, up), offsetof(struct keystate, down),
+		offsetof(struct keystate, left),
+		offsetof(struct keystate, right),
+		offsetof(struct keystate, run));
 
-  bool MaskLeft = false;
-  if (Keystate.left && Keystate.right && Previous_keystate.right) {
-    MaskLeft = true;
-  }
-  if (Keystate.right && Keystate.left && Previous_keystate.left) {
-    Keystate.right = 0;
-  }
-  if (MaskLeft) {
-    Keystate.left = 0;
-  }
+	bool MaskLeft = false;
+	if (Keystate.left && Keystate.right && Previous_keystate.right) {
+		MaskLeft = true;
+	}
+	if (Keystate.right && Keystate.left && Previous_keystate.left) {
+		Keystate.right = 0;
+	}
+	if (MaskLeft) {
+		Keystate.left = 0;
+	}
 }

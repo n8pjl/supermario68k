@@ -8,9 +8,9 @@
 // memory in all these cases, but also in most cases it replaces a single
 // strcpy()
 
-int16_t StringCopy(char *dest, char *src) {
+int16_t StringCopy(char *dest, char *src)
+{
+	strcpy(dest, src);
 
-  strcpy(dest, src);
-
-  return strlen(src) + 1;
+	return strlen(src) + 1;
 };

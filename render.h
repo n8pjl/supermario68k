@@ -2,81 +2,25 @@
 
 #include <stdint.h>
 #include "compat/tilemap.h"
+#include "version.h"
 #include "objects.h"
 
-// ti 89 and ti 89T spesific code
-#ifdef PRODUCE_TI89_CODE
-// #if TI89
+extern int16_t scroll_limit_left;
+extern int16_t scroll_limit_right;
+extern int16_t scroll_limit_up;
+extern int16_t scroll_limit_down;
 
-#define drawmode_bg TM_GRPLC89
-#define drawmode_fg TM_GOR89
-#define drawmode_fg_m TM_MASK89
-
-#define scroll_limit_left 70
-// 50
-#define scroll_limit_right 90
-// 110
-#define scroll_limit_up 35
-// 30
-#define scroll_limit_down 65
-// 70
-
-#define screen_width 160
-#define screen_height 100
-
-#define statusbar_offset 2760
-
-#define screen_offset_sg_x 0
-#define screen_offset_sg_y 0
-
-#endif
-
-// ti 92+ and ti v200 spesific code
-// #ifndef PRODUCE_TI89_CODE
-#ifdef PRODUCE_V200_CODE
-// #if V200
-
-#define scroll_limit_left 110
-#define scroll_limit_right 130
-#define scroll_limit_up 49
-#define scroll_limit_down 79
-
-#define screen_width 240
-#define screen_height 127
+extern int16_t screen_width;
+extern int16_t screen_height;
 
 #define drawmode_bg TM_GRPLC
 #define drawmode_fg TM_GOR
 #define drawmode_fg_m TM_MASK
 
-#define statusbar_offset 3600
+extern int16_t statusbar_offset;
 
-#define screen_offset_sg_x 40
-#define screen_offset_sg_y 14
-
-#endif
-
-// #if TI92PLUS
-#ifdef PRODUCE_TI92PLUS_CODE
-
-#define scroll_limit_left 110
-#define scroll_limit_right 130
-#define scroll_limit_up 49
-#define scroll_limit_down 79
-
-#define screen_width 240
-#define screen_height 127
-
-#define drawmode_bg TM_GRPLC
-#define drawmode_fg TM_GOR
-#define drawmode_fg_m TM_MASK
-
-// #define statusbar_offset 3600
-#define statusbar_offset 3600
-
-#define screen_offset_sg_x 40
-#define screen_offset_sg_y 14
-
-#endif
+extern int16_t screen_offset_sg_x;
+extern int16_t screen_offset_sg_y;
 
 extern int16_t Update_FG;
 
@@ -90,6 +34,8 @@ extern void *Statusbar;
 extern uint8_t StatBarHeight;
 
 extern void *dBufHPL_G, *dBufHPD_G;
+
+void init_calc_screen_constants(bool ti89_mode);
 
 void GrayDBufToggleSync_SetPointers();
 

@@ -20,609 +20,647 @@ struct item *Items;
 
 struct trigger *Triggers;
 
-inline void Handleitems() {
-  int16_t C, D;
+inline void Handleitems()
+{
+	int16_t C, D;
 
-  for (C = 0; C < nr_of_items; C++) {
-    if (Items[C].Active) { // if existing
+	for (C = 0; C < nr_of_items; C++) {
+		if (Items[C].Active) { // if existing
 
-      Items[C].Handler(&Items[C]);
+			Items[C].Handler(&Items[C]);
 
-      if (BoundsCollide(Items[C].X, Items[C].Y, Items[C].Height, Player.X,
-                        Player.Y, Player.Height)) {
-        Items[C].Collect(&Items[C]);
-      };
+			if (BoundsCollide(Items[C].X, Items[C].Y,
+					  Items[C].Height, Player.X, Player.Y,
+					  Player.Height)) {
+				Items[C].Collect(&Items[C]);
+			};
 
-      for (D = 0; D < nr_of_bounching_tiles; D++) {
-        if (Bounching_tiles[D].Active) {
-          if ((Items[C].Height == Items[C].Height2) &&
-              BoundsCollide(Bounching_tiles[D].X, Bounching_tiles[D].Y, 16,
-                            Items[C].X, Items[C].Y, Items[C].Height)) {
+			for (D = 0; D < nr_of_bounching_tiles; D++) {
+				if (Bounching_tiles[D].Active) {
+					if ((Items[C].Height ==
+					     Items[C].Height2) &&
+					    BoundsCollide(Bounching_tiles[D].X,
+							  Bounching_tiles[D].Y,
+							  16, Items[C].X,
+							  Items[C].Y,
+							  Items[C].Height)) {
+						Items[C].Y -= 8;
 
-            Items[C].Y -= 8;
-
-            if (Items[C].X < Bounching_tiles[D].X) {
-              Items[C].X -= 4;
-              // Items[C].Y -= 8;
-              Items[C].Active = -abs(Items[C].Active);
-            } else {
-              Items[C].X += 4;
-              // Items[C].Y -= 8;
-              Items[C].Active = abs(Items[C].Active);
-            };
-          };
-        };
-      };
-    };
-  };
+						if (Items[C].X <
+						    Bounching_tiles[D].X) {
+							Items[C].X -= 4;
+							// Items[C].Y -= 8;
+							Items[C].Active = -abs(
+								Items[C].Active);
+						} else {
+							Items[C].X += 4;
+							// Items[C].Y -= 8;
+							Items[C].Active = abs(
+								Items[C].Active);
+						};
+					};
+				};
+			};
+		};
+	};
 };
 
-void Dark_gray_magic_mode_handler(int16_t X, int16_t Y) {
-
-  if (Player.Behind_fg) {
-    Leveldata.Condition = 240;
-    Exit = 2;
-  }
+void Dark_gray_magic_mode_handler(int16_t X, int16_t Y)
+{
+	if (Player.Behind_fg) {
+		Leveldata.Condition = 240;
+		Exit = 2;
+	}
 }
 
-void White_magic_box_handler(int16_t X, int16_t Y) {
-
-  if (Keystate.down) {
-    if ((++Player.White_magic_box_counter) == 100) {
-      Player.Behind_fg = 200;
-      Player.White_magic_box_counter = 0;
-      Player.Y++;
-    }
-  } else {
-    // standing on magix box, not crounching
-    Player.White_magic_box_counter = 0;
-  }
+void White_magic_box_handler(int16_t X, int16_t Y)
+{
+	if (Keystate.down) {
+		if ((++Player.White_magic_box_counter) == 100) {
+			Player.Behind_fg = 200;
+			Player.White_magic_box_counter = 0;
+			Player.Y++;
+		}
+	} else {
+		// standing on magix box, not crounching
+		Player.White_magic_box_counter = 0;
+	}
 };
 
-void Player_collect_bonus(int16_t X, int16_t Y) {
-
-  Bonushandlers[Get_tile(X, Y) - non_solid_bonus_low](X, Y);
+void Player_collect_bonus(int16_t X, int16_t Y)
+{
+	Bonushandlers[Get_tile(X, Y) - non_solid_bonus_low](X, Y);
 }
 
-void Player_get_coin(int16_t X, int16_t Y) {
-
-  if ((++SavePlayer.Coins) == 100) {
-    SavePlayer.Coins = 0;
-    SavePlayer.Lives++;
-    Score_anim(X, Y - 8, score_1up);
-  };
-  SavePlayer.Score++;
+void Player_get_coin(int16_t X, int16_t Y)
+{
+	if ((++SavePlayer.Coins) == 100) {
+		SavePlayer.Coins = 0;
+		SavePlayer.Lives++;
+		Score_anim(X, Y - 8, score_1up);
+	};
+	SavePlayer.Score++;
 };
 
-void Player_collect_coin(int16_t X, int16_t Y) {
+void Player_collect_coin(int16_t X, int16_t Y)
+{
+	Player_get_coin(X, Y);
 
-  Player_get_coin(X, Y);
-
-  Put_tile(X, Y, 0);
+	Put_tile(X, Y, 0);
 }
 
-void Player_collect_coin_water(int16_t X, int16_t Y) {
+void Player_collect_coin_water(int16_t X, int16_t Y)
+{
+	Player_get_coin(X, Y);
 
-  Player_get_coin(X, Y);
-
-  Put_tile(X, Y, water);
+	Put_tile(X, Y, water);
 }
 
-void Player_collect_flower(int16_t X, int16_t Y) {
-  uint8_t Temp;
+void Player_collect_flower(int16_t X, int16_t Y)
+{
+	uint8_t Temp;
 
-  if (SavePlayer.Life == 1) {
+	if (SavePlayer.Life == 1) {
+		SavePlayer.Life = 2;
+		Player.Height2 = Player.Height = 27;
+		Player.Y -=
+			11; // to avoid falling through solid tiles immedeately after
+		// becoming large
+		SavePlayer.Maskbase = SavePlayer.Spritebase =
+			(Player.Face == 1) ? 3 : 2; // set new sprites
 
-    SavePlayer.Life = 2;
-    Player.Height2 = Player.Height = 27;
-    Player.Y -= 11; // to avoid falling through solid tiles immedeately after
-                    // becoming large
-    SavePlayer.Maskbase = SavePlayer.Spritebase =
-        (Player.Face == 1) ? 3 : 2; // set new sprites
+	} else {
+		SavePlayer.Attribs = SavePlayer.Attribs |
+				     0b01000000; // add fireball
+		// ability
+		SavePlayer.Attribs =
+			SavePlayer.Attribs &
+			0b11010111; // remove racoon suit and p-wing
+		SavePlayer.Life = 3;
 
-  } else {
+		SavePlayer.Spritebase =
+			(Player.Face == 1) ?
+				5 :
+				4; // set new sprites,changes to come when
+		// fireball sprites are ready
+		SavePlayer.Maskbase = (Player.Face == 1) ? 3 : 2;
+	};
 
-    SavePlayer.Attribs = SavePlayer.Attribs | 0b01000000; // add fireball
-                                                          // ability
-    SavePlayer.Attribs =
-        SavePlayer.Attribs & 0b11010111; // remove racoon suit and p-wing
-    SavePlayer.Life = 3;
+	Score_anim(/*16*(X/16)*/ X & 0xfff0, (Y & 0xfff0) - 8 /*16*(Y/16)-8*/,
+		   score_1000);
 
-    SavePlayer.Spritebase =
-        (Player.Face == 1) ? 5 : 4; // set new sprites,changes to come when
-                                    // fireball sprites are ready
-    SavePlayer.Maskbase = (Player.Face == 1) ? 3 : 2;
-  };
+	if (Get_tile(X, Y) == flower_water) { //
+		Temp = water;
+	} else {
+		Temp = 0;
+	};
 
-  Score_anim(/*16*(X/16)*/ X & 0xfff0, (Y & 0xfff0) - 8 /*16*(Y/16)-8*/,
-             score_1000);
-
-  if (Get_tile(X, Y) == flower_water) { //
-    Temp = water;
-  } else {
-    Temp = 0;
-  };
-
-  Put_tile(X, Y, Temp);
+	Put_tile(X, Y, Temp);
 }
 
-void Trigger_pow_item(int16_t X, int16_t Y) {
-  int16_t C;
+void Trigger_pow_item(int16_t X, int16_t Y)
+{
+	int16_t C;
 
-  Put_tile(X, Y, pow_item_after);
+	Put_tile(X, Y, pow_item_after);
 
-  if ((C = Find_free_object()) != -1) {
-    Objects[C].Active = 1;
-    //(object*)Objects[C].Handler = Handle_timed_coinconvert;
-    Objects[C].Draw = Handle_timed_coinconvert; // Dummy_func_;
-    Objects[C].X = 0;
-  };
+	if ((C = Find_free_object()) != -1) {
+		Objects[C].Active = 1;
+		//(object*)Objects[C].Handler = Handle_timed_coinconvert;
+		Objects[C].Draw = Handle_timed_coinconvert; // Dummy_func_;
+		Objects[C].X = 0;
+	};
 
-  // convert all bricks to coins and initialize timer
-  Convert_brick_coin();
+	// convert all bricks to coins and initialize timer
+	Convert_brick_coin();
 };
 
-void Convert_brick_coin() {
-  uint16_t C;
+void Convert_brick_coin()
+{
+	uint16_t C;
 
-  for (C = 0; C < (Fg_plane.p.width * Leveldata.Height); C++) {
-    if ((*((uint8_t *)(Fg_plane.p.matrix + C)) == brick) ||
-        (*((uint8_t *)(Fg_plane.p.matrix + C)) == bounching_brick)) {
-      *((char *)(Fg_plane.p.matrix + C)) = coin;
-    } else {
-      if (*((char *)(Fg_plane.p.matrix + C)) == coin) {
-        *((char *)(Fg_plane.p.matrix + C)) = brick;
-      };
-    };
-  };
+	for (C = 0; C < (Fg_plane.p.width * Leveldata.Height); C++) {
+		if ((*((uint8_t *)(Fg_plane.p.matrix + C)) == brick) ||
+		    (*((uint8_t *)(Fg_plane.p.matrix + C)) ==
+		     bounching_brick)) {
+			*((char *)(Fg_plane.p.matrix + C)) = coin;
+		} else {
+			if (*((char *)(Fg_plane.p.matrix + C)) == coin) {
+				*((char *)(Fg_plane.p.matrix + C)) = brick;
+			};
+		};
+	};
 };
 
-void Pipe_down_left_handler(int16_t X, int16_t Y) {
-  /*if( Player.X >= ((X/16)*16) )
+void Pipe_down_left_handler(int16_t X, int16_t Y)
+{
+	/*if( Player.X >= ((X/16)*16) )
           Pipe_down_handler( (X/16) ,(Y/16) );*/
-  if (Player.X >= (int16_t)(X & 0xfff0)) // same as above, but optimized
-    Pipe_down_handler((X >> 4), (Y >> 4));
+	if (Player.X >= (int16_t)(X & 0xfff0)) // same as above, but optimized
+		Pipe_down_handler((X >> 4), (Y >> 4));
 };
 
-void Pipe_down_right_handler(int16_t X, int16_t Y) {
-  /*if( Player.X <= ((X/16)*16) )
+void Pipe_down_right_handler(int16_t X, int16_t Y)
+{
+	/*if( Player.X <= ((X/16)*16) )
           Pipe_down_handler( (X/16)-1 ,(Y/16) );*/
-  if (Player.X <= (int16_t)(X & 0xfff0)) // same as above, but optimized
-    Pipe_down_handler((X >> 4) - 1, (Y >> 4));
+	if (Player.X <= (int16_t)(X & 0xfff0)) // same as above, but optimized
+		Pipe_down_handler((X >> 4) - 1, (Y >> 4));
 };
 
-void Pipe_down_handler(int16_t X, int16_t Y) {
-  /*char*/ int16_t Height = Player.Height;
-  int16_t C;
+void Pipe_down_handler(int16_t X, int16_t Y)
+{
+	/*char*/ int16_t Height = Player.Height;
+	int16_t C;
 
-  if (Keystate.down) {
-    SavePlayer.Spritenr = 9;
-    Keystate.down = false;
+	if (Keystate.down) {
+		SavePlayer.Spritenr = 9;
+		Keystate.down = false;
 
-    while (Player.Height - 1) {
-      Player.Y++;
-      Player.Height--;
-      Render();
-    };
-    Player.Height = Height;
+		while (Player.Height - 1) {
+			Player.Y++;
+			Player.Height--;
+			Render();
+		};
+		Player.Height = Height;
 
-    Execute_trigger(X, Y);
-  };
+		Execute_trigger(X, Y);
+	};
 };
 
-void Pipe_up_left_handler(int16_t X, int16_t Y) {
-  /*if( Player.X >= ((X/16)*16) )
+void Pipe_up_left_handler(int16_t X, int16_t Y)
+{
+	/*if( Player.X >= ((X/16)*16) )
           Pipe_up_handler( (X/16) ,(Y/16) );*/
-  if (Player.X >= (int16_t)(X & 0xfff0)) // same as above, but optimized
-    Pipe_up_handler((X >> 4), (Y >> 4));
+	if (Player.X >= (int16_t)(X & 0xfff0)) // same as above, but optimized
+		Pipe_up_handler((X >> 4), (Y >> 4));
 };
 
-void Pipe_up_right_handler(int16_t X, int16_t Y) {
-  /*if( Player.X <= ((X/16)*16) )
+void Pipe_up_right_handler(int16_t X, int16_t Y)
+{
+	/*if( Player.X <= ((X/16)*16) )
           Pipe_up_handler( (X/16)-1 ,(Y/16) );*/
-  if (Player.X <= (int16_t)(X & 0xfff0)) // same as above, but optimized
-    Pipe_up_handler((X >> 4) - 1, (Y >> 4));
+	if (Player.X <= (int16_t)(X & 0xfff0)) // same as above, but optimized
+		Pipe_up_handler((X >> 4) - 1, (Y >> 4));
 };
 
-void Pipe_up_handler(int16_t X, int16_t Y) {
-  int16_t C;
+void Pipe_up_handler(int16_t X, int16_t Y)
+{
+	int16_t C;
 
-  int16_t Height = Player.Height;
+	int16_t Height = Player.Height;
 
-  if (Keystate.up) {
-    SavePlayer.Spritenr = 9;
-    Keystate.down = false;
-    while (Player.Height - 1) {
+	if (Keystate.up) {
+		SavePlayer.Spritenr = 9;
+		Keystate.down = false;
+		while (Player.Height - 1) {
+			Player.SpriteOffset++;
+			Player.Height--;
 
-      Player.SpriteOffset++;
-      Player.Height--;
+			Render();
+		};
 
-      Render();
-    };
+		Player.SpriteOffset = 0;
+		Player.Height = Height;
 
-    Player.SpriteOffset = 0;
-    Player.Height = Height;
-
-    Execute_trigger(X, Y);
-  };
+		Execute_trigger(X, Y);
+	};
 };
 
-void Pipe_right_handler(int16_t X, int16_t Y) {
-  int16_t C;
+void Pipe_right_handler(int16_t X, int16_t Y)
+{
+	int16_t C;
 
-  // if( ((Player.Y+Player.Height) <= ((Y/16)*16+16)) &&
-  // (Player.Y>=((Y/16)*16-16)) ){
-  if (((Player.Y + Player.Height) <= ((int16_t)(Y & 0xfff0) + 16)) &&
-      (Player.Y >= ((int16_t)(Y & 0xfff0) - 16))) {
-    if (Keystate.right) {
+	// if( ((Player.Y+Player.Height) <= ((Y/16)*16+16)) &&
+	// (Player.Y>=((Y/16)*16-16)) ){
+	if (((Player.Y + Player.Height) <= ((int16_t)(Y & 0xfff0) + 16)) &&
+	    (Player.Y >= ((int16_t)(Y & 0xfff0) - 16))) {
+		if (Keystate.right) {
+			// animate
+			Player.Y -= 2;
 
-      // animate
-      Player.Y -= 2;
+			for (C = 0; C < 16; C++) {
+				Player.Blit = Player.Blit << 1;
+				Player.X++;
+				Render();
 
-      for (C = 0; C < 16; C++) {
-        Player.Blit = Player.Blit << 1;
-        Player.X++;
-        Render();
+				if ((++SavePlayer.Spritenr) >= 6) {
+					SavePlayer.Spritenr = 0;
+				};
+			};
+			Player.Blit = 0xffff;
+			// Player.X -= 16;
+			// Player.Attribs = Player.Attribs & 0b11101111;//draw player before fg
+			// OFF
 
-        if ((++SavePlayer.Spritenr) >= 6) {
-          SavePlayer.Spritenr = 0;
-        };
-      };
-      Player.Blit = 0xffff;
-      // Player.X -= 16;
-      // Player.Attribs = Player.Attribs & 0b11101111;//draw player before fg
-      // OFF
-
-      // Execute_trigger( (X/16),(Y/16) );
-      Execute_trigger((X >> 4), (Y >> 4));
-    };
-  };
+			// Execute_trigger( (X/16),(Y/16) );
+			Execute_trigger((X >> 4), (Y >> 4));
+		};
+	};
 };
 
-void Pipe_left_handler(int16_t X, int16_t Y) {
-  int16_t C;
+void Pipe_left_handler(int16_t X, int16_t Y)
+{
+	int16_t C;
 
-  // if( ((Player.Y+Player.Height) <= ((Y/16)*16+16)) &&
-  // (Player.Y>=((Y/16)*16-16)) ){
-  if (((Player.Y + Player.Height) <= ((int16_t)(Y & 0xfff0) + 16)) &&
-      (Player.Y >= ((int16_t)(Y & 0xfff0) - 16))) {
-    if (Keystate.left) {
-      // animate
-      Player.Y -= 2;
-      Player.Blit = 0x7fff;
+	// if( ((Player.Y+Player.Height) <= ((Y/16)*16+16)) &&
+	// (Player.Y>=((Y/16)*16-16)) ){
+	if (((Player.Y + Player.Height) <= ((int16_t)(Y & 0xfff0) + 16)) &&
+	    (Player.Y >= ((int16_t)(Y & 0xfff0) - 16))) {
+		if (Keystate.left) {
+			// animate
+			Player.Y -= 2;
+			Player.Blit = 0x7fff;
 
-      for (C = 0; C < 16; C++) {
-        Player.Blit = Player.Blit >> 1;
-        Player.X--;
-        Render();
-        if ((++SavePlayer.Spritenr) >= 6) {
-          SavePlayer.Spritenr = 0;
-        };
-      };
-      Player.Blit = 0xffff;
-      // Player.X += 16;
-      // Player.Attribs = Player.Attribs & 0b11101111;//draw player before fg
-      // OFF
+			for (C = 0; C < 16; C++) {
+				Player.Blit = Player.Blit >> 1;
+				Player.X--;
+				Render();
+				if ((++SavePlayer.Spritenr) >= 6) {
+					SavePlayer.Spritenr = 0;
+				};
+			};
+			Player.Blit = 0xffff;
+			// Player.X += 16;
+			// Player.Attribs = Player.Attribs & 0b11101111;//draw player before fg
+			// OFF
 
-      Execute_trigger(X / 16, Y / 16);
-    };
-  };
+			Execute_trigger(X / 16, Y / 16);
+		};
+	};
 };
 
-void Add_break_brick_anim(int16_t X, int16_t Y) {
-  int16_t C;
+void Add_break_brick_anim(int16_t X, int16_t Y)
+{
+	int16_t C;
 
-  if ((C = Find_free_object()) != -1) {
-    Objects[C].Active = 1;
-    Objects[C].Data0 = 0;
-    Objects[C].Data1 = 0;
-    Objects[C].X = X;
-    Objects[C].Y = Y;
-    //(object*)Objects[C].Handler = Dummy_func_;//Handle_brick_fragments;
-    Objects[C].Draw = Draw_brick_fragments;
-  };
+	if ((C = Find_free_object()) != -1) {
+		Objects[C].Active = 1;
+		Objects[C].Data0 = 0;
+		Objects[C].Data1 = 0;
+		Objects[C].X = X;
+		Objects[C].Y = Y;
+		//(object*)Objects[C].Handler = Dummy_func_;//Handle_brick_fragments;
+		Objects[C].Draw = Draw_brick_fragments;
+	};
 }
 
-void Break_brick(int16_t X, int16_t Y) {
-  int16_t C;
+void Break_brick(int16_t X, int16_t Y)
+{
+	int16_t C;
 
-  // if((Player.Life==1) && (Player.Y==((Y/16)*16+16)) ){
-  if ((SavePlayer.Life == 1) && (Player.Y == ((int16_t)(Y & 0xfff0) + 16)) &&
-      (abs(Player.X - (int16_t)(X & 0xfff0)) <= 16)) {
-    Elastic_tile_animate(X, Y, brick, 0b10000000, 20); // 4
-    Put_tile(X, Y, bounching_brick);
-  } else { // break
+	// if((Player.Life==1) && (Player.Y==((Y/16)*16+16)) ){
+	if ((SavePlayer.Life == 1) &&
+	    (Player.Y == ((int16_t)(Y & 0xfff0) + 16)) &&
+	    (abs(Player.X - (int16_t)(X & 0xfff0)) <= 16)) {
+		Elastic_tile_animate(X, Y, brick, 0b10000000, 20); // 4
+		Put_tile(X, Y, bounching_brick);
+	} else { // break
 
-    Put_tile(X, Y, 0);
-    // animate
+		Put_tile(X, Y, 0);
+		// animate
 
-    Add_break_brick_anim(X, Y - 8);
-  };
+		Add_break_brick_anim(X, Y - 8);
+	};
 };
 
-void Falling_block_handler(int16_t X, int16_t Y) {
-  int16_t C;
+void Falling_block_handler(int16_t X, int16_t Y)
+{
+	int16_t C;
 
-  for (C = 0; C < nr_of_dummy_platforms; C++) {
-    if (!Flying_platforms[C].Active) { // find free dummy platform
+	for (C = 0; C < nr_of_dummy_platforms; C++) {
+		if (!Flying_platforms[C].Active) { // find free dummy platform
 
-      Flying_platforms[C].Active = 1; // initiate
-      //			Flying_platforms[C].DrawMode = 1;
-      Flying_platforms[C].Data1 = 1;
-      Flying_platforms[C].Data0 = Flying_platforms[C].Data2 =
-          Flying_platforms[C].Data3 = 0;
-      Flying_platforms[C].Width = 1;
-      Flying_platforms[C].Sprite = 60000; // 190;
-      Flying_platforms[C].X = X & 0xfff0; // 16*(X>>4);///16);
-      Flying_platforms[C].Y = Y & 0xfff0; // 16*(Y>>4);///16);
-      Flying_platforms[C].Handler = Platform_handler_3;
+			Flying_platforms[C].Active = 1; // initiate
+			//			Flying_platforms[C].DrawMode = 1;
+			Flying_platforms[C].Data1 = 1;
+			Flying_platforms[C].Data0 = Flying_platforms[C].Data2 =
+				Flying_platforms[C].Data3 = 0;
+			Flying_platforms[C].Width = 1;
+			Flying_platforms[C].Sprite = 60000; // 190;
+			Flying_platforms[C].X = X & 0xfff0; // 16*(X>>4);///16);
+			Flying_platforms[C].Y = Y & 0xfff0; // 16*(Y>>4);///16);
+			Flying_platforms[C].Handler = Platform_handler_3;
 
-      Put_tile(X, Y, blank_solid); // make tile invincible
-      Update_FG = 1; // Fg_plane.p.force_update = Fg_mask.p.force_update = 1;
-      break;
-    };
-  };
+			Put_tile(X, Y, blank_solid); // make tile invincible
+			Update_FG =
+				1; // Fg_plane.p.force_update = Fg_mask.p.force_update = 1;
+			break;
+		};
+	};
 }
 
-void Brick_hidden_coins(int16_t X, int16_t Y) {
-  //*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16)) ) =
-  // bonusbox_8_coins;
-  Put_tile(X, Y, bonusbox_8_coins);
-  Bonus_box_coins(X, Y);
+void Brick_hidden_coins(int16_t X, int16_t Y)
+{
+	//*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16)) ) =
+	// bonusbox_8_coins;
+	Put_tile(X, Y, bonusbox_8_coins);
+	Bonus_box_coins(X, Y);
 };
 
-void Bonus_box_coin(int16_t X, int16_t Y) {
+void Bonus_box_coin(int16_t X, int16_t Y)
+{
+	// Player_get_coin(X,Y);
 
-  // Player_get_coin(X,Y);
+	Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12); // 0
 
-  Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12); // 0
-
-  Bonusbox_coin_animate(X, Y);
+	Bonusbox_coin_animate(X, Y);
 };
 
-void Bonus_box_coins(int16_t X, int16_t Y) {
+void Bonus_box_coins(int16_t X, int16_t Y)
+{
+	// Player_get_coin(X,Y);
 
-  // Player_get_coin(X,Y);
+	// Elastic_tile_animate(X, Y, (--(*(
+	// (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16)) ))), 0b10000000,
+	// 0 );
+	Elastic_tile_animate(
+		X, Y,
+		(--(*((char *)(Fg_plane.p.matrix + (Y >> 4) * Fg_plane.p.width +
+			       (X >> 4))))),
+		0b10000000, 12);
 
-  // Elastic_tile_animate(X, Y, (--(*(
-  // (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16)) ))), 0b10000000,
-  // 0 );
-  Elastic_tile_animate(
-      X, Y,
-      (--(*((char *)(Fg_plane.p.matrix + (Y >> 4) * Fg_plane.p.width +
-                     (X >> 4))))),
-      0b10000000, 12);
-
-  Bonusbox_coin_animate(X, Y);
+	Bonusbox_coin_animate(X, Y);
 };
 
-void Bonus_box_powerup_1(int16_t X, int16_t Y) {
+void Bonus_box_powerup_1(int16_t X, int16_t Y)
+{
+	// Add_power_up_1(16*(X/16),16*(Y/16));
+	Add_power_up_1(X & 0xfff0, Y & 0xfff0);
 
-  // Add_power_up_1(16*(X/16),16*(Y/16));
-  Add_power_up_1(X & 0xfff0, Y & 0xfff0);
-
-  Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
+	Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
 };
 
-void Bonus_box_powerup_2(int16_t X, int16_t Y) {
+void Bonus_box_powerup_2(int16_t X, int16_t Y)
+{
+	// Add_power_up_2(16*(X/16),16*(Y/16)-2,2);
+	Add_power_up_2(X & 0xfff0, (Y & 0xfff0) - 2, 2);
 
-  // Add_power_up_2(16*(X/16),16*(Y/16)-2,2);
-  Add_power_up_2(X & 0xfff0, (Y & 0xfff0) - 2, 2);
-
-  Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
+	Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
 };
 
-void Bonus_box_1up(int16_t X, int16_t Y) {
-  int16_t C;
-  X = (X & 0xfff0);
+void Bonus_box_1up(int16_t X, int16_t Y)
+{
+	int16_t C;
+	X = (X & 0xfff0);
 
-  if ((C = Find_free_item()) != -1) {
-    Items[C].X = X;                //(X & 0xfff0);//16*(X/16);
-    Items[C].Y = (Y & 0xfff0) - 2; // 16*(Y/16)-2;
-    Items[C].Height = 2;
-    Items[C].Height2 = 16;
-    Items[C].Active = ((Player.X > /*Items[C].*/ X) ? -one_up_mushrom_speed
-                                                    : one_up_mushrom_speed);
-    Items[C].Sprite = one_up_mushrom_sprite;
-    Items[C].Collect = Player_collect_one_up_mushrom;
-    Items[C].Handler = Mushrom_handler;
-  };
+	if ((C = Find_free_item()) != -1) {
+		Items[C].X = X; //(X & 0xfff0);//16*(X/16);
+		Items[C].Y = (Y & 0xfff0) - 2; // 16*(Y/16)-2;
+		Items[C].Height = 2;
+		Items[C].Height2 = 16;
+		Items[C].Active = ((Player.X > /*Items[C].*/ X) ?
+					   -one_up_mushrom_speed :
+					   one_up_mushrom_speed);
+		Items[C].Sprite = one_up_mushrom_sprite;
+		Items[C].Collect = Player_collect_one_up_mushrom;
+		Items[C].Handler = Mushrom_handler;
+	};
 
-  //*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16))
-  //)=bonusbox_after;
-  Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
+	//*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16))
+	//)=bonusbox_after;
+	Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
 };
 
-void Bonus_box_pow(int16_t X, int16_t Y) {
-
-  //*( (char*)(Fg_plane.p.matrix+((Y/16)-1)*Fg_plane.p.width+(X/16)) )=pow_item;
-  //*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16))
-  //)=bonusbox_after;
-  Put_tile(X, Y - 16, pow_item);
-  Put_tile(X, Y, bonusbox_after);
+void Bonus_box_pow(int16_t X, int16_t Y)
+{
+	//*( (char*)(Fg_plane.p.matrix+((Y/16)-1)*Fg_plane.p.width+(X/16)) )=pow_item;
+	//*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16))
+	//)=bonusbox_after;
+	Put_tile(X, Y - 16, pow_item);
+	Put_tile(X, Y, bonusbox_after);
 };
 
-void Bonus_box_star(int16_t X, int16_t Y) {
-  int16_t C;
-  X = (X & 0xfff0);
+void Bonus_box_star(int16_t X, int16_t Y)
+{
+	int16_t C;
+	X = (X & 0xfff0);
 
-  if ((C = Find_free_item()) != -1) {
-    Items[C].X = X;                //(X & 0xfff0);//16*(X/16);
-    Items[C].Y = (Y & 0xfff0) - 2; // 16*(Y/16)-2;
-    Items[C].Height = 2;
-    Items[C].Height2 = 16;
-    Items[C].Active = (Player.X > /*Items[C].*/ X) ? -star_speed : star_speed;
-    Items[C].Data0 = 16;
-    Items[C].Data1 = -2;
-    Items[C].Sprite = star_anim;
-    Items[C].Collect = Player_collect_star;
-    Items[C].Handler = Star_handler;
-  };
+	if ((C = Find_free_item()) != -1) {
+		Items[C].X = X; //(X & 0xfff0);//16*(X/16);
+		Items[C].Y = (Y & 0xfff0) - 2; // 16*(Y/16)-2;
+		Items[C].Height = 2;
+		Items[C].Height2 = 16;
+		Items[C].Active = (Player.X > /*Items[C].*/ X) ? -star_speed :
+								 star_speed;
+		Items[C].Data0 = 16;
+		Items[C].Data1 = -2;
+		Items[C].Sprite = star_anim;
+		Items[C].Collect = Player_collect_star;
+		Items[C].Handler = Star_handler;
+	};
 
-  //*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16))
-  //)=bonusbox_after;
-  Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
+	//*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16))
+	//)=bonusbox_after;
+	Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
 };
 
-void Bonus_box_climbing_flower(int16_t X, int16_t Y) {
-  int16_t C;
+void Bonus_box_climbing_flower(int16_t X, int16_t Y)
+{
+	int16_t C;
 
-  if ((C = Find_free_object()) ==
-      -1) { // if no free slots, use the first slot, which has been occupied for
-            // the longest time
-    C = 0;
-  };
+	if ((C = Find_free_object()) ==
+	    -1) { // if no free slots, use the first slot, which has been occupied for
+		// the longest time
+		C = 0;
+	};
 
-  Objects[C].Active = 1;
-  Objects[C].Data0 = 2;
-  Objects[C].X = (X & 0xfff0);     // 16*(X/16);//X & 0xfff0;
-  Objects[C].Y = (Y & 0xfff0) - 2; // 16*(Y/16)-2;//; & 0xfff0
-  //(object*)Objects[C].Handler = Dummy_func_;//Handle_climbing_flower;
-  Objects[C].Draw = Draw_climbing_flower;
+	Objects[C].Active = 1;
+	Objects[C].Data0 = 2;
+	Objects[C].X = (X & 0xfff0); // 16*(X/16);//X & 0xfff0;
+	Objects[C].Y = (Y & 0xfff0) - 2; // 16*(Y/16)-2;//; & 0xfff0
+	//(object*)Objects[C].Handler = Dummy_func_;//Handle_climbing_flower;
+	Objects[C].Draw = Draw_climbing_flower;
 
-  /*
+	/*
   Fg_plane.p.force_update=1;
   Fg_mask.p.force_update=1;
   */
 
-  Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
+	Elastic_tile_animate(X, Y, bonusbox_after, 0b10000000, 12);
 };
 
-void Note_handler(int16_t X, int16_t Y) {
-  char Temp;
-  char Yoffset;
+void Note_handler(int16_t X, int16_t Y)
+{
+	char Temp;
+	char Yoffset;
 
-  if (/*(16*(Y/16))*/ (int16_t)(Y & 0xfff0) < Player.Y) {
-    /*Player.*/ Yoffset = 3; // 5
-    Player.Fallspeed = 2;    // 5
-    Temp = 0b10000000;
-  } else {
-    /*Player.*/ Yoffset = -5; //-5
-    Player.Jumpspeed = 4;     // 8
-    Temp = 0b01000000;
-  };
-  Player.Yoffset = Yoffset;
+	if (/*(16*(Y/16))*/ (int16_t)(Y & 0xfff0) < Player.Y) {
+		/*Player.*/ Yoffset = 3; // 5
+		Player.Fallspeed = 2; // 5
+		Temp = 0b10000000;
+	} else {
+		/*Player.*/ Yoffset = -5; //-5
+		Player.Jumpspeed = 4; // 8
+		Temp = 0b01000000;
+	};
+	Player.Yoffset = Yoffset;
 
-  Player.Xoffset = 4 * Player.Face;
-  Player.Walkspeed = 4;  // 8
-  Player.Walkspeed2 = 2; // 4
+	Player.Xoffset = 4 * Player.Face;
+	Player.Walkspeed = 4; // 8
+	Player.Walkspeed2 = 2; // 4
 
-  Player.Max_jumpheight = Player.IsJumping = 2 * Player.Max_jumpheight;
-  Elastic_tile_animate(X, Y, note, Temp, 17); // 1
+	Player.Max_jumpheight = Player.IsJumping = 2 * Player.Max_jumpheight;
+	Elastic_tile_animate(X, Y, note, Temp, 17); // 1
 };
 
-void Pu_2_note_handler(int16_t X, int16_t Y) {
-  char Temp;
-  char Yoffset;
+void Pu_2_note_handler(int16_t X, int16_t Y)
+{
+	char Temp;
+	char Yoffset;
 
-  // if( (16*(Y/16)) < Player.Y){
-  if ((int16_t)(Y & 0xfff0) < Player.Y) {
-    /*Player.*/ Yoffset = 3; // 5
-    Player.Fallspeed = 2;    // 5
-    Temp = 0b10000000;
-    Add_power_up_2((X & 0xfff0), (Y & 0xfff0) - 2,
-                   2); // Add_power_up_2(16*(X/16),16*(Y/16)-2,2);
-  } else {
-    /*Player.*/ Yoffset = -5; //-5
-    Player.Jumpspeed = 4;     // 8
-    Temp = 0b01000000;
-    Add_power_up_2((X & 0xfff0), (Y & 0xfff0) + 18,
-                   16); // Add_power_up_2(16*(X/16),16*(Y/16)+18,16);
-  };
-  Player.Yoffset = Yoffset;
+	// if( (16*(Y/16)) < Player.Y){
+	if ((int16_t)(Y & 0xfff0) < Player.Y) {
+		/*Player.*/ Yoffset = 3; // 5
+		Player.Fallspeed = 2; // 5
+		Temp = 0b10000000;
+		Add_power_up_2((X & 0xfff0), (Y & 0xfff0) - 2,
+			       2); // Add_power_up_2(16*(X/16),16*(Y/16)-2,2);
+	} else {
+		/*Player.*/ Yoffset = -5; //-5
+		Player.Jumpspeed = 4; // 8
+		Temp = 0b01000000;
+		Add_power_up_2(
+			(X & 0xfff0), (Y & 0xfff0) + 18,
+			16); // Add_power_up_2(16*(X/16),16*(Y/16)+18,16);
+	};
+	Player.Yoffset = Yoffset;
 
-  Player.Xoffset = 4 * Player.Face;
-  Player.Walkspeed = 4;  // 8
-  Player.Walkspeed2 = 2; // 4
+	Player.Xoffset = 4 * Player.Face;
+	Player.Walkspeed = 4; // 8
+	Player.Walkspeed2 = 2; // 4
 
-  Player.Max_jumpheight = Player.IsJumping = 2 * Player.Max_jumpheight;
-  Elastic_tile_animate(X, Y, note, Temp, 17); // 1
+	Player.Max_jumpheight = Player.IsJumping = 2 * Player.Max_jumpheight;
+	Elastic_tile_animate(X, Y, note, Temp, 17); // 1
 };
 
-void Dark_note_handler(int16_t X, int16_t Y) {
-  char Temp;
-  char Yoffset;
+void Dark_note_handler(int16_t X, int16_t Y)
+{
+	char Temp;
+	char Yoffset;
 
-  Player.IsJumping = Player.Max_jumpheight;
+	Player.IsJumping = Player.Max_jumpheight;
 
-  // if( (16*(Y/16)) < Player.Y){
-  if ((int16_t)(Y & 0xfff0) < Player.Y) {
-    /*Player.*/ Yoffset = 3; // 5;
-    Player.Fallspeed = 2;    // 5;
-    Temp = 0b10000000;
-  } else {
-    /*Player.*/ Yoffset = -5; //-8;
-    Player.Jumpspeed = 4;     // 8;
-    Temp = 0b01000000;
-    // if(Keystate.Jump && (Player.X>=((X/16)*16-2)) &&
-    // (Player.X<=((X/16)*16+2)) ){
-    X = X & 0xfff0;
-    if (Keystate.jump && Player.X >= X - 2 && Player.X <= X + 2) {
-      // animate
-      SavePlayer.Spritenr = 7;
-      while (Player.Y >= 0) {
-        Player.Y -= 4;
-        Render();
-      };
+	// if( (16*(Y/16)) < Player.Y){
+	if ((int16_t)(Y & 0xfff0) < Player.Y) {
+		/*Player.*/ Yoffset = 3; // 5;
+		Player.Fallspeed = 2; // 5;
+		Temp = 0b10000000;
+	} else {
+		/*Player.*/ Yoffset = -5; //-8;
+		Player.Jumpspeed = 4; // 8;
+		Temp = 0b01000000;
+		// if(Keystate.Jump && (Player.X>=((X/16)*16-2)) &&
+		// (Player.X<=((X/16)*16+2)) ){
+		X = X & 0xfff0;
+		if (Keystate.jump && Player.X >= X - 2 && Player.X <= X + 2) {
+			// animate
+			SavePlayer.Spritenr = 7;
+			while (Player.Y >= 0) {
+				Player.Y -= 4;
+				Render();
+			};
 
-      Player.IsJumping = 0;
-      // Execute_trigger( (X/16),(Y/16) );
-      Execute_trigger((X >> 4), (Y >> 4));
-    };
-  };
-  Player.Yoffset = Yoffset;
+			Player.IsJumping = 0;
+			// Execute_trigger( (X/16),(Y/16) );
+			Execute_trigger((X >> 4), (Y >> 4));
+		};
+	};
+	Player.Yoffset = Yoffset;
 
-  Player.Xoffset = 4 * Player.Face;
-  Player.Walkspeed = 4;                            // 8;
-  Player.Walkspeed2 = 2;                           // 4;
-  Elastic_tile_animate(X, Y, note_dark, Temp, 47); // 2
+	Player.Xoffset = 4 * Player.Face;
+	Player.Walkspeed = 4; // 8;
+	Player.Walkspeed2 = 2; // 4;
+	Elastic_tile_animate(X, Y, note_dark, Temp, 47); // 2
 };
 
-void Wood_block_pu2_handler(int16_t X, int16_t Y) {
-  uint8_t Temp;
+void Wood_block_pu2_handler(int16_t X, int16_t Y)
+{
+	uint8_t Temp;
 
-  X = X & 0xfff0;
-  Add_power_up_2((X /*& 0xfff0*/), (Y & 0xfff0) - 2,
-                 2); // Add_power_up_2( 16*(X/16), 16*(Y/16)-2, 2);
+	X = X & 0xfff0;
+	Add_power_up_2((X /*& 0xfff0*/), (Y & 0xfff0) - 2,
+		       2); // Add_power_up_2( 16*(X/16), 16*(Y/16)-2, 2);
 
-  // if( (Player.X+15)<=((X/16)*16) ){
-  if ((Player.X + 15) <= (int16_t)(X /*&0xfff0*/)) {
-    Temp = 0b00010000;
-  } else {
-    Temp = 0b00100000;
-  };
-  Elastic_tile_animate(X, Y, wood_block, Temp, 73); // 3
+	// if( (Player.X+15)<=((X/16)*16) ){
+	if ((Player.X + 15) <= (int16_t)(X /*&0xfff0*/)) {
+		Temp = 0b00010000;
+	} else {
+		Temp = 0b00100000;
+	};
+	Elastic_tile_animate(X, Y, wood_block, Temp, 73); // 3
 };
 
-void Door_handler(int16_t X, int16_t Y) {
+void Door_handler(int16_t X, int16_t Y)
+{
+	// X = ((X/16)*16);
+	X = X & 0xfff0;
 
-  // X = ((X/16)*16);
-  X = X & 0xfff0;
+	//	if( (Player.X>=X-4) && (Player.X<=X+4) ){
+	if (abs(Player.X - X) <= 4) {
+		if (Keystate.up && !(Previous_keystate.up)) {
+			Execute_trigger((X >> 4), (Y >> 4));
 
-  //	if( (Player.X>=X-4) && (Player.X<=X+4) ){
-  if (abs(Player.X - X) <= 4) {
-    if (Keystate.up && !(Previous_keystate.up)) {
-      Execute_trigger((X >> 4), (Y >> 4));
-
-      Previous_keystate.up = true;
-    };
-  };
+			Previous_keystate.up = true;
+		};
+	};
 };
 
-int16_t HiddenConditions(int16_t Y) {
-  // using this func instead of repeated code gave a significant size decrease
-  if (Player.IsJumping) {
-    if (((int16_t)(Y & 0xfff0)) <= Player.Y) {
-      Player.Flycount = Player.IsJumping = 0;
-      return 1;
-    }
-  }
-  return 0;
+int16_t HiddenConditions(int16_t Y)
+{
+	// using this func instead of repeated code gave a significant size decrease
+	if (Player.IsJumping) {
+		if (((int16_t)(Y & 0xfff0)) <= Player.Y) {
+			Player.Flycount = Player.IsJumping = 0;
+			return 1;
+		}
+	}
+	return 0;
 }
 
-void Hidden_bonusbox_1_coin_handler(int16_t X, int16_t Y) {
-
-  /*if(Player.IsJumping){
+void Hidden_bonusbox_1_coin_handler(int16_t X, int16_t Y)
+{
+	/*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
           if( ((short)(Y&0xfff0)) <= Player.Y ){
 
@@ -633,14 +671,14 @@ void Hidden_bonusbox_1_coin_handler(int16_t X, int16_t Y) {
           };
   };	*/
 
-  if (HiddenConditions(Y)) {
-    Bonus_box_coin(X, Y);
-  }
+	if (HiddenConditions(Y)) {
+		Bonus_box_coin(X, Y);
+	}
 };
 
-void Hidden_bonusbox_8_coins_handler(int16_t X, int16_t Y) {
-
-  /*if(Player.IsJumping){
+void Hidden_bonusbox_8_coins_handler(int16_t X, int16_t Y)
+{
+	/*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
           if( ((short)(Y&0xfff0)) <= Player.Y ){
 
@@ -652,16 +690,15 @@ void Hidden_bonusbox_8_coins_handler(int16_t X, int16_t Y) {
 
           };
   };*/
-  if (HiddenConditions(Y)) {
-
-    Put_tile(X, Y, bonusbox_8_coins);
-    Bonus_box_coins(X, Y);
-  }
+	if (HiddenConditions(Y)) {
+		Put_tile(X, Y, bonusbox_8_coins);
+		Bonus_box_coins(X, Y);
+	}
 };
 
-void Hidden_bonusbox_1_up_handler(int16_t X, int16_t Y) {
-
-  /*if(Player.IsJumping){
+void Hidden_bonusbox_1_up_handler(int16_t X, int16_t Y)
+{
+	/*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
           if( ((short)(Y&0xfff0)) <= Player.Y ){
 
@@ -672,14 +709,14 @@ void Hidden_bonusbox_1_up_handler(int16_t X, int16_t Y) {
           };
   };*/
 
-  if (HiddenConditions(Y)) {
-    Bonus_box_1up(X, Y);
-  }
+	if (HiddenConditions(Y)) {
+		Bonus_box_1up(X, Y);
+	}
 };
 
-void Hidden_bonusbox_pu_1_handler(int16_t X, int16_t Y) {
-
-  /*if(Player.IsJumping){
+void Hidden_bonusbox_pu_1_handler(int16_t X, int16_t Y)
+{
+	/*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
           if( ((short)(Y&0xfff0)) <= Player.Y ){
 
@@ -689,14 +726,14 @@ void Hidden_bonusbox_pu_1_handler(int16_t X, int16_t Y) {
 
           };
   };*/
-  if (HiddenConditions(Y)) {
-    Bonus_box_powerup_1(X, Y);
-  }
+	if (HiddenConditions(Y)) {
+		Bonus_box_powerup_1(X, Y);
+	}
 };
 
-void Hidden_bonusbox_pu_2_handler(int16_t X, int16_t Y) {
-
-  /*if(Player.IsJumping){
+void Hidden_bonusbox_pu_2_handler(int16_t X, int16_t Y)
+{
+	/*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
           if( ((short)(Y&0xfff0)) <= Player.Y ){
 
@@ -706,14 +743,14 @@ void Hidden_bonusbox_pu_2_handler(int16_t X, int16_t Y) {
 
           };
   };*/
-  if (HiddenConditions(Y)) {
-    Bonus_box_powerup_2(X, Y);
-  }
+	if (HiddenConditions(Y)) {
+		Bonus_box_powerup_2(X, Y);
+	}
 };
 
-void Hidden_bonusbox_pow_handler(int16_t X, int16_t Y) {
-
-  /*if(Player.IsJumping){
+void Hidden_bonusbox_pow_handler(int16_t X, int16_t Y)
+{
+	/*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
           if( ((short)(Y&0xfff0)) <= Player.Y ){
 
@@ -723,14 +760,14 @@ void Hidden_bonusbox_pow_handler(int16_t X, int16_t Y) {
 
           };
   };*/
-  if (HiddenConditions(Y)) {
-    Bonus_box_pow(X, Y);
-  }
+	if (HiddenConditions(Y)) {
+		Bonus_box_pow(X, Y);
+	}
 };
 
-void Hidden_note_handler(int16_t X, int16_t Y) {
-
-  /*if(Player.IsJumping){
+void Hidden_note_handler(int16_t X, int16_t Y)
+{
+	/*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
           if( ((short)(Y&0xfff0)) <= Player.Y ){
 
@@ -742,15 +779,15 @@ void Hidden_note_handler(int16_t X, int16_t Y) {
 
           };
   };*/
-  if (HiddenConditions(Y)) {
-    Note_handler(X, Y);
-    Player.Flycount = Player.IsJumping = 0;
-  }
+	if (HiddenConditions(Y)) {
+		Note_handler(X, Y);
+		Player.Flycount = Player.IsJumping = 0;
+	}
 };
 
-void Hidden_dark_note_handler(int16_t X, int16_t Y) {
-
-  /*if(Player.IsJumping){
+void Hidden_dark_note_handler(int16_t X, int16_t Y)
+{
+	/*if(Player.IsJumping){
           //if( (((Y/16)*16)) <= Player.Y ){
           if( ((short)(Y&0xfff0)) <= Player.Y ){
 
@@ -762,667 +799,698 @@ void Hidden_dark_note_handler(int16_t X, int16_t Y) {
 
           };
   };*/
-  if (HiddenConditions(Y)) {
-    Dark_note_handler(X, Y);
-    Player.Flycount = Player.IsJumping = 0;
-  }
+	if (HiddenConditions(Y)) {
+		Dark_note_handler(X, Y);
+		Player.Flycount = Player.IsJumping = 0;
+	}
 };
 
-void Ladder_handler(int16_t X, int16_t Y) {
+void Ladder_handler(int16_t X, int16_t Y)
+{
+	if (abs((Player.X) - (int16_t)(X & 0xfff0)) <= 6) {
+		if (Keystate.up || Player.IsClimbing) {
+			SavePlayer.Spritenr = 4;
 
-  if (abs((Player.X) - (int16_t)(X & 0xfff0)) <= 6) {
+			if (Player.IsClimbing == 1) {
+				if (Keystate.up &&
+				    (Free_up(Player.X, Player.Y) >= 2))
+					Player.Y -= 2;
 
-    if (Keystate.up || Player.IsClimbing) {
-      SavePlayer.Spritenr = 4;
-
-      if (Player.IsClimbing == 1) {
-        if (Keystate.up && (Free_up(Player.X, Player.Y) >= 2))
-          Player.Y -= 2;
-
-        if (Keystate.down &&
-            (Free_down(Player.X, Player.Y + Player.Height - 1) >= 2))
-          Player.Y += 2;
-      };
-      Player.IsClimbing = 2;
-      Player.Face = 0;
-    };
-  };
+				if (Keystate.down &&
+				    (Free_down(Player.X,
+					       Player.Y + Player.Height - 1) >=
+				     2))
+					Player.Y += 2;
+			};
+			Player.IsClimbing = 2;
+			Player.Face = 0;
+		};
+	};
 };
 
-void Quicksand_handler(int16_t X, int16_t Y) {
+void Quicksand_handler(int16_t X, int16_t Y)
+{
+	if (!Player.IsInQsand) {
+		Player.Jumpspeed = 2;
+		Player.Walkspeed = 2;
+		Player.Walkspeed2 = 2;
 
-  if (!Player.IsInQsand) {
+		Player.Behind_fg = 1;
 
-    Player.Jumpspeed = 2;
-    Player.Walkspeed = 2;
-    Player.Walkspeed2 = 2;
+		if (Free_down(Player.X, Player.Y + Player.Height))
+			Player.Y++;
 
-    Player.Behind_fg = 1;
-
-    if (Free_down(Player.X, Player.Y + Player.Height))
-      Player.Y++;
-
-    Player.IsInQsand = 1;
-  };
+		Player.IsInQsand = 1;
+	};
 };
 
-void Lava_handler(int16_t X, int16_t Y) {
+void Lava_handler(int16_t X, int16_t Y)
+{
+	Water_handler(X,
+		      Y); // let the player swim through lava if he is immortal
 
-  Water_handler(X, Y); // let the player swim through lava if he is immortal
-
-  Player_die();
+	Player_die();
 };
 
-void Water_handler(int16_t X, int16_t Y) { // optimize!!!!!!!!!!
-  int16_t Temp;
+void Water_handler(int16_t X, int16_t Y)
+{ // optimize!!!!!!!!!!
+	int16_t Temp;
 
-  if (!Player.IsInWater) {
+	if (!Player.IsInWater) {
+		Temp = Free_down(Player.X, Player.Y + Player.Height);
 
-    Temp = Free_down(Player.X, Player.Y + Player.Height);
+		if (Temp > 0) {
+			if (!Keystate.jump)
+				Player.Y++;
+			if (Keystate.down && (Temp >= 2))
+				Player.Y++;
+			SavePlayer.Spritenr = 6;
+		};
 
-    if (Temp > 0) {
-      if (!Keystate.jump)
-        Player.Y++;
-      if (Keystate.down && (Temp >= 2))
-        Player.Y++;
-      SavePlayer.Spritenr = 6;
-    };
+		Player.Jumpspeed = 2;
 
-    Player.Jumpspeed = 2;
+		Player.IsJumping = jumpheight; // 40;//jumpheight/2;
 
-    Player.IsJumping = jumpheight; // 40;//jumpheight/2;
+		if ((Keystate.jump) || (Player.Xoffset /*>8*/)) {
+			Player.Walkspeed = 2;
+			Player.Walkspeed2 = 2;
+			if (Keystate.jump)
+				Player.Yoffset = -4;
+			if (Fg_plane.step % 2) {
+				SavePlayer.Spritenr = 5;
+			}
 
-    if ((Keystate.jump) || (Player.Xoffset /*>8*/)) {
-      Player.Walkspeed = 2;
-      Player.Walkspeed2 = 2;
-      if (Keystate.jump)
-        Player.Yoffset = -4;
-      if (Fg_plane.step % 2) {
-        SavePlayer.Spritenr = 5;
-      }
+			if ((Keystate.jump) &&
+			    (Player.Xoffset ==
+			     0)) { //&& (Keystate.Left || Keystate.Right) ){
+				if (Keystate.left) {
+					Player.Xoffset = -16;
+				} else {
+					if (Keystate.right) {
+						Player.Xoffset = 16;
+					};
+				};
+			};
 
-      if ((Keystate.jump) &&
-          (Player.Xoffset == 0)) { //&& (Keystate.Left || Keystate.Right) ){
-        if (Keystate.left) {
-          Player.Xoffset = -16;
-        } else {
-          if (Keystate.right) {
-            Player.Xoffset = 16;
-          };
-        };
-      };
+		} else {
+			char Walkspeed;
+			char Walkspeed2;
 
-    } else {
-      char Walkspeed;
-      char Walkspeed2;
+			if ((Fg_plane.frame % 2)) {
+				/*Player.*/ Walkspeed = 2;
+				/*Player.*/ Walkspeed2 = 2;
+			} else {
+				/*Player.*/ Walkspeed = 0;
+				/*Player.*/ Walkspeed2 = 0;
+			};
+			Player.Walkspeed = Walkspeed;
+			Player.Walkspeed2 = Walkspeed2;
+		};
 
-      if ((Fg_plane.frame % 2)) {
-        /*Player.*/ Walkspeed = 2;
-        /*Player.*/ Walkspeed2 = 2;
-      } else {
-        /*Player.*/ Walkspeed = 0;
-        /*Player.*/ Walkspeed2 = 0;
-      };
-      Player.Walkspeed = Walkspeed;
-      Player.Walkspeed2 = Walkspeed2;
-    };
-
-    Player.IsInWater = 1;
-  };
+		Player.IsInWater = 1;
+	};
 };
 
 // Optimize
 
-void Water_surface_handler(int16_t X, int16_t Y) {
+void Water_surface_handler(int16_t X, int16_t Y)
+{
+	if ((SavePlayer.Spritenr == 8) /*|| (Player.Spritenr==7)*/) {
+		Splash(X, (Y & 0xfff0) - 16 + 9);
+	}
 
-  if ((SavePlayer.Spritenr == 8) /*|| (Player.Spritenr==7)*/) {
-    Splash(X, (Y & 0xfff0) - 16 + 9);
-  }
+	if ((Player.Y) <= ((int16_t)(Y & 0xfff0) + 2)) {
+		if (Keystate.jump &&
+		    (Keystate.up /*|| !Free_down(Player.X,Player.Y+Player.Height)*/)) {
+			Player.Max_jumpheight = 40;
 
-  if ((Player.Y) <= ((int16_t)(Y & 0xfff0) + 2)) {
-    if (Keystate.jump &&
-        (Keystate.up /*|| !Free_down(Player.X,Player.Y+Player.Height)*/)) {
-      Player.Max_jumpheight = 40;
-
-    } else {
-      if (Player.IsInWater) { // !(not deep water (one tile only, or one tile +
-                              // slope))
-        Player.IsJumping = 0;
-        Player.Jumpspeed = 0;
-      };
-    };
-  } else {
-    Water_handler(X, Y);
-  }
+		} else {
+			if (Player.IsInWater) { // !(not deep water (one tile only, or one tile +
+				// slope))
+				Player.IsJumping = 0;
+				Player.Jumpspeed = 0;
+			};
+		};
+	} else {
+		Water_handler(X, Y);
+	}
 }
 
 // item handlers
-void Mushrom_handler(
-    struct item *Item) { // handles power up mushrom and 1 up mushrom
-  int16_t Temp;
+void Mushrom_handler(struct item *Item)
+{ // handles power up mushrom and 1 up mushrom
+	int16_t Temp;
 
-  if (Item->Height < 16) {
-    Item->Height++;
-    Item->Y--;
-  } else {
-    if (Item->Active > 0) { // dir = right
-      if (Free_right(Item->X, &Item->Y, Item->Height, Item->Active) >=
-          abs(Item->Active)) { // not free right ?
-        Item->X += Item->Active;
-      } else {
-        Item->Active = -Item->Active;
-      };
-    } else { // dir = left
-      if (Free_left(Item->X, &Item->Y, Item->Height, Item->Active) >=
-          abs(Item->Active)) { // not free left ?
-        Item->X += Item->Active;
-      } else {
-        Item->Active = -Item->Active;
-      };
-    };
+	if (Item->Height < 16) {
+		Item->Height++;
+		Item->Y--;
+	} else {
+		if (Item->Active > 0) { // dir = right
+			if (Free_right(Item->X, &Item->Y, Item->Height,
+				       Item->Active) >=
+			    abs(Item->Active)) { // not free right ?
+				Item->X += Item->Active;
+			} else {
+				Item->Active = -Item->Active;
+			};
+		} else { // dir = left
+			if (Free_left(Item->X, &Item->Y, Item->Height,
+				      Item->Active) >=
+			    abs(Item->Active)) { // not free left ?
+				Item->X += Item->Active;
+			} else {
+				Item->Active = -Item->Active;
+			};
+		};
 
-    Temp = Free_down(Item->X, Item->Y + Item->Height);
-    Item->Y += (Temp >= enemy_fallspeed) ? (enemy_fallspeed) : (Temp);
-  };
+		Temp = Free_down(Item->X, Item->Y + Item->Height);
+		Item->Y += (Temp >= enemy_fallspeed) ? (enemy_fallspeed) :
+						       (Temp);
+	};
 }
 
-void Leaf_handler(struct item *Item) {
+void Leaf_handler(struct item *Item)
+{
+	if (Item->Data1) {
+		Item->Y -= 2;
+		Item->Data1--;
+	} else {
+		Item->Y++;
+		Item->X += Item->Active;
 
-  if (Item->Data1) {
-    Item->Y -= 2;
-    Item->Data1--;
-  } else {
-    Item->Y++;
-    Item->X += Item->Active;
+		Item->Data0 += Item->Active;
 
-    Item->Data0 += Item->Active;
+		switch (Item->Data0) {
+		case 0:
+		case 24:
+			Item->Active = -Item->Active;
+			break;
 
-    switch (Item->Data0) {
-    case 0:
-    case 24:
-      Item->Active = -Item->Active;
-      break;
-
-    case 8:
-      if (Item->Active < 0) {
-        Item->Sprite = leaf_l_sprite;
-        // Item->Mask = leaf_l_mask;
-      } else {
-        Item->Sprite = leaf_r_sprite;
-        // Item->Mask = leaf_r_mask;
-      };
-    };
-  };
+		case 8:
+			if (Item->Active < 0) {
+				Item->Sprite = leaf_l_sprite;
+				// Item->Mask = leaf_l_mask;
+			} else {
+				Item->Sprite = leaf_r_sprite;
+				// Item->Mask = leaf_r_mask;
+			};
+		};
+	};
 };
 
-void Star_handler(struct item *Item) {
+void Star_handler(struct item *Item)
+{
+	if (Item->Height < 16) { // coming out of box
+		Item->Height++;
+		Item->Y--;
+	} else { // free (out of box)
 
-  if (Item->Height < 16) { // coming out of box
-    Item->Height++;
-    Item->Y--;
-  } else { // free (out of box)
+		// optimize: free_dir
+		if (Item->Active > 0) { // dir = right
+			if (!Free_right(
+				    Item->X + star_speed, &Item->Y, 16,
+				    star_speed) /*(Get_tile(Item->X+15+star_speed,Item->Y)>=solid_low) || (Get_tile(Item->X+15+star_speed,Item->Y+15)>=solid_low)*/) { //not free right ?
+				Item->Active = -Item->Active;
+			};
+		} else { // dir = left
+			if (!Free_left(
+				    Item->X - star_speed, &Item->Y, 16,
+				    -star_speed) /*(Get_tile(Item->X-star_speed,Item->Y)>=solid_low) || (Get_tile(Item->X-star_speed,Item->Y+15)>=solid_low)*/) { //not free left ?
+				Item->Active = -Item->Active;
+			};
+		};
 
-    // optimize: free_dir
-    if (Item->Active > 0) { // dir = right
-      if( !Free_right(Item->X+star_speed,&Item->Y,16,star_speed)/*(Get_tile(Item->X+15+star_speed,Item->Y)>=solid_low) || (Get_tile(Item->X+15+star_speed,Item->Y+15)>=solid_low)*/ ){//not free right ?
-        Item->Active = -Item->Active;
-      };
-    } else { // dir = left
-      if( !Free_left(Item->X-star_speed,&Item->Y,16,-star_speed)/*(Get_tile(Item->X-star_speed,Item->Y)>=solid_low) || (Get_tile(Item->X-star_speed,Item->Y+15)>=solid_low)*/ ){//not free left ?
-        Item->Active = -Item->Active;
-      };
-    };
+		Item->X += Item->Active;
 
-    Item->X += Item->Active;
+		if (Item->Data0) {
+			if ((--Item->Data0) == 0)
+				Item->Data1 = -Item->Data1;
+		};
 
-    if (Item->Data0) {
-      if ((--Item->Data0) == 0)
-        Item->Data1 = -Item->Data1;
-    };
+		if (Item->Data1 > 0) { // down
+			if (!Free_down(Item->X, Item->Y + Item->Height)) {
+				Item->Data1 = -Item->Data1;
+				Item->Data0 = 16; // timer
+			};
+		} else { // up
+			if (!Free_up(Item->X, Item->Y)) {
+				Item->Data1 = -Item->Data1;
+			};
+		};
 
-    if (Item->Data1 > 0) { // down
-      if (!Free_down(Item->X, Item->Y + Item->Height)) {
-        Item->Data1 = -Item->Data1;
-        Item->Data0 = 16; // timer
-      };
-    } else { // up
-      if (!Free_up(Item->X, Item->Y)) {
-        Item->Data1 = -Item->Data1;
-      };
-    };
-
-    Item->Y += Item->Data1;
-  };
+		Item->Y += Item->Data1;
+	};
 }
 
-void Dead_boss_handler(struct item *Item) {
-
-  if (Free_down(Item->X, Item->Y + 16))
-    Item->Y += 2;
+void Dead_boss_handler(struct item *Item)
+{
+	if (Free_down(Item->X, Item->Y + 16))
+		Item->Y += 2;
 }
 
-void Player_collect_dead_boss(struct item *Item) {
-  uint16_t C; //,E;
+void Player_collect_dead_boss(struct item *Item)
+{
+	uint16_t C; //,E;
 
-  for (C = 0; C < 20; C++) {
+	for (C = 0; C < 20; C++) {
+		uint16_t D;
+		if (C % 2) {
+			//			memset(/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,0xffff,LCD_SIZE);
+			//			memset(/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G,0xffff,LCD_SIZE);
 
-    uint16_t D;
-    if (C % 2) {
+			//			FastFilledRect_Draw_R(dBufHPL_G,0,0,239,127);
+			// FastFilledRect_Draw_R(dBufHPD_G,0,0,239,127);
+			FilledRectDark(0, 0, 239, 127);
 
-      //			memset(/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,0xffff,LCD_SIZE);
-      //			memset(/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G,0xffff,LCD_SIZE);
-
-      //			FastFilledRect_Draw_R(dBufHPL_G,0,0,239,127);
-      // FastFilledRect_Draw_R(dBufHPD_G,0,0,239,127);
-      FilledRectDark(0, 0, 239, 127);
-
-      /*
+			/*
       FastFilledRect_Draw_R(GrayDBufGetHiddenPlane(LIGHT_PLANE),0,0,239,127);
       FastFilledRect_Draw_R(GrayDBufGetHiddenPlane(DARK_PLANE),0,0,239,127);
       */
-      // GrayDBufToggleSync();
-      GrayDBufToggleSync_SetPointers();
-    } else {
-      Render();
-    }
+			// GrayDBufToggleSync();
+			GrayDBufToggleSync_SetPointers();
+		} else {
+			Render();
+		}
 
-    for (D = 0; D < 65000; D++)
-      ;
-  };
+		for (D = 0; D < 65000; D++)
+			;
+	};
 
-  Exit = 2;
-  Map_plane.p.force_update = 1;
+	Exit = 2;
+	Map_plane.p.force_update = 1;
 }
 
-void Player_collect_pu_mushrom(struct item *Item) {
-  uint8_t C;
-  uint16_t D;
+void Player_collect_pu_mushrom(struct item *Item)
+{
+	uint8_t C;
+	uint16_t D;
 
-  Item->Active = 0;
-  Score_anim(Item->X, Item->Y - 8, score_1000);
+	Item->Active = 0;
+	Score_anim(Item->X, Item->Y - 8, score_1000);
 
-  if (SavePlayer.Life == 1) {
-    SavePlayer.Life = 2;
-    Player.Height2 = Player.Height = 27;
-    Player.Y -= 11; // to avoid falling through solid tiles immedeately after
-                    // becoming large
-    SavePlayer.Maskbase = SavePlayer.Spritebase =
-        (Player.Face == 1) ? 3 : 2; // set new sprites
+	if (SavePlayer.Life == 1) {
+		SavePlayer.Life = 2;
+		Player.Height2 = Player.Height = 27;
+		Player.Y -=
+			11; // to avoid falling through solid tiles immedeately after
+		// becoming large
+		SavePlayer.Maskbase = SavePlayer.Spritebase =
+			(Player.Face == 1) ? 3 : 2; // set new sprites
 
-    int16_t H;
-    int16_t DY;
-    int16_t DBase;
-    for (C = 0; C < 6; C++) {
-      Render();
-      if (!(C % 2)) {
-        DBase = -2; // Player.Maskbase = SavePlayer.Spritebase	-=2;
-        H = 16;     // Player.Height = Player.Height2 = 16;
-        DY = 11;    // Player.Y += 11;
-      } else {
-        DBase = 2; // Player.Maskbase = SavePlayer.Spritebase +=2;
-        H = 27;    // Player.Height = Player.Height2 = 27;
-        DY = -11;  // Player.Y -= 11;
-      };
-      Player.Height = Player.Height2 = H;
-      Player.Y += DY;
-      SavePlayer.Maskbase = SavePlayer.Spritebase += DBase;
-      for (D = 0; D < 65535; D++)
-        ;
-    };
-  };
+		int16_t H;
+		int16_t DY;
+		int16_t DBase;
+		for (C = 0; C < 6; C++) {
+			Render();
+			if (!(C % 2)) {
+				DBase = -2; // Player.Maskbase = SavePlayer.Spritebase	-=2;
+				H = 16; // Player.Height = Player.Height2 = 16;
+				DY = 11; // Player.Y += 11;
+			} else {
+				DBase = 2; // Player.Maskbase = SavePlayer.Spritebase +=2;
+				H = 27; // Player.Height = Player.Height2 = 27;
+				DY = -11; // Player.Y -= 11;
+			};
+			Player.Height = Player.Height2 = H;
+			Player.Y += DY;
+			SavePlayer.Maskbase = SavePlayer.Spritebase += DBase;
+			for (D = 0; D < 65535; D++)
+				;
+		};
+	};
 }
 
-void Player_collect_one_up_mushrom(struct item *Item) {
+void Player_collect_one_up_mushrom(struct item *Item)
+{
+	SavePlayer.Lives++;
+	// Statusbardata.Update_lives=1;
+	// animate
+	Score_anim(Item->X, Item->Y - 8, score_1up);
 
-  SavePlayer.Lives++;
-  // Statusbardata.Update_lives=1;
-  // animate
-  Score_anim(Item->X, Item->Y - 8, score_1up);
-
-  Item->Active = 0;
+	Item->Active = 0;
 }
 
-void Player_collect_star(struct item *Item) {
+void Player_collect_star(struct item *Item)
+{
+	SavePlayer.Attribs = SavePlayer.Attribs | 0b10000000;
+	Player.Immortal = star_immortal_time;
+	// animate
+	Score_anim(Item->X, Item->Y - 8, score_1000);
 
-  SavePlayer.Attribs = SavePlayer.Attribs | 0b10000000;
-  Player.Immortal = star_immortal_time;
-  // animate
-  Score_anim(Item->X, Item->Y - 8, score_1000);
-
-  Item->Active = 0;
+	Item->Active = 0;
 }
 
-void Player_collect_leaf(struct item *Item) {
+void Player_collect_leaf(struct item *Item)
+{
+	if (SavePlayer.Life == 1) {
+		SavePlayer.Life = 2;
+		Player.Height = Player.Height2 = 27;
+		Player.Y -=
+			11; // to avoid falling through solid tiles immedeately after
+		// becoming large
+		SavePlayer.Maskbase = SavePlayer.Spritebase =
+			(Player.Face == 1) ? 3 : 2; // set new sprites
 
-  if (SavePlayer.Life == 1) {
+	} else {
+		SavePlayer.Attribs = SavePlayer.Attribs |
+				     0b00100000; // add racoon suit
+		SavePlayer.Attribs = SavePlayer.Attribs &
+				     0b10111111; // remove fireball ability
+		SavePlayer.Life = 3;
 
-    SavePlayer.Life = 2;
-    Player.Height = Player.Height2 = 27;
-    Player.Y -= 11; // to avoid falling through solid tiles immedeately after
-                    // becoming large
-    SavePlayer.Maskbase = SavePlayer.Spritebase =
-        (Player.Face == 1) ? 3 : 2; // set new sprites
+		SavePlayer.Maskbase = SavePlayer.Spritebase =
+			(Player.Face == 1) ? 3 : 2; // set new sprites
+		//		Player.Maskbase = (Player.Face==1) ? 3:2 ;
+	};
 
-  } else {
+	Item->Active = 0;
 
-    SavePlayer.Attribs = SavePlayer.Attribs | 0b00100000; // add racoon suit
-    SavePlayer.Attribs =
-        SavePlayer.Attribs & 0b10111111; // remove fireball ability
-    SavePlayer.Life = 3;
+	Score_anim(
+		(Item->X & 0xfff0), (Item->Y & 0xfff0) - 8,
+		score_1000); // Score_anim( 16*(Item->X/16), 16*(Item->Y/16)-8,
+	// score_1000);
 
-    SavePlayer.Maskbase = SavePlayer.Spritebase =
-        (Player.Face == 1) ? 3 : 2; // set new sprites
-    //		Player.Maskbase = (Player.Face==1) ? 3:2 ;
-  };
-
-  Item->Active = 0;
-
-  Score_anim((Item->X & 0xfff0), (Item->Y & 0xfff0) - 8,
-             score_1000); // Score_anim( 16*(Item->X/16), 16*(Item->Y/16)-8,
-                          // score_1000);
-
-  Add_dustsky(Player.X, Player.Y + 8);
+	Add_dustsky(Player.X, Player.Y + 8);
 };
 
-int16_t Free_down(int16_t X, int16_t Y) { // works width 16 objects only
-  /*char*/ int16_t Val = 16;              // char C;
-  // unsigned char Temp1,Temp2;
+int16_t Free_down(int16_t X, int16_t Y)
+{ // works width 16 objects only
+	/*char*/ int16_t Val = 16; // char C;
+	// unsigned char Temp1,Temp2;
 
-  /*Temp1=Get_tile(X,Y+15);
+	/*Temp1=Get_tile(X,Y+15);
   Temp2=Get_tile(X+15,Y+15);*/
 
-  // if( ((Temp1>=solid_down_low) && (Temp1<=solid_high)) ||
-  // ((Temp2>=solid_down_low) && (Temp2<=solid_high)) )
-  if ((Get_tile(X, Y + 15) >= solid_down_low) ||
-      (Get_tile(X + 15, Y + 15) >= solid_down_low))
-    Val = (15 -
-           ((Y - 1) &
-            0x000f)); // Val = (15-(Y-1)%16);	//distance to next tile down
-                      // //Val = 15-(Enemy->Y+Enemy->Height-1)%16;
-  /*	else
+	// if( ((Temp1>=solid_down_low) && (Temp1<=solid_high)) ||
+	// ((Temp2>=solid_down_low) && (Temp2<=solid_high)) )
+	if ((Get_tile(X, Y + 15) >= solid_down_low) ||
+	    (Get_tile(X + 15, Y + 15) >= solid_down_low))
+		Val = (15 -
+		       ((Y - 1) &
+			0x000f)); // Val = (15-(Y-1)%16);	//distance to next tile down
+	// //Val = 15-(Enemy->Y+Enemy->Height-1)%16;
+	/*	else
                   return 16;	//return Val;*/
 
-  if ((Get_tile(X + 15, Y) >= slope_under_left_low) &&
-      (Get_tile(X + 15, Y) <= slope_under_left_high)) {
-    Val = ((15 - ((X + 15) & 0x000f)) -
-           ((Y) & 0x000f)); // Val = ( (15-((X+15)%16))-((Y)%16) );
-  };
+	if ((Get_tile(X + 15, Y) >= slope_under_left_low) &&
+	    (Get_tile(X + 15, Y) <= slope_under_left_high)) {
+		Val = ((15 - ((X + 15) & 0x000f)) -
+		       ((Y) & 0x000f)); // Val = ( (15-((X+15)%16))-((Y)%16) );
+	};
 
-  if ((Get_tile(X, Y) >= slope_under_right_low) &&
-      (Get_tile(X, Y) <= slope_under_right_high)) {
-    Val = (((X) & 0x000f) - ((Y) & 0x000f)); // Val = ( ((X)%16)-((Y)%16) );
-  };
+	if ((Get_tile(X, Y) >= slope_under_right_low) &&
+	    (Get_tile(X, Y) <= slope_under_right_high)) {
+		Val = (((X) & 0x000f) -
+		       ((Y) & 0x000f)); // Val = ( ((X)%16)-((Y)%16) );
+	};
 
-  return Val;
+	return Val;
 }
 
-int16_t Free_up(int16_t X, int16_t Y) { // works width 16 objects only
-  // char C;//Val = 16,
+int16_t Free_up(int16_t X, int16_t Y)
+{ // works width 16 objects only
+	// char C;//Val = 16,
 
-  if ((Get_tile(X, Y - 15) >= solid_low) ||
-      (Get_tile(X + 15, Y - 15) >= solid_low))
-    return ((Y) & 0x000f); // return ((Y)%16);	//distance to next tile down
-                           // //Val = 15-(Enemy->Y+Enemy->Height-1)%16;
-  else
-    return 16; // return Val;
+	if ((Get_tile(X, Y - 15) >= solid_low) ||
+	    (Get_tile(X + 15, Y - 15) >= solid_low))
+		return ((Y) &
+			0x000f); // return ((Y)%16);	//distance to next tile down
+	// //Val = 15-(Enemy->Y+Enemy->Height-1)%16;
+	else
+		return 16; // return Val;
 }
 
-int16_t Free_right(int16_t X, int16_t *Y, int16_t Height, char Face) {
-  /*char*/ int16_t Val = 16, C;
+int16_t Free_right(int16_t X, int16_t *Y, int16_t Height, char Face)
+{
+	/*char*/ int16_t Val = 16, C;
 
-  if (((Get_tile(X + 15, *Y + Height - 1) >= slope_under_left_low) &&
-       (Get_tile(X + 15, *Y + Height - 1) < slope_under_left_high)) ||
-      ((Get_tile(X + 18, *Y + Height - 1) >= slope_under_left_low) &&
-       (Get_tile(X + 18, *Y + Height - 1) < slope_under_left_high)))
-    *Y -= abs(Face);
+	if (((Get_tile(X + 15, *Y + Height - 1) >= slope_under_left_low) &&
+	     (Get_tile(X + 15, *Y + Height - 1) < slope_under_left_high)) ||
+	    ((Get_tile(X + 18, *Y + Height - 1) >= slope_under_left_low) &&
+	     (Get_tile(X + 18, *Y + Height - 1) < slope_under_left_high)))
+		*Y -= abs(Face);
 
-  for (C = 0; C <= (Height - 1);
-       C += min(16, Height - 1)) { // C=0;C!=(Height-1);C+=16
-    /*if(C>(Height-1))
+	for (C = 0; C <= (Height - 1);
+	     C += min(16, Height - 1)) { // C=0;C!=(Height-1);C+=16
+		/*if(C>(Height-1))
             C = (Height-1);*/
-    if ((Get_tile(X + 15 + 15, *Y + C) >= solid_low) &&
-        (Get_tile(X + 15 + 15, *Y + C) <= solid_high))
-      Val = 15 - ((X + 15) & 0x000f); // Val = 15-(X+15)%16;
-                                      // //distance to next tile right
-  };
+		if ((Get_tile(X + 15 + 15, *Y + C) >= solid_low) &&
+		    (Get_tile(X + 15 + 15, *Y + C) <= solid_high))
+			Val = 15 - ((X + 15) & 0x000f); // Val = 15-(X+15)%16;
+		// //distance to next tile right
+	};
 
-  return Val;
+	return Val;
 };
 
-int16_t Free_left(int16_t X, int16_t *Y, int16_t Height, char Face) {
-  /*char*/ int16_t Val = 16, C;
+int16_t Free_left(int16_t X, int16_t *Y, int16_t Height, char Face)
+{
+	/*char*/ int16_t Val = 16, C;
 
-  if (((Get_tile(X, *Y + Height - 1) >= slope_under_right_low) &&
-       (Get_tile(X, *Y + Height - 1) <= slope_under_right_high)) ||
-      ((Get_tile(X - 3, *Y + Height - 1) >= slope_under_right_low) &&
-       (Get_tile(X - 3, *Y + Height - 1) <= slope_under_right_high)))
-    *Y -= abs(Face);
+	if (((Get_tile(X, *Y + Height - 1) >= slope_under_right_low) &&
+	     (Get_tile(X, *Y + Height - 1) <= slope_under_right_high)) ||
+	    ((Get_tile(X - 3, *Y + Height - 1) >= slope_under_right_low) &&
+	     (Get_tile(X - 3, *Y + Height - 1) <= slope_under_right_high)))
+		*Y -= abs(Face);
 
-  for (C = 0; C <= (Height - 1);
-       C += min(16, Height - 1)) { // C=0;C!=(Height-1);C+=16
+	for (C = 0; C <= (Height - 1);
+	     C += min(16, Height - 1)) { // C=0;C!=(Height-1);C+=16
 
-    if ((Get_tile(X - 16, *Y + C) >= solid_low) &&
-        (Get_tile(X - 16, *Y + C) <= solid_high))
-      Val = (X) &
-            0x000f; // Val = (X)%16;		//distance to next tile left
-  };
+		if ((Get_tile(X - 16, *Y + C) >= solid_low) &&
+		    (Get_tile(X - 16, *Y + C) <= solid_high))
+			Val = (X) &
+			      0x000f; // Val = (X)%16;		//distance to next tile left
+	};
 
-  return Val;
+	return Val;
 };
 
 void Elastic_tile_animate(int16_t X, int16_t Y, uint8_t After, char Attribs,
-                          uint8_t Spriteoffset) {
-  int16_t C;
+			  uint8_t Spriteoffset)
+{
+	int16_t C;
 
-  if ((C = Find_free_object()) != -1) {
-    Objects[C].Active = elastic_tile_anim_time;
-    Objects[C].Data0 = After;
-    Objects[C].Data1 = Spriteoffset;
-    Objects[C].Data2 =
-        Attribs; // 0b10000000;//data2: b7:up b6:down b5:left b4:right
-    Objects[C].X = X & 0xfff0; // 16*(X/16);
-    Objects[C].Y = Y & 0xfff0; // 16*(Y/16);
-    //(object*)Objects[C].Handler = Dummy_func_;//Handle_elastic_tile;
-    Objects[C].Draw = Draw_elastic_tiles;
-    //*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16)) ) =
-    //(Get_tile(X,Y+16)==water?dark_gray_solid:blank_solid);
+	if ((C = Find_free_object()) != -1) {
+		Objects[C].Active = elastic_tile_anim_time;
+		Objects[C].Data0 = After;
+		Objects[C].Data1 = Spriteoffset;
+		Objects[C].Data2 =
+			Attribs; // 0b10000000;//data2: b7:up b6:down b5:left b4:right
+		Objects[C].X = X & 0xfff0; // 16*(X/16);
+		Objects[C].Y = Y & 0xfff0; // 16*(Y/16);
+		//(object*)Objects[C].Handler = Dummy_func_;//Handle_elastic_tile;
+		Objects[C].Draw = Draw_elastic_tiles;
+		//*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16)) ) =
+		//(Get_tile(X,Y+16)==water?dark_gray_solid:blank_solid);
 
-    Put_tile(X, Y,
-             (Get_tile(X, Y + 16) == water ? dark_gray_solid : blank_solid));
+		Put_tile(X, Y,
+			 (Get_tile(X, Y + 16) == water ? dark_gray_solid :
+							 blank_solid));
 
-    Update_FG = 1; // Fg_plane.p.force_update=1;Fg_mask.p.force_update=1;
-  } else {         // no free slots
+		Update_FG =
+			1; // Fg_plane.p.force_update=1;Fg_mask.p.force_update=1;
+	} else { // no free slots
 
-    Put_tile(X, Y, After);
-  };
+		Put_tile(X, Y, After);
+	};
 }
 
-void Bonusbox_coin_animate(int16_t X, int16_t Y) {
-  int16_t C;
+void Bonusbox_coin_animate(int16_t X, int16_t Y)
+{
+	int16_t C;
 
-  if ((C = Find_free_object()) != -1) {
-    Objects[C].Active = 25;
-    Objects[C].Data0 = 0;
-    Objects[C].Data1 = 16;
-    Objects[C].X = X & 0xfff0; // 16*(X/16);
-    Objects[C].Y = Y & 0xfff0; // 16*(Y/16);
-    //(object*)Objects[C].Handler = Dummy_func_;//Handle_bb_coin;
-    Objects[C].Draw = Draw_bb_coin;
-  };
+	if ((C = Find_free_object()) != -1) {
+		Objects[C].Active = 25;
+		Objects[C].Data0 = 0;
+		Objects[C].Data1 = 16;
+		Objects[C].X = X & 0xfff0; // 16*(X/16);
+		Objects[C].Y = Y & 0xfff0; // 16*(Y/16);
+		//(object*)Objects[C].Handler = Dummy_func_;//Handle_bb_coin;
+		Objects[C].Draw = Draw_bb_coin;
+	};
 
-  Player_get_coin(X, Y);
+	Player_get_coin(X, Y);
 };
 
-int16_t Find_free_item() {
-  int16_t C;
+int16_t Find_free_item()
+{
+	int16_t C;
 
-  for (C = 0; C < nr_of_items; C++) {
-    if (!(Items[C].Active)) {
-      return C;
-    };
-  };
-  return -1;
+	for (C = 0; C < nr_of_items; C++) {
+		if (!(Items[C].Active)) {
+			return C;
+		};
+	};
+	return -1;
 }
 
-void Add_power_up_1(int16_t X, int16_t Y) {
-  int16_t C;
-  uint8_t Temp;
+void Add_power_up_1(int16_t X, int16_t Y)
+{
+	int16_t C;
+	uint8_t Temp;
 
-  if (SavePlayer.Life == 1) {
+	if (SavePlayer.Life == 1) {
+		Add_pu_mushrom(X, Y - 2, 2);
+	} else {
+		if (Get_tile(X, Y - 16) == water) { //
+			Temp = flower_water;
+		} else {
+			Temp = flower_power;
+		}
 
-    Add_pu_mushrom(X, Y - 2, 2);
-  } else {
-    if (Get_tile(X, Y - 16) == water) { //
-      Temp = flower_water;
-    } else {
-      Temp = flower_power;
-    }
-
-    Put_tile(X, Y - 16, Temp);
-  };
+		Put_tile(X, Y - 16, Temp);
+	};
 };
 
-void Add_power_up_2(int16_t X, int16_t Y, int16_t Height) {
-  int16_t C;
+void Add_power_up_2(int16_t X, int16_t Y, int16_t Height)
+{
+	int16_t C;
 
-  if (SavePlayer.Life == 1) {
+	if (SavePlayer.Life == 1) {
+		Add_pu_mushrom(X, Y, Height);
 
-    Add_pu_mushrom(X, Y, Height);
+	} else { // leaf
 
-  } else { // leaf
-
-    if ((C = Find_free_item()) != -1) {
-      Items[C].X = X;
-      Items[C].Y = Y & 0xfff0; // 16*(Y/16);//-16;//16*(Y/16)-16;//Y-16;
-      Items[C].Data1 = (Height == 16 ? 0 : 12);
-      Items[C].Height = Items[C].Height2 = 14;
-      Items[C].Active = 2;
-      Items[C].Data0 = 12;
-      // Items[C].Data1 = 12;
-      Items[C].Sprite = leaf_r_sprite;
-      // Items[C].Mask = leaf_r_mask;
-      Items[C].Collect = Player_collect_leaf;
-      Items[C].Handler = Leaf_handler;
-    };
-  };
+		if ((C = Find_free_item()) != -1) {
+			Items[C].X = X;
+			Items[C].Y =
+				Y &
+				0xfff0; // 16*(Y/16);//-16;//16*(Y/16)-16;//Y-16;
+			Items[C].Data1 = (Height == 16 ? 0 : 12);
+			Items[C].Height = Items[C].Height2 = 14;
+			Items[C].Active = 2;
+			Items[C].Data0 = 12;
+			// Items[C].Data1 = 12;
+			Items[C].Sprite = leaf_r_sprite;
+			// Items[C].Mask = leaf_r_mask;
+			Items[C].Collect = Player_collect_leaf;
+			Items[C].Handler = Leaf_handler;
+		};
+	};
 };
 
-void Add_pu_mushrom(int16_t X, int16_t Y, int16_t Height) {
-  int16_t C;
+void Add_pu_mushrom(int16_t X, int16_t Y, int16_t Height)
+{
+	int16_t C;
 
-  if ((C = Find_free_item()) != -1) {
-    Items[C].X = X;
-    Items[C].Y = Y;
-    Items[C].Height = Height;
-    Items[C].Height2 = 16;
-    Items[C].Active =
-        (Player.X > Items[C].X) ? -pu_mushrom_speed : pu_mushrom_speed;
-    Items[C].Sprite = pu_mushrom_sprite;
-    // Items[C].Mask = mushrom_mask;
-    Items[C].Collect = Player_collect_pu_mushrom;
-    Items[C].Handler = Mushrom_handler;
-  };
+	if ((C = Find_free_item()) != -1) {
+		Items[C].X = X;
+		Items[C].Y = Y;
+		Items[C].Height = Height;
+		Items[C].Height2 = 16;
+		Items[C].Active = (Player.X > Items[C].X) ? -pu_mushrom_speed :
+							    pu_mushrom_speed;
+		Items[C].Sprite = pu_mushrom_sprite;
+		// Items[C].Mask = mushrom_mask;
+		Items[C].Collect = Player_collect_pu_mushrom;
+		Items[C].Handler = Mushrom_handler;
+	};
 }
 
-void Score_anim(int16_t X, int16_t Y, char Score) {
-  int16_t C;
+void Score_anim(int16_t X, int16_t Y, char Score)
+{
+	int16_t C;
 
-  if ((C = Find_free_object()) != -1) {
-    Objects[C].Active = 10;
-    Objects[C].Data0 = Score;
-    Objects[C].X = X;
-    Objects[C].Y = Y;
-    //(object*)Objects[C].Handler = Dummy_func_;//Handle_score;
-    Objects[C].Draw = Draw_score;
-  };
+	if ((C = Find_free_object()) != -1) {
+		Objects[C].Active = 10;
+		Objects[C].Data0 = Score;
+		Objects[C].X = X;
+		Objects[C].Y = Y;
+		//(object*)Objects[C].Handler = Dummy_func_;//Handle_score;
+		Objects[C].Draw = Draw_score;
+	};
 
-  int16_t S;
-  switch (Score) {
-  case score_100:
-    S = 1; // SavePlayer.Score++;
-    break;
-  case score_200:
-    S = 2; // SavePlayer.Score+=2;
-    break;
-  default:
-    S = 10; // SavePlayer.Score+=10;
-  }
+	int16_t S;
+	switch (Score) {
+	case score_100:
+		S = 1; // SavePlayer.Score++;
+		break;
+	case score_200:
+		S = 2; // SavePlayer.Score+=2;
+		break;
+	default:
+		S = 10; // SavePlayer.Score+=10;
+	}
 
-  SavePlayer.Score += S;
+	SavePlayer.Score += S;
 };
 
-void Execute_trigger(int16_t X, int16_t Y) {
-  int16_t C;
+void Execute_trigger(int16_t X, int16_t Y)
+{
+	int16_t C;
 
-  // trigcomp
-  for (C = 0; C < Leveldata.Nr_of_triggers; C++) {
-    if ((Triggers[C].X == X) && (Triggers[C].Y == Y)) {
-      Player.X = (Triggers[C].NewX * 16);
-      Player.Y = (Triggers[C].NewY * 16);
-      Leveldata.Border_left = (Triggers[C].Border_left * 16 + 2);
-      Leveldata.Border_right = (Triggers[C].Border_right * 16 - 2);
+	// trigcomp
+	for (C = 0; C < Leveldata.Nr_of_triggers; C++) {
+		if ((Triggers[C].X == X) && (Triggers[C].Y == Y)) {
+			Player.X = (Triggers[C].NewX * 16);
+			Player.Y = (Triggers[C].NewY * 16);
+			Leveldata.Border_left =
+				(Triggers[C].Border_left * 16 + 2);
+			Leveldata.Border_right =
+				(Triggers[C].Border_right * 16 - 2);
 
-      if (Triggers[C].NewBg >= 0) {
-        SetBg(Triggers[C].NewBg /*,Bg_file_sym->handle*/);
-        Leveldata.Bg_offset = (Triggers[C].NewBgOffset * 4);
-      };
-      Animate_out_of_wrapper(C);
-    };
-  };
+			if (Triggers[C].NewBg >= 0) {
+				SetBg(Triggers[C]
+					      .NewBg /*,Bg_file_sym->handle*/);
+				Leveldata.Bg_offset =
+					(Triggers[C].NewBgOffset * 4);
+			};
+			Animate_out_of_wrapper(C);
+		};
+	};
 };
 
-void Animate_out_of_wrapper(int16_t T) {
-  int16_t C;
+void Animate_out_of_wrapper(int16_t T)
+{
+	int16_t C;
 
-  // Player.Attribs = Player.Attribs | 0b00010000;//draw player before fg ON
+	// Player.Attribs = Player.Attribs | 0b00010000;//draw player before fg ON
 
-  Adjust_renderpoint();
+	Adjust_renderpoint();
 
-  /*if(Triggers[T].Anim == 0){
+	/*if(Triggers[T].Anim == 0){
           //Keystate.Up = 0;
           //Previous_keystate.Up = 1;
           Player.Y -= Player.Height;
   };*/
-  char Anim = Triggers[T].Anim;
-  if ((/*Triggers[T].*/ Anim == 1) || (/*Triggers[T].*/ Anim == 2)) {
+	char Anim = Triggers[T].Anim;
+	if ((/*Triggers[T].*/ Anim == 1) || (/*Triggers[T].*/ Anim == 2)) {
+		for (C = 0; C < Leveldata.Nr_of_enemies; C++) {
+			//			if( (Enemies[C].X == Player.X) &&
+			//(Enemies[C].Sprite >= flower1_sprite) && (Enemies[C].Sprite <=
+			// flower2_sprite_right_up) ){
+			if ((abs(Enemies[C].X - Player.X) <= 16) &&
+			    (Enemies[C].Sprite >= flower1_sprite) &&
+			    (Enemies[C].Sprite <= flower2_sprite_right_up)) {
+				Enemies[C].Y = Enemies[C].Y + Enemies[C].Height;
+				Enemies[C].Height = Enemies[C].Mode = 0;
+			};
+		};
+	};
 
-    for (C = 0; C < Leveldata.Nr_of_enemies; C++) {
+	switch (/*Triggers[T].*/ Anim) {
+		int16_t Height;
+	case 0:
+		Player.Y -= Player.Height;
+		break;
+	case 1:
+		// if(Triggers[T].Anim == 1){//up from pipe
+		/*short*/ Height = Player.Height;
 
-      //			if( (Enemies[C].X == Player.X) &&
-      //(Enemies[C].Sprite >= flower1_sprite) && (Enemies[C].Sprite <=
-      // flower2_sprite_right_up) ){
-      if ((abs(Enemies[C].X - Player.X) <= 16) &&
-          (Enemies[C].Sprite >= flower1_sprite) &&
-          (Enemies[C].Sprite <= flower2_sprite_right_up)) {
-        Enemies[C].Y = Enemies[C].Y + Enemies[C].Height;
-        Enemies[C].Height = Enemies[C].Mode = 0;
-      };
-    };
-  };
+		Player.X += 8; // trigcomp
+		SavePlayer.Spritenr = 9;
+		Player.Height = 0;
+		// Player.SpriteOffset = Height-1;
 
-  switch (/*Triggers[T].*/ Anim) {
-    int16_t Height;
-  case 0:
-    Player.Y -= Player.Height;
-    break;
-  case 1:
-    // if(Triggers[T].Anim == 1){//up from pipe
-    /*short*/ Height = Player.Height;
+		while (Player.Height != Height) {
+			// Player.SpriteOffset--;
+			Player.Y--;
+			Player.Height++;
+			Render();
+		};
+		// Player.Height=Height;
 
-    Player.X += 8; // trigcomp
-    SavePlayer.Spritenr = 9;
-    Player.Height = 0;
-    // Player.SpriteOffset = Height-1;
-
-    while (Player.Height != Height) {
-      // Player.SpriteOffset--;
-      Player.Y--;
-      Player.Height++;
-      Render();
-    };
-    // Player.Height=Height;
-
-    /*Player.Spritenr = 9;
+		/*Player.Spritenr = 9;
     //Player.Y += Player.Height;
 
     for(C=0;C<Player.Height;C++){
@@ -1430,28 +1498,27 @@ void Animate_out_of_wrapper(int16_t T) {
             Render();
     };*/
 
-    break; //};
-  case 2:
-    //	if(Triggers[T].Anim == 2){//down from pipe
-    /*short*/ Height = Player.Height;
+		break; //};
+	case 2:
+		//	if(Triggers[T].Anim == 2){//down from pipe
+		/*short*/ Height = Player.Height;
 
-    Player.X += 8;
-    SavePlayer.Spritenr = 9;
-    Player.Height = 0;
-    Player.SpriteOffset = Height;
+		Player.X += 8;
+		SavePlayer.Spritenr = 9;
+		Player.Height = 0;
+		Player.SpriteOffset = Height;
 
-    while (Player.Height != Height) {
+		while (Player.Height != Height) {
+			Player.SpriteOffset--;
+			Player.Height++;
 
-      Player.SpriteOffset--;
-      Player.Height++;
+			Render();
+		};
 
-      Render();
-    };
+		Player.SpriteOffset = 0;
+		// Player.Height=Height;
 
-    Player.SpriteOffset = 0;
-    // Player.Height=Height;
-
-    /*Player.Spritenr = 9;
+		/*Player.Spritenr = 9;
     Player.Y -= Player.Height;
 
     for(C=0;C<Player.Height;C++){
@@ -1459,92 +1526,91 @@ void Animate_out_of_wrapper(int16_t T) {
                     Render();
     };*/
 
-    break; //};
+		break; //};
 
-  case 3:
-    //	if(Triggers[T].Anim == 3){//leftwards out of pipe
+	case 3:
+		//	if(Triggers[T].Anim == 3){//leftwards out of pipe
 
-    Player.Y -= Player.Height + 2;
-    Player.X += 16;
-    Player.Face = -1;
+		Player.Y -= Player.Height + 2;
+		Player.X += 16;
+		Player.Face = -1;
 
-    if ((SavePlayer.Spritebase % 2)) {
-      SavePlayer.Spritebase -= 1;
-      SavePlayer.Maskbase -= 1;
-    };
-    Player.Blit = 0x1000;
-    for (C = 0; C < 16; C++) {
-      Player.Blit = Player.Blit >> 1;
-      Player.Blit = Player.Blit | 0x8000; // 1
-      Player.X--;
-      Render();
-      if ((++SavePlayer.Spritenr) >= 4) {
-        SavePlayer.Spritenr = 0;
-      };
-    };
-    Player.Blit = 0xffff;
-    Player.Y += 2;
+		if ((SavePlayer.Spritebase % 2)) {
+			SavePlayer.Spritebase -= 1;
+			SavePlayer.Maskbase -= 1;
+		};
+		Player.Blit = 0x1000;
+		for (C = 0; C < 16; C++) {
+			Player.Blit = Player.Blit >> 1;
+			Player.Blit = Player.Blit | 0x8000; // 1
+			Player.X--;
+			Render();
+			if ((++SavePlayer.Spritenr) >= 4) {
+				SavePlayer.Spritenr = 0;
+			};
+		};
+		Player.Blit = 0xffff;
+		Player.Y += 2;
 
-    break; //};
-  case 4:
-    //	if(Triggers[T].Anim == 4){//rightwards out of pipe
+		break; //};
+	case 4:
+		//	if(Triggers[T].Anim == 4){//rightwards out of pipe
 
-    Player.Y -= Player.Height + 2;
-    Player.X -= 16;
-    Player.Face = 1;
+		Player.Y -= Player.Height + 2;
+		Player.X -= 16;
+		Player.Face = 1;
 
-    if (!(SavePlayer.Spritebase % 2)) {
-      SavePlayer.Spritebase += 1;
-      SavePlayer.Maskbase += 1;
-    };
-    Player.Blit = 0x0001;
-    for (C = 0; C < 16; C++) {
-      //	long D;
-      Player.Blit = Player.Blit << 1; //<<
-      Player.Blit = Player.Blit | 0x0001;
-      Player.X++;
-      Render();
-      // for(D=0;D<40000;D++);
-      if ((++SavePlayer.Spritenr) >= 4) {
-        SavePlayer.Spritenr = 0;
-      };
-    };
-    Player.Blit = 0xffff;
-    Player.Y += 2;
+		if (!(SavePlayer.Spritebase % 2)) {
+			SavePlayer.Spritebase += 1;
+			SavePlayer.Maskbase += 1;
+		};
+		Player.Blit = 0x0001;
+		for (C = 0; C < 16; C++) {
+			//	long D;
+			Player.Blit = Player.Blit << 1; //<<
+			Player.Blit = Player.Blit | 0x0001;
+			Player.X++;
+			Render();
+			// for(D=0;D<40000;D++);
+			if ((++SavePlayer.Spritenr) >= 4) {
+				SavePlayer.Spritenr = 0;
+			};
+		};
+		Player.Blit = 0xffff;
+		Player.Y += 2;
 
-    break; //};
-  case 5:
-    //	if(Triggers[T].Anim == 5){
-    Player.Y += 32;
+		break; //};
+	case 5:
+		//	if(Triggers[T].Anim == 5){
+		Player.Y += 32;
 
-    for (C = 0; C < 16; C++) {
+		for (C = 0; C < 16; C++) {
+			Player.Y -= 2;
+			Render();
+		};
 
-      Player.Y -= 2;
-      Render();
-    };
+		break; //};
+	case 6:
+		//	if(Triggers[T].Anim == 6){
+		Exit = 1;
+		break; //};
+	case 7:
+		//	if(Triggers[T].Anim == 7){
+		Exit = 2;
+		break; //};
 
-    break; //};
-  case 6:
-    //	if(Triggers[T].Anim == 6){
-    Exit = 1;
-    break; //};
-  case 7:
-    //	if(Triggers[T].Anim == 7){
-    Exit = 2;
-    break; //};
+	}; // end switch
 
-  }; // end switch
+	Player.Xoffset = Player.Yoffset = 0;
 
-  Player.Xoffset = Player.Yoffset = 0;
+	// New: V 1.04
+	// Clearing all arrow keypresses: Prevents that other triggers is executed
+	// when mario comes out of pipes
+	Keystate.down = Keystate.left = Keystate.right = false;
+	if (Anim)
+		Keystate.up = false;
 
-  // New: V 1.04
-  // Clearing all arrow keypresses: Prevents that other triggers is executed
-  // when mario comes out of pipes
-  Keystate.down = Keystate.left = Keystate.right = false;
-  if (Anim)
-    Keystate.up = false;
-
-  // Player.Attribs = Player.Attribs & 0b11101111;//draw player before fg OFF
+	// Player.Attribs = Player.Attribs & 0b11101111;//draw player before fg OFF
 };
 /*
 void Handle_treasure_star( short X, short Y ){
@@ -1694,137 +1760,133 @@ void Handle_treasure_rand( short X, short Y ){
 
 };*/
 
-void Handle_treasure_all(int16_t X, int16_t Y) {
+void Handle_treasure_all(int16_t X, int16_t Y)
+{
+	uint8_t T = Get_tile(X, Y);
+	uint8_t TileAbove = Get_tile(X, Y - 16);
+	uint8_t NewTile = 0;
 
-  uint8_t T = Get_tile(X, Y);
-  uint8_t TileAbove = Get_tile(X, Y - 16);
-  uint8_t NewTile = 0;
+	if ((Leveldata.Background == 6) && !Keystate.run) // UGLY CODE !
+		return; // This makes sure you have to use the "Run" key to open a treasure
+	// box in mushrom houses if not in a mushrom house the box will
+	// automaticly open on contact Mushrom house is detected by
+	// background == 6
 
-  if ((Leveldata.Background == 6) && !Keystate.run) // UGLY CODE !
-    return; // This makes sure you have to use the "Run" key to open a treasure
-            // box in mushrom houses if not in a mushrom house the box will
-            // automaticly open on contact Mushrom house is detected by
-            // background == 6
+	if ((TileAbove == water) || (TileAbove == water_surface)) {
+		NewTile = water;
+	}
 
-  if ((TileAbove == water) || (TileAbove == water_surface)) {
-    NewTile = water;
-  }
+	Put_tile(X, Y, NewTile); // 0
 
-  Put_tile(X, Y, NewTile); // 0
+	int16_t Height = 16;
+	//		Items[0].Height = Items[0].Height2 = 16;
+	uint16_t *Sprite;
 
-  int16_t Height = 16;
-  //		Items[0].Height = Items[0].Height2 = 16;
-  uint16_t *Sprite;
+	switch (T) {
+	case treasure_rand:
 
-  switch (T) {
+		switch (Fg_plane.step) {
+		case 0: // mushrom
+		{
+			/*Items[0].*/ Sprite = pu_mushrom_sprite;
+			// Items[0].Mask = mushrom_mask;
+			Itemlist_add(1);
+			break;
+		};
+		case 1: // flower
+		{
+			/*Items[0].*/ Sprite = flower_spr;
+			// Items[0].Mask = flower_msk;
+			Itemlist_add(2);
+			break;
+		};
+		case 2: // leaf
+		case 3: // leaf
+		{
+			/*Items[0].*/ Sprite = leaf_r_sprite;
+			// Items[0].Mask = leaf_r_mask;
+			Height = 14; // Items[0].Height = Items[0].Height2 = 14;
+			Itemlist_add(3);
+			break;
+		};
+		};
 
-  case treasure_rand:
+		break;
 
-    switch (Fg_plane.step) {
+	case treasure_star:
+		/*Items[0].*/ Sprite = star_anim;
+		// Items[0].Mask = star_mask;
+		Itemlist_add(4);
+		break;
 
-    case 0: // mushrom
-    {
-      /*Items[0].*/ Sprite = pu_mushrom_sprite;
-      // Items[0].Mask = mushrom_mask;
-      Itemlist_add(1);
-      break;
-    };
-    case 1: // flower
-    {
-      /*Items[0].*/ Sprite = flower_spr;
-      // Items[0].Mask = flower_msk;
-      Itemlist_add(2);
-      break;
-    };
-    case 2: // leaf
-    case 3: // leaf
-    {
-      /*Items[0].*/ Sprite = leaf_r_sprite;
-      // Items[0].Mask = leaf_r_mask;
-      Height = 14; // Items[0].Height = Items[0].Height2 = 14;
-      Itemlist_add(3);
-      break;
-    };
-    };
+	case treasure_whistle:
+		/*Items[0].*/ Sprite = whistle_spr;
+		// Items[0].Mask = whistle_msk;
+		Itemlist_add(5);
+		break;
 
-    break;
+	case treasure_hammer:
+		/*Items[0].*/ Sprite = hammer_i_spr;
+		// Items[0].Mask = hammer_i_msk;
+		Itemlist_add(6);
+		break;
 
-  case treasure_star:
-    /*Items[0].*/ Sprite = star_anim;
-    // Items[0].Mask = star_mask;
-    Itemlist_add(4);
-    break;
+	case treasure_pwing:
+		/*Items[0].*/ Sprite = p_wing_spr;
+		// Items[0].Mask = p_wing_msk;
+		Itemlist_add(7);
+		break;
 
-  case treasure_whistle:
-    /*Items[0].*/ Sprite = whistle_spr;
-    // Items[0].Mask = whistle_msk;
-    Itemlist_add(5);
-    break;
+	case treasure_cloud:
+		/*Items[0].*/ Sprite = cloud_item_spr;
+		// Items[0].Mask = cloud_item_msk;
+		Itemlist_add(8);
+		break;
 
-  case treasure_hammer:
-    /*Items[0].*/ Sprite = hammer_i_spr;
-    // Items[0].Mask = hammer_i_msk;
-    Itemlist_add(6);
-    break;
+	case treasure_anchor:
+		/*Items[0].*/ Sprite = anchor_spr;
+		// Items[0].Mask = anchor_msk;
+		Itemlist_add(9);
+		break;
+	}
 
-  case treasure_pwing:
-    /*Items[0].*/ Sprite = p_wing_spr;
-    // Items[0].Mask = p_wing_msk;
-    Itemlist_add(7);
-    break;
+	Items[0].Sprite = Sprite;
+	Items[0].Active = 1;
+	Items[0].X = X;
+	Items[0].Y = Y;
+	// New: V 1.04 Removed flashing line at the top of the item
+	Items[0].Height = Items[0].Height2 = Height;
+	// Treasure_anim_end();
+	{ // put inline for memory optimization: saved  68 bytes
+		int16_t C, H = /*Items[0].*/ Height;
 
-  case treasure_cloud:
-    /*Items[0].*/ Sprite = cloud_item_spr;
-    // Items[0].Mask = cloud_item_msk;
-    Itemlist_add(8);
-    break;
+		for (C = 0; C < 70; C++) {
+			if (Items[0].Y > (FgY + 30)) {
+				Items[0].Y -= 2;
+			} else {
+				// if(Fg_plane.step%2){//flashing
+				//	/*Items[0].*/Height = 1;//0 causes crash...
+				// }
+				// else{
+				//	/*Items[0].*/Height = H;
+				// };
 
-  case treasure_anchor:
-    /*Items[0].*/ Sprite = anchor_spr;
-    // Items[0].Mask = anchor_msk;
-    Itemlist_add(9);
-    break;
-  }
+				// New: V 1.04 Removed flashing line at the top of the item
+				Items[0].Active = Fg_plane.step % 2;
+			};
 
-  Items[0].Sprite = Sprite;
-  Items[0].Active = 1;
-  Items[0].X = X;
-  Items[0].Y = Y;
-  // New: V 1.04 Removed flashing line at the top of the item
-  Items[0].Height = Items[0].Height2 = Height;
-  // Treasure_anim_end();
-  { // put inline for memory optimization: saved  68 bytes
-    int16_t C, H = /*Items[0].*/ Height;
+			// Items[0].Height = Items[0].Height2 = Height;
 
-    for (C = 0; C < 70; C++) {
+			Render();
 
-      if (Items[0].Y > (FgY + 30)) {
-        Items[0].Y -= 2;
-      } else {
+			if (Free_down(Player.X, Player.Y + Player.Height - 1))
+				Player.Y++;
+		};
 
-        // if(Fg_plane.step%2){//flashing
-        //	/*Items[0].*/Height = 1;//0 causes crash...
-        // }
-        // else{
-        //	/*Items[0].*/Height = H;
-        // };
-
-        // New: V 1.04 Removed flashing line at the top of the item
-        Items[0].Active = Fg_plane.step % 2;
-      };
-
-      // Items[0].Height = Items[0].Height2 = Height;
-
-      Render();
-
-      if (Free_down(Player.X, Player.Y + Player.Height - 1))
-        Player.Y++;
-    };
-
-    Items[0].Active = 0;
-    Exit = 2;
-    Player.Immortal = 1;
-  }
+		Items[0].Active = 0;
+		Exit = 2;
+		Player.Immortal = 1;
+	}
 }
 /*
 void Treasure_anim_end(){
@@ -1857,97 +1919,103 @@ void Treasure_anim_end(){
         Exit=2;
 };*/
 
-void Itemlist_add(char Item) {
-  int16_t C;
+void Itemlist_add(char Item)
+{
+	int16_t C;
 
-  for (C = 0; ((SavePlayer.Itemlist[C] != 0) && (C < (itemlist_length - 1)));
-       C++)
-    ; // find first free slot or replace the last element
+	for (C = 0;
+	     ((SavePlayer.Itemlist[C] != 0) && (C < (itemlist_length - 1)));
+	     C++)
+		; // find first free slot or replace the last element
 
-  SavePlayer.Itemlist[C] = Item;
+	SavePlayer.Itemlist[C] = Item;
 };
 
-void Itemlist_remove(char Index) {
-  int16_t C;
+void Itemlist_remove(char Index)
+{
+	int16_t C;
 
-  for (C = Index; C < (itemlist_length - 1);
-       C++) { // move all elements one step to the left
-    SavePlayer.Itemlist[C] = SavePlayer.Itemlist[C + 1];
-  };
+	for (C = Index; C < (itemlist_length - 1);
+	     C++) { // move all elements one step to the left
+		SavePlayer.Itemlist[C] = SavePlayer.Itemlist[C + 1];
+	};
 
-  SavePlayer.Itemlist[itemlist_length - 1] = 0; // last slot must be empty
+	SavePlayer.Itemlist[itemlist_length - 1] = 0; // last slot must be empty
 };
 
-void Levelend_handler(int16_t X, int16_t Y) {
-  int16_t C;
-  int16_t P;
+void Levelend_handler(int16_t X, int16_t Y)
+{
+	int16_t C;
+	int16_t P;
 
-  X = X & 0xfff0; //(X/16)*16;
-  Y = Y & 0xfff0; //(Y/16)*16;
+	X = X & 0xfff0; //(X/16)*16;
+	Y = Y & 0xfff0; //(Y/16)*16;
 
-  SavePlayer.Score += 50; // this is 5000. Score get padded with "00"
+	SavePlayer.Score += 50; // this is 5000. Score get padded with "00"
 
-  // get card
-  char CurrCard = SavePlayer.CurrCard;
-  SavePlayer.Cards[(int16_t)/*SavePlayer.*/ CurrCard] = Fg_plane.step;
-  if (SavePlayer.Cards[(int16_t)/*SavePlayer.*/ CurrCard] == 3)
-    SavePlayer.Cards[(int16_t)/*SavePlayer.*/ CurrCard] = 1;
+	// get card
+	char CurrCard = SavePlayer.CurrCard;
+	SavePlayer.Cards[(int16_t)/*SavePlayer.*/ CurrCard] = Fg_plane.step;
+	if (SavePlayer.Cards[(int16_t)/*SavePlayer.*/ CurrCard] == 3)
+		SavePlayer.Cards[(int16_t)/*SavePlayer.*/ CurrCard] = 1;
 
-  for (C = -1; C < 2; C++) {
-    for (P = -1; P < 2; P++)
-      //*( (char*)(Fg_plane.p.matrix+(Y/16+P)*Fg_plane.p.width+(X/16+C)) ) =
-      // dark_gray;
-      Put_tile(X + 16 * C, Y + 16 * P, dark_gray);
-  };
+	for (C = -1; C < 2; C++) {
+		for (P = -1; P < 2; P++)
+			//*( (char*)(Fg_plane.p.matrix+(Y/16+P)*Fg_plane.p.width+(X/16+C)) ) =
+			// dark_gray;
+			Put_tile(X + 16 * C, Y + 16 * P, dark_gray);
+	};
 
-  Player.Face = 1;
-  if (!(SavePlayer.Spritebase % 2)) {
-    SavePlayer.Spritebase += 1;
-    SavePlayer.Maskbase += 1;
-  };
+	Player.Face = 1;
+	if (!(SavePlayer.Spritebase % 2)) {
+		SavePlayer.Spritebase += 1;
+		SavePlayer.Maskbase += 1;
+	};
 
-  for (; Player.X < Leveldata.Border_right + 2; Player.X++) {
-    Adjust_renderpoint();
-    Render();
-    if ((++SavePlayer.Spritenr) >= 4) {
-      SavePlayer.Spritenr = 0;
-    };
+	for (; Player.X < Leveldata.Border_right + 2; Player.X++) {
+		Adjust_renderpoint();
+		Render();
+		if ((++SavePlayer.Spritenr) >= 4) {
+			SavePlayer.Spritenr = 0;
+		};
 
-    C = Free_down(Player.X, Player.Y + Player.Height);
-    if (C > 0) {
-      Player.Y += (C >= 2 ? 2 : C);
-      SavePlayer.Spritenr = 8;
-    };
-  };
+		C = Free_down(Player.X, Player.Y + Player.Height);
+		if (C > 0) {
+			Player.Y += (C >= 2 ? 2 : C);
+			SavePlayer.Spritenr = 8;
+		};
+	};
 
-  /*
+	/*
   DrawGrayStrExt2B(80,8,"COURSE CLEAR!",A_REVERSE,F_4x6,dBufHPD_G,dBufHPD_G);
   DrawGrayStrExt2B(80,18,"YOU GOT A CARD",A_REVERSE,F_4x6,dBufHPD_G,dBufHPD_G);
   */
-  DrawGrayStrExt2B(screen_width - 80, 8, "COURSE CLEAR!", A_REVERSE, F_4x6,
-                   dBufHPD_G, dBufHPD_G);
-  DrawGrayStrExt2B(screen_width - 80, 18, "YOU GOT A CARD", A_REVERSE, F_4x6,
-                   dBufHPD_G, dBufHPD_G);
-  // DrawString(screen_width-80,8,"COURSE CLEAR!",A_REVERSE,F_4x6);
-  // DrawString(screen_width-80,18,"YOU GOT A CARD",A_REVERSE,F_4x6);
+	DrawGrayStrExt2B(screen_width - 80, 8, "COURSE CLEAR!", A_REVERSE,
+			 F_4x6, dBufHPD_G, dBufHPD_G);
+	DrawGrayStrExt2B(screen_width - 80, 18, "YOU GOT A CARD", A_REVERSE,
+			 F_4x6, dBufHPD_G, dBufHPD_G);
+	// DrawString(screen_width-80,8,"COURSE CLEAR!",A_REVERSE,F_4x6);
+	// DrawString(screen_width-80,18,"YOU GOT A CARD",A_REVERSE,F_4x6);
 
-  // show card
-  //	GrayClipISprite16_RPLC_R(100,28,16,(unsigned
-  // short*)Fg_plane.p.sprites+(79+SavePlayer.Cards[(short)SavePlayer.CurrCard])*32,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
-  GrayClipISprite16_RPLC_R(
-      screen_width - 60, 28, 16,
-      (uint16_t *)Fg_plane.p.sprites +
-          (79 + SavePlayer.Cards[(int16_t)/*SavePlayer.*/ CurrCard]) * 32,
-      /*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
-      /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
+	// show card
+	//	GrayClipISprite16_RPLC_R(100,28,16,(unsigned
+	// short*)Fg_plane.p.sprites+(79+SavePlayer.Cards[(short)SavePlayer.CurrCard])*32,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
+	GrayClipISprite16_RPLC_R(
+		screen_width - 60, 28, 16,
+		(uint16_t *)Fg_plane.p.sprites +
+			(79 +
+			 SavePlayer.Cards[(int16_t)/*SavePlayer.*/ CurrCard]) *
+				32,
+		/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
+		/*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
 
-  // x up
-  if (/*SavePlayer.*/ CurrCard == 2) {
-
-    int16_t Lives;
-    if ((SavePlayer.Cards[0] == SavePlayer.Cards[1]) &&
-        (SavePlayer.Cards[0] == SavePlayer.Cards[2])) { // 3 equal cards? :-D
-      /*if(Player.Cards[0]==0){//flower
+	// x up
+	if (/*SavePlayer.*/ CurrCard == 2) {
+		int16_t Lives;
+		if ((SavePlayer.Cards[0] == SavePlayer.Cards[1]) &&
+		    (SavePlayer.Cards[0] ==
+		     SavePlayer.Cards[2])) { // 3 equal cards? :-D
+			/*if(Player.Cards[0]==0){//flower
               Player.Lives +=3;
               P=24+2*30;
 
@@ -1962,90 +2030,93 @@ void Levelend_handler(int16_t X, int16_t Y) {
               P=24+3*30;
       };*/
 
-      switch (SavePlayer.Cards[0]) {
-      case 0:
-        Lives = 3; // SavePlayer.Lives +=3;
-        P = 24 + 2 * 30;
-        break;
-      case 1:
-        Lives = 2; // SavePlayer.Lives +=2;
-        P = 24 + 30;
-        break;
-      case 2:
-        Lives = 5; // SavePlayer.Lives +=5;
-        P = 24 + 3 * 30;
-        break;
-      }
+			switch (SavePlayer.Cards[0]) {
+			case 0:
+				Lives = 3; // SavePlayer.Lives +=3;
+				P = 24 + 2 * 30;
+				break;
+			case 1:
+				Lives = 2; // SavePlayer.Lives +=2;
+				P = 24 + 30;
+				break;
+			case 2:
+				Lives = 5; // SavePlayer.Lives +=5;
+				P = 24 + 3 * 30;
+				break;
+			}
 
-      // show cards
+			// show cards
 
-    } else {     // Not 3 equal cards :-(
-      Lives = 1; // SavePlayer.Lives ++;
-      P = 24;
-    };
-    SavePlayer.Lives += Lives;
+		} else { // Not 3 equal cards :-(
+			Lives = 1; // SavePlayer.Lives ++;
+			P = 24;
+		};
+		SavePlayer.Lives += Lives;
 
-    /*for(X=0;X<SHRT_MAX;Y++){
+		/*for(X=0;X<SHRT_MAX;Y++){
                     for(Y=0;Y<SHRT_MAX;Y++);
     };*/
-    DelayNFrames(DEFAULT_FPS);
+		DelayNFrames(DEFAULT_FPS);
 
-    for (C = 0; C <= 2; C++) {
-      // GrayClipISprite16_RPLC_R(83+17*C,50,16,(unsigned
-      // short*)Fg_plane.p.sprites+(79+SavePlayer.Cards[C])*32,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
-      GrayClipISprite16_RPLC_R(
-          screen_width - 77 + 17 * C, 50, 16,
-          (uint16_t *)Fg_plane.p.sprites + (79 + SavePlayer.Cards[C]) * 32,
-          /*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
-          /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
-    };
+		for (C = 0; C <= 2; C++) {
+			// GrayClipISprite16_RPLC_R(83+17*C,50,16,(unsigned
+			// short*)Fg_plane.p.sprites+(79+SavePlayer.Cards[C])*32,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
+			GrayClipISprite16_RPLC_R(
+				screen_width - 77 + 17 * C, 50, 16,
+				(uint16_t *)Fg_plane.p.sprites +
+					(79 + SavePlayer.Cards[C]) * 32,
+				/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
+				/*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
+		};
 
-    // GrayClipSprite16_MASK_R(87,44,15,up_sprite,up_sprite+15,blank_sprite,blank_sprite,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
-    // GrayClipSprite16_SMASK_R(87,44,15,up_sprite,up_sprite+15,blank_sprite,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
-    // GrayClipSprite16_SMASK_R(screen_width-73,44,15,up_sprite,up_sprite+15,blank_sprite,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
-    DrawSprite16SMASKR(screen_width - 73, 44, 15, up_sprite, up_sprite + 15,
-                       blank_sprite);
+		// GrayClipSprite16_MASK_R(87,44,15,up_sprite,up_sprite+15,blank_sprite,blank_sprite,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
+		// GrayClipSprite16_SMASK_R(87,44,15,up_sprite,up_sprite+15,blank_sprite,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
+		// GrayClipSprite16_SMASK_R(screen_width-73,44,15,up_sprite,up_sprite+15,blank_sprite,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
+		DrawSprite16SMASKR(screen_width - 73, 44, 15, up_sprite,
+				   up_sprite + 15, blank_sprite);
 
-    // GrayClipSprite8_MASK_R(75,44,15,Smallsprites+P,Smallsprites+P+15,(unsigned
-    // char*)blank_sprite,(unsigned
-    // char*)blank_sprite,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
-    // GrayClipSprite8_SMASK_R(75,44,15,Smallsprites+P,Smallsprites+P+15,(unsigned
-    // char*)blank_sprite,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
-    GrayClipSprite8_SMASK_R(screen_width - 85, 44, 15, Smallsprites + P,
-                            Smallsprites + P + 15, (uint8_t *)blank_sprite,
-                            /*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
-                            /*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
+		// GrayClipSprite8_MASK_R(75,44,15,Smallsprites+P,Smallsprites+P+15,(unsigned
+		// char*)blank_sprite,(unsigned
+		// char*)blank_sprite,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
+		// GrayClipSprite8_SMASK_R(75,44,15,Smallsprites+P,Smallsprites+P+15,(unsigned
+		// char*)blank_sprite,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
+		GrayClipSprite8_SMASK_R(
+			screen_width - 85, 44, 15, Smallsprites + P,
+			Smallsprites + P + 15, (uint8_t *)blank_sprite,
+			/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
+			/*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
 
-    for (C = 0; C <= 2; C++) {
-      SavePlayer.Cards[C] = 0;
-    }
+		for (C = 0; C <= 2; C++) {
+			SavePlayer.Cards[C] = 0;
+		}
 
-    // SavePlayer.Cards[0]=SavePlayer.Cards[1]=SavePlayer.Cards[2]=0;
-    SavePlayer.CurrCard = -1;
-  };
+		// SavePlayer.Cards[0]=SavePlayer.Cards[1]=SavePlayer.Cards[2]=0;
+		SavePlayer.CurrCard = -1;
+	};
 
-  GrayDBufToggleSync_SetPointers(); // GrayDBufToggleSync();
+	GrayDBufToggleSync_SetPointers(); // GrayDBufToggleSync();
 
-  /*
+	/*
   for(X=0;X<SHRT_MAX;X++){//delay
           for(Y=0;Y<100;Y++);
   };
   */
-  DelayNFrames(DEFAULT_FPS);
+	DelayNFrames(DEFAULT_FPS);
 
-  Exit = 2; // Exit == 2: level completed
-  SavePlayer.CurrCard++;
+	Exit = 2; // Exit == 2: level completed
+	SavePlayer.CurrCard++;
 };
 
-void Add_dustsky(int16_t X, int16_t Y) {
-  int16_t C;
+void Add_dustsky(int16_t X, int16_t Y)
+{
+	int16_t C;
 
-  if ((C = Find_free_object()) != -1) {
-    Objects[C].Active = 1;
-    Objects[C].Data0 = 0;
-    Objects[C].X = X;
-    Objects[C].Y = Y;
-    //(object*)Objects[C].Handler = Dummy_func_;//Handle_killed_fireball;
-    Objects[C].Draw = Draw_killed_fireballs;
-  };
+	if ((C = Find_free_object()) != -1) {
+		Objects[C].Active = 1;
+		Objects[C].Data0 = 0;
+		Objects[C].X = X;
+		Objects[C].Y = Y;
+		//(object*)Objects[C].Handler = Dummy_func_;//Handle_killed_fireball;
+		Objects[C].Draw = Draw_killed_fireballs;
+	};
 };

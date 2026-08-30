@@ -1,20 +1,3 @@
-# Which calculator to build for: 89 (TI-89 / TI-89 Titanium), 92p (TI-92 Plus)
-# or v200 (Voyage 200). This picks both the PRODUCE_*_CODE the sources switch
-# on - screen size, scroll limits, status bar position - and the matching data
-# set under Bin/, which is not interchangeable between models: the backgrounds,
-# the common level and some worlds were retuned for the 89's smaller screen.
-CALC ?= v200
-
-ifeq ($(CALC),89)
-CALCDEF = PRODUCE_TI89_CODE
-else ifeq ($(CALC),92p)
-CALCDEF = PRODUCE_TI92PLUS_CODE
-else ifeq ($(CALC),v200)
-CALCDEF = PRODUCE_V200_CODE
-else
-$(error CALC must be 89, 92p or v200)
-endif
-
 CC = emcc
 # -fcommon: the sources rely on pre-C99 tentative definitions (globals declared
 # in headers without extern), which old GCC merged. Modern clang defaults to
@@ -26,7 +9,7 @@ CC = emcc
 # rebuilds what includes it. Nearly every file here includes all.h, which
 # reaches most of the others, so without this a header edit is silently
 # ignored and the link fails - or worse, does not.
-CFLAGS = -Os -std=gnu99 -fgnu89-inline -flto -msimd128 -MMD -MP -D$(CALCDEF)
+CFLAGS = -Os -std=gnu99 -fgnu89-inline -flto -msimd128 -MMD -MP
 # -sENVIRONMENT=web: this only ever runs in a browser, so drop the node,
 # worker and shell startup paths Emscripten emits by default.
 # -sEXPORT_ES6: emit mario.mjs as an ES module (a default-exported factory),

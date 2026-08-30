@@ -21,19 +21,6 @@
 #define PLANE_STRIDE (PLANE_WIDTH / 8)
 #define LCD_SIZE (PLANE_STRIDE * PLANE_HEIGHT)
 
-#if defined(PRODUCE_TI89_CODE)
-#define LCD_WIDTH 160
-#define LCD_HEIGHT 100
-#elif defined(PRODUCE_TI92PLUS_CODE) || defined(PRODUCE_V200_CODE)
-#define LCD_WIDTH 240
-#define LCD_HEIGHT 128
-#else
-#error "no target calculator - build with make CALC=89|92p|v200"
-#endif
-
-// Bytes of a plane row that are actually on screen.
-#define LCD_LINE_BYTES (LCD_WIDTH / 8)
-
 enum Fonts {F_4x6, F_6x8, F_8x10};
 enum Attrs {A_REVERSE, A_NORMAL, A_XOR, A_SHADED, A_REPLACE, A_OR, A_AND, A_THICK1, A_SHADE_V, A_SHADE_H, A_SHADE_NS, A_SHADE_PS};
 

@@ -64,9 +64,6 @@ void DrawGrayBuffer2B_OR(const void *src, uint16_t x, uint16_t y,
 #define TM_GRPLC DrawGrayBuffer2B_RPLC
 #define TM_GOR DrawGrayBuffer2B_OR
 #define TM_MASK DrawBuffer_MASK
-#define TM_GRPLC89 DrawGrayBuffer2B_RPLC
-#define TM_GOR89 DrawGrayBuffer2B_OR
-#define TM_MASK89 DrawBuffer_MASK
 
 // Plane drawers. _ROLL is the game's own scrolling variant of the 16x16 big
 // tile renderer (see DrawGrayPlane16BRoll referenced from render.c).

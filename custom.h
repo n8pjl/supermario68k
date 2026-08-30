@@ -13,6 +13,3 @@ extern struct settings Settings;
 
 void Custom();
 
-void Key_configure();
-
-void Load_settings();
