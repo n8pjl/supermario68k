@@ -47,37 +47,123 @@ function pressedGpButtons() {
 // Passed by the resolve function by code in scankeys.c
 const keyPressPromises = { keydown: null };
 
-addEventListener("keydown", (e) => {
-  if (!gameKeys.has(e.key)) return;
+// The game's key handling is only bound while it runs: outside of that the
+// settings menu needs Enter and the arrow keys for itself. The controller is
+// what unbinds all three listeners again when main() returns.
+function listenForGameKeys() {
+  const keys = new AbortController();
+  const opts = { signal: keys.signal };
 
+  addEventListener(
+    "keydown",
+    (e) => {
+      if (!gameKeys.has(e.key)) return;
+
+      e.preventDefault();
+      pressedKeys.add(e.key);
+      keyPressPromises.keydown?.();
+      keyPressPromises.keydown = null;
+    },
+    opts,
+  );
+
+  addEventListener(
+    "keyup",
+    (e) => {
+      if (!gameKeys.has(e.key)) return;
+
+      e.preventDefault();
+      pressedKeys.delete(e.key);
+    },
+    opts,
+  );
+
+  // A window that loses focus never sees the keyup, which would otherwise
+  // leave the game running into a wall.
+  addEventListener("blur", () => pressedKeys.clear(), opts);
+
+  return keys;
+}
+
+// main() reads Module.ti89Mode once at startup, so the calculator has to be
+// picked before the runtime is created. The choice is remembered for next time;
+// storage can be unavailable (private mode, blocked cookies), in which case the
+// menu just falls back to its default selection.
+const CALC_KEY = "smb68k.calc";
+const consoleBox = document.querySelector(".console");
+const settings = document.getElementById("settings");
+const select = settings.elements.calc;
+const canvas = document.getElementById("canvas");
+
+// The screens the two builds draw to, from init_calc_screen_constants() in
+// render.c, and the scale compat/gray.c displays them at. Sizing the canvas
+// from here shows the difference between the versions while choosing, and
+// leaves the canvas at the size the game wants, so gray.c never resizes it.
+const SCALE = 3;
+const CALCS = {
+  ti92: { width: 240, height: 128 },
+  ti89: { width: 160, height: 100 },
+};
+
+function sizeCanvas(calc) {
+  const { width, height } = CALCS[calc];
+
+  canvas.width = width;
+  canvas.height = height;
+  canvas.style.width = width * SCALE + "px";
+  canvas.style.height = height * SCALE + "px";
+}
+
+try {
+  const saved = localStorage.getItem(CALC_KEY);
+  if (saved && Object.hasOwn(CALCS, saved)) select.value = saved;
+} catch {
+  /* empty */
+}
+
+sizeCanvas(select.value);
+select.addEventListener("change", () => sizeCanvas(select.value));
+
+// Putting the menu back after the game exits. Resizing the canvas also clears
+// the last frame the game left on it.
+function showSettings() {
+  sizeCanvas(select.value);
+  consoleBox.append(settings);
+}
+
+settings.addEventListener("submit", (e) => {
   e.preventDefault();
-  pressedKeys.add(e.key);
-  keyPressPromises.keydown?.();
-  keyPressPromises.keydown = null;
+
+  const calc = select.value;
+  try {
+    localStorage.setItem(CALC_KEY, calc);
+  } catch {
+    /* empty */
+  }
+
+  settings.remove();
+  const keys = listenForGameKeys();
+
+  // run() awaits main(), which JSPI makes asynchronous, so this promise
+  // settling means the game itself has exited.
+  createMario({
+    canvas,
+    ti89Mode: calc === "ti89",
+    frameMs: 1000 / CALC_FPS,
+    print: (t) => console.log(t),
+    printErr: (t) => console.error(t),
+    onRuntimeInitialized: () =>
+      console.log("runtime ready, data mounted at /data"),
+    onAbort: (w) => console.error("ABORT: " + w),
+    pressedKeys,
+    pressedGpButtons,
+    keyPressPromises,
+  })
+    .catch((e) => console.error("exited with an error:", e))
+    .finally(() => {
+      keys.abort();
+      pressedKeys.clear();
+      keyPressPromises.keydown = null;
+      showSettings();
+    });
 });
-
-addEventListener("keyup", (e) => {
-  if (!gameKeys.has(e.key)) return;
-
-  e.preventDefault();
-  pressedKeys.delete(e.key);
-});
-
-// A window that loses focus never sees the keyup, which would otherwise
-// leave the game running into a wall.
-addEventListener("blur", () => {
-  pressedKeys.clear();
-});
-
-createMario({
-  canvas: document.getElementById("canvas"),
-  frameMs: 1000 / CALC_FPS,
-  print: (t) => console.log(t),
-  printErr: (t) => console.error(t),
-  onRuntimeInitialized: () =>
-    console.log("runtime ready, data mounted at /data"),
-  onAbort: (w) => console.error("ABORT: " + w),
-  pressedKeys,
-  pressedGpButtons,
-  keyPressPromises,
-}).catch((e) => console.error("failed to start:", e));

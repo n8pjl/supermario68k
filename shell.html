@@ -9,8 +9,20 @@
 <body>
   <h1>Super <span>Mario</span> 68K</h1>
 
+  <!-- The canvas is sized from shell.js to match the selected game version,
+       so it is already the size the game wants when it starts. -->
   <div class="console">
-    <canvas id="canvas"></canvas>
+    <canvas id="canvas" width="240" height="128"></canvas>
+
+    <form class="settings" id="settings">
+      <label for="calc">Game version:</label>
+      <select id="calc" name="calc">
+        <option value="ti92">TI-92+ / Voyage 200</option>
+        <option value="ti89">TI-89 / TI-89 Titanium</option>
+      </select>
+
+      <button type="submit">Start game</button>
+    </form>
   </div>
 
   <dl class="controls">

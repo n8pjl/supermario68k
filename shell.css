@@ -64,6 +64,7 @@ h1 span {
 /* The console: LCD-style bezel around the canvas. Pixel and CSS size are
    set from compat/gray.c, which knows the target calculator's screen. */
 .console {
+  position: relative;
   padding: 1rem;
   background: linear-gradient(var(--console-a), var(--console-b));
   border: 1px solid var(--panel-edge);
@@ -75,6 +76,10 @@ h1 span {
 
 canvas {
   display: block;
+  /* The TI-92+/V200 screen at 3x, until shell.js sets the size of the
+     selected game version's screen as an inline style. */
+  width: 720px;
+  height: 384px;
   image-rendering: pixelated;
   background: var(--lcd);
   border-radius: 4px;
@@ -130,4 +135,50 @@ body > footer {
 
 body > footer a {
   color: var(--accent);
+}
+
+/* The pre-game settings menu, laid over the canvas until the game starts. */
+.settings {
+  position: absolute;
+  inset: 1rem;
+  border-radius: 4px;
+  padding: 1.25rem;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 0.4rem;
+}
+
+.settings label {
+  color: var(--ink-dim);
+}
+
+.settings select {
+  font: inherit;
+  color: var(--ink);
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-edge);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+}
+
+/* Pushed to the bottom edge of the canvas, centred across it. */
+.settings button {
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 600;
+  align-self: center;
+  margin-top: auto;
+  padding: 0.6rem 1.6rem;
+  color: var(--ink);
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-edge);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.settings button:hover {
+  background: var(--panel-edge);
 }
