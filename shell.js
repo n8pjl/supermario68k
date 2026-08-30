@@ -33,6 +33,11 @@ function pressedGpButtons() {
       if (gp.buttons[button].pressed) {
         ret.add(button);
       }
+      for (let i = 0; i < 4; i++) {
+        if (Math.round(gp.axes[i]) !== 0) {
+          ret.add(i + 0x100);
+        }
+      }
     }
   }
 
