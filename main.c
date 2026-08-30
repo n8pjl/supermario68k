@@ -261,15 +261,4 @@ Quit:
 	HeapUnlock(Spritefile_sym_h);
 	HeapUnlock(Bg_file_sym_h);
 	HeapUnlock(TextFile_sym_h);
-
-	// reinstall all timers/interrupts
-	//  SetIntVec(AUTO_INT_5,ai5);
-	//  SetIntVec(AUTO_INT_1,ai1);
-	//	SetIntVec(AUTO_INT_4,ai4);
-	//	while(_rowread(0));//wait until key released
-
-	// for(C=0;C<SHRT_MAX;C++);
-	DelayNFrames(DEFAULT_FPS);
-
-	// GKeyFlush();
 }
