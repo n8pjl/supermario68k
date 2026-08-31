@@ -86,15 +86,17 @@ function listenForGameKeys() {
   return keys;
 }
 
-// main() reads Module.ti89Mode once at startup, so the calculator has to be
-// picked before the runtime is created. The choice is remembered for next time;
-// storage can be unavailable (private mode, blocked cookies), in which case the
-// menu just falls back to its default selection.
+// main() reads Module.ti89Mode once at startup and the texts are handed over
+// with it, so both the calculator and the language have to be picked before the
+// runtime is created. The choices are remembered for next time; storage can be
+// unavailable (private mode, blocked cookies), in which case the menu just falls
+// back to its defaults.
 const CALC_KEY = "sm68k.calc";
 const LANG_KEY = "sm68k.lang";
 const consoleBox = document.querySelector(".console");
 const settings = document.getElementById("settings");
 const select = settings.elements.calc;
+const langSelect = settings.elements.lang;
 const canvas = document.getElementById("canvas");
 
 // The screens the two builds draw to, from init_calc_screen_constants() in
@@ -116,9 +118,50 @@ function sizeCanvas(calc) {
   canvas.style.height = height * SCALE + "px";
 }
 
+// One entry per language in ma_texts.json, in the order the file lists them.
+// Each names itself in its own language, so the list reads the same whichever
+// one is selected.
+const LANGS = Object.keys(maTexts);
+
+for (const lang of LANGS) {
+  const option = document.createElement("option");
+
+  option.value = lang;
+  option.textContent = maTexts[lang].language;
+  langSelect.append(option);
+}
+
+// The first language the browser asks for that the game has texts for, English
+// otherwise. Only the primary subtag is matched: there is one set of texts per
+// language, so a request for fr-CA is served by fr.
+function localeLang() {
+  const tags = navigator.languages?.length
+    ? navigator.languages
+    : [navigator.language].filter(Boolean);
+
+  // ma_texts.json calls Norwegian "no"; browsers name the two written forms.
+  const LANG_ALIASES = { nb: "no", nn: "no" };
+
+  for (const tag of tags) {
+    const primary = tag.toLowerCase().split("-")[0];
+    const lang = LANG_ALIASES[primary] ?? primary;
+
+    if (LANGS.includes(lang)) return lang;
+  }
+
+  return "en";
+}
+
+langSelect.value = localeLang();
+
 try {
   const saved = localStorage.getItem(CALC_KEY);
   if (saved && Object.hasOwn(CALCS, saved)) select.value = saved;
+
+  const savedLang = localStorage.getItem(LANG_KEY);
+  if (savedLang && Object.hasOwn(maTexts, savedLang)) {
+    langSelect.value = savedLang;
+  }
 } catch {
   /* empty */
 }
@@ -188,8 +231,10 @@ settings.addEventListener("submit", (e) => {
   gamepadStart.abort();
 
   const calc = select.value;
+  const lang = langSelect.value;
   try {
     localStorage.setItem(CALC_KEY, calc);
+    localStorage.setItem(LANG_KEY, lang);
   } catch {
     /* empty */
   }
@@ -202,7 +247,7 @@ settings.addEventListener("submit", (e) => {
   createMario({
     canvas,
     ti89Mode: calc === "ti89",
-    maTexts: maTexts.en.texts,
+    maTexts: maTexts[lang].texts,
     frameMs: 1000 / CALC_FPS,
     print: (t) => console.log(t),
     printErr: (t) => console.error(t),
