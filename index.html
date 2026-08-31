@@ -51,19 +51,17 @@
     </div>
   </div>
 
-  <dl class="controls">
-    <dt>Move</dt>
-    <dd><kbd>&larr;</kbd> <kbd>&uarr;</kbd> <kbd>&rarr;</kbd> <kbd>&darr;</kbd></dd>
-
-    <dt>Jump</dt>
-    <dd><kbd>Space</kbd> / <kbd>Z</kbd></dd>
-
-    <dt>Run / fire</dt>
-    <dd><kbd>Shift</kbd> / <kbd>X</kbd></dd>
-
-    <dt>Enter / Esc</dt>
-    <dd><kbd>Enter</kbd> <kbd>Esc</kbd></dd>
-  </dl>
+  <!-- The control map, and the place it is changed. shell.js fills this in from
+       the bindings it holds: every action lists what is bound to it, the x on a
+       binding drops it, and + listens for the next key or controller input to
+       add one. -->
+  <section class="controls" id="controls">
+    <div class="controls-header">
+      <h2>Controls</h2>
+      <button type="button" id="reset-bindings">Reset to defaults</button>
+    </div>
+    <dl id="bindings"></dl>
+  </section>
 
   <footer>
     Original game by Lachprog. Web port by Saladin.<br />
@@ -72,28 +70,28 @@
   </footer>
 
   <!-- On-screen controls, laid over the page while the game runs on a touch
-       device. Each pad names the game keys it stands for in data-keys, and
-       shell.js maps those names onto the same key set the keyboard handler
-       feeds, so nothing below the shell has a notion of touch. The direction
+       device. Each pad names the actions it stands for, the same eight the
+       keyboard and controller bindings resolve to, so a pad needs no binding of
+       its own and nothing below the shell has a notion of touch. The direction
        pad is a cross of four keys; a diagonal is two fingers, one on each arm.
        data-latch marks the pad that can be left switched on rather than held
        down. -->
   <div class="touchpad" id="touchpad" hidden>
     <div class="dpad">
-      <span data-keys="up">&#9650;</span>
-      <span data-keys="left">&#9664;</span>
-      <span data-keys="right">&#9654;</span>
-      <span data-keys="down">&#9660;</span>
+      <span data-actions="up">&#9650;</span>
+      <span data-actions="left">&#9664;</span>
+      <span data-actions="right">&#9654;</span>
+      <span data-actions="down">&#9660;</span>
     </div>
 
     <div class="actions">
-      <span data-keys="run" data-latch>B</span>
-      <span data-keys="jump">A</span>
+      <span data-actions="run" data-latch>B</span>
+      <span data-actions="jump">A</span>
     </div>
 
     <div class="sys">
-      <span data-keys="enter">Enter</span>
-      <span data-keys="esc">Esc</span>
+      <span data-actions="enter">Enter</span>
+      <span data-actions="esc">Esc</span>
     </div>
   </div>
 

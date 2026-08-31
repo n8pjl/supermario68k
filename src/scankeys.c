@@ -6,104 +6,78 @@
 
 struct keystate Keystate, Previous_keystate;
 
-EM_ASYNC_JS(void, browser_wait_no_keys_held, (void), {
-  while (Module.pressedKeys.size !== 0 || Module.pressedGpButtons().size !== 0) {
+// What a key or a controller button means is the shell's business: it is what
+// holds the bindings, and what the player edits them through. Module.gameActions
+// hands over the eight actions this game knows about, already resolved from
+// whatever they are bound to - a key, a pad button, a stick, an on-screen pad -
+// so nothing below has to know a key name.
+EM_ASYNC_JS(void, browser_wait_no_actions_held, (void), {
+  while (Object.values(Module.gameActions()).some(Boolean)) {
     await new Promise((resolve) => { requestAnimationFrame(resolve) });
   }
 });
 
-EM_ASYNC_JS(void, browser_keydown_event, (void), {
+// Waits for an action to be pressed. The keyboard and the on-screen pads resolve
+// the shell's promise when they press one; a controller has nothing to fire an
+// event, so it is polled - but only once there is one connected, rather than
+// burning a callback every frame when there is not.
+EM_ASYNC_JS(void, browser_action_pressed, (void), {
   const abortController = new AbortController();
   const signal = abortController.signal;
 
-  const keydown = new Promise((resolve, reject) => {
+  const pressed = new Promise((resolve, reject) => {
     Module.keyPressPromises.keydown = resolve;
     signal.addEventListener("abort", reject, {once: true});
   });
-  const gpPress = (async () => {
-    let originalButtons;
-
-    // Don't busy-poll if there isn't a gamepad connected
+  const gpPressed = (async () => {
     if (navigator.getGamepads().filter(Boolean).length === 0) {
       await new Promise((resolve, reject) => {
         addEventListener("gamepadconnected", resolve, {once: true, signal});
         signal.addEventListener("abort", reject, {once: true});
       });
-      originalButtons = new Set();
-    } else {
-      originalButtons = Module.pressedGpButtons();
     }
 
-    do {
+    // The caller waits for everything to be let go of first, so anything
+    // active by now is a fresh press and there is no baseline to compare to.
+    while (!Object.values(Module.gameActions()).some(Boolean)) {
       await new Promise((resolve, reject) => {
         if (signal.aborted) reject();
         requestAnimationFrame(resolve);
       });
-    } while (Module.pressedGpButtons().difference(originalButtons).size === 0);
+    }
   })();
-  await Promise.any([keydown, gpPress]);
+
+  await Promise.any([pressed, gpPressed]);
   Module.keyPressPromises.keydown = null;
   abortController.abort();
 });
 
 void WaitKeyReleased()
 {
-	browser_wait_no_keys_held();
+	browser_wait_no_actions_held();
 }
-// TODO: support analog sticks in the menus
+
 void WaitKeyPress()
 {
-	browser_wait_no_keys_held();
-	browser_keydown_event();
+	browser_wait_no_actions_held();
+	browser_action_pressed();
 };
 
 void ScanKeys(void)
 {
 	EM_ASM(
 		{
-        const enter = $1;
-        const esc = $2;
-        const jump = $3;
-        const up = $4;
-        const down = $5;
-        const left = $6;
-        const right = $7;
-        const run = $8;
-
+        const actions = Module.gameActions();
         const keystate = new Uint8Array(HEAPU8.buffer, $0);
-        const pressedKeys = Module.pressedKeys;
 
-        keystate[enter] = pressedKeys.has("Enter");
-        keystate[esc] = pressedKeys.has("Escape");
-        keystate[jump] = pressedKeys.has(" ");
-        keystate[up] = pressedKeys.has("ArrowUp");
-        keystate[down] = pressedKeys.has("ArrowDown");
-        keystate[left] = pressedKeys.has("ArrowLeft");
-        keystate[right] = pressedKeys.has("ArrowRight");
-        keystate[run] = pressedKeys.has("Shift");
-
-        // Handle gamepads. Only consider `standard' gamepads.
-        for (const gp of navigator.getGamepads()) {
-          if (gp?.mapping !== "standard") continue;
-
-          keystate[enter] |= gp.buttons[8]?.pressed;
-          keystate[esc] |= gp.buttons[9]?.pressed;
-          keystate[jump] |= gp.buttons[0]?.pressed | gp.buttons[1]?.pressed;
-          keystate[up] |= gp.buttons[12]?.pressed;
-          keystate[down] |= gp.buttons[13]?.pressed;
-          keystate[left] |= gp.buttons[14]?.pressed;
-          keystate[right] |= gp.buttons[15]?.pressed;
-          keystate[run] |= gp.buttons[2]?.pressed | gp.buttons[3]?.pressed;
-
-          const ud1 = Math.round(gp.axes[1]);
-          const ud2 = Math.round(gp.axes[3]);
-          keystate[up] |= ud1 === -1 | ud2 === -1;
-          keystate[down] |= ud1 === 1 | ud2 === 1;
-          const lr1 = Math.round(gp.axes[0]);
-          const lr2 = Math.round(gp.axes[2]);
-          keystate[left] |= lr1 === -1 | lr2 === -1;
-          keystate[right] |= lr1 === 1 | lr2 === 1;
-        }
+        keystate[$1] = actions.enter;
+        keystate[$2] = actions.esc;
+        keystate[$3] = actions.jump;
+        keystate[$4] = actions.up;
+        keystate[$5] = actions.down;
+        keystate[$6] = actions.left;
+        keystate[$7] = actions.right;
+        keystate[$8] = actions.run;
 		},
 		&Keystate, offsetof(struct keystate, enter),
 		offsetof(struct keystate, esc), offsetof(struct keystate, jump),

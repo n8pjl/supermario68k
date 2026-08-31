@@ -11,61 +11,134 @@ import maTexts from "./ma_texts.json" with { type: "json" };
 // display refreshing slower than that the game just tracks the refresh rate.
 const CALC_FPS = 30;
 
-const gameKeys = new Set([
-  "Enter",
-  "Escape",
-  " ",
-  "ArrowUp",
-  "ArrowDown",
-  "ArrowLeft",
-  "ArrowRight",
-  "Shift",
-]);
-const gameGpButtons = new Set([0, 1, 2, 3, 8, 9, 12, 13, 14, 15]);
-const pressedKeys = new Set();
+// ---------------------------------------------------------------------------
+// Actions and bindings
+//
+// The game knows eight actions, the members of struct keystate in scankeys.h.
+// Everything that can press one - a key, a controller button or stick, an
+// on-screen pad - is resolved to an action here, and scankeys.c asks only for
+// the resolved answer. That is what makes the bindings editable: nothing below
+// this file has an opinion about what a key means.
+// ---------------------------------------------------------------------------
+const ACTIONS = ["left", "right", "up", "down", "jump", "run", "enter", "esc"];
 
-function pressedGpButtons() {
-  const ret = new Set();
+const ACTION_LABELS = {
+  left: "Left",
+  right: "Right",
+  up: "Up",
+  down: "Down",
+  jump: "Jump",
+  run: "Run / fire",
+  enter: "Enter",
+  esc: "Esc",
+};
 
-  for (const gp of navigator.getGamepads()) {
+// A binding is one string. A keyboard one is a KeyboardEvent.code - the
+// physical key rather than the character on it, so a binding does not move when
+// the layout or a modifier does. A controller one is prefixed: gp:b<n> for a
+// button, gp:a<n>+ or gp:a<n>- for one direction of an axis.
+const GP = "gp:";
+
+// Half travel, which is where Math.round() used to put the old fixed mapping's
+// threshold, and far enough that a stick resting off-centre does not walk.
+const AXIS_THRESHOLD = 0.5;
+
+// The mapping the port shipped with, plus the Z and X the control legend has
+// always claimed and never had. Axes 0/1 are the left stick under the standard
+// mapping and 2/3 the right one; both moved the player before, so both still
+// do.
+const DEFAULT_BINDINGS = {
+  left: ["ArrowLeft", "gp:b14", "gp:a0-", "gp:a2-"],
+  right: ["ArrowRight", "gp:b15", "gp:a0+", "gp:a2+"],
+  up: ["ArrowUp", "gp:b12", "gp:a1-", "gp:a3-"],
+  down: ["ArrowDown", "gp:b13", "gp:a1+", "gp:a3+"],
+  jump: ["Space", "KeyZ", "gp:b0", "gp:b1"],
+  run: ["ShiftLeft", "ShiftRight", "KeyX", "gp:b2", "gp:b3"],
+  enter: ["Enter", "gp:b8"],
+  esc: ["Escape", "gp:b9"],
+};
+
+const BINDINGS_KEY = "sm68k.bindings";
+
+let bindings = structuredClone(DEFAULT_BINDINGS);
+
+// The physical keys some action is currently bound to. Kept alongside the
+// bindings so the keydown handler can answer "is this one of ours?" without
+// walking every action on every keystroke.
+let boundCodes = new Set();
+
+// Which keys are down, and which actions the on-screen pads are holding. Both
+// are read by gameActions() below rather than pushed anywhere, so a binding
+// change takes effect on the next frame with no state to migrate.
+const pressedCodes = new Set();
+const touchActions = new Set();
+
+function isGamepadBinding(binding) {
+  return binding.startsWith(GP);
+}
+
+function gamepadBindingHeld(binding, pads) {
+  const spec = binding.slice(GP.length);
+
+  for (const gp of pads) {
     if (gp?.mapping !== "standard") continue;
 
-    for (const button of gameGpButtons) {
-      if (gp.buttons[button].pressed) {
-        ret.add(button);
-      }
-      for (let i = 0; i < 4; i++) {
-        if (Math.round(gp.axes[i]) !== 0) {
-          ret.add(i + 0x100);
-        }
-      }
+    if (spec.startsWith("b")) {
+      if (gp.buttons[Number(spec.slice(1))]?.pressed) return true;
+      continue;
+    }
+
+    const axis = gp.axes[Number(spec.slice(1, -1))];
+    if (axis === undefined) continue;
+
+    if (spec.endsWith("+") ? axis > AXIS_THRESHOLD : axis < -AXIS_THRESHOLD) {
+      return true;
     }
   }
 
-  return ret;
+  return false;
+}
+
+// Handed to the runtime and called once per frame by ScanKeys(), and by the two
+// waits in scankeys.c. Reading the controller here rather than keeping a copy
+// means it never goes stale: the Gamepad API only updates its snapshots when
+// they are asked for.
+function gameActions() {
+  const pads = navigator.getGamepads();
+  const state = {};
+
+  for (const action of ACTIONS) {
+    state[action] =
+      touchActions.has(action) ||
+      bindings[action].some((binding) =>
+        isGamepadBinding(binding)
+          ? gamepadBindingHeld(binding, pads)
+          : pressedCodes.has(binding),
+      );
+  }
+
+  return state;
 }
 
 // Passed by the resolve function by code in scankeys.c
 const keyPressPromises = { keydown: null };
 
-// The one way a key is pressed, whichever input pressed it: the keyboard
-// listeners below and the touch pads further down both go through here, so
-// scankeys.c only ever sees the one set of key names. Waking a waiting
-// WaitKeyPress() on every press rather than only on a new one matches what the
-// keyboard's auto-repeat used to do.
-function pressKey(key) {
-  pressedKeys.add(key);
+// WaitKeyPress() has nothing to poll for a keyboard or a finger, so it is woken
+// here. Firing on every press rather than only on a new one matches what the
+// keyboard's auto-repeat used to do. A controller is polled instead: it has no
+// event to raise.
+function notifyPress() {
   keyPressPromises.keydown?.();
   keyPressPromises.keydown = null;
 }
 
-function releaseKey(key) {
-  pressedKeys.delete(key);
-}
-
 // The game's key handling is only bound while it runs: outside of that the
-// settings menu needs Enter and the arrow keys for itself. The controller is
-// what unbinds all three listeners again when main() returns.
+// settings menu needs Enter and the arrow keys for itself, and the bindings
+// editor needs every key it can get. The controller is what unbinds all three
+// listeners again when main() returns.
+//
+// Which keys count is whatever is bound at the time, so a binding changed while
+// the game runs is picked up without rebinding the listeners.
 function listenForGameKeys() {
   const keys = new AbortController();
   const opts = { signal: keys.signal };
@@ -73,10 +146,11 @@ function listenForGameKeys() {
   addEventListener(
     "keydown",
     (e) => {
-      if (!gameKeys.has(e.key)) return;
+      if (!boundCodes.has(e.code)) return;
 
       e.preventDefault();
-      pressKey(e.key);
+      pressedCodes.add(e.code);
+      notifyPress();
     },
     opts,
   );
@@ -84,10 +158,10 @@ function listenForGameKeys() {
   addEventListener(
     "keyup",
     (e) => {
-      if (!gameKeys.has(e.key)) return;
+      if (!boundCodes.has(e.code)) return;
 
       e.preventDefault();
-      releaseKey(e.key);
+      pressedCodes.delete(e.code);
     },
     opts,
   );
@@ -98,8 +172,8 @@ function listenForGameKeys() {
   addEventListener(
     "blur",
     () => {
-      pressedKeys.clear();
-      clearTouchKeys();
+      pressedCodes.clear();
+      clearTouchActions();
     },
     opts,
   );
@@ -244,24 +318,293 @@ sizeCanvas(select.value);
 select.addEventListener("change", () => sizeCanvas(select.value));
 
 // ---------------------------------------------------------------------------
-// On-screen controls
+// The bindings editor
 //
-// The pads in index.html name game keys with tokens rather than the key names
-// themselves, because one of those names is a space and data-keys is read as a
-// space-separated token list - the corner pads of the direction pad name two
-// directions each, which is how a diagonal is held.
+// The control legend on the page is the editor: every action lists what it
+// answers to, the x on a binding drops it and + waits for the next key or
+// controller input to add one. Saved per browser; anything unreadable there
+// falls back to the defaults rather than leaving the game unplayable.
 // ---------------------------------------------------------------------------
-const TOUCH_KEYS = {
-  up: "ArrowUp",
-  down: "ArrowDown",
-  left: "ArrowLeft",
-  right: "ArrowRight",
-  jump: " ",
-  run: "Shift",
-  enter: "Enter",
-  esc: "Escape",
+const controlsPanel = document.getElementById("controls");
+const bindingList = document.getElementById("bindings");
+
+// Names for the standard gamepad mapping, which is the only one bound: the
+// indices are fixed by the spec, so these read the same on any pad claiming it.
+// Every one of them is shown behind a "Pad" - a controller's X and a keyboard's
+// X are different bindings, and two chips reading X would be a puzzle.
+const GP_BUTTON_LABELS = {
+  0: "A",
+  1: "B",
+  2: "X",
+  3: "Y",
+  4: "LB",
+  5: "RB",
+  6: "LT",
+  7: "RT",
+  8: "Select",
+  9: "Start",
+  10: "L3",
+  11: "R3",
+  12: "\u2191",
+  13: "\u2193",
+  14: "\u2190",
+  15: "\u2192",
+  16: "Home",
 };
 
+const KEY_LABELS = {
+  ArrowUp: "\u2191",
+  ArrowDown: "\u2193",
+  ArrowLeft: "\u2190",
+  ArrowRight: "\u2192",
+  Space: "Space",
+  Escape: "Esc",
+  ShiftLeft: "L Shift",
+  ShiftRight: "R Shift",
+  ControlLeft: "L Ctrl",
+  ControlRight: "R Ctrl",
+  AltLeft: "L Alt",
+  AltRight: "R Alt",
+};
+
+function bindingLabel(binding) {
+  if (!isGamepadBinding(binding)) {
+    if (KEY_LABELS[binding]) return KEY_LABELS[binding];
+
+    // KeyZ, Digit4, Numpad7 - the prefix is the kind of key, which the label
+    // does not need to repeat. Anything else is already its own name.
+    return binding.replace(/^(Key|Digit)/, "").replace(/^Numpad/, "Num ");
+  }
+
+  const spec = binding.slice(GP.length);
+  if (spec.startsWith("b")) {
+    const n = Number(spec.slice(1));
+
+    return "Pad " + (GP_BUTTON_LABELS[n] ?? n);
+  }
+
+  // A stick has no keyboard namesake to be confused with, so it names itself.
+
+  const axis = Number(spec.slice(1, -1));
+  const stick = axis < 2 ? "Stick" : "R-Stick";
+  const way =
+    axis % 2 === 0
+      ? spec.endsWith("+")
+        ? "\u2192"
+        : "\u2190"
+      : spec.endsWith("+")
+        ? "\u2193"
+        : "\u2191";
+
+  return stick + " " + way;
+}
+
+function saveBindings() {
+  try {
+    localStorage.setItem(BINDINGS_KEY, JSON.stringify(bindings));
+  } catch {
+    /* empty */
+  }
+}
+
+function loadBindings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(BINDINGS_KEY) ?? "null");
+    if (saved === null || typeof saved !== "object") return;
+
+    for (const action of ACTIONS) {
+      if (!Array.isArray(saved[action])) continue;
+
+      bindings[action] = saved[action].filter((b) => typeof b === "string");
+    }
+  } catch {
+    /* Unreadable or unparseable: the defaults already in place stand. */
+  }
+}
+
+// Redrawing and refreshing what the keydown handler filters on, in one place so
+// no caller can do one without the other.
+function refreshBindings() {
+  boundCodes = new Set();
+  for (const action of ACTIONS) {
+    for (const binding of bindings[action]) {
+      if (!isGamepadBinding(binding)) boundCodes.add(binding);
+    }
+  }
+
+  renderBindings();
+}
+
+// The same, for a change the player made. Loading the page is not one of those:
+// writing the defaults back on every visit would make "never touched this" look
+// like a choice, and freeze anyone on whatever the defaults were the first time
+// they loaded it.
+function bindingsChanged() {
+  refreshBindings();
+  saveBindings();
+}
+
+// A key or button does one thing, so taking it for an action takes it off
+// whatever had it before. Without this a stray rebind leaves the player pressing
+// two actions at once with no sign of why.
+function assignBinding(action, binding) {
+  for (const other of ACTIONS) {
+    bindings[other] = bindings[other].filter((b) => b !== binding);
+  }
+  bindings[action].push(binding);
+}
+
+// The capture in progress, if any: one at a time, so starting another stops the
+// one before it rather than leaving two listeners racing for the same keypress.
+let capture = null;
+
+function stopCapture() {
+  capture?.abort();
+  capture = null;
+}
+
+function captureGamepadBinding(signal, done) {
+  const pressedNow = () => {
+    const active = new Set();
+
+    for (const gp of navigator.getGamepads()) {
+      if (gp?.mapping !== "standard") continue;
+
+      gp.buttons.forEach((button, i) => {
+        if (button.pressed) active.add(GP + "b" + i);
+      });
+      gp.axes.forEach((value, i) => {
+        if (value > AXIS_THRESHOLD) active.add(GP + "a" + i + "+");
+        if (value < -AXIS_THRESHOLD) active.add(GP + "a" + i + "-");
+      });
+    }
+
+    return active;
+  };
+
+  // What is already held when capture starts is not what the player is offering
+  // - they are still holding the button that opened the editor, as likely as
+  // not - so only a change from that counts.
+  let before = pressedNow();
+
+  const poll = () => {
+    if (signal.aborted) return;
+
+    const now = pressedNow();
+    for (const binding of now) {
+      if (!before.has(binding)) return done(binding);
+    }
+
+    before = now;
+    requestAnimationFrame(poll);
+  };
+
+  requestAnimationFrame(poll);
+}
+
+function listenForBinding(action, row) {
+  stopCapture();
+  capture = new AbortController();
+  const signal = capture.signal;
+
+  const note = document.createElement("span");
+  note.className = "listening";
+  note.textContent = "Press a key or button\u2026";
+
+  const cancel = document.createElement("button");
+  cancel.type = "button";
+  cancel.className = "cancel-binding";
+  cancel.textContent = "Cancel";
+  cancel.addEventListener("click", () => {
+    stopCapture();
+    renderBindings();
+  });
+
+  row.replaceChildren(note, cancel);
+
+  const done = (binding) => {
+    stopCapture();
+    assignBinding(action, binding);
+    bindingsChanged();
+  };
+
+  // Capture phase, so a key on its way to something else on the page - Enter
+  // reaching the settings form, say - is taken here first.
+  addEventListener(
+    "keydown",
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      done(e.code);
+    },
+    { signal, capture: true },
+  );
+
+  captureGamepadBinding(signal, done);
+}
+
+function bindingChip(action, binding) {
+  const chip = document.createElement("span");
+  chip.className = isGamepadBinding(binding) ? "chip pad" : "chip";
+  chip.append(bindingLabel(binding));
+
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "remove-binding";
+  remove.textContent = "\u00d7";
+  remove.title = "Remove " + bindingLabel(binding);
+  remove.addEventListener("click", () => {
+    bindings[action] = bindings[action].filter((b) => b !== binding);
+    bindingsChanged();
+  });
+
+  chip.append(remove);
+  return chip;
+}
+
+function renderBindings() {
+  const rows = [];
+
+  for (const action of ACTIONS) {
+    const name = document.createElement("dt");
+    name.textContent = ACTION_LABELS[action];
+
+    const row = document.createElement("dd");
+    for (const binding of bindings[action]) {
+      row.append(bindingChip(action, binding));
+    }
+
+    const add = document.createElement("button");
+    add.type = "button";
+    add.className = "add-binding";
+    add.textContent = "+";
+    add.title = "Add a key or button for " + ACTION_LABELS[action];
+    add.addEventListener("click", () => listenForBinding(action, row));
+    row.append(add);
+
+    rows.push(name, row);
+  }
+
+  bindingList.replaceChildren(...rows);
+}
+
+document.getElementById("reset-bindings").addEventListener("click", () => {
+  stopCapture();
+  bindings = structuredClone(DEFAULT_BINDINGS);
+  bindingsChanged();
+});
+
+loadBindings();
+refreshBindings();
+
+// ---------------------------------------------------------------------------
+// On-screen controls
+//
+// The pads name actions in data-actions, the same eight everything else
+// resolves to, so a pad needs no binding of its own. A pad may name more than
+// one - that is how a direction pad corner would hold a diagonal - which is why
+// the attribute is read as a token list.
+// ---------------------------------------------------------------------------
 const touchpad = document.getElementById("touchpad");
 const touchIsPrimary = matchMedia("(pointer: coarse)");
 
@@ -270,63 +613,62 @@ const touchIsPrimary = matchMedia("(pointer: coarse)");
 // thumb that is also aiming at A. The pad marked data-latch is the one this
 // applies to, and the menu option turns it back into a held key.
 let latchRun = true;
-const latchedKeys = new Set();
+const latchedActions = new Set();
 
 function isLatching(pad) {
   return latchRun && pad.hasAttribute("data-latch");
 }
 
-// Which pad each finger currently rests on, and the keys those pads are holding
-// down. The keys are tracked separately from pressedKeys so that letting go of
-// a pad only releases what touch pressed: a player with both a keyboard and a
-// touchscreen can hold Shift and tap Jump without the tap cancelling the Shift.
-const padUnderPointer = new Map();
-const touchHeld = new Set();
-
-// Hit testing on every move rather than per-element enter/leave listeners, so
-// that sliding a thumb from left to right across the pad - or from Run onto
-// Jump - hands over cleanly, the way a physical d-pad does.
-function padAt(x, y) {
-  return document.elementFromPoint(x, y)?.closest("[data-keys]") ?? null;
+function padActions(pad) {
+  return pad.dataset.actions.split(" ");
 }
 
-function syncTouchKeys() {
-  // A latched key is wanted until it is tapped off again, whether or not a
-  // finger is still on the pad, so it joins what the pointers are asking for
-  // rather than being tracked apart from it.
-  const wanted = new Set(latchedKeys);
+// Which pad each finger currently rests on. Hit testing on every move rather
+// than per-element enter/leave listeners, so that sliding a thumb from left to
+// right across the direction pad - or from B onto A - hands over cleanly, the
+// way a physical pad does.
+const padUnderPointer = new Map();
+
+function padAt(x, y) {
+  return document.elementFromPoint(x, y)?.closest("[data-actions]") ?? null;
+}
+
+function syncTouchActions() {
+  // A latched pad is asking for its action until it is tapped off again,
+  // whether or not a finger is still on it, so it joins what the pointers are
+  // asking for rather than being tracked apart from it.
+  const wanted = new Set(latchedActions);
 
   for (const pad of padUnderPointer.values()) {
-    for (const token of pad.dataset.keys.split(" ")) wanted.add(TOUCH_KEYS[token]);
+    for (const action of padActions(pad)) wanted.add(action);
   }
 
-  for (const key of touchHeld) {
-    if (wanted.has(key)) continue;
-
-    touchHeld.delete(key);
-    releaseKey(key);
+  for (const action of touchActions) {
+    if (!wanted.has(action)) touchActions.delete(action);
   }
 
-  for (const key of wanted) {
-    if (touchHeld.has(key)) continue;
+  let pressed = false;
+  for (const action of wanted) {
+    if (touchActions.has(action)) continue;
 
-    touchHeld.add(key);
-    pressKey(key);
+    touchActions.add(action);
+    pressed = true;
   }
+  if (pressed) notifyPress();
 
   const held = new Set(padUnderPointer.values());
-  for (const pad of touchpad.querySelectorAll("[data-keys]")) {
+  for (const pad of touchpad.querySelectorAll("[data-actions]")) {
     const latched =
-      isLatching(pad) && latchedKeys.has(TOUCH_KEYS[pad.dataset.keys]);
+      isLatching(pad) && padActions(pad).every((a) => latchedActions.has(a));
 
     pad.classList.toggle("held", held.has(pad) || latched);
   }
 }
 
-function clearTouchKeys() {
+function clearTouchActions() {
   padUnderPointer.clear();
-  latchedKeys.clear();
-  syncTouchKeys();
+  latchedActions.clear();
+  syncTouchActions();
 }
 
 // Capturing the pointer to the layer means the moves and the release keep
@@ -341,10 +683,10 @@ touchpad.addEventListener("pointerdown", (e) => {
   // A latching pad answers to the tap itself, not to how long it is held, so
   // it never joins the pointer bookkeeping below.
   if (isLatching(pad)) {
-    const key = TOUCH_KEYS[pad.dataset.keys];
-
-    if (!latchedKeys.delete(key)) latchedKeys.add(key);
-    syncTouchKeys();
+    for (const action of padActions(pad)) {
+      if (!latchedActions.delete(action)) latchedActions.add(action);
+    }
+    syncTouchActions();
     return;
   }
 
@@ -355,24 +697,24 @@ touchpad.addEventListener("pointerdown", (e) => {
        presses, and the release below still frees it. */
   }
   padUnderPointer.set(e.pointerId, pad);
-  syncTouchKeys();
+  syncTouchActions();
 });
 
 touchpad.addEventListener("pointermove", (e) => {
   if (!padUnderPointer.has(e.pointerId)) return;
 
   const pad = padAt(e.clientX, e.clientY);
-  if (pad) {
+  if (pad && !isLatching(pad)) {
     padUnderPointer.set(e.pointerId, pad);
   } else {
     padUnderPointer.delete(e.pointerId);
   }
-  syncTouchKeys();
+  syncTouchActions();
 });
 
 for (const type of ["pointerup", "pointercancel"]) {
   touchpad.addEventListener(type, (e) => {
-    if (padUnderPointer.delete(e.pointerId)) syncTouchKeys();
+    if (padUnderPointer.delete(e.pointerId)) syncTouchActions();
   });
 }
 
@@ -404,6 +746,9 @@ function updateChrome() {
 
   fullscreenToggle.hidden =
     !document.fullscreenEnabled || (!playing && !isFullscreen());
+  // Not just unclickable but unreachable: a Tab into the editor mid-game would
+  // put a capture in the way of the keys the game is reading.
+  controlsPanel.inert = playing;
   document.body.classList.toggle(
     "immersive",
     playing && (touchIsPrimary.matches || isFullscreen()),
@@ -538,6 +883,7 @@ function startGame() {
   }
 
   settings.remove();
+  stopCapture();
   // The pads are laid out over the page and shell.css gives the canvas the rest
   // of the viewport; both only apply on a device whose primary pointer is a
   // finger, so a desktop sees neither.
@@ -561,8 +907,7 @@ function startGame() {
     onRuntimeInitialized: () =>
       console.log("runtime ready, data mounted at /data"),
     onAbort: (w) => console.error("ABORT: " + w),
-    pressedKeys,
-    pressedGpButtons,
+    gameActions,
     keyPressPromises,
     // gray.c only resizes the canvas if the game asks for a screen other than
     // the one the menu sized it to, but if it ever does, the fitted display
@@ -572,8 +917,8 @@ function startGame() {
     .catch((e) => console.error("exited with an error:", e))
     .finally(() => {
       keys.abort();
-      pressedKeys.clear();
-      clearTouchKeys();
+      pressedCodes.clear();
+      clearTouchActions();
       keyPressPromises.keydown = null;
       showSettings();
     });

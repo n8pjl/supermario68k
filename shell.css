@@ -87,41 +87,152 @@ canvas {
   box-shadow: 0 0 0 1px #0007, 0 2px 12px #0006 inset;
 }
 
+/* The control map. A two-column table of action against what presses it, ruled
+   between rows so a long row of bindings still reads as one line. */
 .controls {
-  width: min(100%, 30rem);
+  width: min(100%, 34rem);
   background: var(--panel);
   border: 1px solid var(--panel-edge);
   border-radius: 12px;
-  padding: 1.1rem 1.25rem;
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 0.5rem 1.25rem;
+  padding: 0.4rem 1.25rem 0.9rem;
+}
+
+.controls-header {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0;
+}
+
+.controls h2 {
   margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.controls dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 6.5rem 1fr;
+}
+
+.controls dt,
+.controls dd {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--panel-edge);
 }
 
 .controls dt {
   color: var(--ink-dim);
-  text-align: right;
 }
 
 .controls dd {
   margin: 0;
-  display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
-  align-items: center;
+  /* Holds the row's height while it is empty or listening, so adding and
+     dropping bindings does not shuffle the rows below it. */
+  min-height: 2.4rem;
 }
 
-kbd {
-  font: inherit;
-  min-width: 1.6em;
-  text-align: center;
+/* A bound key keeps the look of the key legend it replaced. A controller
+   binding is a tag rather than a key, because it is not one - and because a
+   pad's X and a keyboard's X would otherwise be the same chip twice. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.1rem 0.2rem 0.1rem 0.45rem;
+  font-size: 0.9rem;
   background: var(--kbd-bg);
   border: 1px solid var(--kbd-edge);
   border-bottom-width: 2px;
-  border-radius: 4px;
-  padding: 0.05rem 0.35rem;
+  border-radius: 5px;
+}
+
+.chip.pad {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  border-bottom-width: 1px;
+}
+
+.controls button {
+  font: inherit;
+  color: var(--ink-dim);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Quiet until reached for: eight rows of chips with a hard x on each would read
+   as a page full of buttons rather than a list of bindings. */
+.remove-binding {
+  padding: 0 0.2rem;
+  line-height: 1;
+  color: color-mix(in srgb, currentColor 45%, transparent);
+}
+
+.remove-binding:hover {
+  color: currentColor;
+}
+
+.add-binding {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-color: var(--kbd-edge);
+  border-style: dashed;
+}
+
+.add-binding:hover,
+.cancel-binding:hover,
+#reset-bindings:hover {
+  color: var(--ink);
+  background: var(--kbd-bg);
+  border-color: var(--kbd-edge);
+  border-style: solid;
+}
+
+.listening {
+  color: var(--accent);
+}
+
+.cancel-binding,
+#reset-bindings {
+  padding: 0.25rem 0.7rem;
+  font-size: 0.9rem;
+  border-color: var(--kbd-edge);
+}
+
+/* Not on a phone at all: the panel binds a keyboard and a controller, and
+   neither is what is playing there. The on-screen pads carry their own labels
+   and need no binding of their own. The bindings themselves stay in force, so a
+   keyboard or pad attached to a phone still works - it just cannot be remapped
+   from one. */
+@media (pointer: coarse) {
+  .controls {
+    display: none;
+  }
+}
+
+/* While a game is running the panel is a legend, not an editor: a capture would
+   be fighting the game for the same keypress, so everything that changes a
+   binding goes away and what is bound stays on show. */
+body.playing :is(.remove-binding, .add-binding, #reset-bindings) {
+  display: none;
+}
+
+/* The chip's right padding is short to sit against the x; without one it needs
+   the same room on both sides. */
+body.playing .chip {
+  padding-right: 0.45rem;
 }
 
 body > footer {
@@ -342,7 +453,7 @@ body.immersive canvas {
    from a panel colour: over the calculator's pale green screen that darkens in
    the dark theme and lightens in the light one, which is what keeps the label
    on top of it readable either way. */
-.touchpad [data-keys] {
+.touchpad [data-actions] {
   display: grid;
   place-items: center;
   color: color-mix(in srgb, var(--ink) 80%, transparent);
@@ -355,7 +466,7 @@ body.immersive canvas {
   border-color: color-mix(in srgb, var(--ink) 25%, transparent);
 }
 
-.touchpad [data-keys].held {
+.touchpad [data-actions].held {
   background: color-mix(in srgb, var(--accent) 70%, transparent);
   color: var(--bg);
 }
@@ -379,25 +490,25 @@ body.immersive canvas {
   gap: 0.3rem;
 }
 
-.dpad [data-keys] {
+.dpad [data-actions] {
   font-size: 1.1rem;
   border: 1px solid;
   border-radius: 10px;
 }
 
-.dpad [data-keys="up"] {
+.dpad [data-actions="up"] {
   grid-area: up;
 }
 
-.dpad [data-keys="down"] {
+.dpad [data-actions="down"] {
   grid-area: down;
 }
 
-.dpad [data-keys="left"] {
+.dpad [data-actions="left"] {
   grid-area: left;
 }
 
-.dpad [data-keys="right"] {
+.dpad [data-actions="right"] {
   grid-area: right;
 }
 
@@ -407,7 +518,7 @@ body.immersive canvas {
   align-items: end;
 }
 
-.actions [data-keys] {
+.actions [data-actions] {
   width: 4.4rem;
   height: 4.4rem;
   font-size: 1.1rem;
@@ -416,7 +527,7 @@ body.immersive canvas {
 }
 
 /* Jump sits lower and outboard of Run, where the thumb rests. */
-.actions [data-keys="run"] {
+.actions [data-actions="run"] {
   margin-bottom: 1.6rem;
 }
 
@@ -426,7 +537,7 @@ body.immersive canvas {
   gap: 0.5rem;
 }
 
-.sys [data-keys] {
+.sys [data-actions] {
   padding: 0.4rem 0.9rem;
   font-size: 0.8rem;
   border: 1px solid;
