@@ -963,6 +963,11 @@ void Draw_player()
 void Render_map()
 {
 	int16_t C, Left, Right, Height;
+
+	// Every map draw goes through here, so this is the one place the map
+	// has to claim its own pace back from whatever the levels set.
+	SetFrameRate(MAP_FPS);
+
 	//	char String[4];
 	uint16_t *Sprite, *Mask;
 

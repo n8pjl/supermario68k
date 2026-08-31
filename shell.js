@@ -6,11 +6,6 @@
 import createMario from "./mario.js";
 import maTexts from "./ma_texts.json" with { type: "json" };
 
-// pageflip_wait() in compat/gray.c reads Module.frameMs before every frame and
-// paces on requestAnimationFrame. CALC_FPS is what the calculator ran at; on a
-// display refreshing slower than that the game just tracks the refresh rate.
-const CALC_FPS = 30;
-
 // ---------------------------------------------------------------------------
 // Actions and bindings
 //
@@ -939,7 +934,6 @@ function startGame() {
     canvas,
     ti89Mode: calc === "ti89",
     maTexts: maTexts[lang].texts,
-    frameMs: 1000 / CALC_FPS,
     print: (t) => console.log(t),
     printErr: (t) => console.error(t),
     onRuntimeInitialized: () =>

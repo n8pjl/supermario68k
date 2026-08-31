@@ -3,7 +3,12 @@
 #include <stdint.h>
 #define GRAYDBUFFER_SIZE 7688
 
-#define DEFAULT_FPS 30
+// The calculator drew at 30fps, but bought speed in the levels by skipping
+// every fourth frame, so their logic ticked at 40. The browser draws them all,
+// so the levels run at that 40 and the map keeps the pace it always had.
+// Whichever applies is picked where the scene draws: Playloop and Render_map.
+#define FPS 40
+#define MAP_FPS 30
 
 enum GrayPlanes { LIGHT_PLANE = 0, DARK_PLANE = 1 };
 
@@ -12,6 +17,7 @@ enum GrayPlanes { LIGHT_PLANE = 0, DARK_PLANE = 1 };
 	do {      \
 	} while (0)
 
+void SetFrameRate(int16_t fps);
 void DelayNFrames(uint16_t frames);
 
 void GrayDBufInit(void *buf);

@@ -55,6 +55,8 @@ void Playloop()
 	char PrevLives = SavePlayer.Lives;
 	// end of New
 
+	SetFrameRate(FPS);
+
 	while (!(Exit)) {
 #ifdef speedtest
 		Fps++; // speed test
@@ -62,19 +64,7 @@ void Playloop()
 
 		Adjust_renderpoint();
 
-		if (!ti89_mode) {
-			// Apply frame skipping on TI 92+ and V200 to gain speed
-			static int16_t FrameSkip = 0;
-			if (++FrameSkip ==
-			    4) { // skipping each n'th frame (don't draw it, still calculated)
-				FrameSkip = 0; // gives a good speed increase
-			} else {
-				Render();
-			}
-		} else {
-			// No need for frame skipping on TI 89
-			Render();
-		}
+		Render();
 
 		ScanKeys();
 

@@ -10,10 +10,6 @@
 // Hands the RGBA buffer to the canvas. Drawing straight into the active plane
 // showed up on the calculator's LCD the moment it was written, so the canvas
 // needs a way to be repainted without flipping buffers - see GrayDBufRefresh.
-//
-// Note for the preprocessor's sake: a top-level comma in an EM_*_JS body would
-// split the macro arguments, since only parentheses are balanced. Keep commas
-// inside parentheses.
 EM_JS(void, pageflip, (const void *rgba, int16_t w, int16_t h), {
 	const canvas = Module.canvas;
 
@@ -33,20 +29,13 @@ EM_JS(void, pageflip, (const void *rgba, int16_t w, int16_t h), {
 	ctx.putImageData(new ImageData(view, w, h), 0, 0);
 });
 
-// Suspends via JSPI until the frame is due. The calculator ran the game at
-// 20fps, so 50ms is the period unless the shell asks for another one: the
-// frame period is read out of Module.frameMs afresh every frame, so a shell
-// control can retune the speed while the game is running, and a shell that
-// sets nothing gets the calculator's pace. Anything not a positive number -
-// missing, zero, NaN from a bad parse - falls back to the 50ms default rather
-// than spinning.
+// Suspends via JSPI until the frame is due, at the pace the current scene asked
+// for.
 //
 // requestAnimationFrame is the only clock available to wait on, so the period
 // is a floor and not a promise: below about 17ms on a 60Hz display, every
 // frame is simply due when it is painted.
-EM_ASYNC_JS(void, pageflip_wait, (void), {
-	const period = Module.frameMs > 0 ? Module.frameMs : 50;
-
+EM_ASYNC_JS(void, wait_for_frame, (double period), {
 	if (globalThis.__smPrevFrame === undefined) globalThis.__smPrevFrame = 0;
 	let now = performance.now();
 	let elapsed;
@@ -55,6 +44,18 @@ EM_ASYNC_JS(void, pageflip_wait, (void), {
 	}
 	globalThis.__smPrevFrame = now - (elapsed % period);
 });
+
+static int16_t frame_rate = FPS;
+
+void SetFrameRate(int16_t fps)
+{
+	frame_rate = fps;
+}
+
+static void pageflip_wait(void)
+{
+	wait_for_frame(1000.0 / frame_rate);
+}
 
 void DelayNFrames(uint16_t frames)
 {
