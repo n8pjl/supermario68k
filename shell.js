@@ -858,11 +858,48 @@ if (
   watchGamepadStart();
 }
 
+// ---------------------------------------------------------------------------
+// The back gesture
+//
+// Starting a game pushes a history entry, so a phone's back swipe and the
+// browser's back button come out of the game and land on the menu - the only
+// thing back can sensibly mean on a page that never navigates.
+//
+// Going back reloads, because there is no way to stop the runtime from outside:
+// main() blocks in Menus() and is suspended mid-frame by JSPI, with nothing to
+// unwind it. Saves are in localStorage (see compat/tios.c), so a reload costs
+// what abandoning a session costs anyway and no more.
+// ---------------------------------------------------------------------------
+let gameHistoryEntry = false;
+
+function pushGameHistory() {
+  history.pushState({ sm68k: "playing" }, "");
+  gameHistoryEntry = true;
+}
+
+// Taken back out when the game exits on its own, so that back from the menu
+// leaves the page rather than stepping through a menu that is already up.
+function dropGameHistory() {
+  if (!gameHistoryEntry) return;
+
+  gameHistoryEntry = false;
+  history.back();
+}
+
+addEventListener("popstate", () => {
+  gameHistoryEntry = false;
+
+  // dropGameHistory()'s own back() arrives here too, with the game already
+  // gone and the menu already up: nothing left to leave.
+  if (document.body.classList.contains("playing")) location.reload();
+});
+
 // Putting the menu back after the game exits. Resizing the canvas also clears
 // the last frame the game left on it.
 function showSettings() {
   document.body.classList.remove("playing");
   touchpad.hidden = true;
+  dropGameHistory();
   updateChrome();
   sizeCanvas(select.value);
   consoleBox.append(settings);
@@ -890,6 +927,7 @@ function startGame() {
   document.body.classList.add("playing");
   touchpad.hidden = false;
   latchRun = latchOption.checked;
+  pushGameHistory();
   updateChrome();
   fitCanvas();
 
