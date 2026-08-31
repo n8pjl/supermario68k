@@ -22,7 +22,7 @@ SRCDIR = src
 
 OUTDIR = dist
 
-TARGET = $(OUTDIR)/mario.mjs
+TARGET = $(OUTDIR)/mario.js
 
 # Static files served alongside the wasm. COPIES is the list of their built
 # locations: $(OUTDIR)/$(COPY) would only prefix the first word.

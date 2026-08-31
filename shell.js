@@ -3,7 +3,7 @@
 // and returns a promise for the running instance. The preloaded /data image is
 // mounted into it before the runtime starts. All runtime output goes to the
 // browser console.
-import createMario from "./mario.mjs";
+import createMario from "./mario.js";
 import maTexts from "./ma_texts.json" with { type: "json" };
 
 // pageflip_wait() in compat/gray.c reads Module.frameMs before every frame and
