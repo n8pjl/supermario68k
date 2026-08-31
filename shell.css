@@ -137,8 +137,10 @@ body > footer a {
   color: var(--accent);
 }
 
-/* The pre-game settings menu, laid over the canvas until the game starts. */
-.settings {
+/* The pre-game settings menu, laid over the canvas until the game starts, and
+   the notice that takes its place on a browser missing a needed feature. */
+.settings,
+.unsupported {
   position: absolute;
   inset: 1rem;
   border-radius: 4px;
@@ -181,4 +183,32 @@ body > footer a {
 
 .settings button:hover {
   background: var(--panel-edge);
+}
+
+.unsupported {
+  overflow: auto;
+  gap: 0.8rem;
+}
+
+/* The display above would otherwise win over the UA stylesheet's rule for
+   [hidden], leaving the notice drawn over the menu until shell.js has a
+   reason to show it. */
+.unsupported[hidden] {
+  display: none;
+}
+
+.unsupported h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--accent);
+}
+
+.unsupported p {
+  margin: 0;
+}
+
+.unsupported ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--ink-dim);
 }

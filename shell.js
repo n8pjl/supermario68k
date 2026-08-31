@@ -98,6 +98,7 @@ const settings = document.getElementById("settings");
 const select = settings.elements.calc;
 const langSelect = settings.elements.lang;
 const canvas = document.getElementById("canvas");
+const unsupported = document.getElementById("unsupported");
 
 // The screens the two builds draw to, from init_calc_screen_constants() in
 // render.c, and the scale compat/gray.c displays them at. Sizing the canvas
@@ -216,7 +217,21 @@ function watchGamepadStart() {
   listenForGamepadStart(gamepadStart.signal);
 }
 
-watchGamepadStart();
+// The two platform features the port has no fallback for: JSPI, which is what
+// lets the game's blocking main loop run in a browser at all, and the
+// Uint8Array base64 methods that compat/tios.c saves through. Replacing the
+// menu with the notice rather than hiding it takes the Start button - and the
+// gamepad's START, which submits the same form - out of reach as well.
+if (
+  typeof WebAssembly.Suspending !== "function" ||
+  typeof Uint8Array.fromBase64 !== "function" ||
+  typeof Uint8Array.prototype.toBase64 !== "function"
+) {
+  settings.replaceWith(unsupported);
+  unsupported.hidden = false;
+} else {
+  watchGamepadStart();
+}
 
 // Putting the menu back after the game exits. Resizing the canvas also clears
 // the last frame the game left on it.
