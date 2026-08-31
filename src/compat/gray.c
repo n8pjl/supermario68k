@@ -19,12 +19,13 @@ EM_JS(void, pageflip, (const void *rgba, int16_t w, int16_t h), {
 
 	// The canvas is sized from here rather than from the page, so the shell
 	// does not have to know which calculator this was built for. Assigning
-	// width/height clears the canvas, so only do it when it changed.
+	// width/height clears the canvas, so only do it when it changed. How
+	// large those pixels are drawn is the shell's business - it is the one
+	// that knows how much room the viewport has - so it is told instead.
 	if (canvas.width !== w || canvas.height !== h) {
 		canvas.width = w;
 		canvas.height = h;
-		canvas.style.width = (w * 3) + "px";
-		canvas.style.height = (h * 3) + "px";
+		Module.onCanvasResize?.();
 	}
 
 	const ctx = canvas.getContext("2d");
