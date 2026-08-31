@@ -20,41 +20,41 @@
 #define score_1up 36 * 2
 
 struct item {
-  int16_t X; // Xpos
-  int16_t Y; // Ypos
-  int16_t Height;
-  int16_t Height2;
-  /*	char Data0;
+	int16_t X; // Xpos
+	int16_t Y; // Ypos
+	int16_t Height;
+	int16_t Height2;
+	/*	char Data0;
           char Data1;
           char Active;		//if positioned in the active area (inside big
      Vscreen) and "alive", in use
   */
-  int16_t Data0;
-  int16_t Data1;
-  int16_t Active; // if positioned in the active area (inside big Vscreen) and
-                // "alive", in use
+	int16_t Data0;
+	int16_t Data1;
+	int16_t Active; // if positioned in the active area (inside big Vscreen) and
+	// "alive", in use
 
-  void (*Collect)(struct item *Item);
-  void (*Handler)(struct item *Item);
-  uint16_t *Sprite;
-  //	unsigned short* Mask;
-  // void *Next;//removed. using array instead
+	void (*Collect)(struct item *Item);
+	void (*Handler)(struct item *Item);
+	uint16_t *Sprite;
+	//	unsigned short* Mask;
+	// void *Next;//removed. using array instead
 };
 struct trigger {
-  uint8_t X; // XY-pos of the trigger
-  uint8_t Y;
-  uint8_t NewX; // player's new pos
-  uint8_t NewY;
-  uint8_t Border_left;
-  uint8_t Border_right;
-  uint8_t Anim; // 0: no animation
-                      // 1: coming up from pipe
-                      // 2: comming down from pipe
-                      // 3: coming out of pipe from the left
-                      // 4: coming out of pipe from the right
-                      // 5: flying up
-  char NewBg;
-  char NewBgOffset;
+	uint8_t X; // XY-pos of the trigger
+	uint8_t Y;
+	uint8_t NewX; // player's new pos
+	uint8_t NewY;
+	uint8_t Border_left;
+	uint8_t Border_right;
+	uint8_t Anim; // 0: no animation
+	// 1: coming up from pipe
+	// 2: comming down from pipe
+	// 3: coming out of pipe from the left
+	// 4: coming out of pipe from the right
+	// 5: flying up
+	char NewBg;
+	char NewBgOffset;
 };
 
 // extern item Items[nr_of_items];
@@ -179,7 +179,7 @@ void Itemlist_add(char Item);
 void Itemlist_remove(char Index);
 
 void Elastic_tile_animate(int16_t X, int16_t Y, uint8_t After, char Attribs,
-                          uint8_t Spriteoffset);
+			  uint8_t Spriteoffset);
 
 void Bonusbox_coin_animate(int16_t X, int16_t Y);
 

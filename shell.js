@@ -4,6 +4,7 @@
 // mounted into it before the runtime starts. All runtime output goes to the
 // browser console.
 import createMario from "./mario.mjs";
+import maTexts from "./ma_texts.json" with { type: "json" };
 
 // pageflip_wait() in compat/gray.c reads Module.frameMs before every frame and
 // paces on requestAnimationFrame. CALC_FPS is what the calculator ran at; on a
@@ -89,7 +90,8 @@ function listenForGameKeys() {
 // picked before the runtime is created. The choice is remembered for next time;
 // storage can be unavailable (private mode, blocked cookies), in which case the
 // menu just falls back to its default selection.
-const CALC_KEY = "smb68k.calc";
+const CALC_KEY = "sm68k.calc";
+const LANG_KEY = "sm68k.lang";
 const consoleBox = document.querySelector(".console");
 const settings = document.getElementById("settings");
 const select = settings.elements.calc;
@@ -200,6 +202,7 @@ settings.addEventListener("submit", (e) => {
   createMario({
     canvas,
     ti89Mode: calc === "ti89",
+    maTexts: maTexts.en.texts,
     frameMs: 1000 / CALC_FPS,
     print: (t) => console.log(t),
     printErr: (t) => console.error(t),

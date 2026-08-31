@@ -205,106 +205,105 @@ enum Tiles {blank=0,pow_item_after=4,dark_gray=13,water_waves_surface=40,
 */
 
 enum Tiles {
-  blank = 0,
-  pow_item_after = 4,
-  dark_gray = 13,
-  water_waves_surface = 40,
-  coin = 53,
-  flower_power = 54,
-  treasure_rand = 55,
-  treasure_star = 56,
-  treasure_whistle = 57,
-  treasure_hammer = 58,
-  treasure_pwing = 59,
-  treasure_cloud = 63,
-  treasure_anchor = 64,
-  flower_water = 60,
-  ladder = 82,
-  water_surface = 83,
-  water = 84,
-  brick = 126,
-  bonusbox_1_coin = 134,
-  bonusbox_8_coins = 141,
-  note = 146,
-  note_dark = 147,
-  falling_block = 149,
-  pow_item = 153,
-  bonusbox_after = 160,
-  blank_solid = 176,
-  wood_block = 179,
-  dark_gray_solid = 225,
-  bounching_brick = 227
+	blank = 0,
+	pow_item_after = 4,
+	dark_gray = 13,
+	water_waves_surface = 40,
+	coin = 53,
+	flower_power = 54,
+	treasure_rand = 55,
+	treasure_star = 56,
+	treasure_whistle = 57,
+	treasure_hammer = 58,
+	treasure_pwing = 59,
+	treasure_cloud = 63,
+	treasure_anchor = 64,
+	flower_water = 60,
+	ladder = 82,
+	water_surface = 83,
+	water = 84,
+	brick = 126,
+	bonusbox_1_coin = 134,
+	bonusbox_8_coins = 141,
+	note = 146,
+	note_dark = 147,
+	falling_block = 149,
+	pow_item = 153,
+	bonusbox_after = 160,
+	blank_solid = 176,
+	wood_block = 179,
+	dark_gray_solid = 225,
+	bounching_brick = 227
 };
 
 struct leveldata {
-  int16_t Width;
-  int16_t Height;
-  //	short Bg_width;
-  int16_t Bg_height;
-  int16_t Border_left; // to "hide" secret areas beyond the rightmost part of the
-                     // level.
-  int16_t Border_right;
+	int16_t Width;
+	int16_t Height;
+	//	short Bg_width;
+	int16_t Bg_height;
+	int16_t Border_left; // to "hide" secret areas beyond the rightmost part of the
+	// level.
+	int16_t Border_right;
 
-  int16_t PlayerX;
-  int16_t PlayerY;
+	int16_t PlayerX;
+	int16_t PlayerY;
 
-  int16_t Boss;
+	int16_t Boss;
 
-  int16_t Nr_of_enemies;
-  int16_t Nr_of_triggers;
+	int16_t Nr_of_enemies;
+	int16_t Nr_of_triggers;
 
-  int16_t Nr_of_flying_platforms;
+	int16_t Nr_of_flying_platforms;
 
-  int16_t Bg_offset;
+	int16_t Bg_offset;
 
-  char Bg_scrollrate;
-  char Background;
-  uint16_t Size;
-  uint16_t TCSize;
+	char Bg_scrollrate;
+	char Background;
+	uint16_t Size;
+	uint16_t TCSize;
 
-  uint8_t Event; // describes which event to possibly occur when the level
-                       // is completed 0: none 1: Card game 5: money ship >50:
-                       // Hidden mushrom house
-  uint8_t
-      Condition;    // Describes under which conditions the event will occur
-  uint8_t EX; // EX and EY gives the map position of the event
-  uint8_t EY;
-  // Special case: When ending level (End of a world): Event indicates which
-  // item mario wins when defeating boss.
-  // Condition != 0 : Ship Condition == 0 :
-  // Castle
+	uint8_t Event; // describes which event to possibly occur when the level
+	// is completed 0: none 1: Card game 5: money ship >50:
+	// Hidden mushrom house
+	uint8_t Condition; // Describes under which conditions the event will occur
+	uint8_t EX; // EX and EY gives the map position of the event
+	uint8_t EY;
+	// Special case: When ending level (End of a world): Event indicates which
+	// item mario wins when defeating boss.
+	// Condition != 0 : Ship Condition == 0 :
+	// Castle
 
-  int16_t Spare1; // For future purposes
-  int16_t Spare2; // For future purposes
+	int16_t Spare1; // For future purposes
+	int16_t Spare2; // For future purposes
 };
 
 struct levelfiledata {
-  int16_t Nr_of_levels;
-  // TIGCC compiles with 16-bit int (-mshort); this field is 2 bytes in the
-  // data files, so it must stay 16-bit here or every level offset shifts.
-  int16_t Total_size;
+	int16_t Nr_of_levels;
+	// TIGCC compiles with 16-bit int (-mshort); this field is 2 bytes in the
+	// data files, so it must stay 16-bit here or every level offset shifts.
+	int16_t Total_size;
 
-  uint16_t Levels[20]; // holds the offset from start of file to start of
-                             // the levelstruct
+	uint16_t Levels[20]; // holds the offset from start of file to start of
+	// the levelstruct
 
-  // short Map;
-  // more to come
-  char Mode;
-  char Name[20]; // name of the levelset
+	// short Map;
+	// more to come
+	char Mode;
+	char Name[20]; // name of the levelset
 };
 
 struct bg_data {
-  int16_t Height;
-  int16_t Width;
+	int16_t Height;
+	int16_t Width;
 };
 
 struct bg_filedata {
-  char Nr_of_bgs;
+	char Nr_of_bgs;
 
-  uint16_t Backgrounds[20]; // holds the offset from start of file to
-                                  // start of the bg_struct
+	uint16_t Backgrounds[20]; // holds the offset from start of file to
+	// start of the bg_struct
 
-  uint16_t Size;
+	uint16_t Size;
 };
 
 extern char *Level, *Map;
@@ -312,7 +311,7 @@ extern char *Level, *Map;
 int16_t Load_level(char *Levelfile, int16_t Level_nr);
 
 int16_t Generate_handler_1_enemy(int16_t Nr, char Model, char Face,
-                               uint8_t D0D1);
+				 uint8_t D0D1);
 
 void SetBg(int16_t Bg_nr /*,HANDLE Temp*/);
 

@@ -4,14 +4,14 @@
 #include <stdint.h>
 
 extern struct keystate {
-  bool enter;
-  bool esc;
-  bool jump;
-  bool up;
-  bool down;
-  bool left;
-  bool right;
-  bool run;
+	bool enter;
+	bool esc;
+	bool jump;
+	bool up;
+	bool down;
+	bool left;
+	bool right;
+	bool run;
 } Keystate, Previous_keystate;
 
 void WaitKeyReleased(void);

@@ -7,15 +7,12 @@
 struct keystate Keystate, Previous_keystate;
 
 EM_ASYNC_JS(void, browser_wait_no_keys_held, (void), {
-	// clang-format off
   while (Module.pressedKeys.size !== 0 || Module.pressedGpButtons().size !== 0) {
     await new Promise((resolve) => { requestAnimationFrame(resolve) });
   }
-	// clang-format on
 });
 
 EM_ASYNC_JS(void, browser_keydown_event, (void), {
-	// clang-format off
   const abortController = new AbortController();
   const signal = abortController.signal;
 
@@ -47,7 +44,6 @@ EM_ASYNC_JS(void, browser_keydown_event, (void), {
   await Promise.any([keydown, gpPress]);
   Module.keyPressPromises.keydown = null;
   abortController.abort();
-	// clang-format on
 });
 
 void WaitKeyReleased()
@@ -65,7 +61,6 @@ void ScanKeys(void)
 {
 	EM_ASM(
 		{
-			// clang-format off
         const enter = $1;
         const esc = $2;
         const jump = $3;
@@ -109,7 +104,6 @@ void ScanKeys(void)
           keystate[left] |= lr1 === -1 | lr2 === -1;
           keystate[right] |= lr1 === 1 | lr2 === 1;
         }
-			// clang-format on
 		},
 		&Keystate, offsetof(struct keystate, enter),
 		offsetof(struct keystate, esc), offsetof(struct keystate, jump),

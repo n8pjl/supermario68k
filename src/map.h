@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdint.h>
 #include <stddef.h> //offsetof, for the layout assertions below
+#include <stdint.h>
 
 // map macros
 /*
@@ -29,31 +29,31 @@ extern char Move_map_objects;
 extern uint8_t Treasure;
 
 struct map_data {
-  int16_t Width;
-  int16_t Height;
+	int16_t Width;
+	int16_t Height;
 
-  int16_t PlayerX;
-  int16_t PlayerY;
+	int16_t PlayerX;
+	int16_t PlayerY;
 
-  int16_t WarpX;
-  int16_t WarpY;
+	int16_t WarpX;
+	int16_t WarpY;
 
-  int16_t FgX;
-  int16_t FgY;
+	int16_t FgX;
+	int16_t FgY;
 
-  int16_t Border_left;
-  int16_t Border_right;
+	int16_t Border_left;
+	int16_t Border_right;
 
-  int16_t Nr_of_objects;
-  int16_t Nr_of_triggers;
+	int16_t Nr_of_objects;
+	int16_t Nr_of_triggers;
 
-  int16_t Color; // Determines which tileset to use: Light ground, dark ground,
-               // white ground(sky)
-  // 0: Bright ground (grass/desert)
-  // 1: White ground (Sky)
-  // 2: Dark world
+	int16_t Color; // Determines which tileset to use: Light ground, dark ground,
+	// white ground(sky)
+	// 0: Bright ground (grass/desert)
+	// 1: White ground (Sky)
+	// 2: Dark world
 
-  int16_t Spare; // For future purposes
+	int16_t Spare; // For future purposes
 };
 
 // Load_map() casts this straight onto the map file's bytes, so its layout is
@@ -64,58 +64,58 @@ struct map_data {
 // further 2 per object. This is the only structure read from a file that has
 // pointers in it, and so the only one where the two ABIs disagree.
 struct map_object {
-  int16_t X;
-  int16_t Y;
+	int16_t X;
+	int16_t Y;
 
-  char Mode;
-  char Data0;
-  char Data1;
-  char MoveX;
-  char MoveY;
+	char Mode;
+	char Data0;
+	char Data1;
+	char MoveX;
+	char MoveY;
 
-  uint8_t Treasure;
+	uint8_t Treasure;
 
-  void (*Handler)(void *Map_object);
+	void (*Handler)(void *Map_object);
 
-  uint16_t *Sprite;
-  uint16_t *Mask;
+	uint16_t *Sprite;
+	uint16_t *Mask;
 
 } __attribute__((packed));
 
 _Static_assert(offsetof(struct map_object, Handler) == 10,
-               "map_object must match the file's 68K layout");
+	       "map_object must match the file's 68K layout");
 _Static_assert(offsetof(struct map_object, Sprite) == 14,
-               "map_object must match the file's 68K layout");
+	       "map_object must match the file's 68K layout");
 _Static_assert(offsetof(struct map_object, Mask) == 18,
-               "map_object must match the file's 68K layout");
+	       "map_object must match the file's 68K layout");
 _Static_assert(sizeof(struct map_object) == 22,
-               "map_object must match the file's 68K layout");
+	       "map_object must match the file's 68K layout");
 
 struct map_trigger {
-  int16_t X; // XY-pos of the trigger
-  int16_t Y;
-  int16_t NewX; // player's new pos
-  int16_t NewY;
-  int16_t LX; // Level start position: Used in bidirectional "passages" etc.
-  int16_t LY;
-  int16_t Border_left;
-  int16_t Border_right;
-  int16_t LevelNr;
-  int16_t Exit;
-  // short WorldNr;
+	int16_t X; // XY-pos of the trigger
+	int16_t Y;
+	int16_t NewX; // player's new pos
+	int16_t NewY;
+	int16_t LX; // Level start position: Used in bidirectional "passages" etc.
+	int16_t LY;
+	int16_t Border_left;
+	int16_t Border_right;
+	int16_t LevelNr;
+	int16_t Exit;
+	// short WorldNr;
 
-  int16_t NewMap;
-  int16_t NewBorder_left;
-  int16_t NewBorder_right;
-  int16_t Color; // Determines which tileset to use: Light ground, dark ground,
-               // white ground(sky)
-  // 0: Bright ground (grass/desert)
-  // 1: White ground (Sky)
-  // 2: Dark world
+	int16_t NewMap;
+	int16_t NewBorder_left;
+	int16_t NewBorder_right;
+	int16_t Color; // Determines which tileset to use: Light ground, dark ground,
+	// white ground(sky)
+	// 0: Bright ground (grass/desert)
+	// 1: White ground (Sky)
+	// 2: Dark world
 };
 
 _Static_assert(sizeof(struct map_trigger) == 28,
-               "map_trigger must match the file's layout");
+	       "map_trigger must match the file's layout");
 
 /*
 //Old
@@ -126,23 +126,23 @@ Maptiles{M_tile=17,demolished_castle=20,big_castle_visited=21,dock=25,demolished
 };*/
 // New
 enum Maptiles {
-  M_tile = 19,
-  demolished_castle = 22,
-  big_castle_visited = 23,
-  dock = 27,
-  demolished_castle_dark = 32,
-  pipe = 33,
-  mushrom_house = 35,
-  game_house = 36,
-  small_castle = 51,
-  big_castle = 34,
-  small_castle_2 = 55,
-  bowser_castle = 64,
-  ground = 65,
-  rock = 66,
-  locked_door = 78,
-  water_map = 87,
-  locked_door_2 = 97,
+	M_tile = 19,
+	demolished_castle = 22,
+	big_castle_visited = 23,
+	dock = 27,
+	demolished_castle_dark = 32,
+	pipe = 33,
+	mushrom_house = 35,
+	game_house = 36,
+	small_castle = 51,
+	big_castle = 34,
+	small_castle_2 = 55,
+	bowser_castle = 64,
+	ground = 65,
+	rock = 66,
+	locked_door = 78,
+	water_map = 87,
+	locked_door_2 = 97,
 };
 
 extern struct map_data Map_data;

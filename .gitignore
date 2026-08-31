@@ -11,3 +11,5 @@ dist/
 # Build target stamps
 .calc-stamp
 .data-stamp
+# Python bytecode from the tools
+__pycache__/

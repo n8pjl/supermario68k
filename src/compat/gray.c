@@ -15,7 +15,6 @@
 // split the macro arguments, since only parentheses are balanced. Keep commas
 // inside parentheses.
 EM_JS(void, pageflip, (const void *rgba, int16_t w, int16_t h), {
-	// clang-format off
 	const canvas = Module.canvas;
 
 	// The canvas is sized from here rather than from the page, so the shell
@@ -31,7 +30,6 @@ EM_JS(void, pageflip, (const void *rgba, int16_t w, int16_t h), {
 	const ctx = canvas.getContext("2d");
 	const view = new Uint8ClampedArray(HEAPU8.buffer, rgba, w * h * 4);
 	ctx.putImageData(new ImageData(view, w, h), 0, 0);
-	// clang-format on
 });
 
 // Suspends via JSPI until the frame is due. The calculator ran the game at
@@ -46,7 +44,6 @@ EM_JS(void, pageflip, (const void *rgba, int16_t w, int16_t h), {
 // is a floor and not a promise: below about 17ms on a 60Hz display, every
 // frame is simply due when it is painted.
 EM_ASYNC_JS(void, pageflip_wait, (void), {
-	// clang-format off
 	const period = Module.frameMs > 0 ? Module.frameMs : 50;
 
 	if (globalThis.__smPrevFrame === undefined) globalThis.__smPrevFrame = 0;
@@ -56,7 +53,6 @@ EM_ASYNC_JS(void, pageflip_wait, (void), {
 		now = await new Promise((resolve) => requestAnimationFrame(resolve));
 	}
 	globalThis.__smPrevFrame = now - (elapsed % period);
-	// clang-format on
 });
 
 void DelayNFrames(uint16_t frames)

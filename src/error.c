@@ -2,19 +2,15 @@
 // Created 23.10.2006; 20:08:16
 
 #include "compat/graph.h"
-#include "gfx.h"
 #include "scankeys.h"
-#include <stdint.h>
+#include "text.h"
+#include <stdlib.h>
 
 void Errorhandler(char Error)
 {
-	// memset(LCD_MEM,0x00,LCD_SIZE);
-
 	ClrScr();
 
-	char *Msg = Texts;
-	//	const char MemErrTxt[15]="Out of memory!";
-	//	const char Memerr[15] = "Out of memory!";
+	const char *msg_id;
 
 	switch (Error) {
 	case 1:
@@ -22,47 +18,46 @@ void Errorhandler(char Error)
 		DrawStr(10, 30, "Out of memory!", A_REPLACE);
 		break;
 	case 2:
-		Msg = Texts + GameTextData.GfXErr;
+		msg_id = "GfXErr";
 		break;
 	case 3:
-		Msg = Texts + GameTextData.LevelError;
+		msg_id = "LevelError";
 		break;
 	case 4:
-		Msg = Texts + GameTextData.MapError;
+		msg_id = "MapError";
 		break;
 	case 5:
-		Msg = Texts + GameTextData.LevelsetError;
+		msg_id = "LevelsetError";
 		break;
 	case 6:
-		Msg = Texts + GameTextData.GrayError;
+		msg_id = "GrayError";
 		break;
 	case 7:
 		DrawStr(10, 30, "Textfile not found!", A_REPLACE);
 		break;
 	case 8:
-		Msg = Texts + GameTextData.LevelSetIncompatible;
+		msg_id = "LevelSetIncompatible";
 		break;
 	}
 
 	int16_t X = 10;
 	int16_t Y = 30;
 	if ((Error != 1) && (Error != 7)) {
-		while (*Msg) { // loop until null character found (aka the end of the text)
-			if (*Msg == 13) { // new line
+		char *msg = get_string_locale(msg_id);
+
+		while (*msg_id) { // loop until null character found (aka the end of the text)
+			if (*msg_id == 13) { // new line
 				X = 10;
 				Y += 16;
 			} else {
-				DrawChar(X, Y, *Msg, A_REPLACE);
+				DrawChar(X, Y, *msg_id, A_REPLACE);
 				X += 6;
 			}
-			Msg++; // next...
+			msg_id++; // next...
 		}
 
-		//		DrawStr(10,30,Msg,A_REPLACE);
-		//		DrawWrappedText(Msg);
+		free(msg);
 	}
-
-	// DrawStr(10,30,(Msg?Msg:"Textfile not found!"),A_REPLACE);
 
 	WaitKeyPress();
 };

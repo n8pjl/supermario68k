@@ -16,7 +16,7 @@ CFLAGS = -Os -std=gnu99 -fgnu89-inline -flto -msimd128 -MMD -MP
 # so shell.js can `import` it instead of reaching for a global Module. This
 # also implies -sMODULARIZE.
 LDFLAGS = -sJSPI -Os -flto -sENVIRONMENT=web -sEXPORT_ES6=1 \
-          --preload-file data@/data
+          -sEXPORTED_FUNCTIONS=_main,_malloc --preload-file data@/data
 
 SRCDIR = src
 
@@ -26,12 +26,12 @@ TARGET = $(OUTDIR)/mario.mjs
 
 # Static files served alongside the wasm. COPIES is the list of their built
 # locations: $(OUTDIR)/$(COPY) would only prefix the first word.
-COPY = index.html shell.js shell.css
+COPY = index.html shell.js shell.css ma_texts.json
 COPIES = $(addprefix $(OUTDIR)/,$(COPY))
 
 NAMES = main.c enemies.c gameloop.c items.c player.c render.c \
         scankeys.c shells.c custom.c objects.c flying.c smallgames.c \
-        bounch.c map.c titlescreen.c menus.c rle.c level.c savegame.c \
+        bounch.c map.c titlescreen.c text.c rle.c level.c savegame.c \
         stringcopy.c error.c bosses.c gfx.c \
         compat/alloc.c compat/tios.c compat/tilemap.c compat/extgraph.c \
         compat/graph.c compat/font_data.c compat/gray.c
@@ -85,7 +85,7 @@ $(OUTDIR):
 	$(CC) $(CFLAGS) -c $< -o $@
 
 format: $(SRCS) $(HDRS)
-	clang-format --sort-includes -i $(SRCS) $(HDRS)
+	clang-format --style=file --sort-includes -i $(SRCS) $(HDRS)
 
 
 -include $(DEPS)

@@ -45,7 +45,7 @@ static uint8_t *load_from_storage(const char *name, size_t *out_len)
 	// decode each happen once.
 
   int len = EM_ASM_INT({
-  // clang-format off
+	// clang-format off
 		try {
 			const v = localStorage.getItem(`sm68k/${UTF8ToString($0)}`);
 			if (!v) {
@@ -66,19 +66,14 @@ if (len < 0)
 
 uint8_t *out = malloc((size_t)len + 1); // +1: never malloc(0)
 if (!out) {
-	EM_ASM({
-		// clang-format off
-			globalThis.__sm68kSave = null;
-		// clang-format on
+	EM_ASM({ globalThis.__sm68kSave = null;
 	});
 	return NULL;
 }
 EM_ASM(
 	{
-		// clang-format off
 		HEAPU8.set(globalThis.__sm68kSave, $0);
 		globalThis.__sm68kSave = null;
-		// clang-format on
 	},
 	out);
 
@@ -89,7 +84,7 @@ return out;
 static void save_to_storage(const char *name, const uint8_t *data, size_t len)
 {
   EM_ASM({
-			// clang-format off
+	// clang-format off
 		try {
 			// slice() copies the range out of the wasm heap;
 			// toBase64() then encodes that copy.

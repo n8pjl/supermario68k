@@ -7,12 +7,11 @@
 #include "control.h"
 #include "custom.h"
 #include "flying.h"
-#include "gfx.h"
 #include "items.h"
 #include "level.h"
 #include "levelset.h"
 #include "map.h"
-#include "menus.h"
+#include "text.h"
 #include "player.h"
 #include "render.h"
 #include "savegame.h"
@@ -20,7 +19,6 @@
 #include "shells.h"
 #include "stringcopy.h"
 #include "version.h"
-#include <stdint.h>
 #include <string.h>
 
 char *Filenames;
@@ -164,9 +162,7 @@ void Gameloop()
 		if (!Player.Offset) {
 			ScanKeys();
 			if (Keystate.esc) { // mid game menu
-
-				/*char*/ int16_t Res = doMenu(
-					Texts + GameTextData.MidGameMap, 3);
+				/*char*/ int16_t Res = do_menu("MidGameMap");
 
 				switch (Res) {
 					int16_t Offset;
@@ -177,40 +173,21 @@ void Gameloop()
 				case 2: // save
 					// Savegame(0);
 
-					/*strcpy(Fg_plane.p.big_vscreen,Texts+GameTextData.Save);//Title
-          C = Offset = strlen(Fg_plane.p.big_vscreen)+1;*/
 					{
-						char *TempBuffer =
-							Fg_plane.p.big_vscreen;
-						//							C = Offset =
-						// StringCopy(TempBuffer/*Fg_plane.p.big_vscreen*/,Texts+GameTextData.Save);
-
-						Paste_saveslot_text(
-							TempBuffer /*Fg_plane.p.big_vscreen*/
-							,
-							Texts + GameTextData
-									.Save); // Offset);
-						Res = doMenu(
-							TempBuffer /*Fg_plane.p.big_vscreen*/
-							,
-							3);
+						Res = do_menu("Save");
 					}
 
-					WaitKeyReleased(); // while(_rowread(0));//wait until key released
-					//						while(!_rowread(0)){//wait
-					// until key pressed
+					WaitKeyReleased();
 
 					if ((Res >= 1) && (Res <= 3)) {
-						//
 						int16_t SaveOk = 1;
 						if (Levelsetdata.Savegames[Res -
 									   1] !=
 						    0) {
 							// New: V 1.03 Added confirmation when overwriting a saveslot
 
-							if (doMenu(Texts + GameTextData
-										   .OverWrite,
-								   2) == 1)
+							if (do_menu("OverWrite") ==
+							    1)
 								SaveOk = 0;
 						}
 						// End of New
@@ -395,7 +372,7 @@ int16_t RunGame(char Saveslot)
 		if (SavePlayer.Lives <= 0) { //==0){//BUG!
 			// Game over
 			// menu: Game Over, Continue, Quit
-			int16_t Res = doMenu(Texts + GameTextData.GameOver, 2);
+			int16_t Res = do_menu("GameOver");
 
 			if (Res == 1) {
 				Exit = 0;

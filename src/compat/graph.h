@@ -21,8 +21,21 @@
 #define PLANE_STRIDE (PLANE_WIDTH / 8)
 #define LCD_SIZE (PLANE_STRIDE * PLANE_HEIGHT)
 
-enum Fonts {F_4x6, F_6x8, F_8x10};
-enum Attrs {A_REVERSE, A_NORMAL, A_XOR, A_SHADED, A_REPLACE, A_OR, A_AND, A_THICK1, A_SHADE_V, A_SHADE_H, A_SHADE_NS, A_SHADE_PS};
+enum Fonts { F_4x6, F_6x8, F_8x10 };
+enum Attrs {
+	A_REVERSE,
+	A_NORMAL,
+	A_XOR,
+	A_SHADED,
+	A_REPLACE,
+	A_OR,
+	A_AND,
+	A_THICK1,
+	A_SHADE_V,
+	A_SHADE_H,
+	A_SHADE_NS,
+	A_SHADE_PS
+};
 
 // Plain (non-gray) text output, used only by the error screen. On the
 // calculator these are TIOS ROM calls that render with the built-in bitmap
@@ -31,4 +44,3 @@ enum Attrs {A_REVERSE, A_NORMAL, A_XOR, A_SHADED, A_REPLACE, A_OR, A_AND, A_THIC
 void ClrScr(void);
 void DrawStr(int16_t x, int16_t y, const char *s, int16_t attr);
 void DrawChar(int16_t x, int16_t y, char c, int16_t attr);
-

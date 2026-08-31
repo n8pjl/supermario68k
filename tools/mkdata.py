@@ -207,6 +207,19 @@ def convert(content, tag, name):
     return bytes(b)
 
 
+def unwrap(raw, what="variable file"):
+    """Strip a TI variable file's container, returning (size word, content).
+
+    See the module docstring: the on-calc variable block is raw[0x56 : -2], and
+    it opens with the big-endian size word of everything after it.
+    """
+    blob = raw[0x56:len(raw) - 2]
+    size, content = blob[:2], blob[2:]
+    if struct.unpack(">H", size)[0] != len(content):
+        raise ValueError("%s: size word does not match payload" % what)
+    return size, content
+
+
 def main():
     src = sys.argv[1] if len(sys.argv) > 1 else "calc-data"
     out = sys.argv[2] if len(sys.argv) > 2 else "data"
@@ -217,10 +230,10 @@ def main():
         if not fn.lower().endswith((".9xy", ".9xz", ".89y", ".89z")):
             continue
         raw = open(os.path.join(src, fn), "rb").read()
-        blob = raw[0x56:len(raw) - 2]
-        size, content = blob[:2], blob[2:]
-        if struct.unpack(">H", size)[0] != len(content):
-            sys.exit("%s: size word does not match payload" % fn)
+        try:
+            size, content = unwrap(raw, fn)
+        except ValueError as e:
+            sys.exit(str(e))
         name = os.path.splitext(fn)[0]
         tag = tag_of(content)
         body = convert(content, tag, name)

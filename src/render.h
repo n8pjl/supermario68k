@@ -1,9 +1,9 @@
 #pragma once
 
-#include <stdint.h>
 #include "compat/tilemap.h"
-#include "version.h"
 #include "objects.h"
+#include "version.h"
+#include <stdint.h>
 
 extern int16_t scroll_limit_left;
 extern int16_t scroll_limit_right;
@@ -24,7 +24,8 @@ extern int16_t screen_offset_sg_y;
 
 extern int16_t Update_FG;
 
-extern int16_t BgX, BgY, FgX, FgY; // screen render points,PROBABLY UNNESSESSARRY
+extern int16_t BgX, BgY, FgX,
+	FgY; // screen render points,PROBABLY UNNESSESSARRY
 extern struct Plane Bg_plane;
 extern struct AnimatedPlane Fg_plane, Fg_mask, Map_plane;
 extern void *Buffer;
@@ -39,17 +40,20 @@ void init_calc_screen_constants(bool ti89_mode);
 
 void GrayDBufToggleSync_SetPointers();
 
-void DrawString(int16_t X, int16_t Y, const char *Str, int16_t Attr, int16_t Font);
+void DrawString(int16_t X, int16_t Y, const char *Str, int16_t Attr,
+		int16_t Font);
+void DrawStringLocale(int16_t x, int16_t y, const char *str_id, int16_t attr,
+		      int16_t font);
 
 void Render();
 
 void DrawMarioCursor(int16_t X, int16_t Y);
 
 void DrawSprite16SMASKR(int16_t x, int16_t y, int16_t h, const uint16_t *sprt0,
-                        const uint16_t *sprt1,
-                        const uint16_t *mask);
+			const uint16_t *sprt1, const uint16_t *mask);
 
-void GrayOutlineRect(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2, int16_t Color);
+void GrayOutlineRect(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2,
+		     int16_t Color);
 
 void FilledRectDark(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2);
 

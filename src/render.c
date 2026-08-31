@@ -13,6 +13,8 @@
 #include "map.h"
 #include "player.h"
 #include "shells.h"
+#include "text.h"
+#include <emscripten/em_asm.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -74,12 +76,12 @@ void GrayDBufToggleSync_SetPointers()
 void FilledRectEraseDark(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2)
 {
 	FastFilledRect_Erase_R(dBufHPD_G, X1, Y1, X2, Y2);
-};
+}
 
 void FilledRectEraseLight(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2)
 {
 	FastFilledRect_Erase_R(dBufHPL_G, X1, Y1, X2, Y2);
-};
+}
 
 void FilledRectDark(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2)
 {
@@ -90,7 +92,7 @@ void GrayOutlineRect(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2,
 		     int16_t Color)
 {
 	GrayFastOutlineRect_R(dBufHPL_G, dBufHPD_G, X1, Y1, X2, Y2, Color);
-};
+}
 
 void DrawString(int16_t X, int16_t Y, const char *Str, int16_t Attr,
 		int16_t Font)
@@ -98,6 +100,13 @@ void DrawString(int16_t X, int16_t Y, const char *Str, int16_t Attr,
 	DrawGrayStrExt2B(X, Y, Str, Attr, Font, dBufHPL_G, dBufHPD_G);
 }
 
+void DrawStringLocale(int16_t x, int16_t y, const char *str_id, int16_t attr,
+		      int16_t font)
+{
+	char *str = get_string_locale(str_id);
+	DrawGrayStrExt2B(x, y, str, attr, font, dBufHPL_G, dBufHPD_G);
+	free(str);
+}
 void DrawSprite16SMASKR(int16_t X, int16_t Y, int16_t H, const uint16_t *sprt0,
 			const uint16_t *sprt1, const uint16_t *mask)
 {

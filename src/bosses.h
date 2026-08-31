@@ -1,33 +1,35 @@
 #pragma once
 
-#include <stdint.h>
 #include "enemies.h"
+#include <stdint.h>
 
 struct boss {
-  int16_t X; // Xpos
-  int16_t Y; // Ypos
-  char Active;
-  char Life;
-  char Face; // direction. -1=left	1=right
-  int16_t Height;
-  int16_t Height2; // the height of the boss sprite, ie distance from Start of
-                 // lightdata (unsigned short* Sprite) to darkdata
+	int16_t X; // Xpos
+	int16_t Y; // Ypos
+	char Active;
+	char Life;
+	char Face; // direction. -1=left	1=right
+	int16_t Height;
+	int16_t Height2; // the height of the boss sprite, ie distance from Start of
+	// lightdata (unsigned short* Sprite) to darkdata
 
-  char Data0;
-  char Data1;
-  // char Data2;
-  // char Data3;
+	char Data0;
+	char Data1;
+	// char Data2;
+	// char Data3;
 
-  uint8_t Mode;
-  uint8_t State;
+	uint8_t Mode;
+	uint8_t State;
 
-  uint16_t *Sprite;
-  uint16_t *Mask;
+	uint16_t *Sprite;
+	uint16_t *Mask;
 
-  void (*Handler)(void *Boss); // func pointer to the func that deals with the
-                               // current kind of boss
-  void (*Die)(void *Boss); // func pointer to the func that deals with the death
-                           // secuence of the current kind of boss.
+	void (*Handler)(
+		void *Boss); // func pointer to the func that deals with the
+	// current kind of boss
+	void (*Die)(
+		void *Boss); // func pointer to the func that deals with the death
+	// secuence of the current kind of boss.
 };
 
 extern struct boss *BossG;

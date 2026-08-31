@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdint.h>
 #include "enemies.h"
 
 // mario sprites
@@ -69,142 +68,141 @@
 #define itemlist_length 20
 
 struct player {
-  int16_t X; // Xpos
-  int16_t Y; // Ypos
+	int16_t X; // Xpos
+	int16_t Y; // Ypos
 
-  char Xoffset;
-  char Yoffset;
+	char Xoffset;
+	char Yoffset;
 
-  int16_t Immortal; // used when recently wounded and when player recently got a
-                  // star. Used as a (frame)counter,counts down to 0.
+	int16_t Immortal; // used when recently wounded and when player recently got a
+	// star. Used as a (frame)counter,counts down to 0.
 
-  //	short Life;
-  //	short Lives;
-  //	char Attribs;		//bit7: set when mario is "super",has got a
-  // star. bit6 set: Can throw fireballs. bit5 set: has the racoon suit. bit4
-  // set: Draw player before foreground, used in some effects bit3 set: P-wing:
-  // Always able to fly
-  char Racoonspin;
+	//	short Life;
+	//	short Lives;
+	//	char Attribs;		//bit7: set when mario is "super",has got a
+	// star. bit6 set: Can throw fireballs. bit5 set: has the racoon suit. bit4
+	// set: Draw player before foreground, used in some effects bit3 set: P-wing:
+	// Always able to fly
+	char Racoonspin;
 
-  char Face; // direction.   (+ == right) && (- == left)
+	char Face; // direction.   (+ == right) && (- == left)
 
-  char PrevFace; // fly code
-  int16_t SlopeAbove;
-  int16_t SlopeDownUnder;
-  //	char Coins;
+	char PrevFace; // fly code
+	int16_t SlopeAbove;
+	int16_t SlopeDownUnder;
+	//	char Coins;
 
-  //	unsigned int Score;//nr of houndred points,get padded with "00"
+	//	unsigned int Score;//nr of houndred points,get padded with "00"
 
-  char Walkspeed;
-  char Walkspeed2; // contents normal speed when run
-  int16_t Jumpspeed;
-  int16_t Fallspeed;
+	char Walkspeed;
+	char Walkspeed2; // contents normal speed when run
+	int16_t Jumpspeed;
+	int16_t Fallspeed;
 
-  int16_t Max_jumpheight;
+	int16_t Max_jumpheight;
 
-  int16_t IsJumping;
-  int16_t IsFalling;
-  char IsInWater; // will possibly be replaced by something using Attribs.
+	int16_t IsJumping;
+	int16_t IsFalling;
+	char IsInWater; // will possibly be replaced by something using Attribs.
 
-  char IsInQsand;
+	char IsInQsand;
 
-  int16_t IsClimbing;
+	int16_t IsClimbing;
 
-  int16_t Height;
+	int16_t Height;
 
-  int16_t Height2; // sprite height
+	int16_t Height2; // sprite height
 
-  //	short Maskbase;
-  //	short Spritebase;//small left, small right, large left, large right,
-  // fire left, fire  right 	short Spritenr;
-  int16_t SpriteOffset;
-  int16_t Blit;
+	//	short Maskbase;
+	//	short Spritebase;//small left, small right, large left, large right,
+	// fire left, fire  right 	short Spritenr;
+	int16_t SpriteOffset;
+	int16_t Blit;
 
-  int16_t Offset;
-  //	short PrevCompX;
-  //	short PrevCompY;
+	int16_t Offset;
+	//	short PrevCompX;
+	//	short PrevCompY;
 
-  int16_t Test;
-  int16_t Test2;
+	int16_t Test;
+	int16_t Test2;
 
-  // fly code
-  int16_t Flycount;
-  int16_t Runcount;
+	// fly code
+	int16_t Flycount;
+	int16_t Runcount;
 
-  //	short MapX;
-  //	short MapY;
+	//	short MapX;
+	//	short MapY;
 
-  //	char IsOnMapBoat;
-  //	char IsClouded;
+	//	char IsOnMapBoat;
+	//	char IsClouded;
 
-  char Passified;
+	char Passified;
 
-  //	char Itemlist[itemlist_length];
-  // 0: empty slot
-  // 1: mushrom
-  // 2: flower
-  // 3: leaf
-  // 4: star
-  // 5: whistle (warp zone)
-  // 6: hammer (map)
-  // 7: P-wing
-  // 8:
-  // 9:
-  // 10:
+	//	char Itemlist[itemlist_length];
+	// 0: empty slot
+	// 1: mushrom
+	// 2: flower
+	// 3: leaf
+	// 4: star
+	// 5: whistle (warp zone)
+	// 6: hammer (map)
+	// 7: P-wing
+	// 8:
+	// 9:
+	// 10:
 
-  int16_t Curr_item;
-  //	char Cards[3];
+	int16_t Curr_item;
+	//	char Cards[3];
 
-  //	char CurrCard;
+	//	char CurrCard;
 
-  int16_t Behind_fg;
-  int16_t White_magic_box_counter;
+	int16_t Behind_fg;
+	int16_t White_magic_box_counter;
 
-  int16_t RacoonTaleAnim;
+	int16_t RacoonTaleAnim;
 };
 
 struct saveplayer {
+	uint16_t Score;
 
-  uint16_t Score;
+	// are those neccessarry???
+	int16_t Spritebase; // small left, small right, large left, large right, fire
+	// left, fire  right
+	int16_t Spritenr;
+	int16_t Maskbase;
 
-  // are those neccessarry???
-  int16_t Spritebase; // small left, small right, large left, large right, fire
-                    // left, fire  right
-  int16_t Spritenr;
-  int16_t Maskbase;
+	int16_t PrevCompX;
+	int16_t PrevCompY;
 
-  int16_t PrevCompX;
-  int16_t PrevCompY;
+	int16_t MapX;
+	int16_t MapY;
 
-  int16_t MapX;
-  int16_t MapY;
+	int16_t MapBorderLeft; // bugfix
+	int16_t MapBorderRight;
 
-  int16_t MapBorderLeft; // bugfix
-  int16_t MapBorderRight;
+	int16_t L;
 
-  int16_t L;
+	char Life;
+	char Lives;
 
-  char Life;
-  char Lives;
+	char Attribs;
+	// bit7: set when mario is "super",has got a star.
+	// bit6 set: Can throw fireballs.
+	// bit5 set: has the racoon suit.
+	// bit4 set: Draw player before foreground, used in some effects
+	// bit3 set: P-wing: Always able to fly
 
-  char Attribs;
-  // bit7: set when mario is "super",has got a star.
-  // bit6 set: Can throw fireballs.
-  // bit5 set: has the racoon suit.
-  // bit4 set: Draw player before foreground, used in some effects
-  // bit3 set: P-wing: Always able to fly
+	char Coins;
 
-  char Coins;
+	char IsOnMapBoat;
+	char IsClouded;
 
-  char IsOnMapBoat;
-  char IsClouded;
+	char MapColor;
 
-  char MapColor;
+	char Cards[3];
+	char CurrCard;
 
-  char Cards[3];
-  char CurrCard;
-
-  char Itemlist[itemlist_length];
+	char Itemlist[itemlist_length];
 };
 
 extern struct player Player;
@@ -216,12 +214,12 @@ extern uint16_t *Mariosprites;
 extern uint16_t *Mariomasks;
 
 extern void (*Bonushandlers[20])(int16_t X,
-                                 int16_t Y); // pointers to bonustiles functions
+				 int16_t Y); // pointers to bonustiles functions
 extern void (*Interactive_tile_handlers[47])(
-    int16_t X, int16_t Y); // pointers to interactive tiles functions
+	int16_t X, int16_t Y); // pointers to interactive tiles functions
 
 extern void (*Interactive_non_solid_tile_handlers[21])(
-    int16_t X, int16_t Y); // pointers to inatective tiles functions
+	int16_t X, int16_t Y); // pointers to inatective tiles functions
 
 void Playerinit();
 

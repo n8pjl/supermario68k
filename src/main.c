@@ -23,20 +23,18 @@
 #include "compat/alloc.h"
 #include "compat/gray.h"
 #include "control.h"
-#include "custom.h"
 #include "error.h"
 #include "gameloop.h"
 #include "gfx.h"
 #include "items.h"
 #include "level.h"
-#include "menus.h"
+#include "text.h"
 #include "render.h"
 #include "shells.h"
 #include "smallgames.h"
 #include "version.h"
 #include <emscripten/em_asm.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdlib.h>
 
 #define Life_the_universe_and_everything 42
@@ -74,26 +72,6 @@ uint8_t Treasure;
 
 bool ti89_mode = false;
 
-#ifdef speedtest
-// Speedtest:
-// Note: This does NOT give an accurate FPS, probably not even close to.
-// It measures the number of frames within 255 ticks of AUTO_INT_1 (when
-// grayscale is enabled.) It was used to give an indication of how effective
-// frame skipping and increasing animation length was as a speed optimization.
-// Those optimizations were aimed on Voyage 200 and Ti-92+ because the game run
-// slower on those calcs.
-volatile int16_t Fps;
-DEFINE_INT_HANDLER(TESTCOUNTER)
-{ // speed test
-	counter++;
-	if (counter == 0) {
-		Update_frame_counter = Fps;
-		Fps = 0;
-	}
-}
-#endif
-// short Slow;//used in debug only
-
 // Main Function
 int main(void)
 {
@@ -102,21 +80,6 @@ int main(void)
 
 	Map_statusbar = status;
 	StatBarHeight = 8;
-
-	// INT_HANDLER ai1,/*ai4,*/ai5;
-	// initializations
-
-	// ai1 = GetIntVec(AUTO_INT_1);
-	//	ai4 = GetIntVec(AUTO_INT_4);
-	// ai5 = GetIntVec(AUTO_INT_5);
-	// SetIntVec(AUTO_INT_5,DUMMY_HANDLER);//speed test
-#ifdef speedtest
-// SetIntVec(AUTO_INT_1,TESTCOUNTER);//DUMMY_HANDLER);
-#endif
-#ifndef speedtest
-// SetIntVec(AUTO_INT_1,DUMMY_HANDLER);//);
-#endif
-	//	SetIntVec(AUTO_INT_4,DUMMY_HANDLER);
 
 	ti89_mode = EM_ASM_INT({
 		// clang-format off
@@ -143,7 +106,6 @@ int main(void)
 	dBufHPL_G = GrayDBufGetHiddenPlane(LIGHT_PLANE);
 	dBufHPD_G = GrayDBufGetHiddenPlane(DARK_PLANE);
 
-	//
 	// Error: Memory possible
 	Items = (struct item *)malloc(sizeof(struct item) * nr_of_items +
 				      sizeof(struct shell) * max_nr_of_shells +

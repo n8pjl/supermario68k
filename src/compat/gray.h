@@ -5,10 +5,12 @@
 
 #define DEFAULT_FPS 30
 
-enum GrayPlanes {LIGHT_PLANE = 0, DARK_PLANE = 1};
+enum GrayPlanes { LIGHT_PLANE = 0, DARK_PLANE = 1 };
 
 #define GrayOn() (1)
-#define GrayOff() do {} while (0)
+#define GrayOff() \
+	do {      \
+	} while (0)
 
 void DelayNFrames(uint16_t frames);
 

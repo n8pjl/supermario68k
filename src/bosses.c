@@ -396,31 +396,19 @@ void Boss_handler_2(struct boss *Boss)
 
 void Draw_ending_text(struct object *Object)
 {
-	//	void* lp = GrayDBufGetActivePlane (LIGHT_PLANE);
-	//	void* dp = GrayDBufGetActivePlane (DARK_PLANE);
-
-	// void *dBufHPL = dBufHPL_G,*dBufHPD = dBufHPD_G;
-
-	// FastFilledRect_Erase_R(dBufHPL/*_G*/,47+screen_offset_sg_x,7,115+screen_offset_sg_x,38);
 	FilledRectEraseLight(47 + screen_offset_sg_x, 7,
 			     115 + screen_offset_sg_x, 38);
-	// FastFilledRect_Erase_R(dBufHPD/*_G*/,47+screen_offset_sg_x,7,115+screen_offset_sg_x,38);
 	FilledRectEraseDark(47 + screen_offset_sg_x, 7,
 			    115 + screen_offset_sg_x, 38);
 
-	// DrawGrayStrExt2B(50+screen_offset_sg_x,10,Texts+GameTextData.Ending1,A_REPLACE,F_4x6,dBufHPD/*_G*/,dBufHPL/*_G*/);//"THANK
-	// YOU MARIO!"
-	// DrawGrayStrExt2B(50+screen_offset_sg_x,20,Texts+GameTextData.Ending2,A_REPLACE,F_4x6,dBufHPD/*_G*/,dBufHPL/*_G*/);//"YOU
-	// ARE MY HERO"
-	DrawString(50 + screen_offset_sg_x, 10, Texts + GameTextData.Ending1,
-		   A_REPLACE, F_4x6);
-	DrawString(50 + screen_offset_sg_x, 20, Texts + GameTextData.Ending2,
-		   A_REPLACE, F_4x6);
+	DrawStringLocale(50 + screen_offset_sg_x, 10, "Ending1", A_REPLACE,
+			 F_4x6);
+	DrawStringLocale(50 + screen_offset_sg_x, 20, "Ending2", A_REPLACE,
+			 F_4x6);
 
 	if (Object->Data0) {
-		// DrawGrayStrExt2B(60+screen_offset_sg_x,30,Texts+GameTextData.Ending3,A_REPLACE,F_4x6,dBufHPD/*_G*/,dBufHPL/*_G*/);//"*KISS*"
-		DrawString(60 + screen_offset_sg_x, 30,
-			   Texts + GameTextData.Ending3, A_REPLACE, F_4x6);
+		DrawStringLocale(60 + screen_offset_sg_x, 30, "Ending3",
+				 A_REPLACE, F_4x6);
 	};
 }
 

@@ -19,42 +19,40 @@
 
 // Describes a tilemap plane, used by the high-level DrawPlane functions.
 struct Plane {
-  void *matrix;         // matrix of tile numbers, one byte each
-  uint16_t width; // map width, in tiles
-  void *sprites;        // tile sprite array
-  char *big_vscreen;    // big virtual screen (see sizes above)
-  int32_t mask;            // obsolete, kept for layout compatibility
-  int32_t reserved;        // engine scratch
-  int16_t force_update;   // set to force a big_vscreen rebuild
+	void *matrix; // matrix of tile numbers, one byte each
+	uint16_t width; // map width, in tiles
+	void *sprites; // tile sprite array
+	char *big_vscreen; // big virtual screen (see sizes above)
+	int32_t mask; // obsolete, kept for layout compatibility
+	int32_t reserved; // engine scratch
+	int16_t force_update; // set to force a big_vscreen rebuild
 };
 
 // Describes a tilemap animated plane, used by the DrawAnimatedPlane functions.
 struct AnimatedPlane {
-  struct Plane p;
-  void *tabanim;     // matrix of animations
-  int16_t nb_anim;     // number of animations
-  int16_t nb_step;     // number of animation steps
-  int16_t step;        // current step
-  int16_t step_length; // step length, in frames
-  int16_t frame;       // current frame within the step
+	struct Plane p;
+	void *tabanim; // matrix of animations
+	int16_t nb_anim; // number of animations
+	int16_t nb_step; // number of animation steps
+	int16_t step; // current step
+	int16_t step_length; // step length, in frames
+	int16_t frame; // current frame within the step
 };
 
 // Blitter callback for the mono plane drawers: one refreshed buffer to one
 // plane. (ExtGraph's own name for this signature.)
-typedef void (*TM_Mode)(const void *src, uint16_t x, uint16_t y,
-                        void *dest);
+typedef void (*TM_Mode)(const void *src, uint16_t x, uint16_t y, void *dest);
 
 // Blitter callback for the gray plane drawers: one refreshed buffer onto both
 // planes.
 typedef void (*TM_GrayMode)(const void *src, uint16_t x, uint16_t y,
-                            void *lightplane, void *darkplane);
+			    void *lightplane, void *darkplane);
 
-void DrawBuffer_MASK(const void *src, uint16_t x, uint16_t y,
-                     void *dest);
+void DrawBuffer_MASK(const void *src, uint16_t x, uint16_t y, void *dest);
 void DrawGrayBuffer2B_RPLC(const void *src, uint16_t x, uint16_t y,
-                           void *lightplane, void *darkplane);
+			   void *lightplane, void *darkplane);
 void DrawGrayBuffer2B_OR(const void *src, uint16_t x, uint16_t y,
-                         void *lightplane, void *darkplane);
+			 void *lightplane, void *darkplane);
 
 // The "89" variants differ from the others only in copying a 160x100 window
 // instead of a 240x128 one - the destination step is a full 30-byte plane row
@@ -68,25 +66,24 @@ void DrawGrayBuffer2B_OR(const void *src, uint16_t x, uint16_t y,
 // Plane drawers. _ROLL is the game's own scrolling variant of the 16x16 big
 // tile renderer (see DrawGrayPlane16BRoll referenced from render.c).
 void DrawGrayPlane16B2B(uint16_t x, uint16_t y, struct Plane *plane,
-                        void *lightplane, void *darkplane, TM_GrayMode mode);
-void DrawGrayPlane16B2B_ROLL(uint16_t x, uint16_t y,
-                             struct Plane *plane, void *lightplane,
-                             void *darkplane, TM_GrayMode mode);
+			void *lightplane, void *darkplane, TM_GrayMode mode);
+void DrawGrayPlane16B2B_ROLL(uint16_t x, uint16_t y, struct Plane *plane,
+			     void *lightplane, void *darkplane,
+			     TM_GrayMode mode);
 void DrawGrayAnimatedPlane16B2B(uint16_t x, uint16_t y,
-                                struct AnimatedPlane *plane, void *lightplane,
-                                void *darkplane, TM_GrayMode mode);
-void DrawAnimatedPlane16B(uint16_t x, uint16_t y,
-                          struct AnimatedPlane *plane, void *dest,
-                          TM_Mode mode);
+				struct AnimatedPlane *plane, void *lightplane,
+				void *darkplane, TM_GrayMode mode);
+void DrawAnimatedPlane16B(uint16_t x, uint16_t y, struct AnimatedPlane *plane,
+			  void *dest, TM_Mode mode);
 
 #define TM_G16B DrawGrayPlane16B2B
 #define TM_G16B_ROLL DrawGrayPlane16B2B_ROLL
 #define TM_GA16B DrawGrayAnimatedPlane16B2B
 #define TM_A16B DrawAnimatedPlane16B
 
-#define DrawGrayPlane(x, y, plane, dest0, dest1, mode, type)                   \
-  type((x), (y), (plane), (dest0), (dest1), (mode))
-#define DrawGrayAnimatedPlane(x, y, plane, dest0, dest1, mode, type)           \
-  type((x), (y), (plane), (dest0), (dest1), (mode))
-#define DrawAnimatedPlane(x, y, plane, dest, mode, type)                       \
-  type((x), (y), (plane), (dest), (mode))
+#define DrawGrayPlane(x, y, plane, dest0, dest1, mode, type) \
+	type((x), (y), (plane), (dest0), (dest1), (mode))
+#define DrawGrayAnimatedPlane(x, y, plane, dest0, dest1, mode, type) \
+	type((x), (y), (plane), (dest0), (dest1), (mode))
+#define DrawAnimatedPlane(x, y, plane, dest, mode, type) \
+	type((x), (y), (plane), (dest), (mode))

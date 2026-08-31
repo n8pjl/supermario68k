@@ -1085,29 +1085,13 @@ void Enter_enemy_ship(struct map_object *Ship)
 	};
 	if (Exit == 2) { // world completed!!!
 
-		// FastFilledRect_Draw_R(dBufHPD_G,0,0,239,127);//Dark gray screen
 		FilledRectDark(0, 0, 239, 127);
-		// FastFilledRect_Erase_R(dBufHPL_G,0,0,239,127);
 		FilledRectEraseLight(0, 0, 239, 127);
-
-		// FastFilledRect_Erase_R(dBufHPD_G,20,20,140,80);//white rectangle
 		FilledRectEraseDark(20, 20, 140, 80);
 
-		//		FastFilledRect_Erase_R(dBufHPL_G,0,25,43,75);
-
-		// some text here...
-		// DrawGrayStrExt2B(28,23,Texts+GameTextData.ThankU1,A_REPLACE,F_4x6,dBufHPD_G,dBufHPL_G);//"THANK
-		// YOU MARIO, BUT OUR"
-		// DrawGrayStrExt2B(28,33,Texts+GameTextData.ThankU2,A_REPLACE,F_4x6,dBufHPD_G,dBufHPL_G);//"PRINCESS
-		// IS IN ANOTHER CASTLE!"
-		// DrawGrayStrExt2B(28,43,Texts+GameTextData.ThankU3,A_REPLACE,F_4x6,dBufHPD_G,dBufHPL_G);//spare,
-		// in case of needed
-		DrawString(28, 23, Texts + GameTextData.ThankU1, A_REPLACE,
-			   F_4x6);
-		DrawString(28, 33, Texts + GameTextData.ThankU2, A_REPLACE,
-			   F_4x6);
-		DrawString(28, 43, Texts + GameTextData.ThankU3, A_REPLACE,
-			   F_4x6);
+		DrawStringLocale(28, 23, "ThankU1", A_REPLACE, F_4x6);
+		DrawStringLocale(28, 33, "ThankU2", A_REPLACE, F_4x6);
+		DrawStringLocale(28, 43, "ThankU3", A_REPLACE, F_4x6);
 
 		//		DrawGrayStrExt2B(28,43,Texts+GameTextData.ThankU2,A_REPLACE,F_4x6,dBufHPD_G,dBufHPL_G);
 		//		DrawGrayStrExt2B(28,48

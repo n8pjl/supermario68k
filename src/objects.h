@@ -4,20 +4,21 @@
 #define nr_of_objects 10
 
 struct object {
-  int16_t X;
-  int16_t Y;
+	int16_t X;
+	int16_t Y;
 
-  /*	char Data0;
+	/*	char Data0;
           char Data1;
           char Data2;
           char Active;*/
-  int16_t Data0;
-  int16_t Data1;
-  int16_t Data2;
-  int16_t Active;
-  //	void (*Handler)(void *Object);
-  void (*Draw)(
-      struct object *Object); // the function that draws the spesific object
+	int16_t Data0;
+	int16_t Data1;
+	int16_t Data2;
+	int16_t Active;
+	//	void (*Handler)(void *Object);
+	void (*Draw)(
+		struct object
+			*Object); // the function that draws the spesific object
 };
 
 // extern object Objects[nr_of_objects];

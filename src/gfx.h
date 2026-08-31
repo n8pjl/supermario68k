@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdint.h>
 #include "compat/utils.h"
+#include <stdint.h>
 
 // #define blank_sprite Tiles
 #define blank_sprite (uint16_t *)Fg_plane.p.sprites
@@ -270,47 +270,6 @@
 #define bowser_run_right_spr bowser_run_left_spr + 38 * 6
 
 #define bowser_angry bowser_run_right_spr + 38 * 3 * 2
-
-// Reconstructed from the shipped ma_texts binary; the original header was not
-// part of the released source drop. The file is a 48-byte table of 24
-// big-endian offsets followed by a NUL-separated string pool, which is why
-// Texts = HeapDeref(h) + sizeof(gametextdata) + 2 lands on "Main menu:".
-//
-// Field names come from the 16 live GameTextData.* uses in the game sources;
-// each was matched to its slot by decoding the string it points at. The menu
-// entry counts corroborate the mapping independently - Options is called as
-// doMenu(...,3) and its slot is followed by exactly 3 entries, main_menu as
-// doMenu(...,4) by 4. Slots with no reference in the code keep descriptive
-// names and are listed here only to hold the layout together.
-struct gametextdata {
-  uint16_t main_menu;    // "Main menu:"
-  uint16_t Save;         // "Save game:"
-  uint16_t load_menu;    // "Load game:"
-  uint16_t Options;      // "Options:"
-  uint16_t Statusbar;    // "Statusbar:"      (unused)
-  uint16_t Statusbar2;   // "Statusbar:"      (unused, same offset)
-  uint16_t MidGameMap;   // "Mid-game menu:"  (3 entries, unused)
-  uint16_t MidGameLevel; // "Mid-game menu:"  (2 entries)
-  uint16_t GameOver;     // "Game over:"      (unused)
-  uint16_t Ending1;      // "THANK YOU MARIO, BUT OUR"
-  uint16_t Ending2;      // "PRINCESS IS IN ANOTHER CASTLE!"
-  uint16_t Ending3;
-  uint16_t ThankU1;              // "THANK YOU MARIO!"
-  uint16_t ThankU2;              // "YOU ARE MY HERO!"
-  uint16_t ThankU3;              // "*KISS*"
-  uint16_t MemError;             // "Out of memory!"
-  uint16_t GfXErr;               // "Failed to open GFX file"
-  uint16_t MapError;             // "Could not load map"
-  uint16_t LevelError;           // "Could not load level"
-  uint16_t LevelsetError;        // "No levelset found!"
-  uint16_t GrayError;            // "Grayscale failed"
-  uint16_t LevelSetIncompatible; // "Levelset incompatible"
-  uint16_t OverWrite;            // "Overwrite?"
-  uint16_t KeyConfigTexts;       // "Buttons:"
-};
-
-extern struct gametextdata GameTextData;
-extern char *Texts;
 
 /*
 typedef struct{//Optimize! Skip some unnesseccarry variables, use macros in

@@ -1,0 +1,427 @@
+{
+  "en": {
+    "language": "English",
+    "texts": {
+      "menus": {
+        "main_menu": [
+          "Main menu:",
+          "New game",
+          "Load game",
+          "Options",
+          "Quit"
+        ],
+        "Save": [
+          "Save game:",
+          "Save 1",
+          "<empty>"
+        ],
+        "load_menu": [
+          "Load game:",
+          "Save 1",
+          "<empty>"
+        ],
+        "Options": [
+          "Options:",
+          "Statusbar",
+          "Controls",
+          "Back"
+        ],
+        "Statusbar": [
+          "Statusbar:",
+          "On",
+          "Off",
+          "Roll in",
+          "Back"
+        ],
+        "Statusbar2": [
+          "Statusbar:",
+          "On",
+          "Off",
+          "Roll in",
+          "Back"
+        ],
+        "MidGameMap": [
+          "Mid-game menu:",
+          "Continue",
+          "Save game",
+          "Quit"
+        ],
+        "MidGameLevel": [
+          "Mid-game menu:",
+          "Resume",
+          "Quit"
+        ],
+        "GameOver": [
+          "Game over:",
+          "Continue",
+          "Quit"
+        ],
+        "OverWrite": [
+          "Overwrite?",
+          "No",
+          "Yes"
+        ],
+        "KeyConfigTexts": [
+          "Buttons:",
+          "Jump / Fly:",
+          "Run / Fire:"
+        ]
+      },
+      "strings": {
+        "Ending1": "THANK YOU MARIO, BUT OUR",
+        "Ending2": "PRINCESS IS IN ANOTHER CASTLE!",
+        "Ending3": "",
+        "ThankU1": "THANK YOU MARIO!",
+        "ThankU2": "YOU ARE MY HERO!",
+        "ThankU3": "*KISS*",
+        "MemError": "Out of memory!",
+        "GfXErr": "Failed to open GFX file",
+        "MapError": "Could not load map",
+        "LevelError": "Could not load level",
+        "LevelsetError": "No levelset found!",
+        "GrayError": "Grayscale failed",
+        "LevelSetIncompatible": "Levelset incompatible\rNew version available"
+      }
+    }
+  },
+  "de": {
+    "language": "Deutsch",
+    "texts": {
+      "menus": {
+        "main_menu": [
+          "Hauptmenü:",
+          "Neues Spiel",
+          "Spiel laden",
+          "Optionen",
+          "Beenden"
+        ],
+        "Save": [
+          "Spiel speichern:",
+          "Speicher 1",
+          "<leer>"
+        ],
+        "load_menu": [
+          "Spiel laden:",
+          "Speicher 1",
+          "<leer>"
+        ],
+        "Options": [
+          "Optionen:",
+          "Statuszeile",
+          "Steuerung",
+          "Zurück"
+        ],
+        "Statusbar": [
+          "Statuszeile:",
+          "An",
+          "Aus",
+          "Einblenden",
+          "Zurück"
+        ],
+        "Statusbar2": [
+          "Statuszeile:",
+          "An",
+          "Aus",
+          "Einblenden",
+          "Zurück"
+        ],
+        "MidGameMap": [
+          "Im-Spiel Menü:",
+          "Fortsetzen",
+          "Spiel speichern",
+          "Beenden"
+        ],
+        "MidGameLevel": [
+          "Im-Spiel Menü:",
+          "Fortsetzen",
+          "Beenden"
+        ],
+        "GameOver": [
+          "Game over:",
+          "Fortsetzen",
+          "Beenden"
+        ],
+        "OverWrite": [
+          "Überschreiben?",
+          "Nein",
+          "Ja"
+        ],
+        "KeyConfigTexts": [
+          "Tasten:",
+          "Springen:",
+          "Laufen:"
+        ]
+      },
+      "strings": {
+        "Ending1": "DANKE MARIO, ABER UNSERE",
+        "Ending2": "PRINZESSIN IST IN EINEM",
+        "Ending3": "ANDEREM SCHLOSS!",
+        "ThankU1": "DANKE MARIO!",
+        "ThankU2": "DU BIST MEIN HELD!",
+        "ThankU3": "*KUSS*",
+        "MemError": "Nicht genug Speicher!",
+        "GfXErr": "Fehler beim Öffnen\reieer GFX-Datei",
+        "MapError": "Karte konnte nicht\rgeladen werden",
+        "LevelError": "Level konnte nicht\rgeladen werden",
+        "LevelsetError": "Kein Levelsatz gefunden!",
+        "GrayError": "Graustufen fehlerhaft",
+        "LevelSetIncompatible": "Inkompatibler Levelsatz\rNeue Version verfügbar"
+      }
+    }
+  },
+  "es": {
+    "language": "Español",
+    "texts": {
+      "menus": {
+        "main_menu": [
+          "Menú principal:",
+          "Juego nuevo",
+          "Cargar partida",
+          "Options",
+          "Salir"
+        ],
+        "Save": [
+          "Guardar partida:",
+          "Partida 1",
+          "<Vacio>"
+        ],
+        "load_menu": [
+          "Cargar partida:",
+          "Partida 1",
+          "<Vacio>"
+        ],
+        "Options": [
+          "Options:",
+          "Statusbar",
+          "Controls",
+          "Back"
+        ],
+        "Statusbar": [
+          "Statusbar:",
+          "On",
+          "Off",
+          "Roll in",
+          "Back"
+        ],
+        "Statusbar2": [
+          "Statusbar:",
+          "On",
+          "Off",
+          "Roll in",
+          "Back"
+        ],
+        "MidGameMap": [
+          "Menú-medio:",
+          "Continuar",
+          "Guardar juego",
+          "Salir"
+        ],
+        "MidGameLevel": [
+          "Menú-medio:",
+          "Resumen",
+          "Salir"
+        ],
+        "GameOver": [
+          "Game over:",
+          "Continuar",
+          "Salir"
+        ],
+        "OverWrite": [
+          "Sobrescribir?",
+          "No",
+          "Si"
+        ],
+        "KeyConfigTexts": [
+          "Botones:",
+          "Ir / Volar:",
+          "Correr:"
+        ]
+      },
+      "strings": {
+        "Ending1": "¡GRACIAS ,MARIO,",
+        "Ending2": "PERO NUESTRA PRINCECA",
+        "Ending3": "ESTA EN  OTRO  CASTILLO!",
+        "ThankU1": "¡GRACIAS ,MARIO!",
+        "ThankU2": "¡ERES MI HEROE!",
+        "ThankU3": "*KISS*",
+        "MemError": "¡Baja memoria!",
+        "GfXErr": "No se pudo abrir el\r archivo de GFX",
+        "MapError": "¡No se puede cargar\rel mundo!",
+        "LevelError": "¡No se puede cargar\rel nivel!",
+        "LevelsetError": "¡Ningún set de nivel\rencontrado!",
+        "GrayError": "¡Falla en la escala\rde grises!",
+        "LevelSetIncompatible": "¡Set de nivel incompatible!\r¡Se necesita una nueva version!"
+      }
+    }
+  },
+  "fr": {
+    "language": "Français",
+    "texts": {
+      "menus": {
+        "main_menu": [
+          "Menu principal:",
+          "Nouveau jeu",
+          "Charger jeu",
+          "Options",
+          "Quitter"
+        ],
+        "Save": [
+          "Sauvegarder:",
+          "Sauvegarde 1",
+          "<vide>"
+        ],
+        "load_menu": [
+          "Charger jeu:",
+          "Sauvegarde 1",
+          "<vide>"
+        ],
+        "Options": [
+          "Options:",
+          "Barre d'info",
+          "Contrôles",
+          "Retour"
+        ],
+        "Statusbar": [
+          "Barre d'info:",
+          "Activée",
+          "Désactivée",
+          "Masquée",
+          "Retour"
+        ],
+        "Statusbar2": [
+          "Barre d'info:",
+          "Activée",
+          "Désactivée",
+          "Masquée",
+          "Retour"
+        ],
+        "MidGameMap": [
+          "Partie en cours:",
+          "Continuer",
+          "Sauvegarder",
+          "Quitter"
+        ],
+        "MidGameLevel": [
+          "Partie en cours:",
+          "Reprendre",
+          "Quitter"
+        ],
+        "GameOver": [
+          "Game over:",
+          "Continuer",
+          "Quitter"
+        ],
+        "OverWrite": [
+          "Écraser?",
+          "Non",
+          "Oui"
+        ],
+        "KeyConfigTexts": [
+          "Boutons:",
+          "Saut/Mouche:",
+          "Courir:"
+        ]
+      },
+      "strings": {
+        "Ending1": "MERCI MARIO, MAIS NOTRE",
+        "Ending2": "PRINCESSE EST DANS",
+        "Ending3": "UN AUTRE CHÂTEAU!",
+        "ThankU1": "MERCI MARIO!",
+        "ThankU2": "TU ES  MON HÉROS!",
+        "ThankU3": "*BISOU*",
+        "MemError": "Pas assez de mémoire!",
+        "GfXErr": "Impossible d'ouvrir\rle fichier GFX",
+        "MapError": "Impossible de charger\rla carte",
+        "LevelError": "Impossible de charger\rla niveau",
+        "LevelsetError": "Aucun niveau détecté!",
+        "GrayError": "Impossible d'activer\rles nx de gris",
+        "LevelSetIncompatible": "Niveaux incompatibles\rNouvelle version\rdisponible"
+      }
+    }
+  },
+  "no": {
+    "language": "Norsk",
+    "texts": {
+      "menus": {
+        "main_menu": [
+          "Meny:",
+          "Nytt spill",
+          "Fortsett",
+          "Valg",
+          "Avslutt"
+        ],
+        "Save": [
+          "Lagre:",
+          "Spill 1",
+          "<tom>"
+        ],
+        "load_menu": [
+          "Fortsett:",
+          "Spill 1",
+          "<tom>"
+        ],
+        "Options": [
+          "Valg:",
+          "Statusbar",
+          "Taster",
+          "Tilbake"
+        ],
+        "Statusbar": [
+          "Statusbar:",
+          "Av",
+          "På",
+          "Rull inn",
+          "Tilbake"
+        ],
+        "Statusbar2": [
+          "Statusbar:",
+          "Av",
+          "På",
+          "Rull inn",
+          "Tilbake"
+        ],
+        "MidGameMap": [
+          "Meny:",
+          "Fortsett",
+          "Lagre",
+          "Avslutt"
+        ],
+        "MidGameLevel": [
+          "Meny:",
+          "Fortsett",
+          "Avslutt"
+        ],
+        "GameOver": [
+          "Spill over:",
+          "Fortsett",
+          "Avslutt"
+        ],
+        "OverWrite": [
+          "Overskrive?",
+          "Nei",
+          "Ja"
+        ],
+        "KeyConfigTexts": [
+          "Taster:",
+          "Hopp / Fly:",
+          "Løp / Skyt:"
+        ]
+      },
+      "strings": {
+        "Ending1": "TAKK MARIO, MEN",
+        "Ending2": "PRINSESSEN ER I ET ANNET SLOTT!",
+        "Ending3": "",
+        "ThankU1": "TAKK MARIO!",
+        "ThankU2": "DU ER MIN HELT!",
+        "ThankU3": "*KYSS*",
+        "MemError": "Tom for minne!",
+        "GfXErr": "Kunne ikke åpne Grafikkfil",
+        "MapError": "Kunne ikke laste kart",
+        "LevelError": "Kunne ikke laste brett",
+        "LevelsetError": "Ingen levelset funnet!",
+        "GrayError": "Grayscale feilet",
+        "LevelSetIncompatible": "Levelset incompatible\rNew version available"
+      }
+    }
+  }
+}
