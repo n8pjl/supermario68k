@@ -11,8 +11,8 @@
 // none of the game's parsing had to change.
 //
 // Writes (savegames) buffer in memory and are flushed to localStorage on
-// FClose, keyed by variable name. A file that has been saved shadows the
-// shipped blob on subsequent reads.
+// FClose, one versioned JSON record per variable name (see tios.c). A file
+// that has been saved shadows the shipped blob on subsequent reads.
 
 #include "utils.h"
 #include <stddef.h>

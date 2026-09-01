@@ -1,4 +1,5 @@
 #include "tios.h"
+#include "../version.h"
 #include <stdint.h>
 
 #include <emscripten.h>
@@ -33,9 +34,19 @@ static struct var_t *find_slot(const char *name)
 	return NULL;
 }
 
-// A save written this session shadows the shipped blob. It is kept base64 so it
-// survives localStorage's string-only values; the base64 itself is done in JS
-// with Uint8Array.{to,from}Base64() rather than a codec hand-rolled here.
+// A save written this session shadows the shipped blob.
+//
+// Each save is one localStorage entry holding a JSON record:
+//
+//   {"version":1,"name":"world1","data":"<base64>","saved":"<ISO 8601>"}
+//
+// SAVE_VERSION (version.h) is what a future format change keys off: a record
+// carrying any other version is ignored rather than guessed at, so the game
+// falls back to the shipped blob instead of parsing a save it cannot
+// understand. The payload is a raw TIOS variable block, so it stays base64
+// inside the record - JSON has no byte string, and localStorage no non-string
+// value. The base64 is done in JS with Uint8Array.{to,from}Base64() rather
+// than a codec hand-rolled here.
 static uint8_t *load_from_storage(const char *name, size_t *out_len)
 {
 	// Decode in JS in two steps - first return the decoded byte count, then
@@ -46,28 +57,31 @@ static uint8_t *load_from_storage(const char *name, size_t *out_len)
 
   int len = EM_ASM_INT({
 	// clang-format off
+		// Everything below throws rather than returns on bad input -
+		// a missing entry, a record that is not JSON, a version that
+		// is not ours, base64 that does not decode - and the catch
+		// turns all of it into the same "no save here" answer.
 		try {
-			const v = localStorage.getItem(`sm68k/${UTF8ToString($0)}`);
-			if (!v) {
-				globalThis.__sm68kSave = null;
-				return -1;
-			}
-			const arr = Uint8Array.fromBase64(v);
+			const rec = JSON.parse(
+				localStorage.getItem(`sm68k/${UTF8ToString($0)}`));
+			if (rec.version !== $1 || typeof rec.data !== "string")
+				throw 0;
+
+			const arr = Uint8Array.fromBase64(rec.data);
 			globalThis.__sm68kSave = arr;
 			return arr.length;
-		} catch (e) {
+		} catch {
 			globalThis.__sm68kSave = null;
 			return -1;
 		}
 // clang-format on
-}, name);
+}, name, SAVE_VERSION);
 if (len < 0)
 	return NULL;
 
 uint8_t *out = malloc((size_t)len + 1); // +1: never malloc(0)
 if (!out) {
-	EM_ASM({ globalThis.__sm68kSave = null;
-	});
+	EM_ASM({ globalThis.__sm68kSave = null; });
 	return NULL;
 }
 EM_ASM(
@@ -89,10 +103,16 @@ static void save_to_storage(const char *name, const uint8_t *data, size_t len)
 			// slice() copies the range out of the wasm heap;
 			// toBase64() then encodes that copy.
 			const b64 = HEAPU8.slice($1, $1 + $2).toBase64();
-			localStorage.setItem(`sm68k/${UTF8ToString($0)}`, b64);
+			const name = UTF8ToString($0);
+			localStorage.setItem(`sm68k/${name}`, JSON.stringify({
+				version: $3,
+				name: name,
+				data: b64,
+				saved: new Date().toISOString(),
+			}));
 		} catch {}
 // clang-format on
-}, name, data, len);
+}, name, data, len, SAVE_VERSION);
 }
 
 // Pull a variable into memory: a localStorage save if one exists, otherwise the
