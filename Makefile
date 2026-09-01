@@ -1,7 +1,4 @@
 CC = emcc
-# -fcommon: the sources rely on pre-C99 tentative definitions (globals declared
-# in headers without extern), which old GCC merged. Modern clang defaults to
-# -fno-common and would report them as duplicate symbols.
 # -fgnu89-inline: `inline` here means the pre-C99 GNU semantics the sources were
 # written against, where a header's inline declaration does not suppress the
 # out-of-line definition in the .c file.
