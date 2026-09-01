@@ -13,5 +13,6 @@ node_modules/
 # Build target stamps
 .calc-stamp
 .data-stamp
+.dist-stamp
 # Python bytecode from the tools
 __pycache__/

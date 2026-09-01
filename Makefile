@@ -31,16 +31,12 @@ TARGET = $(BUILDDIR)/mario.js
 # skips only swaps the launcher shim for that binary.
 ESBUILD = ./node_modules/.bin/esbuild
 
-# --target=esnext rather than a particular year: at anything older esbuild
-# strips the `with { type: "json" }` attribute off shell.js's ma_texts import,
-# and a browser then refuses the module over its MIME type. Nothing is lost by
-# it - the shell already asks for browsers far newer than any syntax involved.
-ESBUILD_JS = $(ESBUILD) --minify --format=esm --target=esnext
-
-# Everything served, in its built location. $(OUTDIR)/$(NAMES) would only
-# prefix the first word, hence addprefix.
-DIST = $(addprefix $(OUTDIR)/,index.html shell.js shell.css ma_texts.json \
-                              mario.js mario.wasm mario.data)
+# What is served is built in one pass by tools/mkdist.py, which minifies each
+# file and renames it to carry a hash of its contents - see the comment at the
+# top of that script for why, and for the order it has to work in. Those names
+# cannot be make targets: they are not known until the bytes being hashed
+# exist. This stamp is what make tracks in their place.
+DIST = .dist-stamp
 
 NAMES = main.c enemies.c gameloop.c items.c player.c render.c \
         scankeys.c shells.c custom.c objects.c flying.c smallgames.c \
@@ -92,35 +88,21 @@ $(TARGET): $(OBJS) .data-stamp Makefile | $(BUILDDIR)
 # they are already up to date once $(TARGET) is, rather than having no rule.
 $(BUILDDIR)/mario.wasm $(BUILDDIR)/mario.data: $(TARGET) ;
 
-$(OUTDIR)/mario.js: $(TARGET) | $(OUTDIR) $(ESBUILD)
-	$(ESBUILD_JS) $< --outfile=$@
+# mkdist.py empties $(OUTDIR) and refills it, so there is nothing here for make
+# to build incrementally and nothing for a stale hash to survive in.
+$(DIST): $(TARGET) $(BUILDDIR)/mario.wasm $(BUILDDIR)/mario.data \
+         index.html shell.js shell.css ma_texts.json \
+         tools/mkdist.py Makefile | $(ESBUILD)
+	ESBUILD=$(ESBUILD) python3 tools/mkdist.py $(BUILDDIR) $(OUTDIR)
+	@touch $@
 
-# The wasm and the preloaded data are already as small as they are going to get.
-$(OUTDIR)/mario.wasm $(OUTDIR)/mario.data: $(OUTDIR)/%: $(BUILDDIR)/% | $(OUTDIR)
-	cp $< $@
-
-$(OUTDIR)/shell.js: shell.js | $(OUTDIR) $(ESBUILD)
-	$(ESBUILD_JS) $< --outfile=$@
-
-$(OUTDIR)/shell.css: shell.css | $(OUTDIR) $(ESBUILD)
-	$(ESBUILD) $< --minify --outfile=$@
-
-# ma_texts.json is indented for the person editing it; nothing that reads it
-# cares. ensure_ascii=False keeps the accented text as UTF-8 rather than
-# doubling its size in \u escapes.
-$(OUTDIR)/ma_texts.json: ma_texts.json | $(OUTDIR)
-	python3 -c 'import json,sys; json.dump(json.load(open(sys.argv[1])), \
-	    open(sys.argv[2], "w"), separators=(",", ":"), ensure_ascii=False)' $< $@
-
-$(OUTDIR)/index.html: index.html | $(OUTDIR)
-	cp $< $@
-
-# Order-only everywhere it is used: reinstalling must not relink or re-minify.
+# Order-only where it is used: reinstalling the minifier must not force a
+# rebuild of anything it did not change.
 $(ESBUILD): package-lock.json
 	npm ci --ignore-scripts
 	@touch $@
 
-$(OUTDIR) $(BUILDDIR):
+$(BUILDDIR):
 	mkdir -p $@
 
 %.o: %.c
@@ -133,5 +115,5 @@ format: $(SRCS) $(HDRS)
 -include $(DEPS)
 
 clean:
-	rm -f $(OBJS) $(DEPS) .calc-stamp .data-stamp
+	rm -f $(OBJS) $(DEPS) .calc-stamp .data-stamp $(DIST)
 	rm -rf $(OUTDIR) $(BUILDDIR) data
