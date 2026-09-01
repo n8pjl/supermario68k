@@ -19,12 +19,28 @@ SRCDIR = src
 
 OUTDIR = dist
 
-TARGET = $(OUTDIR)/mario.js
+# Emscripten links into here rather than straight into $(OUTDIR). Everything is
+# minified on its way across, and esbuild will not write over its own input.
+BUILDDIR = build
 
-# Static files served alongside the wasm. COPIES is the list of their built
-# locations: $(OUTDIR)/$(COPY) would only prefix the first word.
-COPY = index.html shell.js shell.css ma_texts.json
-COPIES = $(addprefix $(OUTDIR)/,$(COPY))
+TARGET = $(BUILDDIR)/mario.js
+
+# esbuild is pinned in package.json, so the shipped bytes do not change under us
+# when a new version lands. --ignore-scripts on the install because the binary
+# is resolved out of @esbuild/<platform> at run time anyway - the postinstall it
+# skips only swaps the launcher shim for that binary.
+ESBUILD = ./node_modules/.bin/esbuild
+
+# --target=esnext rather than a particular year: at anything older esbuild
+# strips the `with { type: "json" }` attribute off shell.js's ma_texts import,
+# and a browser then refuses the module over its MIME type. Nothing is lost by
+# it - the shell already asks for browsers far newer than any syntax involved.
+ESBUILD_JS = $(ESBUILD) --minify --format=esm --target=esnext
+
+# Everything served, in its built location. $(OUTDIR)/$(NAMES) would only
+# prefix the first word, hence addprefix.
+DIST = $(addprefix $(OUTDIR)/,index.html shell.js shell.css ma_texts.json \
+                              mario.js mario.wasm mario.data)
 
 NAMES = main.c enemies.c gameloop.c items.c player.c render.c \
         scankeys.c shells.c custom.c objects.c flying.c smallgames.c \
@@ -43,7 +59,7 @@ DEPS = $(OBJS:.o=.d)
 
 .PHONY: all clean data FORCE
 
-all: $(TARGET) $(COPIES)
+all: $(DIST)
 
 # Both the objects and the data depend on which calculator is being built for,
 # so record it in a stamp file that changes whenever CALC does. Without this,
@@ -69,13 +85,42 @@ $(OBJS): .calc-stamp Makefile
 
 # Order-only: the link also drops mario.wasm and mario.data next to $@, so the
 # directory has to exist, but its timestamp must not force a relink.
-$(TARGET): $(OBJS) .data-stamp Makefile | $(OUTDIR)
+$(TARGET): $(OBJS) .data-stamp Makefile | $(BUILDDIR)
 	$(CC) $(OBJS) $(LDFLAGS) -o $@
 
-$(OUTDIR)/%: % | $(OUTDIR)
+# Byproducts of that link. Naming them with an empty recipe is what tells make
+# they are already up to date once $(TARGET) is, rather than having no rule.
+$(BUILDDIR)/mario.wasm $(BUILDDIR)/mario.data: $(TARGET) ;
+
+$(OUTDIR)/mario.js: $(TARGET) | $(OUTDIR) $(ESBUILD)
+	$(ESBUILD_JS) $< --outfile=$@
+
+# The wasm and the preloaded data are already as small as they are going to get.
+$(OUTDIR)/mario.wasm $(OUTDIR)/mario.data: $(OUTDIR)/%: $(BUILDDIR)/% | $(OUTDIR)
 	cp $< $@
 
-$(OUTDIR):
+$(OUTDIR)/shell.js: shell.js | $(OUTDIR) $(ESBUILD)
+	$(ESBUILD_JS) $< --outfile=$@
+
+$(OUTDIR)/shell.css: shell.css | $(OUTDIR) $(ESBUILD)
+	$(ESBUILD) $< --minify --outfile=$@
+
+# ma_texts.json is indented for the person editing it; nothing that reads it
+# cares. ensure_ascii=False keeps the accented text as UTF-8 rather than
+# doubling its size in \u escapes.
+$(OUTDIR)/ma_texts.json: ma_texts.json | $(OUTDIR)
+	python3 -c 'import json,sys; json.dump(json.load(open(sys.argv[1])), \
+	    open(sys.argv[2], "w"), separators=(",", ":"), ensure_ascii=False)' $< $@
+
+$(OUTDIR)/index.html: index.html | $(OUTDIR)
+	cp $< $@
+
+# Order-only everywhere it is used: reinstalling must not relink or re-minify.
+$(ESBUILD): package-lock.json
+	npm ci --ignore-scripts
+	@touch $@
+
+$(OUTDIR) $(BUILDDIR):
 	mkdir -p $@
 
 %.o: %.c
@@ -89,4 +134,4 @@ format: $(SRCS) $(HDRS)
 
 clean:
 	rm -f $(OBJS) $(DEPS) .calc-stamp .data-stamp
-	rm -rf $(OUTDIR) data
+	rm -rf $(OUTDIR) $(BUILDDIR) data
