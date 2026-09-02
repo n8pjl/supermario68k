@@ -980,7 +980,7 @@ void Handle_player_map()
 #ifdef debug
 	SavePlayer.L = 0; // Debug mode: can allways pass any uncompleted level
 #endif
-};
+}
 
 void Enter_mushrom_house(uint8_t Treasure)
 {
@@ -1008,7 +1008,7 @@ void Enter_mushrom_house(uint8_t Treasure)
 	Map_plane.p.force_update = 1;
 
 	Exit = 0;
-};
+}
 
 void Enter_enemy_ship(struct map_object *Ship)
 {
@@ -1178,7 +1178,7 @@ void Enter_enemy_ship(struct map_object *Ship)
 	}
 
 	// Exit=0;
-};
+}
 
 void Handle_map_objects()
 {
@@ -1416,7 +1416,7 @@ void Handle_map_monster(struct map_object *Monster)
 			Monster->Data0 += Monster->Data1;
 		}
 	}
-};
+}
 /*
 void Enter_map_anim(){
 
@@ -1485,7 +1485,7 @@ void Enter_level_anim()
 
 		display = (display + 1) % 8;
 	}
-};
+}
 
 void Fight_monster(struct map_object *Monster)
 {
@@ -1529,7 +1529,7 @@ int16_t Free_left_map(int16_t X, int16_t Y)
 	}
 
 	return DX;
-};
+}
 
 int16_t Free_right_map(int16_t X, int16_t Y)
 {
@@ -1544,7 +1544,7 @@ int16_t Free_right_map(int16_t X, int16_t Y)
 	}
 
 	return DX;
-};
+}
 
 int16_t Free_up_map(int16_t X, int16_t Y)
 {
@@ -1558,7 +1558,7 @@ int16_t Free_up_map(int16_t X, int16_t Y)
 	}
 
 	return DY;
-};
+}
 
 int16_t Free_down_map(int16_t X, int16_t Y)
 {
@@ -1572,7 +1572,7 @@ int16_t Free_down_map(int16_t X, int16_t Y)
 	}
 
 	return DY;
-};
+}
 
 void Replace_map_tile(uint8_t Tile)
 {
@@ -1671,7 +1671,7 @@ void Replace_by_road(int16_t X, int16_t Y)
 	}
 
 	Put_map_tile(X, Y, Tiles[6 * Map_data.Color + TileNr]);
-};
+}
 /*
 void Add_money_ship(){
         short C;
@@ -1775,4 +1775,4 @@ void Add_map_event(uint8_t Event)
 			}
 		}
 	}
-};
+}

@@ -60,4 +60,4 @@ void Errorhandler(char Error)
 	}
 
 	WaitKeyPress();
-};
+}

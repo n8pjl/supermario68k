@@ -64,4 +64,4 @@ int16_t Show_titlescreen()
 	WaitKeyPress();
 
 	return 0;
-};
+}

@@ -206,7 +206,7 @@ failure: // save failed
 	/*while(_rowread(0));//wait until key released
   while(!_rowread(0));//wait until key pressed*/
 	WaitKeyPress();
-};
+}
 
 void Loadgame(char Slot /* , char* Raw0*/)
 {
@@ -315,7 +315,7 @@ void Loadgame(char Slot /* , char* Raw0*/)
 
 		// Handle_map_monster
 	}
-};
+}
 
 HANDLE
 File_get_pointer_and_lock(const char *FileName /*,SYM_ENTRY* File_sym*/)
@@ -339,4 +339,4 @@ File_get_pointer_and_lock(const char *FileName /*,SYM_ENTRY* File_sym*/)
           }*/
 
 	return Temp;
-};
+}

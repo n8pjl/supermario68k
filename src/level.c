@@ -1161,7 +1161,7 @@ bg_filedata Bg_fileinfo;
 Bg_data.Width; Bg_plane.force_update = 1; Leveldata.Bg_height = Bg_data.Height;
   Leveldata.Background = Bg_nr;
   */
-};
+}
 
 // The map payload - the tile matrix, then the triggers, then the objects - is
 // the one block mkdata.py cannot reach: where it starts depends on
@@ -1323,10 +1323,10 @@ if( !(Temp = Levelfile_sym->handle) ){
 	}
 
 	return 0;
-};
+}
 
 void Free(void *Mem)
 {
 	if (Mem)
 		free(Mem);
-};
+}

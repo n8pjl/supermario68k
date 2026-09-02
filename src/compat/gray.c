@@ -29,7 +29,7 @@ EM_JS(void, pageflip, (const void *rgba, int16_t w, int16_t h), {
 	const view = new Uint8ClampedArray(HEAPU8.buffer, rgba, w * h * 4);
 	ctx.putImageData(new ImageData(view, w, h), 0, 0);
 	// clang-format on
-});
+})
 
 // Suspends via JSPI until the frame is due, at the pace the current scene asked
 // for.
@@ -47,7 +47,7 @@ EM_ASYNC_JS(void, wait_for_frame, (double period), {
 	}
 	globalThis.__smPrevFrame = now - (elapsed % period);
 	// clang-format on
-});
+})
 
 static int16_t frame_rate = FPS;
 

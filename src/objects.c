@@ -80,7 +80,7 @@ void Handle_timed_coinconvert(struct object *Object)
 		Convert_brick_coin();
 		Object->Active = 0;
 	}
-};
+}
 
 /*
 void Handle_elastic_tile(object *Object){//data2: b7:up b6:down b5:left b4:right
@@ -171,7 +171,7 @@ void Splash(int16_t X, int16_t Y)
 		//(object*)Objects[C].Handler = Dummy_func_;
 		Objects[C].Draw = Draw_splash;
 	}
-};
+}
 
 int16_t Find_free_object()
 {

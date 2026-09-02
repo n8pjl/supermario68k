@@ -112,7 +112,7 @@ void DrawSprite16SMASKR(int16_t X, int16_t Y, int16_t H, const uint16_t *sprt0,
 {
 	GrayClipSprite16_SMASK_R(X, Y, H, sprt0, sprt1, mask, dBufHPL_G,
 				 dBufHPD_G);
-};
+}
 
 void DrawSprite(register int16_t X, register int16_t Y, register int16_t H,
 		const uint16_t *sprt0, int16_t H2)
@@ -134,7 +134,7 @@ void DrawMarioCursor(int16_t X, int16_t Y)
 	DrawSprite16SMASKR(X, Y, 16, Mariosprites + 2 * Marioanimtab[1][0],
 			   Mariosprites + 2 * Marioanimtab[1][0] + 16,
 			   Mariomasks + Marioanimtab[1][0]);
-};
+}
 
 void DrawSpriteUpsideDown(register int16_t X, register int16_t Y,
 			  register int16_t H, uint16_t *sprt0, int16_t H2)
@@ -169,7 +169,7 @@ void DrawBg(int16_t X, int16_t Y)
 {
 	DrawGrayPlane(X, Y, &Bg_plane, dBufHPL_G, dBufHPD_G, drawmode_bg,
 		      TM_G16B_ROLL);
-};
+}
 
 void Render() // this function renders all graphics
 {
@@ -479,7 +479,7 @@ void Draw_brick_fragments(struct object *Object)
 				/*(Object->Y-8*Object->Data1)-FgY*/ Y2, 8,
 				Sprite, Sprite + 8, Sprite + 16, dBufHPL_G,
 				dBufHPD_G);
-};
+}
 
 void Draw_killed_fireballs(struct object *Object)
 {
@@ -508,7 +508,7 @@ void Draw_killed_fireballs(struct object *Object)
 	// /*Object->*/Data0,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
 	DrawSprite16SMASKR(Object->X - FgX, Object->Y - FgY, 16, blank_sprite,
 			   blank_sprite, fireball_hit_anim + Data0);
-};
+}
 
 void Draw_elastic_tiles(struct object *Object)
 { // data2: b7:up b6:down b5:left b4:right
@@ -545,7 +545,7 @@ void Draw_elastic_tiles(struct object *Object)
 		(uint16_t *)Fg_plane.p.sprites + Object->Data1 * 32,
 		/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
 		/*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
-};
+}
 
 void Draw_bb_coin(struct object *Object)
 {
@@ -581,7 +581,7 @@ void Draw_bb_coin(struct object *Object)
 		   bb_coin_anim_sprite + (2 * Object->Data0), Object->Data1);
 
 	// bb_coin_anim_mask+Object->Data0
-};
+}
 
 void Draw_score(struct object *Object)
 {
@@ -593,7 +593,7 @@ void Draw_score(struct object *Object)
 
 	DrawSprite(Object->X, Object->Y, 8, score_sprites + (Object->Data0), 8);
 	// score_masks+Object->Data0*8
-};
+}
 
 void Draw_collided_shells(struct object *Object)
 {
@@ -621,7 +621,7 @@ void Draw_collided_shells(struct object *Object)
 			     (Object->Active == 2 ? beetle_shell_sprite :
 						    shell_0_sprite),
 			     16);
-};
+}
 
 void Draw_climbing_flower(struct object *Object)
 {
@@ -650,7 +650,7 @@ void Draw_climbing_flower(struct object *Object)
 		   flower1_sprite +
 			   3 * (Fg_plane.step % 2 ? 0 : 32) /*Animoffset*/,
 		   32);
-};
+}
 
 void Draw_killed_cannonballs(struct object *Object)
 {
@@ -660,7 +660,7 @@ void Draw_killed_cannonballs(struct object *Object)
 	// GrayClipSprite16_SMASK_R(Object->X-FgX,Object->Y-FgY,Object->Data1,cannonball_horiz_left_spr+Object->Data0,cannonball_horiz_left_spr+Object->Data0+Object->Data1,cannonball_horiz_left_spr+Object->Data0+2*Object->Data1,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
 	DrawSprite(Object->X, Object->Y, Object->Data1,
 		   cannonball_horiz_left_spr + Object->Data0, Object->Data1);
-};
+}
 
 void Draw_splash(struct object *Object)
 {
@@ -832,7 +832,7 @@ void Update_statusbar()
 	memcpy(/*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G +
 		       statusbar_offset,
 	       Statusbar + 240, 240);
-};
+}
 
 void Draw_statusbar()
 {
@@ -850,7 +850,7 @@ void Draw_statusbar()
 			 Statusbar + 240);
 
 	Update_statusbar();
-};
+}
 
 void Draw_player()
 {
@@ -958,7 +958,7 @@ void Draw_player()
 
 		// GrayClipSprite16_MASK_R(Player.X-FgX,Player.Y-FgY-1,5,racoon_cap_spr+10*Marioanimtab[4+Player.Spritebase][Player.Spritenr],racoon_cap_spr+5+10*Marioanimtab[4+Player.Spritebase][Player.Spritenr],racoon_cap_msk+5*Marioanimtab[4+Player.Spritebase][Player.Spritenr],racoon_cap_msk+5*Marioanimtab[4+Player.Spritebase][Player.Spritenr],GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
 	}
-};
+}
 
 void Render_map()
 {
@@ -1274,7 +1274,7 @@ void Render_map()
   dBufHPD_G = GrayDBufGetHiddenPlane(DARK_PLANE);
   */
 	GrayDBufToggleSync_SetPointers();
-};
+}
 
 void DrawItem(int16_t X, int16_t Y, int16_t Item)
 {

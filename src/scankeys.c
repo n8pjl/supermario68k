@@ -17,7 +17,7 @@ EM_ASYNC_JS(void, browser_wait_no_actions_held, (void), {
     await new Promise((resolve) => { requestAnimationFrame(resolve) });
   }
 	// clang-format on
-});
+})
 
 // Waits for an action to be pressed. The keyboard and the on-screen pads resolve
 // the shell's promise when they press one; a controller has nothing to fire an
@@ -54,7 +54,7 @@ EM_ASYNC_JS(void, browser_action_pressed, (void), {
   Module.keyPressPromises.keydown = null;
   abortController.abort();
 	// clang-format on
-});
+})
 
 void WaitKeyReleased()
 {
@@ -65,7 +65,7 @@ void WaitKeyPress()
 {
 	browser_wait_no_actions_held();
 	browser_action_pressed();
-};
+}
 
 void ScanKeys(void)
 {

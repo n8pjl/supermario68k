@@ -26,7 +26,7 @@ static int16_t RollX_176(int16_t X)
 			return X;
 		}
 	}
-};
+}
 
 static int16_t Find_stop_pos(int16_t X)
 {
@@ -304,7 +304,7 @@ void Enter_game_house()
 		for (C = 0; C < 7500; C++)
 			; // delay
 	}
-};
+}
 
 void New_card_game()
 {

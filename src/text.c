@@ -87,7 +87,7 @@ char *get_string_locale(const char *str_id)
 
 	return str;
 }
-EM_JS_DEPS(get_string_locale, "$AsciiToString,malloc");
+EM_JS_DEPS(get_string_locale, "$AsciiToString,malloc")
 
 static int16_t do_menu_inner(struct menu_text *options)
 {

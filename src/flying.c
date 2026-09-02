@@ -25,7 +25,7 @@ void Handle_flying_platforms()
 				Flying_platforms[C].Active = 0;
 		}
 	}
-};
+}
 
 void Platform_handler_1(struct flying_platform *Platform)
 {
@@ -135,7 +135,7 @@ void Platform_handler_1(struct flying_platform *Platform)
 				   Platform->Width * 16))
 			Player_die_hard();
 	}
-};
+}
 
 void Platform_handler_2(struct flying_platform *Platform)
 {
@@ -149,7 +149,7 @@ void Platform_handler_2(struct flying_platform *Platform)
 	}
 
 	Platform_handler_1(Platform);
-};
+}
 
 void Platform_handler_3(struct flying_platform *Platform)
 {
@@ -207,4 +207,4 @@ void Platform_handler_3(struct flying_platform *Platform)
           Platform->Y += Platform->Data3;
   }
   */
-};
+}

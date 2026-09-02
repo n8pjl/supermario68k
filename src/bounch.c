@@ -18,4 +18,4 @@ void Add_bounching_tile(int16_t X, int16_t Y)
 			return;
 		}
 	}
-};
+}

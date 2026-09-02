@@ -623,7 +623,7 @@ void Enemy_handler_4(struct enemy *Enemy)
 	Enemy->Jumping = Jumping;
 	Enemy->Y = Y;
 	Enemy->Height = Enemy->Height2 = Height;
-};
+}
 
 void Enemy_handler_5(struct enemy *Enemy)
 {
@@ -715,7 +715,7 @@ void Enemy_handler_7(struct enemy *Enemy)
 		}
 	}
 	Enemy->Mode = Mode;
-};
+}
 
 void Enemy_handler_8(struct enemy *Enemy)
 { // flying turtle
@@ -809,7 +809,7 @@ void Enemy_handler_8(struct enemy *Enemy)
 		}
 		Enemy->Sprite = Sprite;
 	}
-};
+}
 
 static void Move_and_animate(struct enemy *Enemy)
 { // common func for all enemies using the
@@ -872,7 +872,7 @@ void Enemy_handler_9(struct enemy *Enemy)
 	} // end switch
 
 	Enemy->Mode++;
-};
+}
 
 void Enemy_handler_10(struct enemy *Enemy)
 { // jumping fireball
@@ -916,7 +916,7 @@ void Enemy_handler_10(struct enemy *Enemy)
 	} else {
 		Enemy->Sprite = lavaball_step_1_sprite;
 	}
-};
+}
 
 void Enemy_handler_11(struct enemy *Enemy)
 { // circulating fireball
@@ -951,7 +951,7 @@ void Enemy_handler_11(struct enemy *Enemy)
 	/*Enemy->*/ Data0 += Enemy->Face;
 	Enemy->Data0 = Data0; // doing this in two steps saves a few bytes
 	Enemy->Data1 += Enemy->Jumping;
-};
+}
 
 void Enemy_handler_12(struct enemy *Enemy)
 { // falling brick
@@ -998,7 +998,7 @@ void Enemy_handler_12(struct enemy *Enemy)
 	}
 	Enemy->Data0 = Data0;
 	Enemy->Jumping = Jumping;
-};
+}
 
 void Enemy_handler_13(struct enemy *Enemy)
 { // handles the jumping brick
@@ -1078,7 +1078,7 @@ void Enemy_handler_13(struct enemy *Enemy)
 	} else {
 		Enemy->Attribs = 0b10110101;
 	}
-};
+}
 
 void Enemy_handler_14(struct enemy *Enemy)
 { // handles horizontal cannon
@@ -1093,7 +1093,7 @@ void Enemy_handler_14(struct enemy *Enemy)
 		if ((Enemy->Face <= 0) && (Player.X < Enemy->X))
 			Enemy_add_cannonball_horiz(Enemy->X - 16, Enemy->Y, -2);
 	}
-};
+}
 
 void Enemy_handler_15(struct enemy *Enemy)
 { // handles diagonal cannons
@@ -1107,7 +1107,7 @@ void Enemy_handler_15(struct enemy *Enemy)
 		Enemy_add_cannonball(Enemy->X, Enemy->Y, Enemy->Face,
 				     Enemy->Data1);
 	}
-};
+}
 
 void Enemy_handler_16(struct enemy *Enemy)
 { // handles ghost
@@ -1213,7 +1213,7 @@ void Enemy_handler_16(struct enemy *Enemy)
 
 	Enemy->Mode = Mode;
 	Enemy->Y = Y;
-};
+}
 
 void Enemy_handler_17(struct enemy *Enemy)
 { // handles mad jumping/walking flower
@@ -1258,7 +1258,7 @@ void Enemy_handler_17(struct enemy *Enemy)
 	Enemy->Face = Face;
 	Enemy->Sprite = Sprite;
 	Enemy->Jumping = Jumping;
-};
+}
 
 void Enemy_handler_18(struct enemy *Enemy)
 { // fire monster
@@ -1306,7 +1306,7 @@ void Enemy_handler_18(struct enemy *Enemy)
 					     (Player.X < Enemy->X ? -1 : 1), 1);
 		break; //};
 	} // end switch
-};
+}
 
 void Enemy_handler_19(struct enemy *Enemy)
 { // flying fish
@@ -1345,7 +1345,7 @@ void Enemy_handler_19(struct enemy *Enemy)
 
 	Enemy->Y += /*Enemy->*/ Jumping;
 	Enemy->Jumping = Jumping;
-};
+}
 
 void Enemy_handler_20(struct enemy *Enemy)
 { // jellyfish
@@ -1382,7 +1382,7 @@ void Enemy_handler_20(struct enemy *Enemy)
 			Enemy->Data0--;
 		}
 	}
-};
+}
 
 void Enemy_handler_21(struct enemy *Enemy)
 { // bomb. WARNING: This is a really messy function!
@@ -1591,7 +1591,7 @@ void Enemy_handler_21(struct enemy *Enemy)
 			}
 		}
 	}
-};
+}
 
 void Spawn_bomb_common(struct enemy *Enemy)
 {
@@ -1782,7 +1782,7 @@ void Enemy_handler_23(struct enemy *Enemy)
 		} else { // right part, slave
 		}
 	}
-};
+}
 
 char Enemy_move_x(struct enemy *Enemy)
 {
@@ -1813,11 +1813,12 @@ char Enemy_move_x(struct enemy *Enemy)
 	}
 
 	return 0;
-};
+}
 
-void Dummy_func_(void *P) {
+void Dummy_func_(void *P)
+{
 	// nothing
-};
+}
 
 void Handle_hardkilled_enemies(struct enemy *Enemy)
 {
@@ -1862,7 +1863,7 @@ void Handle_hardkilled_enemies(struct enemy *Enemy)
 			}
 		}
 	}
-};
+}
 
 void Handle_dead_upside_down_enemies(struct enemy *Enemy)
 {
@@ -1870,7 +1871,7 @@ void Handle_dead_upside_down_enemies(struct enemy *Enemy)
 		Enemy->Active = 0;
 		// Enemy->Life = 0;
 	}
-};
+}
 
 // enemy die funcs. Handler the death sequence of the enemies. see enemies.txt
 // for details
@@ -1972,14 +1973,14 @@ void Enemy_die_7(struct enemy *Enemy)
 	Enemy->Mode = 120; // timer. Nr of frames to resurection
 	(Enemy->Die) = (void *)Dummy_func_; // E_dummy_handler;
 	Score_anim(Enemy->X, Enemy->Y - 8, score_100);
-};
+}
 
 void Enemy_die_8(struct enemy *Enemy)
 {
 	Enemy->Life = 0;
 	Add_dustsky(Enemy->X, Enemy->Y + Enemy->Height - 8);
 	Score_anim(Enemy->X, Enemy->Y - 8, score_100);
-};
+}
 
 void Enemy_die_9(struct enemy *Enemy)
 { // The death of the jumping brick
@@ -1990,7 +1991,7 @@ void Enemy_die_9(struct enemy *Enemy)
 	Add_break_brick_anim(Enemy->X, Enemy->Y);
 
 	Score_anim(Enemy->X, Enemy->Y - 8, score_100);
-};
+}
 
 #define scanwidth 7 * 16
 
@@ -2079,7 +2080,7 @@ void Enemy_die_10(struct enemy *Enemy)
 		(void *)Dummy_func_; // prevent this func to be executed twice,
 	// destroying treasure
 	Enemy_die_6(Enemy);
-};
+}
 
 void Enemy_die_11(struct enemy *Enemy)
 { // death of the bomb. Initializes countdown
@@ -2198,14 +2199,14 @@ void Handle_enemyshots()
 					0; // kill shot if outside screen
 		}
 	}
-};
+}
 
 void Enemy_fireball_handler(struct shot *Fireball)
 {
 	Fireball->X += Fireball->Data1; //*enemy_fireball_speed;
 	Fireball->Y += Fireball->Data0; //*enemy_fireball_speed;
 	Fireball->Sprite = fireball_anim_16_spr + 24 * Fg_plane.step;
-};
+}
 
 void Hammer_handler(struct shot *Hammer)
 {
@@ -2227,7 +2228,7 @@ void Hammer_handler(struct shot *Hammer)
 	Hammer->Y += Hammer->Data1;
 
 	Hammer->Sprite = hammer_anim_spr + 16 * 3 * Fg_plane.step;
-};
+}
 
 int16_t Find_free_enemyshot()
 {
@@ -2262,7 +2263,7 @@ void Enemy_add_fireball(int16_t X, int16_t Y, /*char*/ int16_t Xdir,
 		// break;//C = nr_of_enemyshots;
 		//};
 	}
-};
+}
 
 void Enemy_add_hammer(int16_t X, int16_t Y, /*char*/ int16_t Xdir)
 {
@@ -2284,7 +2285,7 @@ void Enemy_add_hammer(int16_t X, int16_t Y, /*char*/ int16_t Xdir)
 		// break;//C = nr_of_enemyshots;
 		//};
 	}
-};
+}
 
 void Enemy_add_bounching_fireball(int16_t X, int16_t Y, /*char*/ int16_t Xdir,
 				  /*char*/ int16_t Ydir)
@@ -2329,7 +2330,7 @@ void Enemy_add_boomerang(int16_t X, int16_t Y, /*char*/ int16_t Dir)
 		// break;//C = nr_of_enemyshots;
 		//};
 	}
-};
+}
 
 void Enemy_add_cannonball_horiz(int16_t X, int16_t Y, char Dir)
 {
@@ -2351,7 +2352,7 @@ void Enemy_add_cannonball_horiz(int16_t X, int16_t Y, char Dir)
 		// break;//C = nr_of_enemyshots;
 		//};
 	}
-};
+}
 
 void Enemy_add_cannonball(int16_t X, int16_t Y, char DirX, char DirY)
 {
@@ -2372,7 +2373,7 @@ void Enemy_add_cannonball(int16_t X, int16_t Y, char DirX, char DirY)
 		// break;//C = nr_of_enemyshots;
 		//};
 	}
-};
+}
 
 void Enemy_add_underwater_shot(int16_t X, int16_t Y, /*char*/ int16_t DirX)
 {
@@ -2394,7 +2395,7 @@ void Enemy_add_underwater_shot(int16_t X, int16_t Y, /*char*/ int16_t DirX)
 		// break;//C = nr_of_enemyshots;
 		//};
 	}
-};
+}
 
 void Underwater_shot_handler(struct shot *Shot)
 {
@@ -2411,18 +2412,18 @@ void Underwater_shot_handler(struct shot *Shot)
 			Shot->X += Shot->Data0;
 		}
 	}
-};
+}
 
 void Enemy_cannonball_horiz_handler(struct shot *Cannonball)
 {
 	Cannonball->X += Cannonball->Data0;
-};
+}
 
 void Enemy_cannonball_handler(struct shot *Cannonball)
 {
 	Cannonball->X += Cannonball->Data0;
 	Cannonball->Y += Cannonball->Data1;
-};
+}
 
 void Enemy_boomerang_handler(struct shot *Boomerang)
 {
@@ -2443,4 +2444,4 @@ void Enemy_boomerang_handler(struct shot *Boomerang)
 
 	// animation
 	Boomerang->Sprite = boomerang_anim_16_spr + 48 * Fg_plane.step;
-};
+}

@@ -224,7 +224,7 @@ void Gameloop()
 
 		Handle_map_objects();
 	}
-};
+}
 
 void New_world_screen()
 {
@@ -297,7 +297,7 @@ void New_world_screen()
 	/*while(_rowread(0));//wait until key released
   while(!_rowread(0));//wait until key pressed*/
 	WaitKeyPress();
-};
+}
 
 int16_t RunGame(char Saveslot)
 {

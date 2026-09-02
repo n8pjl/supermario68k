@@ -44,7 +44,7 @@ void Handlebosses()
 				Player_die();
 		}
 	}
-};
+}
 
 int16_t Boss_free_down(struct boss *Boss)
 {
@@ -204,7 +204,7 @@ void Boss_handler_1(struct boss *Boss)
 
 	Boss->Data0 = Data0;
 	Boss->Face = Face;
-};
+}
 
 #define threshold 5 * 16
 
@@ -384,7 +384,7 @@ void Boss_handler_2(struct boss *Boss)
 
 	Boss->Data0 = Data0;
 	Boss->Face = Face;
-};
+}
 
 #undef threshold
 
@@ -847,7 +847,7 @@ void Boss_die_1(struct boss *Boss)
 			Boss->Active = 0;
 		}
 	}
-};
+}
 
 void Bowser_die(struct boss *Boss)
 {
@@ -935,13 +935,13 @@ void Add_boss_shot(int16_t X, int16_t Y, char DirX, char DirY)
 		Shot->Mode = 1;
 		Shot->Handler = Boss_shot_handler;
 	}
-};
+}
 
 void Boss_shot_handler(struct shot *Shot)
 {
 	Shot->X += Shot->Data0;
 	Shot->Y += Shot->Data1;
-};
+}
 
 void Add_big_fireball_shot(int16_t X, int16_t Y, char DirX, char DirY)
 {
@@ -973,4 +973,4 @@ void Add_big_fireball_shot(int16_t X, int16_t Y, char DirX, char DirY)
 					   big_fireball_left_spr); // temp
 		Shot->Mode = 1;
 	}
-};
+}

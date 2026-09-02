@@ -389,7 +389,7 @@ void Add_shell(/*short X,short Y,*/ int16_t Dir, char Type, struct enemy *Enemy)
 			break; // C=max_nr_of_shells;//exit loop
 		}
 	}
-};
+}
 /*
 void Handle_collided_shells(object* Object){
         Object->Active++;

@@ -13,4 +13,4 @@ int16_t StringCopy(char *dest, char *src)
 	strcpy(dest, src);
 
 	return strlen(src) + 1;
-};
+}

@@ -274,7 +274,7 @@ Player.Itemlist[19]=3;
 	for (C = 0; C < 18; C++) {
 		*(CardGame + C) = 0;
 	}
-};
+}
 
 // the following functions can be declared as inline for minor speed increase,
 // but size increases
@@ -1405,7 +1405,7 @@ void Player_die_hard()
 	Player.Face = 1;
 	SavePlayer.Attribs = 0;
 	Exit = 1;
-};
+}
 
 // get the id-numner of the tile in which coordinates x and y is
 uint8_t Get_tile(int16_t X, int16_t Y)
@@ -1458,7 +1458,7 @@ void Player_add_fireball()
 			C = nr_of_player_smallshots;
 		}
 	}
-};
+}
 
 void Player_handle_fireballs()
 {
@@ -1475,7 +1475,7 @@ void Player_handle_fireballs()
 				Player_fireball_handler(&Player_smallshots[C]);
 		}
 	}
-};
+}
 
 // void Player_fireball_handler(smallshot *Fireball){
 void Player_fireball_handler(struct shot *Fireball)
@@ -1519,4 +1519,4 @@ void Player_fireball_handler(struct shot *Fireball)
 
 		Fireball->Mode = 0; // kill fireball
 	}
-};
+}
