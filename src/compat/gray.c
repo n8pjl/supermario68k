@@ -36,16 +36,38 @@ EM_JS(void, pageflip, (const void *rgba, int16_t w, int16_t h), {
 //
 // requestAnimationFrame is the only clock available to wait on, so the period
 // is a floor and not a promise: below about 17ms on a 60Hz display, every
-// frame is simply due when it is painted.
+// frame is simply due when it is painted. Frames are scheduled on an absolute
+// grid rather than from the moment the last one was released, so a period that
+// is not a whole number of refresh intervals - 33.3ms on the map - keeps its
+// average instead of rounding up to the next tick every time.
 EM_ASYNC_JS(void, wait_for_frame, (double period), {
 	// clang-format off
-	if (globalThis.__smPrevFrame === undefined) globalThis.__smPrevFrame = 0;
-	let now = performance.now();
-	let elapsed;
-	while (Math.round((elapsed = now - globalThis.__smPrevFrame)) < period) {
-		now = await new Promise((resolve) => requestAnimationFrame(resolve));
+	if (!Module.frameClock)
+		Module.frameClock = { due: 0, prev: 0 };
+	const clock = Module.frameClock;
+
+	while (true) {
+		const prev = clock.prev;
+		const now = await new Promise((resolve) =>
+			requestAnimationFrame(resolve));
+		clock.prev = now;
+
+		// A frame due far in the past - a hidden tab, a long stall - is
+		// not worth catching up on, so the grid restarts from here
+		// instead of running fast to make up the lost time.
+		if (!(now < clock.due + 4 * period))
+			clock.due = now;
+
+		// The frame belongs to the tick nearest its deadline. Waiting
+		// for the first tick strictly past it would round every period
+		// up to a whole refresh interval. Where the following tick will
+		// land is not known, so the interval just measured stands in for
+		// it - on any steady display that is the refresh interval.
+		if (now + (now - prev) / 2 >= clock.due) {
+			clock.due += period;
+			return;
+		}
 	}
-	globalThis.__smPrevFrame = now - (elapsed % period);
 	// clang-format on
 })
 
