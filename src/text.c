@@ -1,7 +1,8 @@
 #include "text.h"
+#include "compat/assets.h"
 #include "compat/extgraph.h"
 #include "compat/graph.h"
-#include "compat/tios.h"
+#include "compat/utils.h"
 #include "control.h"
 #include "gameloop.h"
 #include "level.h"
@@ -158,7 +159,6 @@ int16_t do_menu(const char *menu_id)
 
 int16_t Menus()
 {
-	SYM_ENTRY *SymPtr;
 	int16_t C = 0;
 	int16_t Res;
 	char Menu = mainMenu;
@@ -169,33 +169,18 @@ int16_t Menus()
 		StringCopy(TempBuffer /*Fg_plane.p.big_vscreen*/, "Levelset:");
 
 	// find all levelsets
-	SymPtr = FFindFirst(FO_RECURSE, "MLST", ""); // find all *.LSET files
+	for (const struct asset *Set = Asset_next_tagged(NULL, "MLST"); Set;
+	     Set = Asset_next_tagged(Set, "MLST")) {
+		// The levelset's title, which is what the menu would show, sits
+		// just past the header.
+		Offset += StringCopy(
+			TempBuffer /*Fg_plane.p.big_vscreen*/ + Offset,
+			(const char *)Set->data + sizeof(struct levelsetdata));
 
-	while (SymPtr) {
-		if (!memcmp(HToESI(SymPtr->handle) - (4 + 2),
-			    (char[4 + 3]){ 0, 'M', 'L', 'S', 'T', 0, OTH_TAG },
-			    4 + 3)) { // if mlev
+		StringCopy(TempBuffer /*Fg_plane.p.big_vscreen*/ + 512 + 9 * C,
+			   Set->name);
 
-			/*strcpy(Fg_plane.p.big_vscreen+Offset , HeapDeref (SymPtr->handle)+2
-	      +sizeof(levelsetdata) ); Offset +=
-	      strlen(Fg_plane.p.big_vscreen+Offset)+1;*/
-			Offset += StringCopy(
-				TempBuffer /*Fg_plane.p.big_vscreen*/ + Offset,
-				HeapDeref(SymPtr->handle) + 2 +
-					sizeof(struct levelsetdata));
-			// strcpy
-			StringCopy(TempBuffer /*Fg_plane.p.big_vscreen*/ + 512 +
-					   9 * C,
-				   SymPtr->name);
-
-			// store list of folders...
-
-			StringCopy(TempBuffer + 1024 + 9 * C,
-				   SymFindFolderName());
-
-			C++;
-		}
-		SymPtr = FFindNext();
+		C++;
 	}
 
 	// char Levelset[9];
@@ -221,21 +206,18 @@ int16_t Menus()
 		Res = 1;
 	}
 	//}
-	// TempBuffer+1024+9*C
-	if (!FolderCur(SYMSTR(TempBuffer + 1024 + 9 * (Res - 1)), TRUE)) {
-		//		ST_folder (TempBuffer+1024+9*(Res-1));
-		return 0;
+
+	// Load levelsetdata!
+	const struct asset *Set = Asset_find(Levelsetfile);
+
+	if (!Set) {
+		return 5;
 	}
 
-	HANDLE Temp;
-	// Load levelsetdata!
-
-	Temp = File_get_pointer_and_lock("mario\\sm68k");
-
-	memcpy(&Levelsetdata, HeapDeref(Temp) + 2, sizeof(struct levelsetdata));
+	memcpy(&Levelsetdata, Set->data, sizeof(struct levelsetdata));
 
 	memcpy(&Commonfilename,
-	       HeapDeref(Temp) + 2 + sizeof(struct levelsetdata) + 21 +
+	       Set->data + sizeof(struct levelsetdata) + 21 +
 		       9 * Levelsetdata.Commonfile,
 	       9);
 
@@ -251,8 +233,7 @@ int16_t Menus()
 		return 1;
 	}
 
-	memcpy(Filenames,
-	       HeapDeref(Temp) + 2 + sizeof(struct levelsetdata) + 21,
+	memcpy(Filenames, Set->data + sizeof(struct levelsetdata) + 21,
 	       9 * Levelsetdata.Nr_of_files);
 
 	// New: V 1.01 Added error check

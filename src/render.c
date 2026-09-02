@@ -4,6 +4,7 @@
 #include "compat/graph.h"
 #include "compat/gray.h"
 #include "compat/tilemap.h"
+#include "compat/utils.h"
 #include "control.h"
 #include "flying.h"
 #include "gfx.h"
@@ -137,7 +138,7 @@ void DrawMarioCursor(int16_t X, int16_t Y)
 }
 
 void DrawSpriteUpsideDown(register int16_t X, register int16_t Y,
-			  register int16_t H, uint16_t *sprt0, int16_t H2)
+			  register int16_t H, const uint16_t *sprt0, int16_t H2)
 {
 	//	UpsideDownGrayClipSprite16_MASK_R(X-FgX,Y-FgY,H,sprt0,sprt0+H2,sprt0+2*H2,sprt0+2*H2,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
 	UpsideDownGrayClipSprite16_MASK_R(
@@ -450,7 +451,7 @@ void Draw_brick_fragments(struct object *Object)
 		Object->Data1--; // high y
 	}
 
-	uint8_t *Sprite = brick_fragment_sprite;
+	const uint8_t *Sprite = brick_fragment_sprite;
 	/*
   GrayClipSprite8_SMASK_R((Object->X-Object->Active)-FgX,(Object->Y-8*Object->Data0)-FgY,8,brick_fragment_sprite,brick_fragment_sprite+8,brick_fragment_sprite+16,dBufHPL_G,dBufHPD_G);
   GrayClipSprite8_SMASK_R((Object->X+Object->Active)-FgX,(Object->Y-8*Object->Data0)-FgY,8,brick_fragment_sprite,brick_fragment_sprite+8,brick_fragment_sprite+16,dBufHPL_G,dBufHPD_G);
@@ -969,7 +970,7 @@ void Render_map()
 	SetFrameRate(MAP_FPS);
 
 	//	char String[4];
-	uint16_t *Sprite, *Mask;
+	const uint16_t *Sprite, *Mask;
 
 	/*	String[0]='x';
           String[2]=' ';
@@ -1279,7 +1280,7 @@ void Render_map()
 void DrawItem(int16_t X, int16_t Y, int16_t Item)
 {
 	int16_t Height = 16;
-	uint16_t *Sprite;
+	const uint16_t *Sprite;
 
 	switch (Item) {
 	/*case 0:{

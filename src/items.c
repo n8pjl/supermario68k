@@ -1780,7 +1780,7 @@ void Handle_treasure_all(int16_t X, int16_t Y)
 
 	int16_t Height = 16;
 	//		Items[0].Height = Items[0].Height2 = 16;
-	uint16_t *Sprite;
+	const uint16_t *Sprite;
 
 	switch (T) {
 	case treasure_rand:

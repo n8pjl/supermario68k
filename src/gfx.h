@@ -1,6 +1,5 @@
 #pragma once
 
-#include "compat/utils.h"
 #include <stdint.h>
 
 // #define blank_sprite Tiles
@@ -319,8 +318,10 @@ short!) if size exseeds 64k (not likely) then use multiple files!
 #define Size_of_itemsprites 564
 #define Size_of_boss_sprites (1074 + 228 + 456 + 240)
 
-// extern SYM_ENTRY *Tilefile_sym, *Spritefile_sym, *Bg_file_sym, *TextFile_sym;
-extern HANDLE Tilefile_sym_h, Spritefile_sym_h, Bg_file_sym_h, TextFile_sym_h;
+// The background file, which SetBg() indexes into per level. The tile and
+// sprite files are read once, in Load_gfx_from_file(), and reached through the
+// pointers below from then on.
+extern const uint8_t *Bg_file_data;
 /*
 extern unsigned short *Tiles;
 extern unsigned short *Tilemasks;
@@ -332,16 +333,16 @@ extern short *Fg_animations;
 extern short *Fg_mask_animations;
 extern short *Map_animations;
 */
-extern uint16_t *Mariosprites;
-extern uint16_t *Mariomasks;
-extern int16_t (*Marioanimtab)[11];
-extern uint16_t *Enemysprites;
+extern const uint16_t *Mariosprites;
+extern const uint16_t *Mariomasks;
+extern const int16_t (*Marioanimtab)[11];
+extern const uint16_t *Enemysprites;
 // extern unsigned short *Enemymasks;
-extern uint8_t *Smallsprites;
+extern const uint8_t *Smallsprites;
 // extern unsigned char  *Smallmasks;
-extern uint16_t *Sprites;
+extern const uint16_t *Sprites;
 // extern unsigned short *Masks;
-extern uint16_t *Boss_sprites;
+extern const uint16_t *Boss_sprites;
 // extern unsigned short *Boss_masks;
 // extern unsigned short *Itemsprites;
 // extern unsigned short *Itemmasks;

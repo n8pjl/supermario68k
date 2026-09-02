@@ -1,8 +1,8 @@
 // Host-page entry module. mario.mjs is the Emscripten build compiled with
 // -sEXPORT_ES6: its default export is a factory that takes the Module config
-// and returns a promise for the running instance. The preloaded /data image is
-// mounted into it before the runtime starts. All runtime output goes to the
-// browser console.
+// and returns a promise for the running instance. The game's own data is
+// compiled into the wasm (see src/compat/assets.c), so there is nothing to
+// fetch alongside it. All runtime output goes to the browser console.
 import createMario from "./mario.js";
 import maTexts from "./ma_texts.json" with { type: "json" };
 

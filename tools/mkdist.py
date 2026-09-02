@@ -13,16 +13,16 @@ Hashing has to run leafwards-first, because rewriting a reference changes the
 bytes of the file holding it, and so changes its hash:
 
     index.html -> shell.js -> mario.js -> mario.wasm
-               -> shell.css         \\-> mario.data
+               -> shell.css
                            \\-> ma_texts.json
 
 So the leaves are hashed and renamed, then each referrer has the new names
 substituted into it, and only then is the referrer itself hashed. Doing it the
 other way round is circular.
 
-Substituting into Emscripten's glue is the one fragile step: the wasm and data
-filenames are baked in at link time as plain string literals, and nothing
-promises they stay plain across an emcc upgrade. Every substitution here is
+Substituting into Emscripten's glue is the one fragile step: the wasm filename
+is baked in at link time as a plain string literal, and nothing promises it
+stays plain across an emcc upgrade. Every substitution here is
 therefore checked against the number of occurrences expected, so a toolchain
 that starts building those names some other way fails the build loudly instead
 of shipping a dist/ full of 404s.
@@ -124,15 +124,12 @@ def main():
 
     # Leaves: referenced by others, referencing nothing themselves.
     wasm = freeze(shutil.copy(os.path.join(build, "mario.wasm"), dst("mario.wasm")))
-    data = freeze(shutil.copy(os.path.join(build, "mario.data"), dst("mario.data")))
     texts = freeze(compact_json("ma_texts.json", dst("ma_texts.json")))
     css = freeze(minify_css("shell.css", dst("shell.css")))
 
-    # Emscripten's glue. PACKAGE_NAME and the run-dependency key carry the data
-    # file's name alongside the one actually fetched; they are only ever used as
-    # labels, but they are replaced too so the file stays self-consistent.
+    # Emscripten's glue.
     glue = minify_js(os.path.join(build, "mario.js"), dst("mario.js"))
-    substitute(glue, {"mario.wasm": (wasm, 2), "mario.data": (data, 4)})
+    substitute(glue, {"mario.wasm": (wasm, 2)})
     mario = freeze(glue)
 
     shell = minify_js("shell.js", dst("shell.js"))

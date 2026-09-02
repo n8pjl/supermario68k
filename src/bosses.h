@@ -21,8 +21,8 @@ struct boss {
 	uint8_t Mode;
 	uint8_t State;
 
-	uint16_t *Sprite;
-	uint16_t *Mask;
+	const uint16_t *Sprite;
+	const uint16_t *Mask;
 
 	void (*Handler)(
 		void *Boss); // func pointer to the func that deals with the

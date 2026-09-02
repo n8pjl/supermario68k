@@ -36,7 +36,7 @@ struct item {
 
 	void (*Collect)(struct item *Item);
 	void (*Handler)(struct item *Item);
-	uint16_t *Sprite;
+	const uint16_t *Sprite;
 	//	unsigned short* Mask;
 	// void *Next;//removed. using array instead
 };
@@ -62,7 +62,7 @@ extern struct item *Items;
 
 extern struct trigger *Triggers;
 
-extern uint16_t *Itemsprites;
+extern const uint16_t *Itemsprites;
 // extern unsigned short *Itemmasks;
 
 void Handleitems();

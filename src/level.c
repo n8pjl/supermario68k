@@ -1,7 +1,7 @@
 #include "level.h"
 #include "bosses.h"
 #include "comp.h"
-#include "compat/tios.h"
+#include "compat/assets.h"
 #include "control.h"
 #include "flying.h"
 #include "gfx.h"
@@ -65,9 +65,7 @@ static void Swap_leveldata(struct leveldata *Data)
 
 int16_t Load_level(char *Levelfile, int16_t Level_nr)
 {
-	SYM_ENTRY *Levelfile_sym;
-	HANDLE Temp;
-	struct levelfiledata *Levelfileinfo;
+	const struct levelfiledata *Levelfileinfo;
 
 	// char buffer[20];
 	int16_t C, Byte;
@@ -140,18 +138,18 @@ if( !(Temp = Levelfile_sym->handle) ){
   };
           */
 
-	if (!(Temp = File_get_pointer_and_lock(Levelfile /*,Levelfile_sym*/))) {
+	const struct asset *File = Asset_find(Levelfile);
+
+	if (!File) {
 		ErrorCode = 3;
 		Exit = 3;
 		return 3; // error "failed to open level file"
 	}
 
-	void *RawData = HeapDeref(Temp) + 2;
-	//	memcpy( &Levelfileinfo, HeapDeref (Temp)+2, sizeof(levelfiledata) );
-	Levelfileinfo =
-		(struct levelfiledata *)(/*HeapDeref (Temp)+2*/ RawData);
-	memcpy(&Leveldata,
-	       /*HeapDeref (Temp)+2*/ RawData + Levelfileinfo->Levels[Level_nr],
+	const uint8_t *RawData = File->data;
+
+	Levelfileinfo = (const struct levelfiledata *)RawData;
+	memcpy(&Leveldata, RawData + Levelfileinfo->Levels[Level_nr],
 	       sizeof(struct leveldata));
 
 	Swap_leveldata(&Leveldata);
@@ -194,8 +192,8 @@ if( !(Temp = Levelfile_sym->handle) ){
   while(1);
   */
 
-	void *Raw = /*HeapDeref (Temp)+2*/ RawData +
-		    Levelfileinfo->Levels[Level_nr] + sizeof(struct leveldata);
+	const uint8_t *Raw = RawData + Levelfileinfo->Levels[Level_nr] +
+			     sizeof(struct leveldata);
 
 	// RLEDecompress(Level, HeapDeref (Temp)+2 + Levelfileinfo.Levels[Level_nr] +
 	// sizeof(leveldata),/*(int)*/(Leveldata.Height*Leveldata.Width));//+(Leveldata.Height*Leveldata.Width)%2
@@ -265,7 +263,7 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 
 	uint8_t Byte3, Byte4, Byte5;
 
-	uint16_t *Sprite;
+	const uint16_t *Sprite;
 	void *Handler;
 	void *Die;
 	uint8_t Attribs;
@@ -273,18 +271,18 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 	char Life;
 
 	while (Nr < Leveldata.Nr_of_enemies) {
-		Model = *((char *)Raw);
+		Model = (char)Raw[0];
 
-		Enemies[Nr].X = (*((uint8_t *)Raw + 1)) * 16; // COMMON FOR ALL
-		Enemies[Nr].Y = (*((uint8_t *)Raw + 2)) * 16; // COMMON FOR ALL
+		Enemies[Nr].X = (Raw[1]) * 16; // COMMON FOR ALL
+		Enemies[Nr].Y = (Raw[2]) * 16; // COMMON FOR ALL
 		Enemies[Nr].Active = 1;
 		Enemies[Nr].Mode = 1;
 		Enemies[Nr].Life = 1; // keep this, avoids bugs!
 		NextRaw = 3;
 
-		Byte3 = (*((uint8_t *)Raw + 3));
-		Byte4 = (*((uint8_t *)Raw + 4));
-		Byte5 = (*((uint8_t *)Raw + 5));
+		Byte3 = (Raw[3]);
+		Byte4 = (Raw[4]);
+		Byte5 = (Raw[5]);
 		/*
     Enemies[Nr].Jumping = 0;
     Enemies[Nr].Data0 = Enemies[Nr].Data1 = 0;
@@ -681,8 +679,7 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 				Byte4; //(*((unsigned char*)Raw+4));
 			Enemies[Nr].Mode =
 				Byte5 * 16; //( (*((unsigned char*)Raw+5)) *16);
-			Enemies[Nr].Data0 = Enemies[Nr].Data1 =
-				((*((uint8_t *)Raw + 6)) * 16);
+			Enemies[Nr].Data0 = Enemies[Nr].Data1 = ((Raw[6]) * 16);
 			// 			Enemies[Nr].Jumping = 0;//not neccessarry, done
 			// in memset
 			/*Enemies[Nr].*/ Handler = Enemy_handler_19;
@@ -811,27 +808,23 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 	Nr = 0;
 
 	while (Nr < Leveldata.Nr_of_flying_platforms) {
-		Model = *((char *)Raw);
+		Model = (char)Raw[0];
 
 		if (Model > 0) {
 			Flying_platforms[Nr].X =
-				(*((uint8_t *)Raw + 1)) * 16; // COMMON FOR ALL
+				(Raw[1]) * 16; // COMMON FOR ALL
 			Flying_platforms[Nr].Y =
-				(*((uint8_t *)Raw + 2)) * 16; // COMMON FOR ALL
-			Flying_platforms[Nr].Width =
-				(*((uint8_t *)Raw + 3)); // COMMON FOR ALL
+				(Raw[2]) * 16; // COMMON FOR ALL
+			Flying_platforms[Nr].Width = (Raw[3]); // COMMON FOR ALL
 			Flying_platforms[Nr].Active = 1;
 			Flying_platforms[Nr].Sprite = 100; // platform_sprite;
 
 			switch (Model) {
 			case 11:
 			case 12:
-				Flying_platforms[Nr].Data0 =
-					(*((uint8_t *)Raw + 4));
-				Flying_platforms[Nr].Data2 =
-					(*((char *)Raw + 5));
-				Flying_platforms[Nr].Data3 =
-					(*((char *)Raw + 6));
+				Flying_platforms[Nr].Data0 = (Raw[4]);
+				Flying_platforms[Nr].Data2 = ((char)Raw[5]);
+				Flying_platforms[Nr].Data3 = ((char)Raw[6]);
 				Flying_platforms[Nr].Handler =
 					Platform_handler_1;
 				NextRaw = 7;
@@ -840,7 +833,7 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 						Flying_platforms[Nr].Data0 * 16;
 				} else { // Model==12
 					Flying_platforms[Nr].Y +=
-						(*((char *)Raw + 7));
+						((char)Raw[7]);
 					NextRaw = 8;
 				}
 				break;
@@ -921,10 +914,10 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 	Nr = 0;
 	while (Nr < Leveldata.Boss) {
 		// if(Leveldata.Boss){
-		Model = *((char *)Raw);
+		Model = (char)Raw[0];
 
-		BossG->X = (*((uint8_t *)Raw + 1)) * 16; // COMMON FOR ALL
-		BossG->Y = (*((uint8_t *)Raw + 2)) * 16; // COMMON FOR ALL
+		BossG->X = (Raw[1]) * 16; // COMMON FOR ALL
+		BossG->Y = (Raw[2]) * 16; // COMMON FOR ALL
 		BossG->Life = 3;
 		BossG->Active = 0;
 		BossG->Face = -1;
@@ -1037,7 +1030,7 @@ int16_t Generate_handler_1_enemy(int16_t Nr, char Model, char Face,
 		NextRaw = 5; // NextRaw += 1;
 	}
 
-	uint16_t *Sprite;
+	const uint16_t *Sprite;
 	void *Die;
 	uint8_t Attribs = 0b11111001;
 	int16_t Height2 = 16;
@@ -1108,7 +1101,7 @@ int16_t Generate_handler_1_enemy(int16_t Nr, char Model, char Face,
 	return NextRaw;
 }
 
-void SetBg(int16_t Bg_nr /*,HANDLE Temp*/)
+void SetBg(int16_t Bg_nr)
 { // this func sets the pointer to th
 	// bg tilemap, updates the bg plane
 	// struct and leveldata
@@ -1124,22 +1117,20 @@ void SetBg(int16_t Bg_nr /*,HANDLE Temp*/)
 	//	 HANDLE Temp = Bg_file_sym->handle;
 
 	struct bg_data Bg_data;
-	struct bg_filedata *Bg_fileinfo;
+	const struct bg_filedata *Bg_fileinfo;
 
-	//	HANDLE Temp = Bg_file_sym_h;
+	const uint8_t *Raw = Bg_file_data;
 
-	char *Raw = HeapDeref(Bg_file_sym_h) + 2;
-
-	//	memcpy(&Bg_fileinfo,HeapDeref (Temp)+2,sizeof(bg_filedata));
-	Bg_fileinfo = (struct bg_filedata *)(Raw); // HeapDeref (Temp)+2);
+	Bg_fileinfo = (const struct bg_filedata *)Raw;
 	Raw += Bg_fileinfo->Backgrounds[Bg_nr];
-	memcpy(&Bg_data,
-	       /*HeapDeref (Temp)+2*/ Raw /*+Bg_fileinfo->Backgrounds[Bg_nr]*/,
-	       sizeof(struct bg_data));
+	memcpy(&Bg_data, Raw, sizeof(struct bg_data));
 
-	Bg_plane.matrix =
-		/*HeapDeref (Temp)+2*/ Raw /*+Bg_fileinfo->Backgrounds[Bg_nr]*/ +
-		sizeof(struct bg_data);
+	// The one place a plane's matrix points into the game's data rather than
+	// at a copy of it. A background is only ever drawn - it is the foreground
+	// and map matrices that get written to, and those are heap copies - so the
+	// pointer is cast back to mutable here instead of the field being const
+	// for everyone.
+	Bg_plane.matrix = (void *)(Raw + sizeof(struct bg_data));
 	Bg_plane.width = Bg_data.Width;
 	Bg_plane.force_update = 1;
 	Leveldata.Bg_height = Bg_data.Height;
@@ -1205,9 +1196,7 @@ static void Swap_map_payload()
 
 int16_t Load_map(char *Levelfile)
 {
-	SYM_ENTRY *Levelfile_sym;
-	HANDLE Temp;
-	struct levelfiledata *Levelfileinfo;
+	const struct levelfiledata *Levelfileinfo;
 	int16_t C;
 
 	// Error: Map not found
@@ -1223,22 +1212,20 @@ if( !(Temp = Levelfile_sym->handle) ){
     return 4;//error "failed to open map"
   }*/
 
-	if (!(Temp = File_get_pointer_and_lock(Levelfile /*,Levelfile_sym*/))) {
+	const struct asset *File = Asset_find(Levelfile);
+
+	if (!File) {
 		ErrorCode = 4;
 		Exit = 3;
 		return 4; // error "failed to open map"
 	}
 
-	//	memcpy( &Levelfileinfo, HeapDeref (Temp)+2, sizeof(levelfiledata) );
+	const uint8_t *RawData = File->data;
 
-	void *RawData = HeapDeref(Temp) + 2;
-	Levelfileinfo =
-		(struct levelfiledata *)(RawData /*HeapDeref (Temp)+2*/);
+	Levelfileinfo = (const struct levelfiledata *)RawData;
 
 	if (Levelfileinfo->Mode == 1) {
-		memcpy(&Map_data,
-		       RawData /*HeapDeref (Temp)+2*/ +
-			       sizeof(struct levelfiledata),
+		memcpy(&Map_data, RawData + sizeof(struct levelfiledata),
 		       sizeof(struct map_data));
 
 		/*if(Map)
@@ -1273,8 +1260,7 @@ if( !(Temp = Levelfile_sym->handle) ){
 			*(((char *)Map) + C) = 0; // optimizaton
 
 		memcpy(Map,
-		       RawData /*HeapDeref (Temp)+2*/ +
-			       sizeof(struct levelfiledata) +
+		       RawData + sizeof(struct levelfiledata) +
 			       sizeof(struct map_data),
 		       Map_data.Height * Map_data.Width +
 			       sizeof(struct map_trigger) *

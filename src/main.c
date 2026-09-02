@@ -44,19 +44,19 @@ void *Block;
 void *Buffer; // pointer to video memory (gray doublebuffering mem and
 // backbuffers for tilemap engine)
 
-uint16_t *Mariosprites;
-uint16_t *Mariomasks;
-int16_t (*Marioanimtab)[11];
+const uint16_t *Mariosprites;
+const uint16_t *Mariomasks;
+const int16_t (*Marioanimtab)[11];
 
-uint16_t *Enemysprites;
+const uint16_t *Enemysprites;
 
-uint8_t *Smallsprites;
+const uint8_t *Smallsprites;
 
-uint16_t *Sprites;
+const uint16_t *Sprites;
 
-uint16_t *Itemsprites;
+const uint16_t *Itemsprites;
 
-uint16_t *Boss_sprites;
+const uint16_t *Boss_sprites;
 
 char *Level, *Map;
 
@@ -176,14 +176,9 @@ int main(void)
 
 	Exit = 0;
 
-	// char CurrFolder[9];
-
-	// FolderGetCur(CurrFolder);
-
 	ErrorCode =
 		Menus(); // This function enters the game itself. See "menus.c"
 
-// FolderCur( SYMSTR(CurrFolder) , TRUE );
 // exit stuff here
 // free allocated mem
 Quit:

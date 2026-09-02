@@ -77,15 +77,17 @@ void GrayClipSprite8_SMASK_R(int16_t x, int16_t y, uint16_t height,
 
 // 16-wide grayscale sprite flipped top to bottom, per-plane masks, clipped.
 void UpsideDownGrayClipSprite16_MASK_R(int16_t x, int16_t y, uint16_t height,
-				       uint16_t *sprt0, uint16_t *sprt1,
-				       uint16_t *mask0, uint16_t *mask1,
-				       void *dest0, void *dest1);
+				       const uint16_t *sprt0,
+				       const uint16_t *sprt1,
+				       const uint16_t *mask0,
+				       const uint16_t *mask1, void *dest0,
+				       void *dest1);
 
 // Game-local SMASK blit restricted to the columns maskval selects; see
 // Mario/GrayClipSprite16_SMASKBLIT_R.s and compat/extgraph.c.
 void GrayClipSprite16_SMASKBLIT_R(int16_t x, int16_t y, uint16_t height,
-				  uint16_t *sprt0, uint16_t *sprt1,
-				  uint16_t *mask, const uint16_t maskval,
+				  const uint16_t *sprt0, const uint16_t *sprt1,
+				  const uint16_t *mask, const uint16_t maskval,
 				  void *dest0, void *dest1);
 
 // Draw a string into both planes with a bitmap font; attr may carry ExtAttrs.

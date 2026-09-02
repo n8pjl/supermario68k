@@ -1,7 +1,7 @@
 #include "savegame.h"
+#include "compat/assets.h"
 #include "compat/extgraph.h"
 #include "compat/graph.h"
-#include "compat/tios.h"
 #include "gameloop.h"
 #include "items.h"
 #include "level.h"
@@ -20,12 +20,12 @@ void Savegame(char Slot)
 {
 	int16_t C;
 	int16_t Size;
-	//	SYM_ENTRY *Levelsetfile_sym;
-	HANDLE Temp;
 
-	//	Temp = Levelsetfile_get_pointer_and_lock();
-	SYM_ENTRY *Levelfile_sym;
-	Temp = File_get_pointer_and_lock(Levelsetfile /*,Levelfile_sym*/);
+	struct asset *Levelset = Asset_find(Levelsetfile);
+
+	if (!Levelset) {
+		goto failure;
+	}
 	// copy file content...
 
 	// levelsetdata, title and filenames
@@ -34,8 +34,7 @@ void Savegame(char Slot)
 	       9 * (Levelsetdata.Nr_of_files + 1);
 
 	char *TempBuffer = Fg_plane.p.big_vscreen;
-	memcpy(TempBuffer /*Fg_plane.p.big_vscreen*/, HeapDeref(Temp) + 2,
-	       Size);
+	memcpy(TempBuffer /*Fg_plane.p.big_vscreen*/, Levelset->data, Size);
 
 	// copy 2 of 3 saveslots, excluding the one to be used
 
@@ -43,7 +42,7 @@ void Savegame(char Slot)
 		if ((C != Slot) && (Levelsetdata.Savegames[C] != 0)) {
 			Size += Size % 2;
 			memcpy(TempBuffer /*Fg_plane.p.big_vscreen*/ + Size,
-			       HeapDeref(Temp) + 2 + Levelsetdata.Savegames[C],
+			       Levelset->data + Levelsetdata.Savegames[C],
 			       Levelsetdata.Savegame_size[C]);
 			// update saveslot pointer
 			((struct levelsetdata *)
@@ -162,21 +161,11 @@ void Savegame(char Slot)
 
 	// memcpy(Fg_plane.p.big_vscreen,&Levelsetdata,sizeof(levelsetdata));
 
-	// open levelsetfile in writemode
-
-	FILES fsPtr;
-
-	// Open the file
-	if (FOpen(Levelsetfile, &fsPtr, FM_WRITE, "MLST") != FS_OK) {
+	// The whole levelset, saveslots and all, is what gets written back: the
+	// buffer above was assembled out of the file it replaces.
+	if (!Asset_save(Levelset, TempBuffer, Size)) {
 		goto failure;
 	}
-	// write buffer to file
-	if (FWrite(TempBuffer, Size, &fsPtr) !=
-	    FS_OK) { // write everythiong to file
-		goto failure;
-	}
-	// close file
-	FClose(&fsPtr);
 
 	/*
   1. Find required file size
@@ -208,26 +197,25 @@ failure: // save failed
 	WaitKeyPress();
 }
 
-void Loadgame(char Slot /* , char* Raw0*/)
+void Loadgame(char Slot)
 {
 	int16_t C;
-	int16_t Size;
-	//	SYM_ENTRY *Levelsetfile_sym;
-	HANDLE Temp;
 	//	Raw0 += sizeof(levelsetdata)+21 + 9*(Levelsetdata.Nr_of_files+1);
 	// char* Raw = Raw0 + sizeof(levelsetdata)+21 +
 	// 9*(Levelsetdata.Nr_of_files+1);
 	//	char* Raw = Raw0;
-	char *Raw, *Raw0;
+	const char *Raw, *Raw0;
 	// Raw += Raw%2;
 	/*if(((unsigned char)Raw)%2)//temp
           Raw++;*/
 
-	//	Temp = Levelsetfile_get_pointer_and_lock();
-	SYM_ENTRY *Levelfile_sym;
-	Temp = File_get_pointer_and_lock(Levelsetfile /*,Levelfile_sym*/);
+	const struct asset *Levelset = Asset_find(Levelsetfile);
 
-	Raw = Raw0 = HeapDeref(Temp) + 2;
+	if (!Levelset) {
+		return;
+	}
+
+	Raw = Raw0 = (const char *)Levelset->data;
 	// copy file content...
 
 	Raw += Levelsetdata.Savegames[(int16_t)Slot];
@@ -269,7 +257,7 @@ void Loadgame(char Slot /* , char* Raw0*/)
 
 	Raw = Raw0;
 
-	Raw += ((struct levelsetdata *)Raw)->Savegames[(int16_t)Slot];
+	Raw += ((const struct levelsetdata *)Raw)->Savegames[(int16_t)Slot];
 	// load player
 
 	memcpy(&SavePlayer, Raw, sizeof(struct saveplayer));
@@ -315,28 +303,4 @@ void Loadgame(char Slot /* , char* Raw0*/)
 
 		// Handle_map_monster
 	}
-}
-
-HANDLE
-File_get_pointer_and_lock(const char *FileName /*,SYM_ENTRY* File_sym*/)
-{
-	SYM_ENTRY *File_sym;
-	HANDLE Temp;
-
-	if (!(File_sym = SymFindPtr(SYMSTR(FileName),
-				    0))) // flags = 4 will change when the
-		// documentation of VAT.h is updated
-		return H_NULL; // error "failed to open levelset"
-
-	if (!(Temp = File_sym->handle))
-		return H_NULL; // error "failed to open levelset"
-
-	if (!(HeapLock(File_sym->handle))) // lock memblocks used by file
-		return H_NULL;
-
-	/*	if(HeapGetLock (File_sym->handle)==0){
-                  while(1);
-          }*/
-
-	return Temp;
 }

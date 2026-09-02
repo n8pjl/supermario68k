@@ -313,7 +313,7 @@ int16_t Load_level(char *Levelfile, int16_t Level_nr);
 int16_t Generate_handler_1_enemy(int16_t Nr, char Model, char Face,
 				 uint8_t D0D1);
 
-void SetBg(int16_t Bg_nr /*,HANDLE Temp*/);
+void SetBg(int16_t Bg_nr);
 
 int16_t Load_map(char *Levelfile);
 

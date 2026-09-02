@@ -1,10 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-typedef uint16_t HANDLE;
-
-enum { FALSE, TRUE };
-typedef uint16_t BOOL; // TIGCC asmtypes.h: BOOL is 2 bytes, not _Bool
 
 #define min(a, b)                              \
 	({                                     \

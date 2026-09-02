@@ -1,89 +1,88 @@
 #include "gfx.h"
-#include "compat/tios.h"
-#include "compat/utils.h"
+#include "compat/assets.h"
 #include "items.h"
 #include "render.h"
-#include "savegame.h"
 #include "smallgames.h"
 #include <stdint.h>
-#include <string.h>
 
-HANDLE Tilefile_sym_h, Spritefile_sym_h, Bg_file_sym_h;
-char *Texts;
+const uint8_t *Bg_file_data;
 
 inline int16_t Load_gfx_from_file()
 { // sets up the pointers to gfx arrays in external files
 
-	HANDLE Temp;
+	const struct asset *File;
 
 	// New: V 1.01 Changed "ma_tiles" to "mario\\ma_tiles"
-	if (!(Temp = Tilefile_sym_h =
-		      File_get_pointer_and_lock("mario\\ma_tiles"))) {
+	if (!(File = Asset_find("ma_tiles"))) {
 		return 2; // error "failed to open gfx file"
 	}
 
-	Fg_plane.p.sprites = HeapDeref(Temp) /*+ sizeof(tilefiledata)*/ + 2;
+	// The tile file is one run of 16-bit tables, so the cursor walks it in
+	// words: each step is the length of the region just handed out, in the
+	// units gfx.h counts it in.
+	const uint16_t *Tiles = (const uint16_t *)File->data;
 
-	Fg_mask.p.sprites =
-		Fg_plane.p.sprites +
-		32 * /*Tilefiledata.*/ Nr_of_fg_tiles * sizeof(uint16_t);
+	Fg_plane.p.sprites = Tiles;
+	Tiles += 32 * Nr_of_fg_tiles;
 
-	Bg_plane.sprites =
-		Fg_mask.p.sprites + 16 *
-					    /*Tilefiledata.*/ Nr_of_tilemasks *
-					    sizeof(uint16_t);
+	Fg_mask.p.sprites = Tiles;
+	Tiles += 16 * Nr_of_tilemasks;
 
-	Fg_plane.tabanim =
-		Bg_plane.sprites +
-		32 * /*Tilefiledata.*/ Nr_of_bg_tiles *
-			sizeof(uint16_t); // Tilemasks + 16*Gfxfiledata.Nr_of_tilemasks;
+	Bg_plane.sprites = Tiles;
+	Tiles += 32 * Nr_of_bg_tiles;
 
-	Fg_mask.tabanim =
-		Fg_plane.tabanim +
-		/*Tilefiledata.*/ Nr_of_fg_animations * 4 * sizeof(uint16_t);
+	Fg_plane.tabanim = Tiles;
+	Tiles += Nr_of_fg_animations * 4;
 
-	Map_plane.p.sprites =
-		Fg_mask.tabanim +
-		/*Tilefiledata.*/ Nr_of_fg_animations * 4 * sizeof(uint16_t);
+	Fg_mask.tabanim = Tiles;
+	Tiles += Nr_of_fg_animations * 4;
 
-	Map_plane.tabanim =
-		Map_plane.p.sprites +
-		32 * /*Tilefiledata.*/ Nr_of_map_tiles * sizeof(uint16_t);
+	Map_plane.p.sprites = Tiles;
+	Tiles += 32 * Nr_of_map_tiles;
+
+	Map_plane.tabanim = Tiles;
 
 	// New: V 1.01 Changed "ma_sprts" to "mario\\ma_sprts"
-	if (!(Temp = Spritefile_sym_h =
-		      File_get_pointer_and_lock("mario\\ma_sprts"))) {
+	if (!(File = Asset_find("ma_sprts"))) {
 		return 2; // error "failed to open gfx file"
 	}
 
-	Mariosprites = HeapDeref(Temp) /*+ sizeof(spritefiledata)*/ + 2;
+	const uint16_t *Sprts = (const uint16_t *)File->data;
 
-	Mariomasks = Mariosprites + /*Spritefiledata.*/ Size_of_mariosprites;
-	Marioanimtab =
-		(int16_t (*)[11])((int16_t *)Mariomasks +
-				  /*Spritefiledata.*/ Size_of_mariomasks);
+	Mariosprites = Sprts;
+	Sprts += Size_of_mariosprites;
 
-	Enemysprites =
-		(uint16_t *)Marioanimtab + /*Spritefiledata.*/
-		Size_of_marioanimtab; // Mariomasks + Spritefiledata.Size_of_mariomasks;
+	Mariomasks = Sprts;
+	Sprts += Size_of_mariomasks;
 
-	Smallsprites = (char *)(Enemysprites +
-				/*Spritefiledata.*/ Size_of_enemysprites);
+	Marioanimtab = (const int16_t (*)[11])Sprts;
+	Sprts += Size_of_marioanimtab;
 
-	Sprites = (int16_t *)(Smallsprites +
-			      /*Spritefiledata.*/ Size_of_smallsprites);
+	Enemysprites = Sprts;
+	Sprts += Size_of_enemysprites;
 
-	Itemsprites = Sprites + /*Spritefiledata.*/ Size_of_sprites;
+	// The one region counted in bytes rather than words: the smallsprites are
+	// 8 pixels wide, one byte per row, which is also why mkdata.py leaves them
+	// unswapped.
+	Smallsprites = (const uint8_t *)Sprts;
+	Sprts = (const uint16_t *)(Smallsprites + Size_of_smallsprites);
 
-	Boss_sprites = Itemsprites + /*Spritefiledata.*/ Size_of_itemsprites;
+	Sprites = Sprts;
+	Sprts += Size_of_sprites;
 
-	Games = (char *)(Boss_sprites +
-			 /*Spritefiledata.*/ Size_of_boss_sprites);
+	Itemsprites = Sprts;
+	Sprts += Size_of_itemsprites;
 
-	if (!(/*Temp = */ Bg_file_sym_h =
-		      File_get_pointer_and_lock("mario\\ma_bckgr"))) {
+	Boss_sprites = Sprts;
+	Sprts += Size_of_boss_sprites;
+
+	Games = (const char *)Sprts;
+
+	if (!(File = Asset_find("ma_bckgr"))) {
 		return 2; // error "failed to open gfx file"
 	}
+
+	Bg_file_data = File->data;
 
 	return 0; // success!
 }

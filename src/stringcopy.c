@@ -8,7 +8,7 @@
 // memory in all these cases, but also in most cases it replaces a single
 // strcpy()
 
-int16_t StringCopy(char *dest, char *src)
+int16_t StringCopy(char *dest, const char *src)
 {
 	strcpy(dest, src);
 

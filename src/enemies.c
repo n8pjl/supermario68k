@@ -4,6 +4,7 @@
 #include "bounch.h"
 #include "comp.h"
 #include "compat/extgraph.h"
+#include "compat/utils.h"
 #include "gfx.h"
 #include "items.h"
 #include "level.h"
@@ -408,7 +409,7 @@ void Enemy_handler_3(struct enemy *Enemy)
 	// maa gjoere noe sprell her...
 
 	uint8_t Mode = Enemy->Mode;
-	uint16_t *Sprite;
+	const uint16_t *Sprite;
 
 	if (!(((Player.X + 25) > (Enemy->X)) &&
 	      ((Player.X) < (Enemy->X + 25)) && (/*Enemy->*/ Mode == 60))) {
@@ -794,7 +795,7 @@ void Enemy_handler_8(struct enemy *Enemy)
 	Enemy->Jumping = Jumping;
 
 	if (Fg_plane.frame == 0) {
-		uint16_t *Sprite;
+		const uint16_t *Sprite;
 		if ((Enemy->Sprite == turtle_fly1_left_sprite) ||
 		    (Enemy->Sprite == turtle_fly1_right_sprite)) {
 			/*Enemy->*/ Sprite = turtle_fly2_left_sprite;
@@ -1132,7 +1133,7 @@ void Enemy_handler_16(struct enemy *Enemy)
 
 	// Enemy->Mode = 0;
 	int16_t /*Enemy->*/ Jumping = 0;
-	uint16_t *Sprite;
+	const uint16_t *Sprite;
 	uint8_t Data0 = Enemy->Data0;
 	int16_t X = Enemy->X;
 
@@ -1241,7 +1242,7 @@ void Enemy_handler_17(struct enemy *Enemy)
 		}
 	}
 	char Face;
-	uint16_t *Sprite;
+	const uint16_t *Sprite;
 
 	if (Player.X < Enemy->X) {
 		/*Enemy->*/ Sprite = (Fg_plane.step % 2 ?
@@ -1891,7 +1892,7 @@ void Enemy_die_2(struct enemy *Enemy)
 	// leaves behind a shell
 
 	Enemy->Attribs = 0b11100010;
-	uint16_t *Sprite;
+	const uint16_t *Sprite;
 	if (Enemy->Life == 2) {
 		/*Enemy->*/ Sprite = beetle_shell_sprite;
 	} else {

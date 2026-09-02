@@ -21,7 +21,7 @@
 struct Plane {
 	void *matrix; // matrix of tile numbers, one byte each
 	uint16_t width; // map width, in tiles
-	void *sprites; // tile sprite array
+	const void *sprites; // tile sprite array
 	char *big_vscreen; // big virtual screen (see sizes above)
 	int32_t mask; // obsolete, kept for layout compatibility
 	int32_t reserved; // engine scratch
@@ -31,7 +31,7 @@ struct Plane {
 // Describes a tilemap animated plane, used by the DrawAnimatedPlane functions.
 struct AnimatedPlane {
 	struct Plane p;
-	void *tabanim; // matrix of animations
+	const void *tabanim; // matrix of animations
 	int16_t nb_anim; // number of animations
 	int16_t nb_step; // number of animation steps
 	int16_t step; // current step

@@ -3,14 +3,16 @@ CC = emcc
 # rebuilds what includes it. Nearly every file here includes all.h, which
 # reaches most of the others, so without this a header edit is silently
 # ignored and the link fails - or worse, does not.
-CFLAGS = -Os -std=gnu23 -flto -msimd128 -MMD -MP
+# -I.: compat/assets.c reaches the game data as #embed "data/<name>.bin", which
+# is resolved from here rather than from the including file's directory.
+CFLAGS = -Os -std=gnu23 -flto -msimd128 -MMD -MP -I.
 # -sENVIRONMENT=web: this only ever runs in a browser, so drop the node,
 # worker and shell startup paths Emscripten emits by default.
 # -sEXPORT_ES6: emit mario.mjs as an ES module (a default-exported factory),
 # so shell.js can `import` it instead of reaching for a global Module. This
 # also implies -sMODULARIZE.
 LDFLAGS = -sJSPI -Os -flto -sENVIRONMENT=web -sEXPORT_ES6=1 \
-          -sEXPORTED_FUNCTIONS=_main,_malloc --preload-file data@/data
+          -sEXPORTED_FUNCTIONS=_main,_malloc
 
 SRCDIR = src
 
@@ -39,7 +41,7 @@ NAMES = main.c enemies.c gameloop.c items.c player.c render.c \
         scankeys.c shells.c custom.c objects.c flying.c smallgames.c \
         bounch.c map.c titlescreen.c text.c rle.c level.c savegame.c \
         stringcopy.c error.c bosses.c gfx.c \
-        compat/tios.c compat/tilemap.c compat/extgraph.c \
+        compat/assets.c compat/tilemap.c compat/extgraph.c \
         compat/graph.c compat/font_data.c compat/gray.c
 
 SRCS = $(addprefix $(SRCDIR)/,$(NAMES))
@@ -54,32 +56,36 @@ DEPS = $(OBJS:.o=.d)
 
 all: $(DIST)
 
-# The link depends on this rather than on a phony `data` target, so that
-# changing the converter or the target actually repackages mario.data - a
-# preloaded file is baked in at link time, and a phony prerequisite would be
-# rebuilt without the link noticing.
-.data-stamp: tools/mkdata.py
+# mkdata.py reads the asset list out of assets.c, so a file added or renamed
+# there has to run it again.
+.data-stamp: tools/mkdata.py $(SRCDIR)/compat/assets.c
 	python3 tools/mkdata.py calc-data data
 	@touch $@
 
 data: .data-stamp
 
+# assets.c #embeds data/, so the converted files have to exist before it can be
+# compiled at all. Once they do, -MMD lists each embedded file in assets.d and
+# picks up any later change to it; this stamp is only what gets the first build
+# off the ground.
+$(SRCDIR)/compat/assets.o: .data-stamp
+
 # CFLAGS and LDFLAGS live here, so a change to this file has to rebuild and
 # relink - the same reason the data and the headers are prerequisites.
 $(OBJS): Makefile
 
-# Order-only: the link also drops mario.wasm and mario.data next to $@, so the
-# directory has to exist, but its timestamp must not force a relink.
-$(TARGET): $(OBJS) .data-stamp Makefile | $(BUILDDIR)
+# Order-only: the link also drops mario.wasm next to $@, so the directory has
+# to exist, but its timestamp must not force a relink.
+$(TARGET): $(OBJS) Makefile | $(BUILDDIR)
 	$(CC) $(OBJS) $(LDFLAGS) -o $@
 
-# Byproducts of that link. Naming them with an empty recipe is what tells make
-# they are already up to date once $(TARGET) is, rather than having no rule.
-$(BUILDDIR)/mario.wasm $(BUILDDIR)/mario.data: $(TARGET) ;
+# Byproduct of that link. Naming it with an empty recipe is what tells make it
+# is already up to date once $(TARGET) is, rather than having no rule.
+$(BUILDDIR)/mario.wasm: $(TARGET) ;
 
 # mkdist.py empties $(OUTDIR) and refills it, so there is nothing here for make
 # to build incrementally and nothing for a stale hash to survive in.
-$(DIST): $(TARGET) $(BUILDDIR)/mario.wasm $(BUILDDIR)/mario.data \
+$(DIST): $(TARGET) $(BUILDDIR)/mario.wasm \
          index.html shell.js shell.css ma_texts.json \
          tools/mkdist.py Makefile | $(ESBUILD)
 	ESBUILD=$(ESBUILD) python3 tools/mkdist.py $(BUILDDIR) $(OUTDIR)

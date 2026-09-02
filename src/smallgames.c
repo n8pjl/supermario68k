@@ -13,7 +13,7 @@
 
 char *CardGame;
 
-char *Games;
+const char *Games;
 
 static int16_t RollX_176(int16_t X)
 {
@@ -359,7 +359,7 @@ void SetPixel(int16_t X, int16_t Y)
 void Play_card_game()
 {
 	int16_t CX = 0, CY = 0, PX = -1, PY = -1;
-	uint16_t *Sprite;
+	const uint16_t *Sprite;
 	int16_t C, D = 0;
 	//	void *dBufHPL, *dBufHPD;
 

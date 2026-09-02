@@ -2,7 +2,7 @@
 
 extern char *CardGame;
 
-extern char *Games;
+extern const char *Games;
 
 void Enter_game_house();
 

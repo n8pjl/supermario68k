@@ -5,8 +5,10 @@ Two jobs:
 
 1. Unwrap the container. A TI-92+/V200 variable file wraps the on-calc variable
    block in an 0x56-byte header plus a trailing 2-byte checksum, so the block is
-   file[0x56 : size-2]. It already starts with the 2-byte big-endian size word
-   the game skips via HeapDeref(h)+2, so nothing downstream needs adjusting.
+   file[0x56 : size-2]. The block opens with the big-endian size word of its own
+   contents, which is checked here and then dropped: what is written out is the
+   contents alone, because the game reads these files as arrays whose size is
+   sizeof (see src/compat/assets.c).
 
 2. Byte-swap everything that is read as a 16-bit quantity. The data is
    big-endian m68k; wasm is little-endian. What must be left alone is whatever
@@ -50,7 +52,25 @@ SIZEOF_BGFILEDATA = 44
 BGDATA = [(0, 2)]                # Height, Width
 
 
-GFX_HEADER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "gfx.h")
+SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src")
+GFX_HEADER = os.path.join(SRC, "gfx.h")
+ASSETS_SOURCE = os.path.join(SRC, "compat", "assets.c")
+
+
+def declared_assets():
+    """{name: tag} from the ASSET_LIST X-macro in src/compat/assets.c.
+
+    That list is what the game compiles in, and it names every file by hand;
+    this is the only thing that can tell it apart from what actually landed in
+    data/. A mismatch either way is a build error - a file nobody embeds is
+    dead weight, and an entry with no file would fail to compile anyway, but
+    with a #embed error naming a path rather than anything about the levelset.
+    """
+    src = open(ASSETS_SOURCE).read()
+    body = re.search(r"#define ASSET_LIST\(X\)(.*?)\n\n", src, re.S)
+    if not body:
+        raise ValueError("%s: no ASSET_LIST" % ASSETS_SOURCE)
+    return dict(re.findall(r'X\((\w+),\s*"(\w+)"\)', body.group(1)))
 
 
 def gfx_constants():
@@ -224,6 +244,8 @@ def main():
     src = sys.argv[1] if len(sys.argv) > 1 else "calc-data"
     out = sys.argv[2] if len(sys.argv) > 2 else "data"
     os.makedirs(out, exist_ok=True)
+    declared = declared_assets()
+    converted = {}
     # Data variables: .89y/.89z on the TI-89, .9xy/.9xz on the 92+ and V200.
     # The .89p/.9xp/.v2y/.v2z files are the calculator executable itself.
     for fn in sorted(os.listdir(src)):
@@ -231,14 +253,20 @@ def main():
             continue
         raw = open(os.path.join(src, fn), "rb").read()
         try:
-            size, content = unwrap(raw, fn)
+            _, content = unwrap(raw, fn)
         except ValueError as e:
             sys.exit(str(e))
         name = os.path.splitext(fn)[0]
         tag = tag_of(content)
         body = convert(content, tag, name)
-        open(os.path.join(out, name + ".bin"), "wb").write(size + body)
+        converted[name] = tag
+        open(os.path.join(out, name + ".bin"), "wb").write(body)
         print("%-10s %-5s %6d bytes" % (name, tag or "-", len(body)))
+
+    if converted != declared:
+        sys.exit("%s: ASSET_LIST is %s, data/ is %s"
+                 % (ASSETS_SOURCE, sorted(declared.items()),
+                    sorted(converted.items())))
 
 
 if __name__ == "__main__":

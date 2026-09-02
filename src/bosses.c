@@ -1,6 +1,7 @@
 #include "bosses.h"
 #include "compat/extgraph.h"
 #include "compat/graph.h"
+#include "compat/utils.h"
 #include "control.h"
 #include "gfx.h"
 #include "items.h"

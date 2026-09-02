@@ -77,8 +77,8 @@ struct map_object {
 
 	void (*Handler)(void *Map_object);
 
-	uint16_t *Sprite;
-	uint16_t *Mask;
+	const uint16_t *Sprite;
+	const uint16_t *Mask;
 
 } __attribute__((packed));
 

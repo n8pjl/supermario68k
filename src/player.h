@@ -210,8 +210,8 @@ extern struct saveplayer SavePlayer;
 
 extern struct shot Player_smallshots[nr_of_player_smallshots];
 
-extern uint16_t *Mariosprites;
-extern uint16_t *Mariomasks;
+extern const uint16_t *Mariosprites;
+extern const uint16_t *Mariomasks;
 
 extern void (*Bonushandlers[20])(int16_t X,
 				 int16_t Y); // pointers to bonustiles functions

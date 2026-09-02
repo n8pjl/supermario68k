@@ -1101,7 +1101,7 @@ void Enter_enemy_ship(struct map_object *Ship)
 
 		// DrawItem(blah blah blah);
 
-		uint16_t *Sprite;
+		const uint16_t *Sprite;
 		int16_t Height = 16;
 		//		Leveldata.Event=8;
 		/*	switch(Leveldata.Event){
@@ -1735,7 +1735,7 @@ void Add_map_event(uint8_t Event)
 				Map_objects[C].Handler =
 					(void (*)(void *))Handle_ship;
 
-				uint16_t *Sprite;
+				const uint16_t *Sprite;
 				char Mode;
 
 				if (Event == 1) {

@@ -301,23 +301,18 @@ void New_world_screen()
 
 int16_t RunGame(char Saveslot)
 {
-	//	SYM_ENTRY *Levelsetfile_sym;
-	HANDLE Temp;
 	int16_t C;
 
-	// memcpy( Filenames, HeapDeref (Temp)+2+sizeof(levelsetdata)+21,
-	// 9*Levelsetdata.Nr_of_files );
 	Playerinit();
 
 	if (Saveslot >= 0) { // load game
 		Player.Offset = 0;
-		Loadgame(Saveslot /*,HeapDeref (Temp)+2*/);
+		Loadgame(Saveslot);
 
 	} else { // new game
 		Levelsetdata.CurrentWorld = 0;
 	}
 
-	//	HeapUnlock(	Levelsetfile_sym->handle );
 	// DrawGrayStrExt2B(142,88,Buffer,A_REPLACE,F_4x6,GrayDBufGetActivePlane(LIGHT_PLANE),GrayDBufGetActivePlane(DARK_PLANE));
 
 	// DrawStr (20, 20, buffer, A_NORMAL);//test
@@ -328,10 +323,6 @@ int16_t RunGame(char Saveslot)
 	do {
 		Keystate.esc = false;
 		Exit = 0;
-
-		// memcpy( &Levelfilename, HeapDeref (Temp)+2+sizeof(levelsetdata)+21+9*C, 9
-		// ); memcpy( &Levelfilename, HeapDeref
-		// (Temp)+2+sizeof(levelsetdata)+21+9*Levelsetdata.CurrentWorld, 9 );
 
 		StringCopy(Levelfilename,
 			   Filenames + 9 * Levelsetdata.CurrentWorld);

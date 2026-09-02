@@ -8,7 +8,7 @@ length : the length in the output buffer
 output : output buffer where to write the deconmpressed data
 input : the compressed data itself
 */
-void RLEDecompress(uint8_t *output, uint8_t *input, uint16_t length)
+void RLEDecompress(uint8_t *output, const uint8_t *input, uint16_t length)
 {
 	int8_t count;
 

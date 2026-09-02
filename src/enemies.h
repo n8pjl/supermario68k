@@ -45,7 +45,7 @@ struct enemy {
 	uint8_t Data0;
 	uint8_t Data1;
 
-	uint16_t *Sprite;
+	const uint16_t *Sprite;
 	//	unsigned short* Mask;
 	char Respawn;
 	char Respawn2;
@@ -74,7 +74,7 @@ struct shot { // experiment shot
 	int16_t Data0;
 	int16_t Data1;
 	int16_t Data2;
-	uint16_t *Sprite;
+	const uint16_t *Sprite;
 	// unsigned short* Mask;
 	void (*Handler)(struct shot *Shot);
 };

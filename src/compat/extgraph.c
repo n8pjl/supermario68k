@@ -413,9 +413,11 @@ void GrayClearScreen2B(void *lightplane, void *darkplane)
 // pre-decrements. The vertical clip then still trims the same range of k, and
 // a sprite hanging off the top of the screen loses its *last* rows.
 void UpsideDownGrayClipSprite16_MASK_R(int16_t x, int16_t y, uint16_t height,
-				       uint16_t *sprt0, uint16_t *sprt1,
-				       uint16_t *mask0, uint16_t *mask1,
-				       void *dest0, void *dest1)
+				       const uint16_t *sprt0,
+				       const uint16_t *sprt1,
+				       const uint16_t *mask0,
+				       const uint16_t *mask1, void *dest0,
+				       void *dest1)
 {
 	int16_t first = y < 0 ? -y : 0; // first row slot on screen
 	int16_t last = height; // one past the last
@@ -453,8 +455,8 @@ void UpsideDownGrayClipSprite16_MASK_R(int16_t x, int16_t y, uint16_t height,
 // put_row16 about bits outside a sprite's own mask - the original clears these
 // with an `and.l`, so the port does too.
 void GrayClipSprite16_SMASKBLIT_R(int16_t x, int16_t y, uint16_t height,
-				  uint16_t *sprt0, uint16_t *sprt1,
-				  uint16_t *mask, const uint16_t maskval,
+				  const uint16_t *sprt0, const uint16_t *sprt1,
+				  const uint16_t *mask, const uint16_t maskval,
 				  void *dest0, void *dest1)
 {
 	int16_t first = y < 0 ? -y : 0; // first sprite row on screen
