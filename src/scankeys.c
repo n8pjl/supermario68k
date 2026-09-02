@@ -12,9 +12,11 @@ struct keystate Keystate, Previous_keystate;
 // whatever they are bound to - a key, a pad button, a stick, an on-screen pad -
 // so nothing below has to know a key name.
 EM_ASYNC_JS(void, browser_wait_no_actions_held, (void), {
+	// clang-format off
   while (Object.values(Module.gameActions()).some(Boolean)) {
     await new Promise((resolve) => { requestAnimationFrame(resolve) });
   }
+	// clang-format on
 });
 
 // Waits for an action to be pressed. The keyboard and the on-screen pads resolve
@@ -22,6 +24,7 @@ EM_ASYNC_JS(void, browser_wait_no_actions_held, (void), {
 // event, so it is polled - but only once there is one connected, rather than
 // burning a callback every frame when there is not.
 EM_ASYNC_JS(void, browser_action_pressed, (void), {
+	// clang-format off
   const abortController = new AbortController();
   const signal = abortController.signal;
 
@@ -50,6 +53,7 @@ EM_ASYNC_JS(void, browser_action_pressed, (void), {
   await Promise.any([pressed, gpPressed]);
   Module.keyPressPromises.keydown = null;
   abortController.abort();
+	// clang-format on
 });
 
 void WaitKeyReleased()
@@ -67,6 +71,7 @@ void ScanKeys(void)
 {
 	EM_ASM(
 		{
+			// clang-format off
         const actions = Module.gameActions();
         const keystate = new Uint8Array(HEAPU8.buffer, $0);
 
@@ -78,6 +83,7 @@ void ScanKeys(void)
         keystate[$6] = actions.left;
         keystate[$7] = actions.right;
         keystate[$8] = actions.run;
+			// clang-format on
 		},
 		&Keystate, offsetof(struct keystate, enter),
 		offsetof(struct keystate, esc), offsetof(struct keystate, jump),

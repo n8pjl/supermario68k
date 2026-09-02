@@ -1,3 +1,4 @@
+#include "text.h"
 #include "compat/alloc.h"
 #include "compat/extgraph.h"
 #include "compat/graph.h"
@@ -6,18 +7,16 @@
 #include "gameloop.h"
 #include "level.h"
 #include "levelset.h"
-#include "text.h"
 #include "render.h"
 #include "savegame.h"
 #include "scankeys.h"
-#include "levelset.h"
 #include "stringcopy.h"
 #include "titlescreen.h"
 #include "version.h"
 #include <assert.h>
 #include <emscripten/em_asm.h>
-#include <emscripten/em_macros.h>
 #include <emscripten/em_js.h>
+#include <emscripten/em_macros.h>
 #include <string.h>
 
 struct menu_text {

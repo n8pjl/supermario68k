@@ -1,8 +1,8 @@
 #include "custom.h"
 #include "control.h"
 #include "level.h"
-#include "text.h"
 #include "scankeys.h"
+#include "text.h"
 
 struct settings Settings;
 

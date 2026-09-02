@@ -28,10 +28,10 @@
 #include "gfx.h"
 #include "items.h"
 #include "level.h"
-#include "text.h"
 #include "render.h"
 #include "shells.h"
 #include "smallgames.h"
+#include "text.h"
 #include "version.h"
 #include <emscripten/em_asm.h>
 #include <stdbool.h>

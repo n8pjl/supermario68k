@@ -11,13 +11,13 @@
 #include "level.h"
 #include "levelset.h"
 #include "map.h"
-#include "text.h"
 #include "player.h"
 #include "render.h"
 #include "savegame.h"
 #include "scankeys.h"
 #include "shells.h"
 #include "stringcopy.h"
+#include "text.h"
 #include "version.h"
 #include <string.h>
 

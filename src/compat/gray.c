@@ -11,6 +11,7 @@
 // showed up on the calculator's LCD the moment it was written, so the canvas
 // needs a way to be repainted without flipping buffers - see GrayDBufRefresh.
 EM_JS(void, pageflip, (const void *rgba, int16_t w, int16_t h), {
+	// clang-format off
 	const canvas = Module.canvas;
 
 	// The canvas is sized from here rather than from the page, so the shell
@@ -27,6 +28,7 @@ EM_JS(void, pageflip, (const void *rgba, int16_t w, int16_t h), {
 	const ctx = canvas.getContext("2d");
 	const view = new Uint8ClampedArray(HEAPU8.buffer, rgba, w * h * 4);
 	ctx.putImageData(new ImageData(view, w, h), 0, 0);
+	// clang-format on
 });
 
 // Suspends via JSPI until the frame is due, at the pace the current scene asked
@@ -36,6 +38,7 @@ EM_JS(void, pageflip, (const void *rgba, int16_t w, int16_t h), {
 // is a floor and not a promise: below about 17ms on a 60Hz display, every
 // frame is simply due when it is painted.
 EM_ASYNC_JS(void, wait_for_frame, (double period), {
+	// clang-format off
 	if (globalThis.__smPrevFrame === undefined) globalThis.__smPrevFrame = 0;
 	let now = performance.now();
 	let elapsed;
@@ -43,6 +46,7 @@ EM_ASYNC_JS(void, wait_for_frame, (double period), {
 		now = await new Promise((resolve) => requestAnimationFrame(resolve));
 	}
 	globalThis.__smPrevFrame = now - (elapsed % period);
+	// clang-format on
 });
 
 static int16_t frame_rate = FPS;
