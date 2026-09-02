@@ -40,7 +40,7 @@
 
 // #define OPTIMIZE_ROM_CALLS // Use ROM Call Optimization
 
-void *Block;
+char *Block;
 void *Buffer; // pointer to video memory (gray doublebuffering mem and
 // backbuffers for tilemap engine)
 
@@ -60,7 +60,7 @@ const uint16_t *Boss_sprites;
 
 char *Level, *Map;
 
-void *Statusbar;
+char *Statusbar;
 
 char Exit;
 char ErrorCode;
@@ -89,7 +89,7 @@ int main(void)
 	init_calc_screen_constants(ti89_mode);
 
 	// Error: Memory possible
-	Block = malloc(
+	Block = (char *)malloc(
 		(uint32_t)GRAYDBUFFER_SIZE + 2 * GRAY_BIG_VSCREEN_SIZE +
 		BIG_VSCREEN_SIZE +
 		480); // allocate 1 drawbuffer and 2 big_vsceens(1 for each plane)
@@ -102,8 +102,8 @@ int main(void)
 	Buffer = Block;
 	GrayDBufInit(Buffer); // initialize double buffering mode
 
-	dBufHPL_G = GrayDBufGetHiddenPlane(LIGHT_PLANE);
-	dBufHPD_G = GrayDBufGetHiddenPlane(DARK_PLANE);
+	dBufHPL_G = (char *)GrayDBufGetHiddenPlane(LIGHT_PLANE);
+	dBufHPD_G = (char *)GrayDBufGetHiddenPlane(DARK_PLANE);
 
 	// Error: Memory possible
 	Items = (struct item *)malloc(sizeof(struct item) * nr_of_items +

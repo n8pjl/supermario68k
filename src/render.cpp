@@ -28,7 +28,7 @@ struct Plane Bg_plane;
 struct AnimatedPlane Fg_plane, Fg_mask, Map_plane;
 uint8_t StatBarHeight;
 
-void *dBufHPL_G, *dBufHPD_G;
+char *dBufHPL_G, *dBufHPD_G;
 
 // Default to TI-92+/V200 values
 int16_t scroll_limit_left = 110;
@@ -70,8 +70,8 @@ void GrayDBufToggleSync_SetPointers()
 {
 	GrayDBufToggleSync(); // set drawbuffer as active screen
 
-	dBufHPL_G = GrayDBufGetHiddenPlane(LIGHT_PLANE);
-	dBufHPD_G = GrayDBufGetHiddenPlane(DARK_PLANE);
+	dBufHPL_G = (char *)GrayDBufGetHiddenPlane(LIGHT_PLANE);
+	dBufHPD_G = (char *)GrayDBufGetHiddenPlane(DARK_PLANE);
 }
 
 void FilledRectEraseDark(int16_t X1, int16_t Y1, int16_t X2, int16_t Y2)
@@ -115,8 +115,8 @@ void DrawSprite16SMASKR(int16_t X, int16_t Y, int16_t H, const uint16_t *sprt0,
 				 dBufHPD_G);
 }
 
-void DrawSprite(register int16_t X, register int16_t Y, register int16_t H,
-		const uint16_t *sprt0, int16_t H2)
+void DrawSprite(int16_t X, int16_t Y, int16_t H, const uint16_t *sprt0,
+		int16_t H2)
 {
 	//	GrayClipSprite16_SMASK_R(X-FgX,Y-FgY,H,sprt0,sprt0+H2,sprt0+2*H2,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
 	GrayClipSprite16_SMASK_R(
@@ -137,8 +137,8 @@ void DrawMarioCursor(int16_t X, int16_t Y)
 			   Mariomasks + Marioanimtab[1][0]);
 }
 
-void DrawSpriteUpsideDown(register int16_t X, register int16_t Y,
-			  register int16_t H, const uint16_t *sprt0, int16_t H2)
+void DrawSpriteUpsideDown(int16_t X, int16_t Y, int16_t H,
+			  const uint16_t *sprt0, int16_t H2)
 {
 	//	UpsideDownGrayClipSprite16_MASK_R(X-FgX,Y-FgY,H,sprt0,sprt0+H2,sprt0+2*H2,sprt0+2*H2,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
 	UpsideDownGrayClipSprite16_MASK_R(

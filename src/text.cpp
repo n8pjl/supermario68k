@@ -31,7 +31,7 @@ static struct menu_text *get_menu_text(const char *menu)
 	_Static_assert(sizeof(void *) == 4,
 		       "JS code assumes pointers are 32-bits");
 
-	return EM_ASM_PTR(
+	return (struct menu_text *)EM_ASM_PTR(
 		{
 			// clang-format off
 			const menuId = AsciiToString($0);
@@ -70,7 +70,7 @@ char *get_string_locale(const char *str_id)
 	_Static_assert(sizeof(void *) == 4,
 		       "JS code assumes pointers are 32-bits");
 
-	char *str = EM_ASM_PTR(
+	char *str = (char *)EM_ASM_PTR(
 		// clang-format off
 		{
 			const str = Module.maTexts.strings[AsciiToString($0)];
@@ -229,7 +229,7 @@ int16_t Menus()
 	}
 
 	// Error: Memory possible
-	if (!(Filenames = malloc(9 * (Levelsetdata.Nr_of_files)))) {
+	if (!(Filenames = (char *)malloc(9 * (Levelsetdata.Nr_of_files)))) {
 		return 1;
 	}
 

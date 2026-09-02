@@ -31,10 +31,10 @@ extern struct AnimatedPlane Fg_plane, Fg_mask, Map_plane;
 extern void *Buffer;
 // extern unsigned short *Tiles;
 
-extern void *Statusbar;
+extern char *Statusbar;
 extern uint8_t StatBarHeight;
 
-extern void *dBufHPL_G, *dBufHPD_G;
+extern char *dBufHPL_G, *dBufHPD_G;
 
 void init_calc_screen_constants(bool ti89_mode);
 

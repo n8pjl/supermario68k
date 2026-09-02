@@ -134,7 +134,7 @@ static void load_save(struct asset *a)
 if (len < 0)
 	return;
 
-uint8_t *save = malloc((size_t)len + 1); // +1: never malloc(0)
+uint8_t *save = (uint8_t *)malloc((size_t)len + 1); // +1: never malloc(0)
 if (!save) {
 	EM_ASM({ globalThis.__sm68kSave = null; });
 	return;
@@ -190,7 +190,7 @@ struct asset *Asset_next_tagged(const struct asset *prev, const char *tag)
 
 bool Asset_save(struct asset *a, const void *data, size_t size)
 {
-	uint8_t *save = malloc(size + 1); // +1: never malloc(0)
+	uint8_t *save = (uint8_t *)malloc(size + 1); // +1: never malloc(0)
 
 	if (!save)
 		return false;

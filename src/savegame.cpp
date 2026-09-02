@@ -16,6 +16,27 @@
 #include <stdint.h>
 #include <string.h>
 
+// Reports a failed save and marks the slot empty. Its own function because
+// C++ will not let the two failure paths jump forward past the initialized
+// locals in between, the way the C goto did.
+static void Save_failed(char Slot)
+{
+	Levelsetdata.Savegames[(int16_t)Slot] = 0;
+
+	GrayClearScreen2B(dBufHPL_G, dBufHPD_G);
+
+	// DrawGrayStrExt2B(20+screen_offset_sg_x,40+screen_offset_sg_y,"Saving
+	// failed!",A_REPLACE|A_SHADOWED,F_8x10,dBufHPL_G,dBufHPD_G);
+	DrawString(20 + screen_offset_sg_x, 40 + screen_offset_sg_y,
+		   "Saving failed!", A_REPLACE | A_SHADOWED, F_8x10);
+
+	GrayDBufToggleSync_SetPointers();
+
+	/*while(_rowread(0));//wait until key released
+  while(!_rowread(0));//wait until key pressed*/
+	WaitKeyPress();
+}
+
 void Savegame(char Slot)
 {
 	int16_t C;
@@ -24,7 +45,8 @@ void Savegame(char Slot)
 	struct asset *Levelset = Asset_find(Levelsetfile);
 
 	if (!Levelset) {
-		goto failure;
+		Save_failed(Slot);
+		return;
 	}
 	// copy file content...
 
@@ -136,9 +158,9 @@ void Savegame(char Slot)
 	// unsigned short RLECompress(unsigned char *output,unsigned char
 	// *input,unsigned short length);
 
-	int16_t RLESize =
-		RLECompress(TempBuffer /*Fg_plane.p.big_vscreen*/ + Size,
-			    TempBuffer2 /*Fg_mask.p.big_vscreen*/, MapSize);
+	int16_t RLESize = RLECompress(
+		(uint8_t *)TempBuffer /*Fg_plane.p.big_vscreen*/ + Size,
+		(uint8_t *)TempBuffer2 /*Fg_mask.p.big_vscreen*/, MapSize);
 	// short SlotSize = sizeof(saveplayer)+10+RLESize;
 	for (C = 0; C < MapSize; C++) { // Undo loading of original map
 		*(Map + C) += *(TempBuffer2 /*Fg_mask.p.big_vscreen*/ + C);
@@ -164,7 +186,8 @@ void Savegame(char Slot)
 	// The whole levelset, saveslots and all, is what gets written back: the
 	// buffer above was assembled out of the file it replaces.
 	if (!Asset_save(Levelset, TempBuffer, Size)) {
-		goto failure;
+		Save_failed(Slot);
+		return;
 	}
 
 	/*
@@ -178,23 +201,6 @@ void Savegame(char Slot)
   */
 
 	return;
-
-failure: // save failed
-
-	Levelsetdata.Savegames[(int16_t)Slot] = 0;
-
-	GrayClearScreen2B(dBufHPL_G, dBufHPD_G);
-
-	// DrawGrayStrExt2B(20+screen_offset_sg_x,40+screen_offset_sg_y,"Saving
-	// failed!",A_REPLACE|A_SHADOWED,F_8x10,dBufHPL_G,dBufHPD_G);
-	DrawString(20 + screen_offset_sg_x, 40 + screen_offset_sg_y,
-		   "Saving failed!", A_REPLACE | A_SHADOWED, F_8x10);
-
-	GrayDBufToggleSync_SetPointers();
-
-	/*while(_rowread(0));//wait until key released
-  while(!_rowread(0));//wait until key pressed*/
-	WaitKeyPress();
 }
 
 void Loadgame(char Slot)
@@ -249,7 +255,8 @@ void Loadgame(char Slot)
 
 	// memset(Fg_plane.p.big_vscreen,0x0000,MapSize);
 
-	RLEDecompress(Fg_plane.p.big_vscreen, Raw, MapSize);
+	RLEDecompress((uint8_t *)Fg_plane.p.big_vscreen, (const uint8_t *)Raw,
+		      MapSize);
 
 	for (C = 0; C < MapSize; C++) { // add deviation
 		*(Map + C) += *(Fg_plane.p.big_vscreen + C);

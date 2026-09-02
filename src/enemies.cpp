@@ -1553,7 +1553,8 @@ void Enemy_handler_21(struct enemy *Enemy)
 					Enemy->Height2 = Enemy->Height = 8;
 					Enemy->Attribs =
 						0b00010100; // 0b00011100;//
-					Enemy->Die = (void *)Dummy_func_;
+					Enemy->Die = (void (*)(
+						struct enemy *))Dummy_func_;
 					//					Enemy->Jumping = 0;
 				} else {
 					Enemy->X += dx[Enemy->Mode - 3];
@@ -1884,7 +1885,8 @@ void Enemy_die_1(struct enemy *Enemy)
 	Enemy->Sprite = monster1_dead_sprite;
 	(Enemy->Handler) = Enemy_handler_5;
 	Enemy->Mode = 60; // timer: nr of frames to show sprite
-	(Enemy->Die) = (void *)Dummy_func_; // E_dummy_handler;
+	(Enemy->Die) =
+		(void (*)(struct enemy *))Dummy_func_; // E_dummy_handler;
 	Score_anim(Enemy->X, Enemy->Y - 8, score_100);
 }
 void Enemy_die_2(struct enemy *Enemy)
@@ -1972,7 +1974,8 @@ void Enemy_die_7(struct enemy *Enemy)
 	Enemy->Y += 15;
 	(Enemy->Handler) = Enemy_handler_7;
 	Enemy->Mode = 120; // timer. Nr of frames to resurection
-	(Enemy->Die) = (void *)Dummy_func_; // E_dummy_handler;
+	(Enemy->Die) =
+		(void (*)(struct enemy *))Dummy_func_; // E_dummy_handler;
 	Score_anim(Enemy->X, Enemy->Y - 8, score_100);
 }
 
@@ -2077,8 +2080,8 @@ void Enemy_die_10(struct enemy *Enemy)
 		(Enemy + Enemy->Active - 2)->Active = 4; // set brother as alone
 	}
 
-	Enemy->Die =
-		(void *)Dummy_func_; // prevent this func to be executed twice,
+	Enemy->Die = (void (*)(struct enemy *))
+		Dummy_func_; // prevent this func to be executed twice,
 	// destroying treasure
 	Enemy_die_6(Enemy);
 }
@@ -2121,7 +2124,8 @@ void Enemy_die(struct enemy *Enemy)
 	Enemy->Life = -1;
 	Enemy->Attribs = 0;
 	(Enemy->Handler) = Handle_hardkilled_enemies;
-	(Enemy->Die) = (void *)Dummy_func_; // this might prevent strange bugs
+	(Enemy->Die) = (void (*)(
+		struct enemy *))Dummy_func_; // this might prevent strange bugs
 	Enemy->Mode = 0;
 	Enemy->Face = (Player.X > Enemy->X) ? -4 : 4;
 	Score_anim(Enemy->X, Enemy->Y - 8, score_100);

@@ -19,7 +19,7 @@
 
 // Describes a tilemap plane, used by the high-level DrawPlane functions.
 struct Plane {
-	void *matrix; // matrix of tile numbers, one byte each
+	char *matrix; // matrix of tile numbers, one byte each
 	uint16_t width; // map width, in tiles
 	const void *sprites; // tile sprite array
 	char *big_vscreen; // big virtual screen (see sizes above)

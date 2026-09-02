@@ -160,7 +160,7 @@ if( !(Temp = Levelfile_sym->handle) ){
 
 	// Error: Memory possible
 
-	if (!(Level = malloc(Leveldata.Size))) {
+	if (!(Level = (char *)malloc(Leveldata.Size))) {
 		ErrorCode = 1;
 		Exit = 3;
 		return 1;
@@ -197,7 +197,8 @@ if( !(Temp = Levelfile_sym->handle) ){
 
 	// RLEDecompress(Level, HeapDeref (Temp)+2 + Levelfileinfo.Levels[Level_nr] +
 	// sizeof(leveldata),/*(int)*/(Leveldata.Height*Leveldata.Width));//+(Leveldata.Height*Leveldata.Width)%2
-	RLEDecompress(Level, Raw, (Leveldata.Height * Leveldata.Width));
+	RLEDecompress((uint8_t *)Level, Raw,
+		      (Leveldata.Height * Leveldata.Width));
 
 	Raw += Leveldata.TCSize;
 
@@ -264,8 +265,8 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 	uint8_t Byte3, Byte4, Byte5;
 
 	const uint16_t *Sprite;
-	void *Handler;
-	void *Die;
+	void (*Handler)(struct enemy *);
+	void (*Die)(struct enemy *);
 	uint8_t Attribs;
 	char Face;
 	char Life;
@@ -509,7 +510,8 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 			Enemies[Nr].Jumping = -1;
 			/*Enemies[Nr].*/ Attribs = 0b00010000;
 			/*Enemies[Nr].*/ Handler = Enemy_handler_11;
-			/*Enemies[Nr].*/ Die = Dummy_func_; // E_dummy_handler;
+			/*Enemies[Nr].*/ Die = (void (*)(
+				struct enemy *))Dummy_func_; // E_dummy_handler;
 			break;
 
 		case falling_brick: // Falling brick
@@ -520,7 +522,8 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 			Enemies[Nr].Mode = 1;
 			Enemies[Nr].Y -= 2;
 			/*Enemies[Nr].*/ Handler = Enemy_handler_12;
-			/*Enemies[Nr].*/ Die = Dummy_func_; // E_dummy_handler;
+			/*Enemies[Nr].*/ Die = (void (*)(
+				struct enemy *))Dummy_func_; // E_dummy_handler;
 			break;
 
 		case jumping_brick: // Jumping brick
@@ -542,7 +545,8 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 			Enemies[Nr].Data0 = Byte4; //(*((unsigned char*)Raw+4));
 			//  			Enemies[Nr].Attribs = 0b00000000;//not
 			//  neccessarry, done in memset
-			/*Enemies[Nr].*/ Die = Dummy_func_; // E_dummy_handler;
+			/*Enemies[Nr].*/ Die = (void (*)(
+				struct enemy *))Dummy_func_; // E_dummy_handler;
 			/*Enemies[Nr].*/ Handler = Enemy_handler_14;
 
 			NextRaw = 5;
@@ -558,7 +562,8 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 
 			//				Enemies[Nr].Attribs = 0b00000000;//not
 			// neccessarry, done in memset
-			/*Enemies[Nr].*/ Die = Dummy_func_; // E_dummy_handler;
+			/*Enemies[Nr].*/ Die = (void (*)(
+				struct enemy *))Dummy_func_; // E_dummy_handler;
 			/*Enemies[Nr].*/ Handler = Enemy_handler_15;
 
 			NextRaw = 5;
@@ -582,7 +587,8 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 			/*Enemies[Nr].Height =*/Enemies[Nr].Height2 = 16;
 			/*Enemies[Nr].*/ Attribs = 0b00010000;
 
-			/*Enemies[Nr].*/ Die = Dummy_func_; // E_dummy_handler;
+			/*Enemies[Nr].*/ Die = (void (*)(
+				struct enemy *))Dummy_func_; // E_dummy_handler;
 			/*Enemies[Nr].*/ Handler = Enemy_handler_16;
 
 			break;
@@ -609,7 +615,8 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 			Enemies[Nr].Data1 = Byte5; //(*((unsigned char*)Raw+5));
 			/*Enemies[Nr].*/ Handler = Enemy_handler_10;
 			/*Enemies[Nr].*/ Attribs = 0b00010000;
-			/*Enemies[Nr].*/ Die = Dummy_func_; // E_dummy_handler;
+			/*Enemies[Nr].*/ Die = (void (*)(
+				struct enemy *))Dummy_func_; // E_dummy_handler;
 
 			NextRaw = 6;
 			break;
@@ -625,7 +632,8 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
               Enemies[Nr].Mode = 0;*/
 			/*Enemies[Nr].*/ Handler = Enemy_handler_17;
 			/*Enemies[Nr].*/ Attribs = 0b01111001;
-			/*Enemies[Nr].*/ Die = Dummy_func_; // E_dummy_handler;
+			/*Enemies[Nr].*/ Die = (void (*)(
+				struct enemy *))Dummy_func_; // E_dummy_handler;
 			break;
 
 		case flying_turtle: // flying turtle
@@ -662,8 +670,8 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 			/*Enemies[Nr+1].*/ Sprite = bottom_flower_r1;
 			/*Enemies[Nr+1].*/ Handler = Enemy_handler_23;
 			/*Enemies[Nr+1].*/ Attribs = 0b00010000;
-			/*Enemies[Nr+1].*/ Die =
-				Dummy_func_; // E_dummy_handler;
+			/*Enemies[Nr+1].*/ Die = (void (*)(
+				struct enemy *))Dummy_func_; // E_dummy_handler;
 			Enemies[Nr + 1].Active = Enemies[Nr + 1].Life = 1;
 
 			Nr++;
@@ -684,7 +692,8 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 			// in memset
 			/*Enemies[Nr].*/ Handler = Enemy_handler_19;
 			/*Enemies[Nr].*/ Attribs = 0b01011101;
-			/*Enemies[Nr].*/ Die = Dummy_func_; // E_dummy_handler;
+			/*Enemies[Nr].*/ Die = (void (*)(
+				struct enemy *))Dummy_func_; // E_dummy_handler;
 
 			NextRaw = 7;
 			break;
@@ -711,7 +720,8 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 			/*Enemies[Nr].*/ Face = -1;
 			/*Enemies[Nr].*/ Handler = Enemy_handler_20;
 			/*Enemies[Nr].*/ Attribs = 0b01011001;
-			/*Enemies[Nr].*/ Die = Dummy_func_; // E_dummy_handler;
+			/*Enemies[Nr].*/ Die = (void (*)(
+				struct enemy *))Dummy_func_; // E_dummy_handler;
 			break;
 
 		case bomb: // bomb
@@ -787,9 +797,11 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 	// Leveldata.Nr_of_flying_platforms =
 	// Leveldata.Boss = 0;
 
-	Triggers = (void *)Enemies +
-		   Leveldata.Nr_of_enemies *
-			   sizeof(struct enemy); // + Leveldata.Nr_of_triggers%2
+	Triggers =
+		(struct trigger
+			 *)((char *)Enemies +
+			    Leveldata.Nr_of_enemies *
+				    sizeof(struct enemy)); // + Leveldata.Nr_of_triggers%2
 
 	memcpy(Triggers, Raw,
 	       Leveldata.Nr_of_triggers *
@@ -799,9 +811,11 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 
 	Raw += Leveldata.Nr_of_triggers * sizeof(struct trigger);
 
-	Flying_platforms = (void *)Triggers +
-			   Leveldata.Nr_of_triggers * sizeof(struct trigger) +
-			   (Leveldata.Nr_of_triggers % 2); //
+	Flying_platforms =
+		(struct flying_platform *)((char *)Triggers +
+					   Leveldata.Nr_of_triggers *
+						   sizeof(struct trigger) +
+					   (Leveldata.Nr_of_triggers % 2)); //
 
 	// memset(Flying_platforms,0,sizeof(flying_platform)*Leveldata.Nr_of_flying_platforms);
 
@@ -908,9 +922,9 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
   };
   */
 	// Player.Test = Leveldata.Boss;
-	BossG = (void *)Flying_platforms +
-		Leveldata.Nr_of_flying_platforms *
-			sizeof(struct flying_platform);
+	BossG = (struct boss *)((char *)Flying_platforms +
+				Leveldata.Nr_of_flying_platforms *
+					sizeof(struct flying_platform));
 	Nr = 0;
 	while (Nr < Leveldata.Boss) {
 		// if(Leveldata.Boss){
@@ -1031,7 +1045,7 @@ int16_t Generate_handler_1_enemy(int16_t Nr, char Model, char Face,
 	}
 
 	const uint16_t *Sprite;
-	void *Die;
+	void (*Die)(struct enemy *);
 	uint8_t Attribs = 0b11111001;
 	int16_t Height2 = 16;
 
@@ -1059,7 +1073,8 @@ int16_t Generate_handler_1_enemy(int16_t Nr, char Model, char Face,
 		/*Enemies[Nr].Height = */ /*Enemies[Nr].*/ Height2 = 15;
 		Enemies[Nr].Y += 1;
 		/*Enemies[Nr].*/ Attribs = 0b00111001;
-		/*(enemy *)Enemies[Nr].*/ Die = Dummy_func_; // E_dummy_handler;
+		/*(enemy *)Enemies[Nr].*/ Die = (void (*)(
+			struct enemy *))Dummy_func_; // E_dummy_handler;
 		break;
 	case beetle_free:
 	case beetle_limited:
@@ -1073,8 +1088,8 @@ int16_t Generate_handler_1_enemy(int16_t Nr, char Model, char Face,
 		/*Enemies[Nr].*/ Sprite = fish1_left_spr;
 		/*Enemies[Nr].*/ Attribs = 0b01011001;
 		Enemies[Nr].Y -= 2;
-		/*	(enemy *)Enemies[Nr].*/ Die =
-			Dummy_func_; // E_dummy_handler;
+		/*	(enemy *)Enemies[Nr].*/ Die = (void (*)(
+			struct enemy *))Dummy_func_; // E_dummy_handler;
 		break;
 
 	case skel_tur_free:
@@ -1130,7 +1145,7 @@ void SetBg(int16_t Bg_nr)
 	// and map matrices that get written to, and those are heap copies - so the
 	// pointer is cast back to mutable here instead of the field being const
 	// for everyone.
-	Bg_plane.matrix = (void *)(Raw + sizeof(struct bg_data));
+	Bg_plane.matrix = (char *)(Raw + sizeof(struct bg_data));
 	Bg_plane.width = Bg_data.Width;
 	Bg_plane.force_update = 1;
 	Leveldata.Bg_height = Bg_data.Height;
@@ -1237,11 +1252,11 @@ if( !(Temp = Levelfile_sym->handle) ){
 
 		// Error: Memory
 
-		if (!(Map = malloc(Map_data.Height * Map_data.Width +
-				   sizeof(struct map_trigger) *
-					   Map_data.Nr_of_triggers +
-				   sizeof(struct map_object) *
-					   (Map_data.Nr_of_objects)))) {
+		if (!(Map = (char *)malloc(Map_data.Height * Map_data.Width +
+					   sizeof(struct map_trigger) *
+						   Map_data.Nr_of_triggers +
+					   sizeof(struct map_object) *
+						   (Map_data.Nr_of_objects)))) {
 			ErrorCode = 1;
 			Exit = 3;
 			return 1;
@@ -1282,10 +1297,12 @@ if( !(Temp = Levelfile_sym->handle) ){
 	}
 
 	//(void*)
-	Map_triggers = ((void *)Map + Map_data.Height * Map_data.Width);
+	Map_triggers =
+		(struct map_trigger *)(Map + Map_data.Height * Map_data.Width);
 
-	Map_objects = ((void *)Map_triggers +
-		       Map_data.Nr_of_triggers * sizeof(struct map_trigger));
+	Map_objects = (struct map_object *)((char *)Map_triggers +
+					    Map_data.Nr_of_triggers *
+						    sizeof(struct map_trigger));
 	// Map_objects = (void*)Map + Map_data.Height*Map_data.Width;
 
 	Swap_map_payload();

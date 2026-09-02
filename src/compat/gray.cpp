@@ -98,7 +98,7 @@ static bool dbuf_buf_no;
 // bytes, and the top 100 of the 128 rows - so what reaches the canvas is what
 // the calculator's LCD would have shown.
 static uint8_t renderbuf[PLANE_HEIGHT * PLANE_WIDTH][4];
-static void render(uint8_t *restrict light, uint8_t *restrict dark)
+static void render(uint8_t *__restrict light, uint8_t *__restrict dark)
 {
 	for (int16_t y = 0; y < screen_height; y++) {
 		for (int16_t bx = 0; bx < screen_width / 8; bx++) {
@@ -132,7 +132,7 @@ static inline uint8_t *dbuf_buf(bool no)
 
 void GrayDBufInit(void *buf)
 {
-	dbuf1 = buf;
+	dbuf1 = (uint8_t *)buf;
 }
 
 void *GrayDBufGetActivePlane(int16_t plane)
@@ -158,7 +158,7 @@ void GrayDBufToggleSync(void)
 // otherwise not appear at all until the next flip overwrote them.
 void GrayDBufRefresh(void)
 {
-	render(GrayDBufGetActivePlane(LIGHT_PLANE),
-	       GrayDBufGetActivePlane(DARK_PLANE));
+	render((uint8_t *)GrayDBufGetActivePlane(LIGHT_PLANE),
+	       (uint8_t *)GrayDBufGetActivePlane(DARK_PLANE));
 	pageflip(renderbuf, screen_width, screen_height);
 }

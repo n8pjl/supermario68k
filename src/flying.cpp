@@ -33,7 +33,7 @@ void Platform_handler_1(struct flying_platform *Platform)
 	// squeezed to death etc. Data2 is speed in x dir Data3 is speed in y dir
 	// Data0 is motion length before change dir
 
-	char P_attribs[6];
+	uint8_t P_attribs[6];
 	// short C;
 
 	if ((++Platform->Active) == 3) {

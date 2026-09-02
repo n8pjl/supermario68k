@@ -236,8 +236,8 @@ void New_world_screen()
 
 	Render_map();
 
-	uint16_t *ActiveLight = GrayDBufGetActivePlane(LIGHT_PLANE);
-	uint16_t *ActiveDark = GrayDBufGetActivePlane(DARK_PLANE);
+	uint16_t *ActiveLight = (uint16_t *)GrayDBufGetActivePlane(LIGHT_PLANE);
+	uint16_t *ActiveDark = (uint16_t *)GrayDBufGetActivePlane(DARK_PLANE);
 
 	/*	FastFilledRect_Erase_R(ActiveLight,32,32,128,68);
           FastFilledRect_Erase_R(ActiveDark,32,32,128,68);

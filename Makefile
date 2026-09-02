@@ -1,11 +1,11 @@
-CC = emcc
+CC = em++
 # -MMD -MP: emit the header dependencies picked up below, so editing a header
 # rebuilds what includes it. Nearly every file here includes all.h, which
 # reaches most of the others, so without this a header edit is silently
 # ignored and the link fails - or worse, does not.
-# -I.: compat/assets.c reaches the game data as #embed "data/<name>.bin", which
+# -I.: compat/assets.cpp reaches the game data as #embed "data/<name>.bin", which
 # is resolved from here rather than from the including file's directory.
-CFLAGS = -Os -std=gnu23 -flto -msimd128 -MMD -MP -I.
+CFLAGS = -Os -std=gnu++26 -flto -msimd128 -MMD -MP -I.
 # -sENVIRONMENT=web: this only ever runs in a browser, so drop the node,
 # worker and shell startup paths Emscripten emits by default.
 # -sEXPORT_ES6: emit mario.mjs as an ES module (a default-exported factory),
@@ -37,34 +37,34 @@ ESBUILD = ./node_modules/.bin/esbuild
 # exist. This stamp is what make tracks in their place.
 DIST = .dist-stamp
 
-NAMES = main.c enemies.c gameloop.c items.c player.c render.c \
-        scankeys.c shells.c custom.c objects.c flying.c smallgames.c \
-        bounch.c map.c titlescreen.c text.c rle.c level.c savegame.c \
-        stringcopy.c error.c bosses.c gfx.c \
-        compat/assets.c compat/tilemap.c compat/extgraph.c \
-        compat/graph.c compat/font_data.c compat/gray.c
+NAMES = main.cpp enemies.cpp gameloop.cpp items.cpp player.cpp render.cpp \
+        scankeys.cpp shells.cpp custom.cpp objects.cpp flying.cpp smallgames.cpp \
+        bounch.cpp map.cpp titlescreen.cpp text.cpp rle.cpp level.cpp savegame.cpp \
+        stringcopy.cpp error.cpp bosses.cpp gfx.cpp \
+        compat/assets.cpp compat/tilemap.cpp compat/extgraph.cpp \
+        compat/graph.cpp compat/font_data.cpp compat/gray.cpp
 
 SRCS = $(addprefix $(SRCDIR)/,$(NAMES))
 HDRS = $(wildcard $(SRCDIR)/*.h $(SRCDIR)/compat/*.h)
 
 # Objects land beside their sources, so $(SRCDIR)/compat already exists and
-# the %.o: %.c rule needs no per-directory handling.
-OBJS = $(SRCS:.c=.o)
+# the %.o: %.cpp rule needs no per-directory handling.
+OBJS = $(SRCS:.cpp=.o)
 DEPS = $(OBJS:.o=.d)
 
 .PHONY: all clean data
 
 all: $(DIST)
 
-# mkdata.py reads the asset list out of assets.c, so a file added or renamed
+# mkdata.py reads the asset list out of assets.cpp, so a file added or renamed
 # there has to run it again.
-.data-stamp: tools/mkdata.py $(SRCDIR)/compat/assets.c
+.data-stamp: tools/mkdata.py $(SRCDIR)/compat/assets.cpp
 	python3 tools/mkdata.py calc-data data
 	@touch $@
 
 data: .data-stamp
 
-# assets.c #embeds data/, so the converted files have to exist before it can be
+# assets.cpp #embeds data/, so the converted files have to exist before it can be
 # compiled at all. Once they do, -MMD lists each embedded file in assets.d and
 # picks up any later change to it; this stamp is only what gets the first build
 # off the ground.
@@ -100,7 +100,7 @@ $(ESBUILD): package-lock.json
 $(BUILDDIR):
 	mkdir -p $@
 
-%.o: %.c
+%.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 format: $(SRCS) $(HDRS)

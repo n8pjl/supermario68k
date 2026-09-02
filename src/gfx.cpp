@@ -7,7 +7,7 @@
 
 const uint8_t *Bg_file_data;
 
-inline int16_t Load_gfx_from_file()
+int16_t Load_gfx_from_file()
 { // sets up the pointers to gfx arrays in external files
 
 	const struct asset *File;

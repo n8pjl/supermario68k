@@ -18,8 +18,11 @@ enum GrayColors {
 	COLOR_BLACK = 3
 };
 
-// Extra attribute bits ORed into the drawing mode of GrayDrawStrExt2B.
-enum ExtAttrs { A_CENTERED = 0x40, A_SHADOWED = 0x80 };
+// Extra attribute bits ORed into the drawing mode of GrayDrawStrExt2B. Plain
+// constants rather than an enum: they are combined with the Attrs values with
+// |, and C++ no longer allows that between two distinct enumeration types.
+constexpr int16_t A_CENTERED = 0x40;
+constexpr int16_t A_SHADOWED = 0x80;
 
 // Byte offset of pixel (x, y) from the start of a 240-pixel-wide plane
 // (30 bytes a row): 30*y + x/8.

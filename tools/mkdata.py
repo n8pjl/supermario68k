@@ -8,7 +8,7 @@ Two jobs:
    file[0x56 : size-2]. The block opens with the big-endian size word of its own
    contents, which is checked here and then dropped: what is written out is the
    contents alone, because the game reads these files as arrays whose size is
-   sizeof (see src/compat/assets.c).
+   sizeof (see src/compat/assets.cpp).
 
 2. Byte-swap everything that is read as a 16-bit quantity. The data is
    big-endian m68k; wasm is little-endian. What must be left alone is whatever
@@ -54,11 +54,11 @@ BGDATA = [(0, 2)]                # Height, Width
 
 SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src")
 GFX_HEADER = os.path.join(SRC, "gfx.h")
-ASSETS_SOURCE = os.path.join(SRC, "compat", "assets.c")
+ASSETS_SOURCE = os.path.join(SRC, "compat", "assets.cpp")
 
 
 def declared_assets():
-    """{name: tag} from the ASSET_LIST X-macro in src/compat/assets.c.
+    """{name: tag} from the ASSET_LIST X-macro in src/compat/assets.cpp.
 
     That list is what the game compiles in, and it names every file by hand;
     this is the only thing that can tell it apart from what actually landed in
