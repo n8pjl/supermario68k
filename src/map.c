@@ -16,7 +16,7 @@
 #include "smallgames.h"
 #include <stdint.h>
 
-inline void Handle_player_map()
+void Handle_player_map()
 {
 	int16_t OldFgX, OldFgY, Temp = 0, Temp2;
 	static int16_t CX = 0, CY = 0, /*L=0,*/ C = 0;
@@ -1180,7 +1180,7 @@ void Enter_enemy_ship(struct map_object *Ship)
 	// Exit=0;
 };
 
-inline void Handle_map_objects()
+void Handle_map_objects()
 {
 	int16_t C; //,OldFgX,OldFgY;
 

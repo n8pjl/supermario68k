@@ -1,12 +1,9 @@
 CC = emcc
-# -fgnu89-inline: `inline` here means the pre-C99 GNU semantics the sources were
-# written against, where a header's inline declaration does not suppress the
-# out-of-line definition in the .c file.
 # -MMD -MP: emit the header dependencies picked up below, so editing a header
 # rebuilds what includes it. Nearly every file here includes all.h, which
 # reaches most of the others, so without this a header edit is silently
 # ignored and the link fails - or worse, does not.
-CFLAGS = -Os -std=gnu99 -fgnu89-inline -flto -msimd128 -MMD -MP
+CFLAGS = -Os -std=gnu23 -flto -msimd128 -MMD -MP
 # -sENVIRONMENT=web: this only ever runs in a browser, so drop the node,
 # worker and shell startup paths Emscripten emits by default.
 # -sEXPORT_ES6: emit mario.mjs as an ES module (a default-exported factory),

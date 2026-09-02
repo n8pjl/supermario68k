@@ -6,7 +6,7 @@
 
 struct settings Settings;
 
-inline void Custom()
+void Custom()
 {
 	if (Keystate.esc) {
 		// handle midgame menu

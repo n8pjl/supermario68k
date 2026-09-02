@@ -17,7 +17,7 @@ air, animations etc,
 struct object *Objects;
 
 /*
-inline void Handle_objects(){
+void Handle_objects(){
         short C;
 
         for(C=0;C<nr_of_objects;C++){

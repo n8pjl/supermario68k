@@ -29,7 +29,7 @@ void Add_killed_shell(struct shell *Shell, int16_t DirSpeed)
 	Shell->Active = 0;
 }
 
-inline void Player_bounching_shell_hadler()
+void Player_bounching_shell_hadler()
 {
 	int16_t A, C, D;
 	uint8_t Temp;

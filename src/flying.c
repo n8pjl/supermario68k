@@ -9,7 +9,7 @@
 
 struct flying_platform *Flying_platforms;
 
-inline void Handle_flying_platforms()
+void Handle_flying_platforms()
 {
 	int16_t C;
 

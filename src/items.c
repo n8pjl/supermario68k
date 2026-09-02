@@ -20,7 +20,7 @@ struct item *Items;
 
 struct trigger *Triggers;
 
-inline void Handleitems()
+void Handleitems()
 {
 	int16_t C, D;
 

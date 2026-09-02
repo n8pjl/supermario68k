@@ -34,7 +34,7 @@ struct boss {
 
 extern struct boss *BossG;
 
-inline void Handlebosses();
+void Handlebosses();
 
 int16_t Boss_free_down(struct boss *Boss);
 

@@ -13,7 +13,7 @@
 
 struct boss *BossG;
 
-inline void Handlebosses()
+void Handlebosses()
 {
 	BossG->Handler(BossG);
 

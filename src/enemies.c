@@ -17,7 +17,7 @@ struct enemy *Enemies;
 
 struct shot Enemyshots[nr_of_enemyshots];
 
-inline void Handleenemies()
+void Handleenemies()
 {
 	int16_t Curr_enemy;
 	int16_t C;

@@ -671,7 +671,7 @@ Attribs[4] = Get_tile(Player.X+15,Player.Y+Player.Height);
 	Attribs[5] = Val;
 }
 
-inline void Handleplayer()
+void Handleplayer()
 {
 	uint8_t Temp, C, D, Runflag; // runflag is fly code
 	static char Anim_step;

@@ -153,9 +153,9 @@ uint8_t Get_map_tile(int16_t X, int16_t Y);
 
 void Put_map_tile(int16_t X, int16_t Y, uint8_t Tile);
 
-inline void Handle_player_map();
+void Handle_player_map();
 
-inline void Handle_map_objects();
+void Handle_map_objects();
 
 void Handle_boat(struct map_object *Ship);
 
