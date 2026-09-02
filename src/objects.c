@@ -79,7 +79,7 @@ void Handle_timed_coinconvert(struct object *Object)
 	if (Object->X >= pow_item_time) {
 		Convert_brick_coin();
 		Object->Active = 0;
-	};
+	}
 };
 
 /*
@@ -180,7 +180,7 @@ int16_t Find_free_object()
 	for (C = 0; C < nr_of_objects; C++) {
 		if (!(Objects[C].Active)) {
 			return C;
-		};
-	};
+		}
+	}
 	return -1;
 }

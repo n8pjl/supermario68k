@@ -208,7 +208,7 @@ void Render() // this function renders all graphics
 
 	if (!Player.Behind_fg /*!(SavePlayer.Attribs & 0b00010000)*/) {
 		Draw_player();
-	};
+	}
 
 	int16_t Curr_enemy;
 	// Draw_enemies(); //put inline for minor speed increase
@@ -240,9 +240,9 @@ void Render() // this function renders all graphics
 						Enemies[Curr_enemy].Height,
 						Enemies[Curr_enemy].Sprite,
 						Enemies[Curr_enemy].Height2);
-			};
-		};
-	};
+			}
+		}
+	}
 
 	// Draw_shells(); //put inline for minor speed increase
 	for (C = 0; C < max_nr_of_shells; C++) { //
@@ -255,8 +255,8 @@ void Render() // this function renders all graphics
 					    beetle_shell_sprite :
 					    shell_0_sprite),
 				   16);
-		};
-	};
+		}
+	}
 
 	// draw player fireballs
 	for (C = 0; C < nr_of_player_smallshots; C++) {
@@ -269,7 +269,7 @@ void Render() // this function renders all graphics
 				   fireball_anim_16_spr + 24 * Fg_plane.step,
 				   8);
 		// GrayClipSprite16_MASK_R(Player_smallshots[C].X-FgX,Player_smallshots[C].Y-FgY,8,fireball_anim_16_spr+16*0,fireball_anim_16_spr+8+16*0,fireball_anim_16_spr+2*8+16*0,fireball_anim_16_spr+2*8+16*0,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
-	};
+	}
 
 	for (C = 0; C < nr_of_enemyshots; C++) {
 		if (Enemyshots[C].Mode)
@@ -279,13 +279,13 @@ void Render() // this function renders all graphics
 			DrawSprite(Enemyshots[C].X, Enemyshots[C].Y,
 				   Enemyshots[C].Height, Enemyshots[C].Sprite,
 				   Enemyshots[C].Height);
-	};
+	}
 
 	// Draw_objects();
 	for (C = 0; C < nr_of_objects; C++) {
 		if (Objects[C].Active)
 			Objects[C].Draw(&Objects[C]);
-	};
+	}
 
 	// Draw_items();
 	for (C = 0; C < nr_of_items; C++) {
@@ -295,8 +295,8 @@ void Render() // this function renders all graphics
 			// GrayClipSprite16_SMASK_R(Items[C].X-FgX,Items[C].Y-FgY,Items[C].Height,Items[C].Sprite,Items[C].Sprite+Items[C].Height2,Items[C].Mask,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
 			DrawSprite(Items[C].X, Items[C].Y, Items[C].Height,
 				   Items[C].Sprite, Items[C].Height2);
-		};
-	};
+		}
+	}
 
 	// draw flying platforms
 	for (C = 0; C < Leveldata.Nr_of_flying_platforms; C++) {
@@ -306,11 +306,11 @@ void Render() // this function renders all graphics
 
 				if (D == 1) {
 					Temp = 32;
-				};
+				}
 
 				if (D == (Flying_platforms[C].Width - 1)) {
 					Temp = 64;
-				};
+				}
 
 				//			if(!Flying_platforms[C].DrawMode){
 				if (Flying_platforms[C].Sprite ==
@@ -334,9 +334,9 @@ void Render() // this function renders all graphics
 						/*GrayDBufGetHiddenPlane(DARK_PLANE)*/
 						dBufHPD_G);
 				}
-			};
-		};
-	};
+			}
+		}
+	}
 
 	if (Leveldata.Boss) {
 		C = LIGHT_PLANE;
@@ -345,8 +345,8 @@ void Render() // this function renders all graphics
 			if (Fg_plane.step % 2) {
 				C = DARK_PLANE;
 				D = LIGHT_PLANE;
-			};
-		};
+			}
+		}
 
 		// GrayClipSprite16_MASK_R(Boss->X-FgX,Boss->Y-FgY,Boss->Height,Boss->Sprite,Boss->Sprite+Boss->Height2,Boss->Mask,Boss->Mask,GrayDBufGetHiddenPlane(C),GrayDBufGetHiddenPlane(D));
 		// GrayClipSprite16_MASK_R(Boss->X+16-FgX,Boss->Y-FgY,Boss->Height,Boss->Sprite+2*Boss->Height2,Boss->Sprite+3*Boss->Height2,Boss->Mask+Boss->Height2,Boss->Mask+Boss->Height2,GrayDBufGetHiddenPlane(C),GrayDBufGetHiddenPlane(D));
@@ -360,7 +360,7 @@ void Render() // this function renders all graphics
 		DrawSprite(BossG->X + 16, BossG->Y, BossG->Height,
 			   BossG->Sprite + 3 * BossG->Height2, BossG->Height2);
 		// GrayClipSprite32_MASK_R(Boss->X-FgX,Boss->Y-FgY,Boss->Height,Boss->Sprite,Boss->Sprite+Boss->Height2,Boss->Mask,Boss->Mask,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
-	};
+	}
 
 	if (StatBarHeight) {
 		Update_statusbar();
@@ -383,8 +383,8 @@ void Adjust_renderpoint()
 		if ((Player.X - FgX) >
 		    scroll_limit_right /*&&  (Leveldata.Border_right > (FgX+screen_width))*/) {
 			FgX = FgX + (Player.X - FgX - scroll_limit_right);
-		};
-	};
+		}
+	}
 
 	if (Leveldata.Border_right < (FgX + screen_width))
 		FgX = Leveldata.Border_right - screen_width;
@@ -400,12 +400,12 @@ void Adjust_renderpoint()
 			FgY = FgY - ((FgY + scroll_limit_up) - Player.Y);
 			if (FgY < 0)
 				FgY = 0;
-		};
-	};
+		}
+	}
 
 	if (((FgY + screen_height) > (Leveldata.Height * 16))) {
 		FgY = Leveldata.Height * 16 - screen_height;
-	};
+	}
 
 	BgX = FgX / Leveldata.Bg_scrollrate;
 
@@ -443,12 +443,12 @@ void Draw_brick_fragments(struct object *Object)
 		Object->Data0--; // low y
 	} else {
 		Object->Data0++; // low y
-	};
+	}
 	if (Object->Active < 15) {
 		Object->Data1 += 1; // high y
 	} else {
 		Object->Data1--; // high y
-	};
+	}
 
 	uint8_t *Sprite = brick_fragment_sprite;
 	/*
@@ -495,8 +495,8 @@ void Draw_killed_fireballs(struct object *Object)
 		} else {
 			if (Object->Active == 10)
 				Object->Active = 0;
-		};
-	};
+		}
+	}
 
 	Object->Data0 = Data0;
 
@@ -521,8 +521,8 @@ void Draw_elastic_tiles(struct object *Object)
 			Put_tile(Object->X, Object->Y, Object->Data0);
 			Update_FG =
 				1; // Fg_plane.p.force_update=1;Fg_mask.p.force_update=1;
-		};
-	};
+		}
+	}
 
 	int16_t Xoffset = 0, Yoffset = 0;
 
@@ -531,13 +531,13 @@ void Draw_elastic_tiles(struct object *Object)
 	} else {
 		if ((Object->Data2 & 0b01000000))
 			Yoffset = 8;
-	};
+	}
 	if ((Object->Data2 & 0b00100000)) {
 		Xoffset = -8;
 	} else {
 		if ((Object->Data2 & 0b00010000))
 			Xoffset = 8;
-	};
+	}
 
 	// GrayClipSprite16_MASK_R(Object->X-FgX+Xoffset,Object->Y-FgY+Yoffset,16,Sprites+Object->Data1*32,Sprites+Object->Data1*32+16,bbox_note_mask,bbox_note_mask,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
 	GrayClipISprite16_RPLC_R(
@@ -560,7 +560,7 @@ void Draw_bb_coin(struct object *Object)
 	}
 	if ((Object->Active <= 15) && Object->Active > 6) {
 		/*Object->*/ Y += 5;
-	};
+	}
 
 	Object->Y = Y;
 
@@ -572,10 +572,10 @@ void Draw_bb_coin(struct object *Object)
 		} else {
 			/*Object->*/ Data0 = 24 * 5; // 16*5
 			Object->Data1 = 20;
-		};
+		}
 	} else {
 		/*Object->*/ Data0 = 24 * Fg_plane.step; // 16
-	};
+	}
 	Object->Data0 = Data0;
 	DrawSprite(Object->X, Object->Y - 8, Object->Data1,
 		   bb_coin_anim_sprite + (2 * Object->Data0), Object->Data1);
@@ -605,7 +605,7 @@ void Draw_collided_shells(struct object *Object)
 	} else {
 		if (Object->Active > 6)
 			Object->Y += 4;
-	};
+	}
 
 	Object->X += Object->Data0; // direction
 
@@ -638,10 +638,10 @@ void Draw_climbing_flower(struct object *Object)
 				// if(!(Object->Y&0x000f)){
 				Update_FG =
 					1; // Fg_plane.p.force_update=1;Fg_mask.p.force_update=1;
-			};
+			}
 		} else {
 			Object->Active = 0; // suicide
-		};
+		}
 	}
 
 	//	short Animoffset = (Fg_plane.step%2?0:32);
@@ -656,7 +656,7 @@ void Draw_killed_cannonballs(struct object *Object)
 {
 	if ((Object->Y += 3) >= FgY + screen_height) {
 		Object->Active = 0;
-	};
+	}
 	// GrayClipSprite16_SMASK_R(Object->X-FgX,Object->Y-FgY,Object->Data1,cannonball_horiz_left_spr+Object->Data0,cannonball_horiz_left_spr+Object->Data0+Object->Data1,cannonball_horiz_left_spr+Object->Data0+2*Object->Data1,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
 	DrawSprite(Object->X, Object->Y, Object->Data1,
 		   cannonball_horiz_left_spr + Object->Data0, Object->Data1);
@@ -722,10 +722,10 @@ void Update_statusbar()
 			String[0] = '0' + SavePlayer.Lives / 10;
 		} else {
 			String[0] = ' ';
-		};
+		}
 		DrawGrayStrExt2B(28, 1, String, A_REPLACE, F_4x6, Statusbar,
 				 Statusbar + 240);
-	};
+	}
 
 	if (Oldcoins != SavePlayer.Coins) {
 		Oldcoins = SavePlayer.Coins;
@@ -734,10 +734,10 @@ void Update_statusbar()
 			String[0] = '0' + SavePlayer.Coins / 10;
 		} else {
 			String[0] = ' ';
-		};
+		}
 		DrawGrayStrExt2B(62, 1, String, A_REPLACE, F_4x6, Statusbar,
 				 Statusbar + 240);
-	};
+	}
 
 #ifdef speedtest
 	if (Update_frame_counter) {
@@ -799,7 +799,7 @@ void Update_statusbar()
 				 triangle_e_spr) +
 				8,
 			triangle_msk, Statusbar, Statusbar + 240);
-	};
+	}
 
 	// GrayClipSprite16_MASK_R(110,0,8,( ((Player.Runcount>=flycondition) &&
 	// (Fg_plane.step%2))?p_dark_spr:p_bright_spr),(((Player.Runcount>=flycondition)
@@ -870,7 +870,7 @@ void Draw_player()
 			// periods by writing only to lightplane
 			Dest1 = LIGHT_PLANE;
 			Dest2 = LIGHT_PLANE;
-		};
+		}
 
 	} else { // normal
 		Dest1 = LIGHT_PLANE; // DARK_PLANE;
@@ -879,7 +879,7 @@ void Draw_player()
     Dest2=DARK_PLANE;*/
 		/*Dest1=DARK_PLANE;
     Dest2=LIGHT_PLANE;*/
-	};
+	}
 
 	// Dest1=DARK_PLANE;//LIGHT_PLANE;//
 	// Dest2=DARK_PLANE;//LIGHT_PLANE;//
@@ -911,10 +911,10 @@ void Draw_player()
 				racoon_tale_msk + C,
 				GrayDBufGetHiddenPlane(Dest1),
 				GrayDBufGetHiddenPlane(Dest2));
-		};
+		}
 
 		//	GrayClipSprite16_MASK_R(Player.X-FgX+(Player.Face==1?-14:14),Player.Y-FgY+17,9,racoon_tale_spr+18*Marioanimtab[4+Player.Spritebase][Player.Spritenr],racoon_tale_spr+9+18*Marioanimtab[4+Player.Spritebase][Player.Spritenr],racoon_tale_msk+9*Marioanimtab[4+Player.Spritebase][Player.Spritenr],racoon_tale_msk+9*Marioanimtab[4+Player.Spritebase][Player.Spritenr],GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
-	};
+	}
 
 	// GrayClipSprite16_MASK_R(Player.X-FgX,Player.Y-FgY,Player.Height,Mariosprites+2*Marioanimtab[Player.Spritebase][Player.Spritenr],Mariosprites+2*Marioanimtab[Player.Spritebase][Player.Spritenr]+Player.Height,Mariomasks+Marioanimtab[Player.Maskbase][Player.Spritenr],Mariomasks+Marioanimtab[Player.Maskbase][Player.Spritenr],GrayDBufGetHiddenPlane(Dest1),GrayDBufGetHiddenPlane(Dest2));
 	// GrayClipSprite16_SMASK_R(Player.X-FgX,Player.Y-FgY,Player.Height,Mariosprites+2*Marioanimtab[Player.Spritebase][Player.Spritenr]+Player.SpriteOffset,Mariosprites+2*Marioanimtab[Player.Spritebase][Player.Spritenr]+Player.SpriteOffset+Player.Height2,Mariomasks+Marioanimtab[Player.Maskbase][Player.Spritenr]+Player.SpriteOffset,GrayDBufGetHiddenPlane(Dest1),GrayDBufGetHiddenPlane(Dest2));
@@ -954,10 +954,10 @@ void Draw_player()
 				racoon_cap_msk + C + Player.SpriteOffset,
 				Player.Blit, GrayDBufGetHiddenPlane(Dest1),
 				GrayDBufGetHiddenPlane(Dest2));
-		};
+		}
 
 		// GrayClipSprite16_MASK_R(Player.X-FgX,Player.Y-FgY-1,5,racoon_cap_spr+10*Marioanimtab[4+Player.Spritebase][Player.Spritenr],racoon_cap_spr+5+10*Marioanimtab[4+Player.Spritebase][Player.Spritenr],racoon_cap_msk+5*Marioanimtab[4+Player.Spritebase][Player.Spritenr],racoon_cap_msk+5*Marioanimtab[4+Player.Spritebase][Player.Spritenr],GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
-	};
+	}
 };
 
 void Render_map()
@@ -1020,7 +1020,7 @@ void Render_map()
 		Left = 1;
 	} else {
 		Left = 0;
-	};
+	}
 	if (Player.Face == 2) {
 		Right = 4;
 	} else {
@@ -1028,8 +1028,8 @@ void Render_map()
 			Right = 9;
 		} else {
 			Right = 0;
-		};
-	};
+		}
+	}
 
 	if (SavePlayer.IsClouded) {
 		Sprite = cloud_item_spr;
@@ -1056,8 +1056,8 @@ void Render_map()
 			// GrayClipSprite16_SMASK_R(Map_objects[C].X-FgX,Map_objects[C].Y-FgY,16,Map_objects[C].Sprite,Map_objects[C].Sprite+16,Map_objects[C].Sprite+16*2,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
 			DrawSprite(Map_objects[C].X, Map_objects[C].Y, 16,
 				   Map_objects[C].Sprite, 16);
-		};
-	};
+		}
+	}
 
 	// draw map statusbar here
 	// clear 16 lowest lines
@@ -1087,7 +1087,7 @@ void Render_map()
 					screen_height - 16,
 					screen_width - 18 * C + 17,
 					screen_height - 1, COLOR_DARKGRAY);
-		};
+		}
 		for (C = 0; C <= (SavePlayer.CurrCard - 1); C++) {
 			GrayClipISprite16_RPLC_R(
 				screen_width - 18 * 3 + 1 + 18 * C,
@@ -1096,7 +1096,7 @@ void Render_map()
 					(79 + SavePlayer.Cards[C]) * 32,
 				/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
 				/*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
-		};
+		}
 
 		char String[4];
 
@@ -1109,7 +1109,7 @@ void Render_map()
 			String[1] = '0' + SavePlayer.Lives / 10;
 		} else {
 			String[1] = ' ';
-		};
+		}
 
 		// DrawGrayStrExt2B(18,screen_height-16+2,String,A_REPLACE|A_SHADOWED,F_8x10,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
 		DrawString(18, screen_height - 16 + 2, String,
@@ -1120,7 +1120,7 @@ void Render_map()
 			String[1] = '0' + SavePlayer.Coins / 10;
 		} else {
 			String[1] = ' ';
-		};
+		}
 
 		// DrawGrayStrExt2B(66,screen_height-16+2,String,A_REPLACE|A_SHADOWED,F_8x10,dBufHPL_G,dBufHPD_G);
 		DrawString(66, screen_height - 16 + 2, String,
@@ -1140,7 +1140,7 @@ void Render_map()
 					   racoon_cap_spr + 2 * C,
 					   racoon_cap_spr + 5 + 2 * C,
 					   racoon_cap_msk + C);
-		};
+		}
 
 		if ((SavePlayer.Attribs & 0b10000000) && (Map_plane.step % 2)) {
 			Left = DARK_PLANE;
@@ -1148,7 +1148,7 @@ void Render_map()
 		} else {
 			Left = LIGHT_PLANE;
 			Right = DARK_PLANE;
-		};
+		}
 
 		// GrayClipSprite16_MASK_R(2,screen_height-16+1,14,Mariosprites+2*Marioanimtab[Player.Spritebase/*2*/][9],Mariosprites+2*Marioanimtab[Player.Spritebase/*2*/][9]+/*27*/Player.Height,Mariomasks+Marioanimtab[Player.Spritebase/*2*/][9],Mariomasks+Marioanimtab[Player.Spritebase/*2*/][9],GrayDBufGetHiddenPlane(Left/*LIGHT_PLANE*/),GrayDBufGetHiddenPlane(Right/*DARK_PLANE*/));
 		GrayClipSprite16_SMASK_R(
@@ -1264,9 +1264,9 @@ void Render_map()
 						screen_height - 16,
 						10 + 18 * (C - Left) + 16,
 						screen_height - 1, COLOR_BLACK);
-			};
-		};
-	};
+			}
+		}
+	}
 	/*
   GrayDBufToggleSync(); 	//set drawbuffer as active screen
 
@@ -1293,57 +1293,57 @@ void DrawItem(int16_t X, int16_t Y, int16_t Item)
 		// Mask = mushrom_mask;
 		// Height = 16;
 		break;
-	};
+	}
 	case 2: {
 		Sprite = flower_spr;
 		// Mask = flower_msk;
 		// Height = 16;
 		break;
-	};
+	}
 	case 3: {
 		Sprite = leaf_r_sprite;
 		// Mask = leaf_r_mask;
 		Height = 14;
 		break;
-	};
+	}
 	case 4: {
 		Sprite = star_anim;
 		// Mask = star_mask;
 		break;
-	};
+	}
 	case 5: {
 		Sprite = whistle_spr;
 		// Mask = whistle_msk;
 		break;
-	};
+	}
 	case 6: {
 		Sprite = hammer_i_spr;
 		// Mask = hammer_i_msk;
 		break;
-	};
+	}
 
 	case 7: {
 		Sprite = p_wing_spr;
 		// Mask = p_wing_msk;
 		break;
-	};
+	}
 	case 8: {
 		Sprite = cloud_item_spr;
 		// Mask = cloud_item_msk;
 		break;
-	};
+	}
 	case 9: {
 		Sprite = anchor_spr;
 		// Mask = anchor_msk;
 		break;
-	};
+	}
 
 	default: {
 		Sprite = blank_sprite;
 		// Mask = blank_sprite;
 		// Height = 16;
-	};
-	};
+	}
+	}
 
 	// GrayClipSprite16_SMASK_R(X,Y,Height,Sprite,Sprite+Height,Sprite+2*Height,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
 	DrawSprite16SMASKR(X, Y, Height, Sprite, Sprite + Height,

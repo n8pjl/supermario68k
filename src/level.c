@@ -75,7 +75,7 @@ int16_t Load_level(char *Levelfile, int16_t Level_nr)
 
 	if (!Skip_anim) {
 		Enter_level_anim();
-	};
+	}
 
 	Skip_anim = false;
 
@@ -93,7 +93,7 @@ int16_t Load_level(char *Levelfile, int16_t Level_nr)
 		Player.Immortal = 0;
 		SavePlayer.Attribs = SavePlayer.Attribs &
 				     0b01111111; // disable star
-	};
+	}
 
 	// delete all objects such as shells, items, fireballs etc.
 	// mod this to use memset!!!
@@ -970,7 +970,7 @@ Leveldata.Bg_width = Bg_plane.width = Bg_data.Width;
 		BossG->Y -= BossG->Height;
 
 		Nr++;
-	};
+	}
 
 	// Leveldata.Boss=0;
 	/*
@@ -1095,7 +1095,7 @@ int16_t Generate_handler_1_enemy(int16_t Nr, char Model, char Face,
 		/*Enemies[Nr].*/ Attribs = 0b10110000;
 		/*(enemy *)Enemies[Nr].*/ Die = Enemy_die_7;
 		break;
-	};
+	}
 
 	if ((abs(Model) > 2) && (Enemies[Nr].Face > 0)) {
 		Sprite += 3 * Height2;
@@ -1296,7 +1296,7 @@ if( !(Temp = Levelfile_sym->handle) ){
 
 	} else {
 		return 0;
-	};
+	}
 
 	//(void*)
 	Map_triggers = ((void *)Map + Map_data.Height * Map_data.Width);
@@ -1322,8 +1322,8 @@ if( !(Temp = Levelfile_sym->handle) ){
 			if ((int32_t)Map_objects[C].Handler == 3)
 				Map_objects[C].Handler =
 					(void (*)(void *))Handle_boat;
-		};
-	};
+		}
+	}
 
 	HeapUnlock(Temp); // unlock levelfile
 

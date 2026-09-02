@@ -312,7 +312,7 @@ void Set_player_attribs_right(uint8_t *Attribs)
 	     (Attribs[4] <= slope_under_left_high))) {
 		Player.Walkspeed = PLAYER_WALKSPEED;
 		Attribs[4] = slope_under_left;
-	};
+	}
 
 	Temp = Get_tile(Player.X, Player.Y + Player.Height - 1);
 
@@ -356,7 +356,7 @@ void Set_player_attribs_right(uint8_t *Attribs)
 
 		if (Player.Y % 16 == 0)
 			Val = 0;
-	};
+	}
 
 	// test if blocked by flying platforms
 	for (C = 0; C < Leveldata.Nr_of_flying_platforms; C++) {
@@ -368,9 +368,9 @@ void Set_player_attribs_right(uint8_t *Attribs)
 
 			if ((Temp2 >= 0) && (Temp2 < Val)) {
 				Val = Temp2;
-			};
-		};
-	};
+			}
+		}
+	}
 
 	Attribs[5] = Val;
 
@@ -430,7 +430,7 @@ void Set_player_attribs_left(uint8_t *Attribs)
 	     (Attribs[4] <= slope_under_right_high))) {
 		Player.Walkspeed = PLAYER_WALKSPEED;
 		Attribs[4] = slope_under_right;
-	};
+	}
 
 	Temp = Get_tile(Player.X + 15, Player.Y + Player.Height - 1);
 
@@ -457,7 +457,7 @@ void Set_player_attribs_left(uint8_t *Attribs)
 		if ((Attribs[C] >= solid_low) && (Attribs[C] <= solid_high) &&
 		    (Val > Attribs[0]))
 			Val = Attribs[0]; // is Val>Attribs[0] really necessarry?
-	};
+	}
 
 	Temp = Get_tile(Player.X - 2, Player.Y);
 
@@ -488,7 +488,7 @@ void Set_player_attribs_left(uint8_t *Attribs)
             }
 
             */
-	};
+	}
 
 	/*	Temp = Get_tile(Player.X-4,Player.Y);
 
@@ -506,9 +506,9 @@ void Set_player_attribs_left(uint8_t *Attribs)
 
 			if ((Temp2 >= 0) && (Temp2 < Val)) {
 				Val = Temp2;
-			};
-		};
-	};
+			}
+		}
+	}
 
 	//	Player.Test = Val;
 
@@ -535,7 +535,7 @@ void Set_player_attribs_up(uint8_t *Attribs)
 		if (Attribs[C] >= solid_low &&
 		    Val > Attribs[0]) // is Val>Attribs[0] really necessarry?
 			Val = Attribs[0];
-	};
+	}
 
 	Player.SlopeAbove = 0;
 
@@ -546,7 +546,7 @@ void Set_player_attribs_up(uint8_t *Attribs)
 		if (Player.X % 16 == 0)
 			Val = 0;
 		Player.SlopeAbove = 1;
-	};
+	}
 
 	//	unsigned char Tile = Get_tile(Player.X,Player.Y-1);
 
@@ -558,7 +558,7 @@ void Set_player_attribs_up(uint8_t *Attribs)
 		if (Player.X % 16 == 0)
 			Val = 0;
 		Player.SlopeAbove = 1;
-	};
+	}
 
 	/*unsigned char Tile = Get_tile(Player.X+2,Player.Y-2);
   if( (Tile >= slope_over_right_low) && (Tile <= slope_over_right_high) ){
@@ -581,10 +581,10 @@ void Set_player_attribs_up(uint8_t *Attribs)
 				if (((Temp - Flying_platforms[C].Data3) <=
 				     Player.Jumpspeed) /*&& (Flying_platforms[C].Data3>0)*/) {
 					Flying_platforms[C].PlayerOn = 1;
-				};
-			};
-		};
-	};
+				}
+			}
+		}
+	}
 
 	Attribs[5] = Val;
 }
@@ -612,7 +612,7 @@ void Set_player_attribs_down(uint8_t *Attribs)
 			1)) { // adjust distance to next tile down when player
 		// goes outside level upwards
 		Attribs[0] -= 16;
-	};
+	}
 
 	/*
   Attribs[1] = Get_tile(Player.X,Player.Y+Player.Height+15);		//next
@@ -628,22 +628,22 @@ Attribs[4] = Get_tile(Player.X+15,Player.Y+Player.Height);
 			    (Val >
 			     Attribs[0])) { // is Val>Attribs[0] really necessarry?
 				Val = Attribs[0];
-			};
-		};
+			}
+		}
 
 		if ((Attribs[4] >= slope_under_left_low) &&
 		    (Attribs[4] <= slope_under_left_high)) {
 			// Val = ( (15-((Player.X+15)%16))-((Player.Y+Player.Height)%16) );
 			Val = ((15 - ((Player.X + 15) & 0x000f)) -
 			       ((Player.Y + Player.Height) & 0x000f));
-		};
+		}
 
 		if ((Attribs[3] >= slope_under_right_low) &&
 		    (Attribs[3] <= slope_under_right_high)) {
 			// Val = ( ((Player.X)%16)-((Player.Y+Player.Height)%16) );
 			Val = (((Player.X) & 0x000f) -
 			       ((Player.Y + Player.Height) & 0x000f));
-		};
+		}
 
 		// test if blocked by flying platforms
 		for (C = 0; C < Leveldata.Nr_of_flying_platforms; C++) {
@@ -662,11 +662,11 @@ Attribs[4] = Get_tile(Player.X+15,Player.Y+Player.Height);
 					     Player.Fallspeed)) {
 						Flying_platforms[C].PlayerOn =
 							3;
-					};
-				};
-			};
-		};
-	};
+					}
+				}
+			}
+		}
+	}
 
 	Attribs[5] = Val;
 }
@@ -689,7 +689,7 @@ void Handleplayer()
 		Player.Height = Player.Height2 = 27;
 		SavePlayer.Spritenr = 1;
 		Player.Y -= 9;
-	};
+	}
 
 	if (Player.Racoonspin) {
 		Player.Racoonspin--;
@@ -697,7 +697,7 @@ void Handleplayer()
 			Player.Face = -Player.Face;
 			SavePlayer.Maskbase = SavePlayer.Spritebase =
 				((Player.Face == 1) ? 3 : 2);
-		};
+		}
 
 		// test if hitting reactive tiles
 		for (D = 0; D <= 9; D += 9) {
@@ -718,9 +718,9 @@ void Handleplayer()
 									 15) +
 								D,
 							Player.Y + 17 + C);
-			};
-		};
-	};
+			}
+		}
+	}
 
 	if (Player.Immortal) {
 		// flashing mario
@@ -728,8 +728,8 @@ void Handleplayer()
 			SavePlayer.Attribs =
 				SavePlayer.Attribs &
 				0b01111111; // terminate super mode/star mode
-		};
-	};
+		}
+	}
 
 	if (Keystate.right || (Player.Xoffset > 0)) {
 		// animate walksprite
@@ -746,17 +746,17 @@ void Handleplayer()
 					SavePlayer.Maskbase =
 						SavePlayer.Spritebase =
 							3; // racoon suit
-				};
-			};
-		};
+				}
+			}
+		}
 
 		if ((Anim_step++) == anim_lenght) {
 			if ((++SavePlayer.Spritenr) >= 4) { // 6
 				SavePlayer.Spritenr = 0;
-			};
+			}
 
 			Anim_step = 0;
-		};
+		}
 
 		Player.Face = 1;
 
@@ -771,7 +771,7 @@ void Handleplayer()
 				// fly code
 				if (Player.Walkspeed == PLAYER_RUNSPEED) {
 					Runflag++;
-				};
+				}
 
 				if (Attribs[4] == slope_under_left) {
 					Player.Y -= Player.Walkspeed;
@@ -825,9 +825,9 @@ void Handleplayer()
 								Player.Y +
 									Player.Height -
 									1);
-				};
-			};
-		};
+				}
+			}
+		}
 
 	} // end of right
 	//		else{//qbqbqbqbqb
@@ -847,17 +847,17 @@ void Handleplayer()
 					SavePlayer.Maskbase =
 						SavePlayer.Spritebase =
 							2; // racoon suit
-				};
-			};
-		};
+				}
+			}
+		}
 
 		if ((Anim_step++) == anim_lenght) {
 			if ((++SavePlayer.Spritenr) >= 4) { // 6
 				SavePlayer.Spritenr = 0;
-			};
+			}
 
 			Anim_step = 0;
-		};
+		}
 
 		Player.Face = -1;
 		if (Player.X >= (Leveldata.Border_left +
@@ -890,7 +890,7 @@ void Handleplayer()
 				// fly code
 				if (Player.Walkspeed == PLAYER_RUNSPEED) {
 					Runflag++;
-				};
+				}
 
 			} else {
 				if (Attribs[5] >= Player.Walkspeed2) {
@@ -927,9 +927,9 @@ void Handleplayer()
 								Player.Y +
 									Player.Height -
 									1);
-				};
-			};
-		};
+				}
+			}
+		}
 
 	} // end of left
 	/*else{
@@ -949,7 +949,7 @@ void Handleplayer()
 
 		if (!Player.Racoonspin)
 			SavePlayer.Spritenr = 0;
-	};
+	}
 
 	//		};
 
@@ -968,8 +968,8 @@ void Handleplayer()
 			Player.Xoffset--;
 		} else {
 			Player.Xoffset++;
-		};
-	};
+		}
+	}
 
 	if (Keystate.run) {
 		Player.Walkspeed = PLAYER_RUNSPEED;
@@ -985,7 +985,7 @@ void Handleplayer()
 			if ((SavePlayer.Attribs &
 			     0b01000000)) { // able to throw fireballs ?
 				Player_add_fireball();
-			};
+			}
 
 			if ((SavePlayer.Attribs &
 			     0b00100000)) { // racoon suit ?
@@ -1003,12 +1003,12 @@ void Handleplayer()
         else{
                 Player.Spritebase = Player.Maskbase = 2;
         };*/
-			};
-		};
+			}
+		}
 	} else {
 		Player.Walkspeed = PLAYER_WALKSPEED;
 		Player.Walkspeed2 = PLAYER_WALKSPEED;
-	};
+	}
 
 	if ((Keystate.jump || (Player.Yoffset < 0)) && (!Player.IsClimbing)) {
 		// fly code
@@ -1020,7 +1020,7 @@ void Handleplayer()
 			// Player.Falling=0;
 			Player.Jumpspeed = flyspeed;
 			Player.RacoonTaleAnim = 1;
-		};
+		}
 
 		Set_player_attribs_up(Attribs);
 		if (Attribs[5] > 0) { // free up?
@@ -1047,8 +1047,8 @@ void Handleplayer()
 					SavePlayer.Spritenr = 7;
 					Player.IsJumping =
 						Player.Max_jumpheight;
-				};
-			};
+				}
+			}
 		} else { // NOT free up
 			// test if player is on the very edge of solid tile
 			// if so, adjust x position and continue jump
@@ -1092,7 +1092,7 @@ void Handleplayer()
 								Player.Y - 1);
 						Add_bounching_tile(
 							Player.X, Player.Y - 1);
-					};
+					}
 					Temp = Get_tile(Player.X + 16,
 							Player.Y - 1);
 					if ((Temp >=
@@ -1107,20 +1107,20 @@ void Handleplayer()
 						Add_bounching_tile(
 							Player.X + 16,
 							Player.Y - 1);
-					};
+					}
 					if (Player.Flycount &&
 					    (SavePlayer.Attribs & 0b00100000)) {
 						SavePlayer.Spritenr = 7;
 					} else {
 						Player.IsJumping = 0;
 					}
-				};
-			};
-		};
+				}
+			}
+		}
 
 	} else { // not trying to jump
 		Player.IsJumping = 0;
-	};
+	}
 
 	Set_player_attribs_down(Attribs);
 	if (Attribs[5] > 0) { // free down?
@@ -1144,7 +1144,7 @@ void Handleplayer()
 
 			if (Player.Y >= (Leveldata.Height * 16)) {
 				Player_die_hard();
-			};
+			}
 		}
 
 	} else { // not free down
@@ -1199,8 +1199,8 @@ void Handleplayer()
 			Player.Height = Player.Height2 = 18;
 			SavePlayer.Spritenr = 10;
 			Player.Y += 9;
-		};
-	};
+		}
+	}
 
 	// set player.jumpspeed and fallspeed (numbers might change, optimization is
 	// coming
@@ -1242,7 +1242,7 @@ void Handleplayer()
 			Player.Yoffset++;
 		} else {
 			Player.Yoffset--;
-		};
+		}
 	}
 
 	/*
@@ -1306,7 +1306,7 @@ void Handleplayer()
 		if ((Temp >= non_solid_hostile_low) &&
 		    (Temp <= non_solid_hostile_high))
 			Player_die();
-	};
+	}
 
 	// fly code
 	if (Runflag == 2) {
@@ -1321,12 +1321,12 @@ void Handleplayer()
 		} else {
 			// Player.Runcount = Player.Runcount/2;
 			Player.Runcount = (Player.Runcount >> 1);
-		};
+		}
 
 	} else {
 		if (Player.Runcount > 0)
 			Player.Runcount--;
-	};
+	}
 
 	if (Player.Flycount > 0)
 		Player.Flycount--;
@@ -1340,7 +1340,7 @@ void Handleplayer()
 	if (SavePlayer.Attribs & 0b00001000) { // P-wing
 		Player.Flycount = flycondition + flylength;
 		Player.Runcount = flycondition;
-	};
+	}
 }
 
 void Player_die()
@@ -1355,13 +1355,13 @@ void Player_die()
 				SavePlayer.Spritenr = 0;
 			} else {
 				Player.Y += 11;
-			};
+			}
 			Player.Height = Player.Height2 = 16;
 			// Player.Y += 11;
 			SavePlayer.Maskbase = SavePlayer.Spritebase =
 				(Player.Face == 1) ? 1 : 0;
 			// Player.Attribs = Player.Attribs&0b10111111;//disable fireball
-		};
+		}
 
 		if (SavePlayer.Life == 2) {
 			SavePlayer.Maskbase = SavePlayer.Spritebase =
@@ -1369,14 +1369,14 @@ void Player_die()
 			SavePlayer.Attribs =
 				SavePlayer.Attribs &
 				0b10010111; // disable fireball, racoon suit and p-wing
-		};
+		}
 		if (SavePlayer.Life <= 0) { // player dead
 			// die,animate,exit
 
 			Player.Immortal = 0;
 			Player_die_hard();
-		};
-	};
+		}
+	}
 }
 
 void Player_die_hard()
@@ -1393,11 +1393,11 @@ void Player_die_hard()
 		if (Player.Y < FgY + 10) {
 			// New: V 1.04 Increased speed of die animation
 			Temp = 3;
-		};
+		}
 		Player.Y += Temp;
 
 		Render();
-	};
+	}
 	SavePlayer.Lives--;
 	SavePlayer.Life = 1;
 	Player.Height = Player.Height2 = 16;
@@ -1415,7 +1415,7 @@ uint8_t Get_tile(int16_t X, int16_t Y)
 		// return *( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16)) );
 		return *((char *)(Fg_plane.p.matrix +
 				  (Y >> 4) * Fg_plane.p.width + (X >> 4)));
-	};
+	}
 	return 0; // to avoid unpredictable bugs when player goes outside level
 	// upwards and downwards
 }
@@ -1456,8 +1456,8 @@ void Player_add_fireball()
 			Player_smallshots[C].Data0 = 1; // y-dir
 			Player_smallshots[C].Data1 = 0;
 			C = nr_of_player_smallshots;
-		};
-	};
+		}
+	}
 };
 
 void Player_handle_fireballs()
@@ -1473,8 +1473,8 @@ void Player_handle_fireballs()
 		} else {
 			if ((Player_smallshots[C].Mode != 0))
 				Player_fireball_handler(&Player_smallshots[C]);
-		};
-	};
+		}
+	}
 };
 
 // void Player_fireball_handler(smallshot *Fireball){
@@ -1496,7 +1496,7 @@ void Player_fireball_handler(struct shot *Fireball)
 	if ((Fireball->Data0 < 1) && (Fireball->Data1 >= 5)) {
 		Fireball->Data0++;
 		Fireball->Data1 = 0;
-	};
+	}
 
 	//	if(!Free_down(Fireball->X,Fireball->Y+8) ){//X-4
 	if (Free_down(Fireball->X, Fireball->Y + 8) <
@@ -1518,5 +1518,5 @@ void Player_fireball_handler(struct shot *Fireball)
 		Add_dustsky(Fireball->X, Fireball->Y);
 
 		Fireball->Mode = 0; // kill fireball
-	};
+	}
 };

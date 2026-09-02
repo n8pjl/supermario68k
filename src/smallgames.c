@@ -25,7 +25,7 @@ static int16_t RollX_176(int16_t X)
 		} else {
 			return X;
 		}
-	};
+	}
 };
 
 static int16_t Find_stop_pos(int16_t X)
@@ -178,7 +178,7 @@ void Enter_game_house()
 					dBufHPL_G,
 					/*GrayDBufGetHiddenPlane(DARK_PLANE)*/
 					dBufHPD_G);
-			};
+			}
 		}
 
 		if ((State == 5) || (State == 4)) {
@@ -225,7 +225,7 @@ void Enter_game_house()
 				}
 			} else {
 				D = 4;
-			};
+			}
 
 			X1 += D;
 			if (X1 >= 176) {
@@ -501,7 +501,7 @@ void Play_card_game()
 							case 4: // Up
 								Sprite += 180 *
 									  32;
-								; // Sprite = (unsigned short*)Fg_plane.p.sprites + 180*32;
+								// Sprite = (unsigned short*)Fg_plane.p.sprites + 180*32;
 								StringCopy(
 									String,
 									"1 UP");
@@ -566,30 +566,30 @@ void Play_card_game()
 					     C++) { // scan through all cards...
 						if (CardGame[C] < 0)
 							break; // until an unmatched card is found
-					};
+					}
 					if (C ==
 					    18) { // if all cards were checked, i.e. no unmatched cards
 						// on the table...
 						Miss = 2; // exit
 						//		New_card_game();
 					}
-				};
-			};
+				}
+			}
 			for (C = 0; C < 10; C++) { // delay
 				for (D = 0; D < 30000; D++)
 					;
-			};
+			}
 
 		} else {
 			/*while(_rowread(0));//wait until key released
       while(!_rowread(0));//wait until key pressed*/
 			WaitKeyPress();
-		};
+		}
 		if (Flash) {
 			if ((--Flash) == 0) {
 				PX = PY = -1;
-			};
-		};
+			}
+		}
 
 		ScanKeys();
 
@@ -597,26 +597,26 @@ void Play_card_game()
 			if (Keystate.left) {
 				if (CX > 0) {
 					CX--;
-				};
+				}
 			} else {
 				if (Keystate.right) {
 					if (CX < 5) {
 						CX++;
-					};
-				};
-			};
+					}
+				}
+			}
 
 			if (Keystate.up) {
 				if (CY > 0) {
 					CY--;
-				};
+				}
 			} else {
 				if (Keystate.down) {
 					if (CY < 2) {
 						CY++;
-					};
-				};
-			};
+					}
+				}
+			}
 
 			if (Keystate.jump) {
 				if (CardGame[CX + 6 * CY] < 0) { // unturned
@@ -684,9 +684,9 @@ void Play_card_game()
 					} else {
 						PX = CX;
 						PY = CY;
-					};
-				};
-			};
-		};
-	};
+					}
+				}
+			}
+		}
+	}
 }

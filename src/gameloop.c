@@ -80,7 +80,7 @@ void Playloop()
 		for (C = 0; C < nr_of_bounching_tiles; C++) {
 			if (Bounching_tiles[C].Active)
 				Bounching_tiles[C].Active--; // decrement timer
-		};
+		}
 
 		Handleplayer();
 
@@ -107,7 +107,7 @@ void Playloop()
 
 		/*if(Slow)
             for(D=0;D<160000;D++);//slow motion stuff, to study details...*/
-	};
+	}
 
 	// FgX=OldFgX;	FgY=OldFgY;
 
@@ -122,7 +122,7 @@ void Playloop()
 	//  Also prevents displaying problems
 	if (SavePlayer.Lives > 99) {
 		SavePlayer.Lives = 99;
-	};
+	}
 
 	// New: V 1.01:
 	if (PrevLives > SavePlayer.Lives) {
@@ -195,15 +195,15 @@ void Gameloop()
 
 					// while( !(_rowread(0)) );
 					break;
-				};
+				}
 
 				WaitKeyReleased();
 				Keystate.jump = false;
 
-			}; // Keystate.Esc
+			} // Keystate.Esc
 		} else {
 			Player.Passified = 1;
-		};
+		}
 
 		Move_map_objects = 0;
 
@@ -216,14 +216,14 @@ void Gameloop()
       Keystate.Run   = 0;*/
 
 			memset(&Keystate, 0, sizeof(struct keystate));
-		};
+		}
 
 		Handle_player_map();
 
 		Player.Passified = 0;
 
 		Handle_map_objects();
-	};
+	}
 };
 
 void New_world_screen()
@@ -273,7 +273,7 @@ void New_world_screen()
 		String[8] = '0' + Lives / 10;
 	} else {
 		String[8] = ' ';
-	};
+	}
 
 	String[9] = '0' + Lives % 10;
 
@@ -371,12 +371,12 @@ int16_t RunGame(char Saveslot)
 			} else {
 				Exit = 9;
 			}
-		};
+		}
 
 		if (Exit == 2) {
 			Levelsetdata.CurrentWorld++;
 			Exit = 0;
-		};
+		}
 #ifdef debug
 		if (Exit == 1) { // temp,debug
 			Levelsetdata.CurrentWorld++;
@@ -385,7 +385,7 @@ int16_t RunGame(char Saveslot)
 #endif
 		if (Exit == 3) {
 			Exit = 0;
-		};
+		}
 
 		/*		if(Exit==100){//Warp Zone
                             Warp = 1;

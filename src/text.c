@@ -205,9 +205,9 @@ int16_t Menus()
 				   SymFindFolderName());
 
 			C++;
-		};
+		}
 		SymPtr = FFindNext();
-	};
+	}
 
 	// char Levelset[9];
 
@@ -260,7 +260,7 @@ int16_t Menus()
 	// Error: Memory possible
 	if (!(Filenames = malloc(9 * (Levelsetdata.Nr_of_files)))) {
 		return 1;
-	};
+	}
 
 	memcpy(Filenames,
 	       HeapDeref(Temp) + 2 + sizeof(struct levelsetdata) + 21,
@@ -272,7 +272,7 @@ int16_t Menus()
 	// New: V 1.01 Added error check
 	if (Show_titlescreen()) {
 		return 3;
-	};
+	}
 	// End of new
 
 	while (!Exit) {
@@ -347,7 +347,7 @@ int16_t Menus()
 				Menu = mainMenu;
 			}
 
-		}; // end controls menu
+		} // end controls menu
 	}
 
 	return 0;

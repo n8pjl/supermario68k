@@ -42,8 +42,8 @@ void Handlebosses()
 		} else {
 			if (!BossG->Mode && BossG->Life)
 				Player_die();
-		};
-	};
+		}
+	}
 };
 
 int16_t Boss_free_down(struct boss *Boss)
@@ -84,7 +84,7 @@ void Boss_handler_1(struct boss *Boss)
 				Boss->Sprite = boss1_run1_spr;
 				Boss->Height = Boss->Height2 = 27;
 				Boss->Y -= 10;
-			};
+			}
 
 		} else {
 			if (abs((Player.X + 8) - (Boss->X + 16)) > 32) {
@@ -92,8 +92,8 @@ void Boss_handler_1(struct boss *Boss)
 					/*Boss->*/ Face = -2;
 				} else {
 					/*Boss->*/ Face = 2;
-				};
-			};
+				}
+			}
 
 			if ((/*Boss->*/ Face > 0)) { // dir = right
 
@@ -103,7 +103,7 @@ void Boss_handler_1(struct boss *Boss)
 					Boss->X += /*Boss->*/ Face;
 				} else {
 					/*Boss->*/ Face = -/*Boss->*/ Face;
-				};
+				}
 			} else { // dir = left
 				if ((-/*Boss->*/ Face) <=
 				    Free_left(Boss->X, &Boss->Y, Boss->Height,
@@ -111,8 +111,8 @@ void Boss_handler_1(struct boss *Boss)
 					Boss->X += /*Boss->*/ Face;
 				} else {
 					/*Boss->*/ Face = -/*Boss->*/ Face;
-				};
-			};
+				}
+			}
 
 			if (!(Boss->Life % 2)) { // jumping
 
@@ -121,7 +121,7 @@ void Boss_handler_1(struct boss *Boss)
 						abs(Boss->X - Player.X) / 4;
 
 					Boss->Data1 = -4;
-				};
+				}
 
 				if (/*Boss->*/ Data0) {
 					/*
@@ -138,8 +138,8 @@ void Boss_handler_1(struct boss *Boss)
 
 					if (Temp == 0)
 						/*Boss->*/ Data0 = 0;
-				};
-			};
+				}
+			}
 
 			// run anim
 
@@ -147,9 +147,9 @@ void Boss_handler_1(struct boss *Boss)
 				Boss->Sprite = boss1_run1_spr;
 			} else {
 				Boss->Sprite = boss1_run2_spr;
-			};
+			}
 
-		}; // mode
+		} // mode
 
 	} else {
 		if (Boss->Life) {
@@ -158,7 +158,7 @@ void Boss_handler_1(struct boss *Boss)
 			    !(/*Boss->*/ Data0)) {
 				// Boss->Active = 1;//wake up
 				/*Boss->*/ Data0 = 60;
-			};
+			}
 
 			if (/*Boss->*/ Data0) {
 				if ((--/*Boss->*/ Data0) == 0) {
@@ -166,8 +166,8 @@ void Boss_handler_1(struct boss *Boss)
 					Boss->Sprite = boss1_run1_spr;
 					Boss->Height = Boss->Height2 = 27;
 					Boss->Y -= 4;
-				};
-			};
+				}
+			}
 		} else { //! Life
 
 			if ((--Boss->Mode) == 0) {
@@ -185,9 +185,9 @@ void Boss_handler_1(struct boss *Boss)
         Leveldata.Boss = 0;
         */
 				Add_killed_boss(Boss, 1);
-			};
-		};
-	};
+			}
+		}
+	}
 
 	if (!/*Boss->*/ Data0) { // fall
 		/*
@@ -199,8 +199,8 @@ void Boss_handler_1(struct boss *Boss)
 
 		if (Temp) {
 			Boss->Y += min(Temp, 4); //(Temp<4?Temp:4);
-		};
-	};
+		}
+	}
 
 	Boss->Data0 = Data0;
 	Boss->Face = Face;
@@ -248,7 +248,7 @@ void Boss_handler_2(struct boss *Boss)
 						(/*Boss->*/ Face > 0 ? 2 : -2),
 						Temp2 /*((Player.Y-Boss->Y)>0?2:-2)*/);
 				} else {
-				};
+				}
 
 				if (xDist > 0) {
 					Boss->Sprite = boss2_right_spr;
@@ -258,7 +258,7 @@ void Boss_handler_2(struct boss *Boss)
 					Boss->Sprite = boss2_left_spr;
 					/*Boss->*/ Face =
 						(/*Boss->*/ Data0 ? -2 : -1);
-				};
+				}
 
 				Temp = Boss_free_down(
 					Boss); // Free_down(Boss->X+8,Boss->Y+Boss->Height);
@@ -271,8 +271,8 @@ void Boss_handler_2(struct boss *Boss)
 					if ((!/*Boss->*/ Data0 &&
 					     !Temp /*Free_down(Boss->X+8,Boss->Y+Boss->Height)*/)) {
 						/*Boss->*/ Data0 = abs(xDist);
-					};
-				};
+					}
+				}
 
 				if (/*Boss->*/ Face > 0) { // right
 					if (Free_right(Boss->X + 15, &Boss->Y,
@@ -288,8 +288,8 @@ void Boss_handler_2(struct boss *Boss)
 						     !Temp /*Free_down(Boss->X+8,Boss->Y+Boss->Height)*/)) {
 							// jump against player
 							/*Boss->*/ Data0 = 16;
-						};
-					};
+						}
+					}
 
 				} else {
 					if (Free_left(Boss->X, &Boss->Y,
@@ -304,9 +304,9 @@ void Boss_handler_2(struct boss *Boss)
 						     !Temp /*Free_down(Boss->X+8,Boss->Y+Boss->Height)*/)) {
 							// jump against player
 							/*Boss->*/ Data0 = 16;
-						};
-					};
-				};
+						}
+					}
+				}
 
 				if (/*Boss->*/ Data0) {
 					/*
@@ -324,15 +324,15 @@ void Boss_handler_2(struct boss *Boss)
 
 					if (/*Boss->*/ Data0 < 0) {
 						/*Boss->*/ Data0 = 0;
-					};
+					}
 
 					if (Temp == 0)
 						/*Boss->*/ Data0 = 0;
-				};
+				}
 
 			} else { //! Life
-			};
-		};
+			}
+		}
 	} else { //! Active
 
 		if (Boss->Life) {
@@ -340,13 +340,13 @@ void Boss_handler_2(struct boss *Boss)
 			    (abs(Boss->Y - Player.Y) < 64) &&
 			    !(/*Boss->*/ Data0)) {
 				/*Boss->*/ Data0 = 20;
-			};
+			}
 
 			if (/*Boss->*/ Data0) {
 				if ((--/*Boss->*/ Data0) == 0) {
 					Boss->Active = 1; // wake up
-				};
-			};
+				}
+			}
 
 		} else { //! life
 			if ((--Boss->Mode) == 0) {
@@ -364,9 +364,9 @@ void Boss_handler_2(struct boss *Boss)
         Leveldata.Boss = 0;
         */
 				Add_killed_boss(Boss, 2);
-			};
-		};
-	};
+			}
+		}
+	}
 
 	if (!/*Boss->*/ Data0) { // fall
 		/*
@@ -379,8 +379,8 @@ void Boss_handler_2(struct boss *Boss)
 
 		if (Temp) {
 			Boss->Y += (Temp < 4 ? Temp : 4);
-		};
-	};
+		}
+	}
 
 	Boss->Data0 = Data0;
 	Boss->Face = Face;
@@ -409,7 +409,7 @@ void Draw_ending_text(struct object *Object)
 	if (Object->Data0) {
 		DrawStringLocale(60 + screen_offset_sg_x, 30, "Ending3",
 				 A_REPLACE, F_4x6);
-	};
+	}
 }
 
 void Bowser_handler(struct boss *Boss1)
@@ -711,13 +711,13 @@ void Bowser_handler(struct boss *Boss1)
 				     80) /*&& (abs(Boss->Y-Player.Y)<80)*/
 				    && !(Boss->Data0)) {
 					Boss->Data0 = 20;
-				};
+				}
 
 				if (Boss->Data0) {
 					if ((--Boss->Data0) == 0) {
 						Boss->Active = 1; // wake up
-					};
-				};
+					}
+				}
 
 			} else { //! Life
 				// bowser is now defeated
@@ -741,7 +741,7 @@ void Bowser_handler(struct boss *Boss1)
 					}
 					for (D = 0; D < 65000; D++)
 						;
-				};
+				}
 
 				/*			BossG->Sprite = bowser_angry;
                                 BossG->Height = BossG->Height2 = 40;
@@ -805,8 +805,8 @@ void Bowser_handler(struct boss *Boss1)
 					//				Draw_ending_text(1);
 					if ((++SavePlayer.Spritenr) >= 4) {
 						SavePlayer.Spritenr = 0;
-					};
-				};
+					}
+				}
 
 				Objects[0].Data0 = 1;
 				Render();
@@ -845,8 +845,8 @@ void Boss_die_1(struct boss *Boss)
 		if ((--Boss->Life) == 0) {
 			// Die
 			Boss->Active = 0;
-		};
-	};
+		}
+	}
 };
 
 void Bowser_die(struct boss *Boss)

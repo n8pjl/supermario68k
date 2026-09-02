@@ -57,7 +57,7 @@ void Handleenemies()
 					      Enemies[Curr_enemy].Height) >
 					     (Leveldata.Height * 16)))
 						Enemies[Curr_enemy].Life = 0;
-				};
+				}
 
 				if (TestCollide162h_R(
 					    Player.X, Player.Y,
@@ -81,7 +81,7 @@ void Handleenemies()
 						} else {
 							Enemies[Curr_enemy].Die(
 								&Enemies[Curr_enemy]);
-						};
+						}
 						Enemies[Curr_enemy].Active =
 							-1; // to prevent killing the same enemy a tonn of times when
 						// mario has the star
@@ -107,9 +107,9 @@ void Handleenemies()
 								     .Attribs &
 							     0b00010000))
 								Player_die();
-						};
-					};
-				};
+						}
+					}
+				}
 
 				for (C = 0; C < nr_of_bounching_tiles; C++) {
 					if (Bounching_tiles[C].Active) {
@@ -125,9 +125,9 @@ void Handleenemies()
 								    .Height)) {
 							Enemies[Curr_enemy].Die(
 								&Enemies[Curr_enemy]); // kill enemy;
-						};
-					};
-				};
+						}
+					}
+				}
 
 				if (Player.Racoonspin) { // test if smashed by racoon suit tale
 
@@ -150,9 +150,9 @@ void Handleenemies()
 						} else {
 							Enemies[Curr_enemy].Die(
 								&Enemies[Curr_enemy]);
-						};
-					};
-				};
+						}
+					}
+				}
 
 				// test for collition	with shell
 				for (C = 0; C < max_nr_of_shells; C++) {
@@ -176,10 +176,10 @@ void Handleenemies()
 								Enemies[Curr_enemy]
 									.Die(&Enemies[Curr_enemy]);
 								// DrawStr(10,10,"mjau",A_NORMAL);
-							};
-						};
-					};
-				};
+							}
+						}
+					}
+				}
 
 				// test for hit by fireball
 				for (C = 0; C < nr_of_player_smallshots; C++) {
@@ -215,18 +215,18 @@ void Handleenemies()
 								} else {
 									Enemies[Curr_enemy]
 										.Die(&Enemies[Curr_enemy]);
-								};
+								}
 							} else {
 								Add_dustsky(
 									Player_smallshots[C]
 										.X,
 									Player_smallshots[C]
 										.Y);
-							};
-						};
+							}
+						}
 						// draw ?
-					}; // end of active (mode!=0)
-				};
+					} // end of active (mode!=0)
+				}
 
 				// draw the current enemy
 				// GrayClipSprite16_MASK_R(Curr_enemy->X-FgX,Curr_enemy->Y-FgY,Curr_enemy->Height,Curr_enemy->Sprite,Curr_enemy->Sprite+Curr_enemy->Height,Curr_enemy->Mask,Curr_enemy->Mask,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
@@ -268,9 +268,9 @@ void Handleenemies()
                   Spawn_bomb2(&Enemies[Curr_enemy]);*/
 				}
 
-			}; // End of Respawn
-		};
-	};
+			} // End of Respawn
+		}
+	}
 }
 
 // enemy handlers. Handles the behavious of the enemies. see enemies.txt for
@@ -310,10 +310,10 @@ void Enemy_handler_1(struct enemy *Enemy)
 					if (Enemy->Mode)
 						Enemy->Sprite +=
 							Enemy->Height2 * 3;
-				};
-			};
-		};
-	};
+				}
+			}
+		}
+	}
 
 	char temp = Enemy_move_x(Enemy);
 
@@ -338,16 +338,16 @@ void Enemy_handler_1(struct enemy *Enemy)
 					// Enemy->Mask -= Enemy->Height;
 					// Enemy->Sprite -= Enemy->Height*2;
 					Enemy->Sprite -= Enemy->Height2 * 3;
-				};
-			};
-		};
+				}
+			}
+		}
 		if (Free_down(Enemy->X,
 			      Enemy->Y +
 				      Enemy->Height) /*Enemy_free_down(Enemy)*/
 		    && (Enemy->Active != 2)) {
 			Enemy->Data0 = 0;
-		};
-	};
+		}
+	}
 }
 
 void Enemy_handler_2(struct enemy *Enemy)
@@ -378,10 +378,10 @@ void Enemy_handler_2(struct enemy *Enemy)
 						Enemy->Y++;
 					if (/*Enemy->*/ Mode == 187)
 						/*Enemy->*/ Mode = 0;
-				};
-			};
-		};
-	};
+				}
+			}
+		}
+	}
 
 	Enemy->Mode = Mode;
 
@@ -395,8 +395,8 @@ void Enemy_handler_2(struct enemy *Enemy)
 			// Enemy->Sprite -= 2*Enemy->Height2;
 			Enemy->Sprite -= 3 * Enemy->Height2;
 			Enemy->Face = 0;
-		};
-	};
+		}
+	}
 	// Enemy->Sprite = flower1_sprite+31-Enemy->Height;
 	// Enemy->Mask = flower1_mask+15-Enemy->Height/2;
 }
@@ -430,10 +430,10 @@ void Enemy_handler_3(struct enemy *Enemy)
 						Enemy->Y++;
 					if (/*Enemy->*/ Mode == 187)
 						/*Enemy->*/ Mode = 0;
-				};
-			};
-		};
-	};
+				}
+			}
+		}
+	}
 	// bug
 	// bug
 	if (Player.X >= Enemy->X) { // right
@@ -463,7 +463,7 @@ void Enemy_handler_3(struct enemy *Enemy)
 					Enemy->Y + (Enemy->Life > 0 ? 5 : 26),
 					enemy_fireball_speed,
 					enemy_fireball_speed); // 5,26
-		};
+		}
 	} else { // left
 		if (Player.Y <= Enemy->Y) { // up
 			//			Enemy->Face = -2;
@@ -492,8 +492,8 @@ void Enemy_handler_3(struct enemy *Enemy)
 					Enemy->Y + (Enemy->Life > 0 ? 5 : 26),
 					-enemy_fireball_speed,
 					enemy_fireball_speed); // 5,26
-		};
-	};
+		}
+	}
 
 	Enemy->Sprite = Sprite;
 	Enemy->Mode = Mode;
@@ -569,7 +569,7 @@ void Enemy_handler_4(struct enemy *Enemy)
 
 		break; //};
 
-	}; // end switch
+	} // end switch
 
 	// keep Enemy->Jumping as a local copy???
 
@@ -579,9 +579,9 @@ void Enemy_handler_4(struct enemy *Enemy)
 			/*Enemy->*/ Y -= 1;
 		} else {
 			/*Enemy->*/ Jumping = 0;
-		};
+		}
 		/*Enemy->*/ Jumping--;
-	};
+	}
 
 	if (/*Enemy->*/ Jumping < 0) {
 		if (Free_down(
@@ -592,9 +592,9 @@ void Enemy_handler_4(struct enemy *Enemy)
 			/*Enemy->*/ Y += 1;
 		} else {
 			/*Enemy->*/ Jumping = 0;
-		};
+		}
 		/*Enemy->*/ Jumping++;
-	};
+	}
 
 	if (/*Enemy->*/ Jumping) {
 		if (Fg_plane.frame == 0) {
@@ -610,11 +610,11 @@ void Enemy_handler_4(struct enemy *Enemy)
 				/*Enemy->Height =*//*Enemy->*/ Height /*2*/ =
 					22;
 				/*Enemy->*/ Y -= 3;
-			};
+			}
 
 			/*Enemy->Height = Enemy->Height2;*/
-		};
-	};
+		}
+	}
 
 	Enemy->Mode++;
 	if (Enemy->Mode >= 129) // 105
@@ -631,7 +631,7 @@ void Enemy_handler_5(struct enemy *Enemy)
 
 	if (Enemy->Mode == 0) {
 		Enemy->Life = 0;
-	};
+	}
 }
 
 void Enemy_handler_6(struct enemy *Enemy)
@@ -648,8 +648,8 @@ void Enemy_handler_6(struct enemy *Enemy)
 				Enemy->X += 2;
 			} else {
 				Enemy->X -= 2;
-			};
-		};
+			}
+		}
 		char Life = Enemy->Life;
 		if (/*Enemy->*/ Mode == 0) { // resurection
 			if (Enemy->X >
@@ -664,7 +664,7 @@ void Enemy_handler_6(struct enemy *Enemy)
 							 turtle_left_sprite :
 							 beetle_right_sprite);
 				Enemy->Face = 1;
-			};
+			}
 			Enemy->Handler = Enemy_handler_1;
 			// New: V 1.01 Fixed bug where resurected turtle could't be killed by
 			// racoon tale: Changed 0b11111000:0b10111000 to 0b11111001:0b10111000
@@ -677,8 +677,8 @@ void Enemy_handler_6(struct enemy *Enemy)
 				Enemy->Height = Enemy->Height2 = 26;
 				Enemy->Y -= 10;
 			}
-		};
-	};
+		}
+	}
 	Enemy->Mode = Mode;
 }
 
@@ -696,8 +696,8 @@ void Enemy_handler_7(struct enemy *Enemy)
 				Enemy->X += 2;
 			} else {
 				Enemy->X -= 2;
-			};
-		};
+			}
+		}
 		if (/*Enemy->*/ Mode == 0) { // resurection
 			if (Enemy->Face > 0) {
 				Enemy->Sprite = turtle_skeleton_right_sprite;
@@ -705,15 +705,15 @@ void Enemy_handler_7(struct enemy *Enemy)
 			} else {
 				Enemy->Sprite = turtle_skeleton_left_sprite;
 				// Enemy->Mask = turtle_skeleton_left_mask;
-			};
+			}
 			Enemy->Handler = Enemy_handler_1;
 			Enemy->Attribs = 0b10110000;
 			Enemy->Die = Enemy_die_7;
 			/*Enemy->*/ Mode = 1;
 			Enemy->Height = Enemy->Height2 = 27;
 			Enemy->Y -= 15;
-		};
-	};
+		}
+	}
 	Enemy->Mode = Mode;
 };
 
@@ -731,7 +731,7 @@ void Enemy_handler_8(struct enemy *Enemy)
 	if ((/*Enemy->*/ Mode & 0b10000000)) { // x motion
 
 		Enemy_move_x(Enemy);
-	};
+	}
 
 	int16_t Jumping = Enemy->Jumping;
 
@@ -746,8 +746,8 @@ void Enemy_handler_8(struct enemy *Enemy)
 			} else {
 				/*Enemy->*/ Jumping =
 					-/*Enemy->*/ Jumping; // change direction
-			};
-		};
+			}
+		}
 
 		if (/*Enemy->*/ Jumping < 0) { // left
 			if (Free_up(Enemy->X,
@@ -756,9 +756,9 @@ void Enemy_handler_8(struct enemy *Enemy)
 			} else {
 				/*Enemy->*/ Jumping =
 					-/*Enemy->*/ Jumping; // change direction
-			};
-		};
-	};
+			}
+		}
+	}
 
 	if ((/*Enemy->*/ Mode &
 	     0b00001000)) { // dont turn before bottom reached
@@ -768,9 +768,9 @@ void Enemy_handler_8(struct enemy *Enemy)
 				    Enemy->Y +
 					    Enemy->Height) /*Enemy_free_down(Enemy)*/) {
 				Enemy->Data0 = 1;
-			};
-		};
-	};
+			}
+		}
+	}
 
 	if ((/*Enemy->*/ Mode & 0b00100000)) { // x motion limit
 		if (Enemy->Data0 == 0) {
@@ -780,7 +780,7 @@ void Enemy_handler_8(struct enemy *Enemy)
 				/*Enemy->*/ Jumping = -/*Enemy->*/ Jumping;
 		} else {
 			Enemy->Data0--;
-		};
+		}
 	} else {
 		if ((/*Enemy->*/ Mode & 0b00010000)) { // y motion limit
 			if (Enemy->Data0 == 0) {
@@ -788,9 +788,9 @@ void Enemy_handler_8(struct enemy *Enemy)
 				/*Enemy->*/ Jumping = -/*Enemy->*/ Jumping;
 			} else {
 				Enemy->Data0--;
-			};
-		};
-	};
+			}
+		}
+	}
 	Enemy->Jumping = Jumping;
 
 	if (Fg_plane.frame == 0) {
@@ -802,13 +802,13 @@ void Enemy_handler_8(struct enemy *Enemy)
 		} else {
 			/*Enemy->*/ Sprite = turtle_fly1_left_sprite;
 			// Enemy->Mask = turtle_fly1_left_mask;
-		};
+		}
 		if (Enemy->Face > 0) {
 			/*Enemy->*/ Sprite += 27 * 3 * 2;
 			// Enemy->Mask += 27*2;
-		};
+		}
 		Enemy->Sprite = Sprite;
-	};
+	}
 };
 
 static void Move_and_animate(struct enemy *Enemy)
@@ -820,7 +820,7 @@ static void Move_and_animate(struct enemy *Enemy)
 		Enemy->Sprite = boomerang_guy_left_sprite;
 	} else {
 		Enemy->Sprite = boomerang_guy_right_sprite;
-	};
+	}
 }
 
 void Enemy_handler_9(struct enemy *Enemy)
@@ -834,8 +834,8 @@ void Enemy_handler_9(struct enemy *Enemy)
 			Enemy->Y += Enemy->Jumping;
 		} else {
 			Enemy->Jumping = 0;
-		};
-	};
+		}
+	}
 
 	switch (Enemy->Mode) { // switch instead of if's saved some bytes...
 	case 40:
@@ -894,8 +894,8 @@ void Enemy_handler_10(struct enemy *Enemy)
 			if (/*Enemy->*/ Mode >= (2 * Enemy->Data0)) {
 				/*Enemy->*/ Jumping = 0;
 				/*Enemy->*/ Mode = 0;
-			};
-		};
+			}
+		}
 	} else { // waiting
 
 		if ((/*Enemy->*/ Mode) >= Enemy->Data1) {
@@ -905,8 +905,8 @@ void Enemy_handler_10(struct enemy *Enemy)
 			Enemy->Height = 18;
 		} else {
 			Enemy->Height = 1;
-		};
-	};
+		}
+	}
 
 	Enemy->Mode = Mode;
 	Enemy->Jumping = Jumping;
@@ -915,7 +915,7 @@ void Enemy_handler_10(struct enemy *Enemy)
 		Enemy->Sprite = lavaball_step_2_sprite;
 	} else {
 		Enemy->Sprite = lavaball_step_1_sprite;
-	};
+	}
 };
 
 void Enemy_handler_11(struct enemy *Enemy)
@@ -964,7 +964,7 @@ void Enemy_handler_12(struct enemy *Enemy)
 	    (Player.X < (Enemy->X + 32))) {
 		/*Enemy->*/ Jumping = 1;
 		/*Enemy->*/ Mode = 0;
-	};
+	}
 	int16_t Y = Enemy->Y;
 
 	uint8_t Data0 = Enemy->Data0;
@@ -977,25 +977,25 @@ void Enemy_handler_12(struct enemy *Enemy)
 			/*Enemy->*/ Y += 2;
 			Add_dustsky(Enemy->X - 8, /*Enemy->*/ Y + 10);
 			Add_dustsky(Enemy->X + 8, /*Enemy->*/ Y + 10);
-		};
+		}
 		/*Enemy->*/ Y += 2;
-	};
+	}
 
 	if ((/*Enemy->*/ Jumping < 0)) {
 		if (Free_up(Enemy->X, /*Enemy->*/ Y) <
 		    2 /*(Enemy_free_up(Enemy)<2)*/) {
 			/*Enemy->*/ Jumping = 0;
 			/*Enemy->*/ Mode = 1;
-		};
+		}
 		/*Enemy->*/ Y -= 2;
-	};
+	}
 	Enemy->Mode = Mode;
 	Enemy->Y = Y;
 	if (/*Enemy->*/ Data0) {
 		if (!(--/*Enemy->*/ Data0)) {
 			/*Enemy->*/ Jumping = -1;
-		};
-	};
+		}
+	}
 	Enemy->Data0 = Data0;
 	Enemy->Jumping = Jumping;
 };
@@ -1017,15 +1017,15 @@ void Enemy_handler_13(struct enemy *Enemy)
 		} else {
 			Enemy->Mode--; // hold the current state (wait until player is close
 			// enough to attack)
-		};
-	};
+		}
+	}
 
 	int16_t Y = Enemy->Y;
 
 	if (Enemy->Mode == 60) {
 		/*Enemy->*/ Height = 16;
 		/*Enemy->*/ Y += 5;
-	};
+	}
 
 	char Jumping = Enemy->Jumping;
 
@@ -1034,11 +1034,11 @@ void Enemy_handler_13(struct enemy *Enemy)
 		/*Enemy->*/ Y -= 5;
 		/*Enemy->*/ Jumping = 4;
 		Enemy->Face = (Enemy->X > Player.X ? -2 : 2);
-	};
+	}
 
 	if (Enemy->Mode == 75) {
 		/*Enemy->*/ Height = 16;
-	};
+	}
 	//	if(Height)
 	Enemy->Height = Height;
 
@@ -1046,14 +1046,14 @@ void Enemy_handler_13(struct enemy *Enemy)
 	    (Enemy->Mode == 91) || (Enemy->Mode == 94) || (Enemy->Mode == 99) ||
 	    (Enemy->Mode == 105) || (Enemy->Mode == 112)) {
 		/*Enemy->*/ Jumping--;
-	};
+	}
 
 	if (/*Enemy->*/ Jumping > 0) { // jumping
 		if (Free_up(Enemy->X, /*Enemy->*/ Y) >= /*Enemy->*/ Jumping) {
 			/*Enemy->*/ Y -= /*Enemy->*/ Jumping;
 		} else {
 			Enemy->Die(Enemy);
-		};
+		}
 	} else {
 		if (/*Enemy->*/ Jumping < 0) { // falling
 
@@ -1065,9 +1065,9 @@ void Enemy_handler_13(struct enemy *Enemy)
 			} else {
 				/*Enemy->*/ Y += Temp;
 				/*Enemy->*/ Jumping = 0;
-			};
-		};
-	};
+			}
+		}
+	}
 
 	Enemy->Y = Y;
 	Enemy->Jumping = Jumping;
@@ -1077,7 +1077,7 @@ void Enemy_handler_13(struct enemy *Enemy)
 
 	} else {
 		Enemy->Attribs = 0b10110101;
-	};
+	}
 };
 
 void Enemy_handler_14(struct enemy *Enemy)
@@ -1092,7 +1092,7 @@ void Enemy_handler_14(struct enemy *Enemy)
 			Enemy_add_cannonball_horiz(Enemy->X, Enemy->Y, 2);
 		if ((Enemy->Face <= 0) && (Player.X < Enemy->X))
 			Enemy_add_cannonball_horiz(Enemy->X - 16, Enemy->Y, -2);
-	};
+	}
 };
 
 void Enemy_handler_15(struct enemy *Enemy)
@@ -1106,7 +1106,7 @@ void Enemy_handler_15(struct enemy *Enemy)
 
 		Enemy_add_cannonball(Enemy->X, Enemy->Y, Enemy->Face,
 				     Enemy->Data1);
-	};
+	}
 };
 
 void Enemy_handler_16(struct enemy *Enemy)
@@ -1145,7 +1145,7 @@ void Enemy_handler_16(struct enemy *Enemy)
 				if (/*Enemy->*/ Data0 < Enemy->Data1) {
 					/*Enemy->*/ X++; // chase x
 					/*Enemy->*/ Data0++;
-				};
+				}
 			} else {
 				/*Enemy->*/ X++; // chase x
 			}
@@ -1155,7 +1155,7 @@ void Enemy_handler_16(struct enemy *Enemy)
 		} else {
 			/*Enemy->*/ Sprite = ghost_waiting_left_spr;
 			// Enemy->Mask = ghost_waiting_left_msk;
-		};
+		}
 
 	} else { // player facing left
 		if (Player.X < /*Enemy->*/ X) {
@@ -1165,7 +1165,7 @@ void Enemy_handler_16(struct enemy *Enemy)
 				if (/*Enemy->*/ Data0 > 0) {
 					/*Enemy->*/ X--; // chase x
 					/*Enemy->*/ Data0--;
-				};
+				}
 			} else {
 				/*Enemy->*/ X--; // chase x
 			}
@@ -1174,8 +1174,8 @@ void Enemy_handler_16(struct enemy *Enemy)
 			/*Enemy->*/ Jumping = 1;
 		} else {
 			/*Enemy->*/ Sprite = ghost_waiting_right_spr;
-		};
-	};
+		}
+	}
 
 	Enemy->X = X;
 	Enemy->Data0 = Data0;
@@ -1191,7 +1191,7 @@ void Enemy_handler_16(struct enemy *Enemy)
 				if (/*Enemy->*/ Mode < Enemy->Data1) {
 					/*Enemy->*/ Y++; // chase x
 					/*Enemy->*/ Mode++;
-				};
+				}
 			} else {
 				/*Enemy->*/ Y++; // chase x
 			}
@@ -1203,13 +1203,13 @@ void Enemy_handler_16(struct enemy *Enemy)
 				if (/*Enemy->*/ Mode < Enemy->Data1) {
 					/*Enemy->*/ Y--; // chase x
 					/*Enemy->*/ Mode--;
-				};
+				}
 			} else {
 				/*Enemy->*/ Y--; // chase x
 			}
 			// Enemy->Y--;
 		}
-	};
+	}
 
 	Enemy->Mode = Mode;
 	Enemy->Y = Y;
@@ -1223,23 +1223,23 @@ void Enemy_handler_17(struct enemy *Enemy)
 	if ((Player.Y < Enemy->Y) && (abs(Enemy->X - Player.X) < 16) &&
 	    (!Free_down(Enemy->X, Enemy->Y + Enemy->Height))) {
 		/*Enemy->*/ Jumping = 32;
-	};
+	}
 
 	if (Enemy->Jumping) {
 		/*Enemy->*/ Jumping -= 2;
 		Enemy->Y -= 2;
-	};
+	}
 
 	if (Enemy->Mode) {
 		if (Fg_plane.step % 2) {
 			Enemy_move_x(Enemy);
-		};
+		}
 
 		if (!/*Enemy->*/ Jumping &&
 		    (!Free_down(Enemy->X, Enemy->Y + Enemy->Height))) {
 			/*Enemy->*/ Jumping = 6;
-		};
-	};
+		}
+	}
 	char Face;
 	uint16_t *Sprite;
 
@@ -1253,7 +1253,7 @@ void Enemy_handler_17(struct enemy *Enemy)
 					      mad_flower_c_right_spr :
 					      mad_flower_o_right_spr);
 		/*Enemy->*/ Face = 1;
-	};
+	}
 
 	Enemy->Face = Face;
 	Enemy->Sprite = Sprite;
@@ -1271,8 +1271,8 @@ void Enemy_handler_18(struct enemy *Enemy)
 			Enemy->Y += Enemy->Jumping;
 		} else {
 			Enemy->Jumping = 0;
-		};
-	};
+		}
+	}
 
 	if ((++Enemy->Mode) > 64)
 		Enemy->Mode = 0;
@@ -1325,7 +1325,7 @@ void Enemy_handler_19(struct enemy *Enemy)
 			Enemy->Sprite += Enemy->Height2 * 3;
 		} else {
 			Enemy->Sprite -= Enemy->Height2 * 3;
-		};
+		}
 	}
 
 	char Jumping = Enemy->Jumping;
@@ -1359,7 +1359,7 @@ void Enemy_handler_20(struct enemy *Enemy)
 			if (!(Fg_plane.frame % 2)) // Fg_plane.frame==0)//
 				Enemy->Y++;
 		}
-	};
+	}
 
 	if (Enemy->Jumping) {
 		if (Get_tile(Enemy->X, Enemy->Y) == water) {
@@ -1368,7 +1368,7 @@ void Enemy_handler_20(struct enemy *Enemy)
 			Enemy->Jumping -= 2;
 		} else {
 			Enemy->Jumping = 0; // terminate swim to avoid flying!!!
-		};
+		}
 
 		if (Enemy->X >= Player.X) {
 			if (Free_left(Enemy->X, &Enemy->Y, Enemy->Height, 0))
@@ -1380,8 +1380,8 @@ void Enemy_handler_20(struct enemy *Enemy)
 	} else {
 		if (Enemy->Data0) {
 			Enemy->Data0--;
-		};
-	};
+		}
+	}
 };
 
 void Enemy_handler_21(struct enemy *Enemy)
@@ -1428,11 +1428,11 @@ void Enemy_handler_21(struct enemy *Enemy)
 			}
 
 			Enemy->Height = 14;
-		};
+		}
 		//};
 		if ((Enemy->Life == 4) && (abs(Enemy->X - Player.X) < 16 * 3)) {
 			Enemy->Attribs = 0b10111001;
-		};
+		}
 
 		if ((Enemy->Life == 9) ||
 		    (Enemy->Life == 8)) { // Life == 8: shot
@@ -1488,8 +1488,8 @@ void Enemy_handler_21(struct enemy *Enemy)
                 Enemy->Jumping = 0;//stop falling
 
         };*/
-			};
-		};
+			}
+		}
 
 		//		if(Collision)
 		//			Enemy->Active = 2;
@@ -1523,7 +1523,7 @@ void Enemy_handler_21(struct enemy *Enemy)
 			}
 
 		} // end of shot
-	};
+	}
 
 	if (Enemy->Mode > 2) {
 		Enemy->Mode--;
@@ -1541,7 +1541,7 @@ void Enemy_handler_21(struct enemy *Enemy)
 							 bomb_walk_right_spr :
 							 bomb_walk_left_spr);
 					Enemy->Height2 = 16;
-				}; // Fg_plane.step%2
+				} // Fg_plane.step%2
 
 			} //>23
 			else { // 2<Mode<=23
@@ -1557,9 +1557,9 @@ void Enemy_handler_21(struct enemy *Enemy)
 				} else {
 					Enemy->X += dx[Enemy->Mode - 3];
 					Enemy->Y += dy[Enemy->Mode - 3];
-				};
-			};
-		}; //<50
+				}
+			}
+		} //<50
 
 	} else { // mode<=2
 		// moved out of if block, see below. Fixed a bug where some bombs
@@ -1578,7 +1578,7 @@ void Enemy_handler_21(struct enemy *Enemy)
 
             }
     };		*/
-	};
+	}
 
 	if (Enemy->Mode == 2) {
 		if (Enemy->Life == 8) { // restart shot
@@ -1590,7 +1590,7 @@ void Enemy_handler_21(struct enemy *Enemy)
 				Enemy->Life = 0;
 			}
 		}
-	};
+	}
 };
 
 void Spawn_bomb_common(struct enemy *Enemy)
@@ -1666,7 +1666,7 @@ void Enemy_handler_22(struct enemy *Enemy)
 				Enemy->Data1 = 0; // dest down
 			}
 			//			Enemy->Data1 = 0;//dest down
-		};
+		}
 	}
 	if (!Enemy->Jumping) {
 		if ((++Enemy->Mode) == 16 * 4) {
@@ -1706,7 +1706,7 @@ void Enemy_handler_22(struct enemy *Enemy)
 			Enemy->Jumping = 0;
 			Enemy->Face = -1;
 		}
-	};
+	}
 }
 
 void Enemy_handler_23(struct enemy *Enemy)
@@ -1780,8 +1780,8 @@ void Enemy_handler_23(struct enemy *Enemy)
 			}
 
 		} else { // right part, slave
-		};
-	};
+		}
+	}
 };
 
 char Enemy_move_x(struct enemy *Enemy)
@@ -1796,7 +1796,7 @@ char Enemy_move_x(struct enemy *Enemy)
 		} else {
 			Enemy->Face = -/*Enemy->*/ Face; // change direction
 			return -1;
-		};
+		}
 
 	} else {
 		if (/*Enemy->*/ Face < 0) { // left
@@ -1808,9 +1808,9 @@ char Enemy_move_x(struct enemy *Enemy)
 				Enemy->Face =
 					-/*Enemy->*/ Face; // change direction
 				return 1;
-			};
-		};
-	};
+			}
+		}
+	}
 
 	return 0;
 };
@@ -1828,7 +1828,7 @@ void Handle_hardkilled_enemies(struct enemy *Enemy)
 	} else {
 		if (Enemy->Mode > 6)
 			Enemy->Y += 4;
-	};
+	}
 
 	Enemy->X += Enemy->Face;
 
@@ -1869,7 +1869,7 @@ void Handle_dead_upside_down_enemies(struct enemy *Enemy)
 	if ((Enemy->Y += 2) >= 16 * Leveldata.Height) {
 		Enemy->Active = 0;
 		// Enemy->Life = 0;
-	};
+	}
 };
 
 // enemy die funcs. Handler the death sequence of the enemies. see enemies.txt
@@ -1896,7 +1896,7 @@ void Enemy_die_2(struct enemy *Enemy)
 	} else {
 		/*Enemy->*/ Sprite = shell_0_sprite;
 		Enemy->Height = Enemy->Height2 = 16;
-	};
+	}
 	Enemy->Sprite = Sprite;
 
 	(Enemy->Handler) = Enemy_handler_6;
@@ -1927,7 +1927,7 @@ void Enemy_die_4(struct enemy *Enemy)
 	Enemy->Sprite = turtle_right_sprite;
 	if (Enemy->Face > 0) {
 		Enemy->Sprite += 16 * 3;
-	};
+	}
 
 	Enemy->Height = Enemy->Height2 = 26;
 	Enemy->Jumping = 0;
@@ -2073,7 +2073,7 @@ void Enemy_die_10(struct enemy *Enemy)
 	} else { // not alone
 
 		(Enemy + Enemy->Active - 2)->Active = 4; // set brother as alone
-	};
+	}
 
 	Enemy->Die =
 		(void *)Dummy_func_; // prevent this func to be executed twice,
@@ -2104,13 +2104,13 @@ void Enemy_die_11(struct enemy *Enemy)
 			} else {
 				Enemy->Face = -4; // 3
 				Enemy->X = Player.X - 16;
-			};
+			}
 		}
 
 		//		Player.Walkspeed = Player.Walkspeed2 = 0;
 
 		//		Keystate.Left = Keystate.Right = 0;
-	};
+	}
 }
 
 void Enemy_die(struct enemy *Enemy)
@@ -2173,8 +2173,8 @@ void Handle_enemyshots()
 									.Data0 =
 									14 *
 									3; // sprite offset
-							};
-						};
+							}
+						}
 						Enemyshots[C].Mode =
 							0; // kill shot
 						// Objects[C].Data1 = (Enemyshots[C].Mode==-1?12:14);//height
@@ -2183,12 +2183,12 @@ void Handle_enemyshots()
 						//(object*)Objects[D].Handler = Dummy_func_;//Handle_drop_down;
 						Objects[D].Draw =
 							Draw_killed_cannonballs;
-					};
+					}
 
 				} else {
 					Player_die();
-				};
-			};
+				}
+			}
 
 			if ((FgX > Enemyshots[C].X) ||
 			    ((FgX + screen_width) < Enemyshots[C].X) ||
@@ -2196,8 +2196,8 @@ void Handle_enemyshots()
 			    ((FgY + screen_height) < Enemyshots[C].Y))
 				Enemyshots[C].Mode =
 					0; // kill shot if outside screen
-		};
-	};
+		}
+	}
 };
 
 void Enemy_fireball_handler(struct shot *Fireball)
@@ -2261,7 +2261,7 @@ void Enemy_add_fireball(int16_t X, int16_t Y, /*char*/ int16_t Xdir,
 		// shot
 		// break;//C = nr_of_enemyshots;
 		//};
-	};
+	}
 };
 
 void Enemy_add_hammer(int16_t X, int16_t Y, /*char*/ int16_t Xdir)
@@ -2283,7 +2283,7 @@ void Enemy_add_hammer(int16_t X, int16_t Y, /*char*/ int16_t Xdir)
 		Shot->Handler = Hammer_handler;
 		// break;//C = nr_of_enemyshots;
 		//};
-	};
+	}
 };
 
 void Enemy_add_bounching_fireball(int16_t X, int16_t Y, /*char*/ int16_t Xdir,
@@ -2307,7 +2307,7 @@ void Enemy_add_bounching_fireball(int16_t X, int16_t Y, /*char*/ int16_t Xdir,
 		Shot->Handler = Player_fireball_handler; // experiment shot
 		// break;//C = nr_of_enemyshots;
 		//};
-	};
+	}
 }
 
 void Enemy_add_boomerang(int16_t X, int16_t Y, /*char*/ int16_t Dir)
@@ -2328,7 +2328,7 @@ void Enemy_add_boomerang(int16_t X, int16_t Y, /*char*/ int16_t Dir)
 		Shot->Handler = Enemy_boomerang_handler; // experiment shot
 		// break;//C = nr_of_enemyshots;
 		//};
-	};
+	}
 };
 
 void Enemy_add_cannonball_horiz(int16_t X, int16_t Y, char Dir)
@@ -2350,7 +2350,7 @@ void Enemy_add_cannonball_horiz(int16_t X, int16_t Y, char Dir)
 		Shot->Handler = Enemy_cannonball_horiz_handler;
 		// break;//C = nr_of_enemyshots;
 		//};
-	};
+	}
 };
 
 void Enemy_add_cannonball(int16_t X, int16_t Y, char DirX, char DirY)
@@ -2371,7 +2371,7 @@ void Enemy_add_cannonball(int16_t X, int16_t Y, char DirX, char DirY)
 		Shot->Handler = Enemy_cannonball_handler; // experiment shot
 		// break;//C = nr_of_enemyshots;
 		//};
-	};
+	}
 };
 
 void Enemy_add_underwater_shot(int16_t X, int16_t Y, /*char*/ int16_t DirX)
@@ -2393,7 +2393,7 @@ void Enemy_add_underwater_shot(int16_t X, int16_t Y, /*char*/ int16_t DirX)
 		Shot->Handler = Underwater_shot_handler;
 		// break;//C = nr_of_enemyshots;
 		//};
-	};
+	}
 };
 
 void Underwater_shot_handler(struct shot *Shot)

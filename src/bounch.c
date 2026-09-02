@@ -16,6 +16,6 @@ void Add_bounching_tile(int16_t X, int16_t Y)
 			Bounching_tiles[C].X = (X & 0xfff0);
 			Bounching_tiles[C].Y = (Y & 0xfff0) - 8;
 			return;
-		};
-	};
+		}
+	}
 };

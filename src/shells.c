@@ -25,7 +25,7 @@ void Add_killed_shell(struct shell *Shell, int16_t DirSpeed)
 		Objects[O].X = Shell->X;
 		Objects[O].Y = Shell->Y;
 		Objects[O].Draw = Draw_collided_shells;
-	};
+	}
 	Shell->Active = 0;
 }
 
@@ -80,7 +80,7 @@ void Player_bounching_shell_hadler()
 									Shell->Dir,
 								/*Shells[C].*/ Shell
 									->Y);
-						};
+						}
 
 						Temp = Get_tile(
 							/*Shells[C].*/ Shell->X +
@@ -101,7 +101,7 @@ void Player_bounching_shell_hadler()
 									Shell->Dir,
 								/*Shells[C].*/
 								Shell->Y + 15);
-						};
+						}
 
 						/*Shells[C].*/ Shell->Dir =
 							-shell_speed;
@@ -119,7 +119,7 @@ void Player_bounching_shell_hadler()
 							/*Shells[C].*/ Shell
 								->Active =
 								0; // kill shell
-					};
+					}
 				} //>0
 				else { // dir = left
 					Dist = Free_left(
@@ -152,7 +152,7 @@ void Player_bounching_shell_hadler()
 										3,
 									/*Shells[C].*/
 									Shell->Y);
-						};
+						}
 
 						Temp = Get_tile(
 							/*Shells[C].*/ Shell->X +
@@ -173,7 +173,7 @@ void Player_bounching_shell_hadler()
 									3,
 								/*Shells[C].*/
 								Shell->Y + 15);
-						};
+						}
 
 						/*Shells[C].*/ Shell->Dir =
 							shell_speed;
@@ -189,8 +189,8 @@ void Player_bounching_shell_hadler()
 							/*Shells[C].*/ Shell
 								->Active =
 								0; // kill shell
-					};
-				};
+					}
+				}
 
 				// gravity
 				/*if( (Get_tile(Shells[C].X,Shells[C].Y+16+15)>=solid_down_low) ||
@@ -303,9 +303,9 @@ void Player_bounching_shell_hadler()
 
 						} else {
 							Player_die();
-						};
-					};
-				};
+						}
+					}
+				}
 
 				// test if collide with each other
 				for (D = 0; D < max_nr_of_shells; D++) {
@@ -355,9 +355,9 @@ void Player_bounching_shell_hadler()
 								Shell->X > Shell2->X ?
 									-4 :
 									4);
-						};
-					};
-				};
+						}
+					}
+				}
 
 				// draw the shell
 				// GrayClipSprite16_MASK_R(Shells[C].X-FgX,Shells[C].Y-FgY,/*Shells[C].Height*/16,/*Shells[C].Sprite*/shell_0_sprite,/*Shells[C].Sprite+Shells[C].Height*/shell_0_sprite+16,/*Shells[C].Mask*/shell_0_mask,/*Shells[C].Mask*/shell_0_mask,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
@@ -366,9 +366,9 @@ void Player_bounching_shell_hadler()
 			else { // outside active area
 				/*Shells[C].*/ Shell->Active =
 					0; // remove shell
-			};
-		}; // end of active
-	}; // end for
+			}
+		} // end of active
+	} // end for
 }
 
 void Add_shell(/*short X,short Y,*/ int16_t Dir, char Type, struct enemy *Enemy)
@@ -387,8 +387,8 @@ void Add_shell(/*short X,short Y,*/ int16_t Dir, char Type, struct enemy *Enemy)
 			Shell->Count =
 				4; // can't kill mario next 4 frames 8/shellspeed+1
 			break; // C=max_nr_of_shells;//exit loop
-		};
-	};
+		}
+	}
 };
 /*
 void Handle_collided_shells(object* Object){

@@ -23,8 +23,8 @@ void Handle_flying_platforms()
 			    (Flying_platforms[C].Y > (Leveldata.Height * 16)) ||
 			    ((Flying_platforms[C].Y + 16) < 0))
 				Flying_platforms[C].Active = 0;
-		};
-	};
+		}
+	}
 };
 
 void Platform_handler_1(struct flying_platform *Platform)
@@ -58,8 +58,8 @@ void Platform_handler_1(struct flying_platform *Platform)
 				   Platform->Width * 16)) {
 			if (Platform->PlayerOn == 0) {
 				Platform->PlayerOn = 2;
-			};
-		};
+			}
+		}
 
 		if (Platform->PlayerOn) {
 			if (Platform->Data2) {
@@ -95,8 +95,8 @@ void Platform_handler_1(struct flying_platform *Platform)
 
 				if (P_attribs[5] >= abs(Platform->Data2)) {
 					Player.X += Platform->Data2;
-				};
-			};
+				}
+			}
 
 			if (Platform->Data3 && (Platform->PlayerOn != 2)) {
 				if (Platform->Data3 > 0) {
@@ -111,30 +111,30 @@ void Platform_handler_1(struct flying_platform *Platform)
 
 				if (P_attribs[5] >= abs(Platform->Data3)) {
 					Player.Y += Platform->Data3;
-				};
-			};
+				}
+			}
 
 			Platform->PlayerOn = 0;
-		};
+		}
 
 		if (Platform->Data2) {
 			Platform->Data1 += Platform->Data2;
 		} else {
 			Platform->Data1 += Platform->Data3;
-		};
+		}
 
 		if ((Platform->Data0 &&
 		     ((Platform->Data1 == 0) ||
 		      (Platform->Data1 == Platform->Data0)))) {
 			Platform->Data2 = -Platform->Data2;
 			Platform->Data3 = -Platform->Data3;
-		};
+		}
 
 		if (BoundsCollide2(Player.X, Player.Y, Player.Height - 1, 15,
 				   Platform->X, Platform->Y, 16,
 				   Platform->Width * 16))
 			Player_die_hard();
-	};
+	}
 };
 
 void Platform_handler_2(struct flying_platform *Platform)
@@ -146,7 +146,7 @@ void Platform_handler_2(struct flying_platform *Platform)
 	    !(Platform->Data3)) { // player has landed on me?
 		// start to fall
 		Platform->Data3 = 2;
-	};
+	}
 
 	Platform_handler_1(Platform);
 };

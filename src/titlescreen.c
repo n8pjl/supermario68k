@@ -18,7 +18,7 @@ int16_t Show_titlescreen()
 		Exit = 1;
 		//		Error = 3;
 		return 3;
-	};
+	}
 	// End of new
 
 	Update_FG = Bg_plane.force_update = 1;

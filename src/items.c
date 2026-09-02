@@ -33,7 +33,7 @@ void Handleitems()
 					  Items[C].Height, Player.X, Player.Y,
 					  Player.Height)) {
 				Items[C].Collect(&Items[C]);
-			};
+			}
 
 			for (D = 0; D < nr_of_bounching_tiles; D++) {
 				if (Bounching_tiles[D].Active) {
@@ -57,12 +57,12 @@ void Handleitems()
 							// Items[C].Y -= 8;
 							Items[C].Active = abs(
 								Items[C].Active);
-						};
-					};
-				};
-			};
-		};
-	};
+						}
+					}
+				}
+			}
+		}
+	}
 };
 
 void Dark_gray_magic_mode_handler(int16_t X, int16_t Y)
@@ -98,7 +98,7 @@ void Player_get_coin(int16_t X, int16_t Y)
 		SavePlayer.Coins = 0;
 		SavePlayer.Lives++;
 		Score_anim(X, Y - 8, score_1up);
-	};
+	}
 	SavePlayer.Score++;
 };
 
@@ -144,7 +144,7 @@ void Player_collect_flower(int16_t X, int16_t Y)
 				4; // set new sprites,changes to come when
 		// fireball sprites are ready
 		SavePlayer.Maskbase = (Player.Face == 1) ? 3 : 2;
-	};
+	}
 
 	Score_anim(/*16*(X/16)*/ X & 0xfff0, (Y & 0xfff0) - 8 /*16*(Y/16)-8*/,
 		   score_1000);
@@ -153,7 +153,7 @@ void Player_collect_flower(int16_t X, int16_t Y)
 		Temp = water;
 	} else {
 		Temp = 0;
-	};
+	}
 
 	Put_tile(X, Y, Temp);
 }
@@ -169,7 +169,7 @@ void Trigger_pow_item(int16_t X, int16_t Y)
 		//(object*)Objects[C].Handler = Handle_timed_coinconvert;
 		Objects[C].Draw = Handle_timed_coinconvert; // Dummy_func_;
 		Objects[C].X = 0;
-	};
+	}
 
 	// convert all bricks to coins and initialize timer
 	Convert_brick_coin();
@@ -187,9 +187,9 @@ void Convert_brick_coin()
 		} else {
 			if (*((char *)(Fg_plane.p.matrix + C)) == coin) {
 				*((char *)(Fg_plane.p.matrix + C)) = brick;
-			};
-		};
-	};
+			}
+		}
+	}
 };
 
 void Pipe_down_left_handler(int16_t X, int16_t Y)
@@ -221,11 +221,11 @@ void Pipe_down_handler(int16_t X, int16_t Y)
 			Player.Y++;
 			Player.Height--;
 			Render();
-		};
+		}
 		Player.Height = Height;
 
 		Execute_trigger(X, Y);
-	};
+	}
 };
 
 void Pipe_up_left_handler(int16_t X, int16_t Y)
@@ -258,13 +258,13 @@ void Pipe_up_handler(int16_t X, int16_t Y)
 			Player.Height--;
 
 			Render();
-		};
+		}
 
 		Player.SpriteOffset = 0;
 		Player.Height = Height;
 
 		Execute_trigger(X, Y);
-	};
+	}
 };
 
 void Pipe_right_handler(int16_t X, int16_t Y)
@@ -286,8 +286,8 @@ void Pipe_right_handler(int16_t X, int16_t Y)
 
 				if ((++SavePlayer.Spritenr) >= 6) {
 					SavePlayer.Spritenr = 0;
-				};
-			};
+				}
+			}
 			Player.Blit = 0xffff;
 			// Player.X -= 16;
 			// Player.Attribs = Player.Attribs & 0b11101111;//draw player before fg
@@ -295,8 +295,8 @@ void Pipe_right_handler(int16_t X, int16_t Y)
 
 			// Execute_trigger( (X/16),(Y/16) );
 			Execute_trigger((X >> 4), (Y >> 4));
-		};
-	};
+		}
+	}
 };
 
 void Pipe_left_handler(int16_t X, int16_t Y)
@@ -318,16 +318,16 @@ void Pipe_left_handler(int16_t X, int16_t Y)
 				Render();
 				if ((++SavePlayer.Spritenr) >= 6) {
 					SavePlayer.Spritenr = 0;
-				};
-			};
+				}
+			}
 			Player.Blit = 0xffff;
 			// Player.X += 16;
 			// Player.Attribs = Player.Attribs & 0b11101111;//draw player before fg
 			// OFF
 
 			Execute_trigger(X / 16, Y / 16);
-		};
-	};
+		}
+	}
 };
 
 void Add_break_brick_anim(int16_t X, int16_t Y)
@@ -342,7 +342,7 @@ void Add_break_brick_anim(int16_t X, int16_t Y)
 		Objects[C].Y = Y;
 		//(object*)Objects[C].Handler = Dummy_func_;//Handle_brick_fragments;
 		Objects[C].Draw = Draw_brick_fragments;
-	};
+	}
 }
 
 void Break_brick(int16_t X, int16_t Y)
@@ -361,7 +361,7 @@ void Break_brick(int16_t X, int16_t Y)
 		// animate
 
 		Add_break_brick_anim(X, Y - 8);
-	};
+	}
 };
 
 void Falling_block_handler(int16_t X, int16_t Y)
@@ -386,8 +386,8 @@ void Falling_block_handler(int16_t X, int16_t Y)
 			Update_FG =
 				1; // Fg_plane.p.force_update = Fg_mask.p.force_update = 1;
 			break;
-		};
-	};
+		}
+	}
 }
 
 void Brick_hidden_coins(int16_t X, int16_t Y)
@@ -455,7 +455,7 @@ void Bonus_box_1up(int16_t X, int16_t Y)
 		Items[C].Sprite = one_up_mushrom_sprite;
 		Items[C].Collect = Player_collect_one_up_mushrom;
 		Items[C].Handler = Mushrom_handler;
-	};
+	}
 
 	//*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16))
 	//)=bonusbox_after;
@@ -488,7 +488,7 @@ void Bonus_box_star(int16_t X, int16_t Y)
 		Items[C].Sprite = star_anim;
 		Items[C].Collect = Player_collect_star;
 		Items[C].Handler = Star_handler;
-	};
+	}
 
 	//*( (char*)(Fg_plane.p.matrix+(Y/16)*Fg_plane.p.width+(X/16))
 	//)=bonusbox_after;
@@ -503,7 +503,7 @@ void Bonus_box_climbing_flower(int16_t X, int16_t Y)
 	    -1) { // if no free slots, use the first slot, which has been occupied for
 		// the longest time
 		C = 0;
-	};
+	}
 
 	Objects[C].Active = 1;
 	Objects[C].Data0 = 2;
@@ -533,7 +533,7 @@ void Note_handler(int16_t X, int16_t Y)
 		/*Player.*/ Yoffset = -5; //-5
 		Player.Jumpspeed = 4; // 8
 		Temp = 0b01000000;
-	};
+	}
 	Player.Yoffset = Yoffset;
 
 	Player.Xoffset = 4 * Player.Face;
@@ -563,7 +563,7 @@ void Pu_2_note_handler(int16_t X, int16_t Y)
 		Add_power_up_2(
 			(X & 0xfff0), (Y & 0xfff0) + 18,
 			16); // Add_power_up_2(16*(X/16),16*(Y/16)+18,16);
-	};
+	}
 	Player.Yoffset = Yoffset;
 
 	Player.Xoffset = 4 * Player.Face;
@@ -599,13 +599,13 @@ void Dark_note_handler(int16_t X, int16_t Y)
 			while (Player.Y >= 0) {
 				Player.Y -= 4;
 				Render();
-			};
+			}
 
 			Player.IsJumping = 0;
 			// Execute_trigger( (X/16),(Y/16) );
 			Execute_trigger((X >> 4), (Y >> 4));
-		};
-	};
+		}
+	}
 	Player.Yoffset = Yoffset;
 
 	Player.Xoffset = 4 * Player.Face;
@@ -627,7 +627,7 @@ void Wood_block_pu2_handler(int16_t X, int16_t Y)
 		Temp = 0b00010000;
 	} else {
 		Temp = 0b00100000;
-	};
+	}
 	Elastic_tile_animate(X, Y, wood_block, Temp, 73); // 3
 };
 
@@ -642,8 +642,8 @@ void Door_handler(int16_t X, int16_t Y)
 			Execute_trigger((X >> 4), (Y >> 4));
 
 			Previous_keystate.up = true;
-		};
-	};
+		}
+	}
 };
 
 int16_t HiddenConditions(int16_t Y)
@@ -821,11 +821,11 @@ void Ladder_handler(int16_t X, int16_t Y)
 					       Player.Y + Player.Height - 1) >=
 				     2))
 					Player.Y += 2;
-			};
+			}
 			Player.IsClimbing = 2;
 			Player.Face = 0;
-		};
-	};
+		}
+	}
 };
 
 void Quicksand_handler(int16_t X, int16_t Y)
@@ -841,7 +841,7 @@ void Quicksand_handler(int16_t X, int16_t Y)
 			Player.Y++;
 
 		Player.IsInQsand = 1;
-	};
+	}
 };
 
 void Lava_handler(int16_t X, int16_t Y)
@@ -865,7 +865,7 @@ void Water_handler(int16_t X, int16_t Y)
 			if (Keystate.down && (Temp >= 2))
 				Player.Y++;
 			SavePlayer.Spritenr = 6;
-		};
+		}
 
 		Player.Jumpspeed = 2;
 
@@ -888,9 +888,9 @@ void Water_handler(int16_t X, int16_t Y)
 				} else {
 					if (Keystate.right) {
 						Player.Xoffset = 16;
-					};
-				};
-			};
+					}
+				}
+			}
 
 		} else {
 			char Walkspeed;
@@ -902,13 +902,13 @@ void Water_handler(int16_t X, int16_t Y)
 			} else {
 				/*Player.*/ Walkspeed = 0;
 				/*Player.*/ Walkspeed2 = 0;
-			};
+			}
 			Player.Walkspeed = Walkspeed;
 			Player.Walkspeed2 = Walkspeed2;
-		};
+		}
 
 		Player.IsInWater = 1;
-	};
+	}
 };
 
 // Optimize
@@ -929,8 +929,8 @@ void Water_surface_handler(int16_t X, int16_t Y)
 				// slope))
 				Player.IsJumping = 0;
 				Player.Jumpspeed = 0;
-			};
-		};
+			}
+		}
 	} else {
 		Water_handler(X, Y);
 	}
@@ -952,7 +952,7 @@ void Mushrom_handler(struct item *Item)
 				Item->X += Item->Active;
 			} else {
 				Item->Active = -Item->Active;
-			};
+			}
 		} else { // dir = left
 			if (Free_left(Item->X, &Item->Y, Item->Height,
 				      Item->Active) >=
@@ -960,13 +960,13 @@ void Mushrom_handler(struct item *Item)
 				Item->X += Item->Active;
 			} else {
 				Item->Active = -Item->Active;
-			};
-		};
+			}
+		}
 
 		Temp = Free_down(Item->X, Item->Y + Item->Height);
 		Item->Y += (Temp >= enemy_fallspeed) ? (enemy_fallspeed) :
 						       (Temp);
-	};
+	}
 }
 
 void Leaf_handler(struct item *Item)
@@ -993,9 +993,9 @@ void Leaf_handler(struct item *Item)
 			} else {
 				Item->Sprite = leaf_r_sprite;
 				// Item->Mask = leaf_r_mask;
-			};
-		};
-	};
+			}
+		}
+	}
 };
 
 void Star_handler(struct item *Item)
@@ -1011,35 +1011,35 @@ void Star_handler(struct item *Item)
 				    Item->X + star_speed, &Item->Y, 16,
 				    star_speed) /*(Get_tile(Item->X+15+star_speed,Item->Y)>=solid_low) || (Get_tile(Item->X+15+star_speed,Item->Y+15)>=solid_low)*/) { //not free right ?
 				Item->Active = -Item->Active;
-			};
+			}
 		} else { // dir = left
 			if (!Free_left(
 				    Item->X - star_speed, &Item->Y, 16,
 				    -star_speed) /*(Get_tile(Item->X-star_speed,Item->Y)>=solid_low) || (Get_tile(Item->X-star_speed,Item->Y+15)>=solid_low)*/) { //not free left ?
 				Item->Active = -Item->Active;
-			};
-		};
+			}
+		}
 
 		Item->X += Item->Active;
 
 		if (Item->Data0) {
 			if ((--Item->Data0) == 0)
 				Item->Data1 = -Item->Data1;
-		};
+		}
 
 		if (Item->Data1 > 0) { // down
 			if (!Free_down(Item->X, Item->Y + Item->Height)) {
 				Item->Data1 = -Item->Data1;
 				Item->Data0 = 16; // timer
-			};
+			}
 		} else { // up
 			if (!Free_up(Item->X, Item->Y)) {
 				Item->Data1 = -Item->Data1;
-			};
-		};
+			}
+		}
 
 		Item->Y += Item->Data1;
-	};
+	}
 }
 
 void Dead_boss_handler(struct item *Item)
@@ -1074,7 +1074,7 @@ void Player_collect_dead_boss(struct item *Item)
 
 		for (D = 0; D < 65000; D++)
 			;
-	};
+	}
 
 	Exit = 2;
 	Map_plane.p.force_update = 1;
@@ -1110,14 +1110,14 @@ void Player_collect_pu_mushrom(struct item *Item)
 				DBase = 2; // Player.Maskbase = SavePlayer.Spritebase +=2;
 				H = 27; // Player.Height = Player.Height2 = 27;
 				DY = -11; // Player.Y -= 11;
-			};
+			}
 			Player.Height = Player.Height2 = H;
 			Player.Y += DY;
 			SavePlayer.Maskbase = SavePlayer.Spritebase += DBase;
 			for (D = 0; D < 65535; D++)
 				;
-		};
-	};
+		}
+	}
 }
 
 void Player_collect_one_up_mushrom(struct item *Item)
@@ -1161,7 +1161,7 @@ void Player_collect_leaf(struct item *Item)
 		SavePlayer.Maskbase = SavePlayer.Spritebase =
 			(Player.Face == 1) ? 3 : 2; // set new sprites
 		//		Player.Maskbase = (Player.Face==1) ? 3:2 ;
-	};
+	}
 
 	Item->Active = 0;
 
@@ -1196,13 +1196,13 @@ int16_t Free_down(int16_t X, int16_t Y)
 	    (Get_tile(X + 15, Y) <= slope_under_left_high)) {
 		Val = ((15 - ((X + 15) & 0x000f)) -
 		       ((Y) & 0x000f)); // Val = ( (15-((X+15)%16))-((Y)%16) );
-	};
+	}
 
 	if ((Get_tile(X, Y) >= slope_under_right_low) &&
 	    (Get_tile(X, Y) <= slope_under_right_high)) {
 		Val = (((X) & 0x000f) -
 		       ((Y) & 0x000f)); // Val = ( ((X)%16)-((Y)%16) );
-	};
+	}
 
 	return Val;
 }
@@ -1238,7 +1238,7 @@ int16_t Free_right(int16_t X, int16_t *Y, int16_t Height, char Face)
 		    (Get_tile(X + 15 + 15, *Y + C) <= solid_high))
 			Val = 15 - ((X + 15) & 0x000f); // Val = 15-(X+15)%16;
 		// //distance to next tile right
-	};
+	}
 
 	return Val;
 };
@@ -1260,7 +1260,7 @@ int16_t Free_left(int16_t X, int16_t *Y, int16_t Height, char Face)
 		    (Get_tile(X - 16, *Y + C) <= solid_high))
 			Val = (X) &
 			      0x000f; // Val = (X)%16;		//distance to next tile left
-	};
+	}
 
 	return Val;
 };
@@ -1292,7 +1292,7 @@ void Elastic_tile_animate(int16_t X, int16_t Y, uint8_t After, char Attribs,
 	} else { // no free slots
 
 		Put_tile(X, Y, After);
-	};
+	}
 }
 
 void Bonusbox_coin_animate(int16_t X, int16_t Y)
@@ -1307,7 +1307,7 @@ void Bonusbox_coin_animate(int16_t X, int16_t Y)
 		Objects[C].Y = Y & 0xfff0; // 16*(Y/16);
 		//(object*)Objects[C].Handler = Dummy_func_;//Handle_bb_coin;
 		Objects[C].Draw = Draw_bb_coin;
-	};
+	}
 
 	Player_get_coin(X, Y);
 };
@@ -1319,8 +1319,8 @@ int16_t Find_free_item()
 	for (C = 0; C < nr_of_items; C++) {
 		if (!(Items[C].Active)) {
 			return C;
-		};
-	};
+		}
+	}
 	return -1;
 }
 
@@ -1339,7 +1339,7 @@ void Add_power_up_1(int16_t X, int16_t Y)
 		}
 
 		Put_tile(X, Y - 16, Temp);
-	};
+	}
 };
 
 void Add_power_up_2(int16_t X, int16_t Y, int16_t Height)
@@ -1365,8 +1365,8 @@ void Add_power_up_2(int16_t X, int16_t Y, int16_t Height)
 			// Items[C].Mask = leaf_r_mask;
 			Items[C].Collect = Player_collect_leaf;
 			Items[C].Handler = Leaf_handler;
-		};
-	};
+		}
+	}
 };
 
 void Add_pu_mushrom(int16_t X, int16_t Y, int16_t Height)
@@ -1384,7 +1384,7 @@ void Add_pu_mushrom(int16_t X, int16_t Y, int16_t Height)
 		// Items[C].Mask = mushrom_mask;
 		Items[C].Collect = Player_collect_pu_mushrom;
 		Items[C].Handler = Mushrom_handler;
-	};
+	}
 }
 
 void Score_anim(int16_t X, int16_t Y, char Score)
@@ -1398,7 +1398,7 @@ void Score_anim(int16_t X, int16_t Y, char Score)
 		Objects[C].Y = Y;
 		//(object*)Objects[C].Handler = Dummy_func_;//Handle_score;
 		Objects[C].Draw = Draw_score;
-	};
+	}
 
 	int16_t S;
 	switch (Score) {
@@ -1434,10 +1434,10 @@ void Execute_trigger(int16_t X, int16_t Y)
 					      .NewBg /*,Bg_file_sym->handle*/);
 				Leveldata.Bg_offset =
 					(Triggers[C].NewBgOffset * 4);
-			};
+			}
 			Animate_out_of_wrapper(C);
-		};
-	};
+		}
+	}
 };
 
 void Animate_out_of_wrapper(int16_t T)
@@ -1464,9 +1464,9 @@ void Animate_out_of_wrapper(int16_t T)
 			    (Enemies[C].Sprite <= flower2_sprite_right_up)) {
 				Enemies[C].Y = Enemies[C].Y + Enemies[C].Height;
 				Enemies[C].Height = Enemies[C].Mode = 0;
-			};
-		};
-	};
+			}
+		}
+	}
 
 	switch (/*Triggers[T].*/ Anim) {
 		int16_t Height;
@@ -1487,7 +1487,7 @@ void Animate_out_of_wrapper(int16_t T)
 			Player.Y--;
 			Player.Height++;
 			Render();
-		};
+		}
 		// Player.Height=Height;
 
 		/*Player.Spritenr = 9;
@@ -1513,7 +1513,7 @@ void Animate_out_of_wrapper(int16_t T)
 			Player.Height++;
 
 			Render();
-		};
+		}
 
 		Player.SpriteOffset = 0;
 		// Player.Height=Height;
@@ -1538,7 +1538,7 @@ void Animate_out_of_wrapper(int16_t T)
 		if ((SavePlayer.Spritebase % 2)) {
 			SavePlayer.Spritebase -= 1;
 			SavePlayer.Maskbase -= 1;
-		};
+		}
 		Player.Blit = 0x1000;
 		for (C = 0; C < 16; C++) {
 			Player.Blit = Player.Blit >> 1;
@@ -1547,8 +1547,8 @@ void Animate_out_of_wrapper(int16_t T)
 			Render();
 			if ((++SavePlayer.Spritenr) >= 4) {
 				SavePlayer.Spritenr = 0;
-			};
-		};
+			}
+		}
 		Player.Blit = 0xffff;
 		Player.Y += 2;
 
@@ -1563,7 +1563,7 @@ void Animate_out_of_wrapper(int16_t T)
 		if (!(SavePlayer.Spritebase % 2)) {
 			SavePlayer.Spritebase += 1;
 			SavePlayer.Maskbase += 1;
-		};
+		}
 		Player.Blit = 0x0001;
 		for (C = 0; C < 16; C++) {
 			//	long D;
@@ -1574,8 +1574,8 @@ void Animate_out_of_wrapper(int16_t T)
 			// for(D=0;D<40000;D++);
 			if ((++SavePlayer.Spritenr) >= 4) {
 				SavePlayer.Spritenr = 0;
-			};
-		};
+			}
+		}
 		Player.Blit = 0xffff;
 		Player.Y += 2;
 
@@ -1587,7 +1587,7 @@ void Animate_out_of_wrapper(int16_t T)
 		for (C = 0; C < 16; C++) {
 			Player.Y -= 2;
 			Render();
-		};
+		}
 
 		break; //};
 	case 6:
@@ -1599,7 +1599,7 @@ void Animate_out_of_wrapper(int16_t T)
 		Exit = 2;
 		break; //};
 
-	}; // end switch
+	} // end switch
 
 	Player.Xoffset = Player.Yoffset = 0;
 
@@ -1792,14 +1792,14 @@ void Handle_treasure_all(int16_t X, int16_t Y)
 			// Items[0].Mask = mushrom_mask;
 			Itemlist_add(1);
 			break;
-		};
+		}
 		case 1: // flower
 		{
 			/*Items[0].*/ Sprite = flower_spr;
 			// Items[0].Mask = flower_msk;
 			Itemlist_add(2);
 			break;
-		};
+		}
 		case 2: // leaf
 		case 3: // leaf
 		{
@@ -1808,8 +1808,8 @@ void Handle_treasure_all(int16_t X, int16_t Y)
 			Height = 14; // Items[0].Height = Items[0].Height2 = 14;
 			Itemlist_add(3);
 			break;
-		};
-		};
+		}
+		}
 
 		break;
 
@@ -1873,7 +1873,7 @@ void Handle_treasure_all(int16_t X, int16_t Y)
 
 				// New: V 1.04 Removed flashing line at the top of the item
 				Items[0].Active = Fg_plane.step % 2;
-			};
+			}
 
 			// Items[0].Height = Items[0].Height2 = Height;
 
@@ -1881,7 +1881,7 @@ void Handle_treasure_all(int16_t X, int16_t Y)
 
 			if (Free_down(Player.X, Player.Y + Player.Height - 1))
 				Player.Y++;
-		};
+		}
 
 		Items[0].Active = 0;
 		Exit = 2;
@@ -1938,7 +1938,7 @@ void Itemlist_remove(char Index)
 	for (C = Index; C < (itemlist_length - 1);
 	     C++) { // move all elements one step to the left
 		SavePlayer.Itemlist[C] = SavePlayer.Itemlist[C + 1];
-	};
+	}
 
 	SavePlayer.Itemlist[itemlist_length - 1] = 0; // last slot must be empty
 };
@@ -1964,27 +1964,27 @@ void Levelend_handler(int16_t X, int16_t Y)
 			//*( (char*)(Fg_plane.p.matrix+(Y/16+P)*Fg_plane.p.width+(X/16+C)) ) =
 			// dark_gray;
 			Put_tile(X + 16 * C, Y + 16 * P, dark_gray);
-	};
+	}
 
 	Player.Face = 1;
 	if (!(SavePlayer.Spritebase % 2)) {
 		SavePlayer.Spritebase += 1;
 		SavePlayer.Maskbase += 1;
-	};
+	}
 
 	for (; Player.X < Leveldata.Border_right + 2; Player.X++) {
 		Adjust_renderpoint();
 		Render();
 		if ((++SavePlayer.Spritenr) >= 4) {
 			SavePlayer.Spritenr = 0;
-		};
+		}
 
 		C = Free_down(Player.X, Player.Y + Player.Height);
 		if (C > 0) {
 			Player.Y += (C >= 2 ? 2 : C);
 			SavePlayer.Spritenr = 8;
-		};
-	};
+		}
+	}
 
 	/*
   DrawGrayStrExt2B(80,8,"COURSE CLEAR!",A_REVERSE,F_4x6,dBufHPD_G,dBufHPD_G);
@@ -2050,7 +2050,7 @@ void Levelend_handler(int16_t X, int16_t Y)
 		} else { // Not 3 equal cards :-(
 			Lives = 1; // SavePlayer.Lives ++;
 			P = 24;
-		};
+		}
 		SavePlayer.Lives += Lives;
 
 		/*for(X=0;X<SHRT_MAX;Y++){
@@ -2067,7 +2067,7 @@ void Levelend_handler(int16_t X, int16_t Y)
 					(79 + SavePlayer.Cards[C]) * 32,
 				/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/ dBufHPL_G,
 				/*GrayDBufGetHiddenPlane(DARK_PLANE)*/ dBufHPD_G);
-		};
+		}
 
 		// GrayClipSprite16_MASK_R(87,44,15,up_sprite,up_sprite+15,blank_sprite,blank_sprite,GrayDBufGetHiddenPlane(LIGHT_PLANE),GrayDBufGetHiddenPlane(DARK_PLANE));
 		// GrayClipSprite16_SMASK_R(87,44,15,up_sprite,up_sprite+15,blank_sprite,/*GrayDBufGetHiddenPlane(LIGHT_PLANE)*/dBufHPL_G,/*GrayDBufGetHiddenPlane(DARK_PLANE)*/dBufHPD_G);
@@ -2092,7 +2092,7 @@ void Levelend_handler(int16_t X, int16_t Y)
 
 		// SavePlayer.Cards[0]=SavePlayer.Cards[1]=SavePlayer.Cards[2]=0;
 		SavePlayer.CurrCard = -1;
-	};
+	}
 
 	GrayDBufToggleSync_SetPointers(); // GrayDBufToggleSync();
 
@@ -2118,5 +2118,5 @@ void Add_dustsky(int16_t X, int16_t Y)
 		Objects[C].Y = Y;
 		//(object*)Objects[C].Handler = Dummy_func_;//Handle_killed_fireball;
 		Objects[C].Draw = Draw_killed_fireballs;
-	};
+	}
 };

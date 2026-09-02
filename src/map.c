@@ -41,8 +41,8 @@ void Handle_player_map()
 			Player.Curr_item = 0;
 		} else {
 			Map_statusbar = status;
-		};
-	};
+		}
+	}
 
 	if (Map_statusbar == status) {
 		if ((CX == 0) && (CY == 0)) {
@@ -71,8 +71,8 @@ void Handle_player_map()
 								SavePlayer
 									.IsOnMapBoat =
 									C; //"subscribe" to this boat
-							};
-						};
+							}
+						}
 					} else { // CX!=0
 						if (Get_map_tile(
 							    SavePlayer.MapX,
@@ -95,8 +95,8 @@ void Handle_player_map()
 							}
 						} else {
 							SavePlayer.L = 0;
-						};
-					};
+						}
+					}
 
 				} else { // player in boat
 					if ((Get_map_tile(SavePlayer.MapX + 16,
@@ -110,7 +110,7 @@ void Handle_player_map()
 								    .IsOnMapBoat]
 							.MoveX =
 							16; // move boat along with player
-					};
+					}
 					if (Get_map_tile(SavePlayer.MapX + 16,
 							 SavePlayer.MapY) ==
 					    dock) { // check if dock in range
@@ -121,8 +121,8 @@ void Handle_player_map()
 							SavePlayer.MapX + 16;
 						SavePlayer.PrevCompY =
 							SavePlayer.MapY;
-					};
-				};
+					}
+				}
 			} else {
 				if (Keystate.left /*&& (Player.MapX>Map_data.Border_left)*/
 				    && ((SavePlayer.L == 0) ||
@@ -156,8 +156,8 @@ void Handle_player_map()
 									SavePlayer
 										.IsOnMapBoat =
 										C; //"subscribe"  to this boat
-								};
-							};
+								}
+							}
 						} else { // CX!=0
 							if (Get_map_tile(
 								    SavePlayer
@@ -186,8 +186,8 @@ void Handle_player_map()
 							} else {
 								SavePlayer.L =
 									0;
-							};
-						};
+							}
+						}
 					} else { // player in boat
 						if ((Get_map_tile(
 							     SavePlayer.MapX -
@@ -202,7 +202,7 @@ void Handle_player_map()
 									 .IsOnMapBoat]
 									.MoveX =
 								-16; // move boat along with player
-						};
+						}
 						if (Get_map_tile(
 							    SavePlayer.MapX -
 								    16,
@@ -216,8 +216,8 @@ void Handle_player_map()
 								16;
 							SavePlayer.PrevCompY =
 								SavePlayer.MapY;
-						};
-					};
+						}
+					}
 				} else {
 					if (Keystate.up &&
 					    (SavePlayer.MapY > 0) &&
@@ -257,8 +257,8 @@ void Handle_player_map()
 										SavePlayer
 											.IsOnMapBoat =
 											C; //"subscribe"  to this boat
-									};
-								};
+									}
+								}
 							} else { // CX!=0
 								if (Get_map_tile(
 									    SavePlayer
@@ -288,8 +288,8 @@ void Handle_player_map()
 									SavePlayer
 										.L =
 										0;
-								};
-							};
+								}
+							}
 						} else { // player in boat
 							if ((Get_map_tile(
 								     SavePlayer
@@ -302,7 +302,7 @@ void Handle_player_map()
 										    .IsOnMapBoat]
 									.MoveY =
 									-16; // move boat along with player
-							};
+							}
 							if (Get_map_tile(
 								    SavePlayer
 									    .MapX,
@@ -322,8 +322,8 @@ void Handle_player_map()
 									SavePlayer
 										.MapY -
 									16;
-							};
-						};
+							}
+						}
 					} else {
 						if (Keystate.down &&
 						    (SavePlayer.MapY <
@@ -361,8 +361,8 @@ void Handle_player_map()
 											SavePlayer
 												.IsOnMapBoat =
 												C; //"subscribe"  to this boat
-										};
-									};
+										}
+									}
 								} else { // CX!=0
 									if (Get_map_tile(
 										    SavePlayer
@@ -392,8 +392,8 @@ void Handle_player_map()
 										SavePlayer
 											.L =
 											0;
-									};
-								};
+									}
+								}
 							} else { // player in boat
 								if ((Get_map_tile(
 									     SavePlayer
@@ -406,7 +406,7 @@ void Handle_player_map()
 											    .IsOnMapBoat]
 										.MoveY =
 										16; // move boat along with player
-								};
+								}
 								if (Get_map_tile(
 									    SavePlayer
 										    .MapX,
@@ -426,28 +426,28 @@ void Handle_player_map()
 										SavePlayer
 											.MapY +
 										16;
-								};
-							};
-						};
-					};
-				};
-			};
+								}
+							}
+						}
+					}
+				}
+			}
 		} // end of (CX==0) && (CY==0)
 		else {
 			Player.Offset = -1;
-		};
+		}
 
 		// Player.Test = L;//test
 
 		if (CX) {
 			SavePlayer.MapX += (CX > 0 ? map_speed : -map_speed);
 			CX -= (CX > 0 ? map_speed : -map_speed);
-		};
+		}
 
 		if (CY) {
 			SavePlayer.MapY += (CY > 0 ? map_speed : -map_speed);
 			CY -= (CY > 0 ? map_speed : -map_speed);
-		};
+		}
 
 		FgX = SavePlayer.MapX - screen_width / 2;
 		if (FgX < Map_data.Border_left) {
@@ -455,8 +455,8 @@ void Handle_player_map()
 		} else {
 			if (FgX > (Map_data.Border_right - screen_width)) {
 				FgX = (Map_data.Border_right) - screen_width;
-			};
-		};
+			}
+		}
 
 		FgY = SavePlayer.MapY - (screen_height - 0) / 2;
 		if (FgY < 0) {
@@ -466,8 +466,8 @@ void Handle_player_map()
 			    ((Map_data.Height + 1) * 16 - screen_height)) {
 				FgY = (Map_data.Height + 1) * 16 -
 				      screen_height;
-			};
-		};
+			}
+		}
 
 		if (Keystate.jump && !Previous_keystate.jump) {
 			Temp2 = Get_map_tile(SavePlayer.MapX, SavePlayer.MapY);
@@ -509,7 +509,7 @@ void Handle_player_map()
 								locked_door_2));
 					} else {
 						Temp = M_tile;
-					};
+					}
 
 					Put_map_tile(SavePlayer.MapX,
 						     SavePlayer.MapY, Temp);
@@ -567,7 +567,7 @@ void Handle_player_map()
 					//					CX = SavePlayer.PrevCompX -
 					// SavePlayer.MapX; 					CY =
 					// SavePlayer.PrevCompY - SavePlayer.MapY;
-				};
+				}
 				Exit = 0;
 				SavePlayer.L = 0;
 				FgX = OldFgX;
@@ -602,8 +602,8 @@ void Handle_player_map()
 							// C=Map_data.Nr_of_objects;
 							Temp = big_castle_visited;
 							break;
-						};
-					};
+						}
+					}
 					Enter_enemy_ship(&Map_objects[C]);
 					if (Leveldata.Condition ==
 					    0) { // no ship (i.e. castle)
@@ -662,7 +662,7 @@ void Handle_player_map()
 										Levelfilename,
 										Map_triggers[C].LevelNr -
 											20);
-								};
+								}
 
 								Player.X =
 									Map_triggers[C]
@@ -679,7 +679,7 @@ void Handle_player_map()
 										 1]
 										.Anim =
 										7;
-								};
+								}
 								/*
                 OldFgX=FgX;
                 OldFgY=FgY;
@@ -722,14 +722,14 @@ void Handle_player_map()
 										.PrevCompY =
 										SavePlayer
 											.MapY;
-								};
+								}
 
 								Exit = 0;
 
 								break; // continue;
-							};
-						};
-					};
+							}
+						}
+					}
 
 					Temp = pipe;
 					break;
@@ -738,23 +738,23 @@ void Handle_player_map()
 
 					Temp = Temp2;
 
-				}; // end switch
+				} // end switch
 
 				Put_map_tile(SavePlayer.MapX, SavePlayer.MapY,
 					     Temp);
-			};
-		};
+			}
+		}
 
 	} else { // Map_statusbar==itemlist
 		if (Keystate.left && !Previous_keystate.left &&
 		    Player.Curr_item > 0) {
 			Player.Curr_item--;
-		};
+		}
 		if (Keystate.right && !Previous_keystate.right &&
 		    SavePlayer.Itemlist[Player.Curr_item + 1] &&
 		    Player.Curr_item < (itemlist_length - 1)) {
 			Player.Curr_item++;
-		};
+		}
 		if (Keystate.jump && !Previous_keystate.jump) {
 			if (SavePlayer.Itemlist[(int16_t)Player.Curr_item]) {
 				// collect item
@@ -775,9 +775,9 @@ void Handle_player_map()
 								 1) ?
 									3 :
 									2;
-					};
+					}
 					break;
-				};
+				}
 				case 2: { // fire flower
 
 					SavePlayer.Attribs =
@@ -794,13 +794,13 @@ void Handle_player_map()
 					Player.Height = Player.Height2 = 27;
 
 					break;
-				};
+				}
 				case 7: { // P-wing
 					SavePlayer.Attribs =
 						SavePlayer.Attribs |
 						0b00001000; // add P-wing
 					// No break here!
-				};
+				}
 				case 3: { //(leaf) racoon suit
 
 					SavePlayer.Attribs =
@@ -817,7 +817,7 @@ void Handle_player_map()
 					Player.Height = Player.Height2 = 27;
 
 					break;
-				};
+				}
 				case 4: { // star
 
 					SavePlayer.Attribs =
@@ -825,7 +825,7 @@ void Handle_player_map()
 					Player.Immortal = star_immortal_time;
 
 					break;
-				};
+				}
 				case 5: { // whistle (warp zone)
 					Remove = 0;
 					// animation
@@ -847,7 +847,7 @@ void Handle_player_map()
 						}
 						for (D = 0; D < 65000; D++)
 							;
-					};
+					}
 					// end
 
 					//						warp_cloud_spr
@@ -894,7 +894,7 @@ void Handle_player_map()
 					// Exit=0;
 
 					break;
-				};
+				}
 				case 6: { // hammer
 					for (C = 0; C <= 3; C++) {
 						if (Get_map_tile(
@@ -932,7 +932,7 @@ void Handle_player_map()
 
 							} else {
 								Temp = ground; // grass
-							};
+							}
 							// set new tile
 
 							Put_map_tile(
@@ -944,38 +944,38 @@ void Handle_player_map()
 										[3 -
 										 C],
 								Temp);
-						};
-					};
+						}
+					}
 					break;
-				};
+				}
 				case 8: { // cloud
 					SavePlayer.L = 0;
 					SavePlayer.IsClouded = 1;
 					break;
-				};
+				}
 				case 9: { // anchor
 					for (C = 0; C < Map_data.Nr_of_objects;
 					     C++) { // big castle=>releases ship
 						if (Map_objects[C].Mode == 1) {
 							Map_objects[C].Mode =
 								-1; // anchor this ship
-						};
-					};
+						}
+					}
 					break;
-				};
+				}
 
 					/*case 5:{
 
                   break;
           };*/
-				};
+				}
 
 				SavePlayer.Score += 10;
 				if (Remove)
 					Itemlist_remove(Player.Curr_item);
-			};
-		};
-	};
+			}
+		}
+	}
 
 #ifdef debug
 	SavePlayer.L = 0; // Debug mode: can allways pass any uncompleted level
@@ -1052,7 +1052,7 @@ void Enter_enemy_ship(struct map_object *Ship)
 				C++;
 				if (C == (Map_data.Height * Map_data.Width))
 					C = 0;
-			};
+			}
 
 			OldFgX = ((C % Map_data.Width) *
 				  16); // Calculate new position
@@ -1071,18 +1071,18 @@ void Enter_enemy_ship(struct map_object *Ship)
 					    screen_width))) { // if ship outside visible part of screen
 					Ship->X = OldFgX;
 					Ship->Y = OldFgY;
-				};
+				}
 
 				Render_map();
 
 				for (C = 0; C < 15000; C++)
 					; // time delay
-			};
-		};
+			}
+		}
 
 		// animate
 		Exit = 0;
-	};
+	}
 	if (Exit == 2) { // world completed!!!
 
 		FilledRectDark(0, 0, 239, 127);
@@ -1175,7 +1175,7 @@ void Enter_enemy_ship(struct map_object *Ship)
 		/*while( (_rowread(0)) );
     while( !(_rowread(0)) );*/
 		WaitKeyPress();
-	};
+	}
 
 	// Exit=0;
 };
@@ -1206,7 +1206,7 @@ void Handle_map_objects()
 							&Map_objects[C]);
 
 						break;
-					};
+					}
 					case 2: // monster
 					case 3:
 					case 4:
@@ -1219,7 +1219,7 @@ void Handle_map_objects()
 							Map_objects[C].Mode = 0;
 						} else {
 							Player.Offset = 1;
-						};
+						}
 						if (Exit != 9)
 							Exit = 0;
 						break;
@@ -1243,10 +1243,10 @@ void Handle_map_objects()
 						Play_card_game();
 						Map_objects[C].Mode = 0;
 						break;
-					};
-			};
-		};
-	};
+					}
+			}
+		}
+	}
 }
 
 uint8_t Get_map_tile(int16_t X, int16_t Y)
@@ -1268,19 +1268,19 @@ void Handle_boat(struct map_object *Boat)
 	if (Boat->MoveX > 0) {
 		Dx = map_speed; // Boat->X += map_speed;
 		// Boat->MoveX -= map_speed;
-	};
+	}
 	if (Boat->MoveX < 0) {
 		Dx = -map_speed; // Boat->X -= map_speed;
 		// Boat->MoveX += map_speed;
-	};
+	}
 	if (Boat->MoveY > 0) {
 		Dy = map_speed; // Boat->Y += map_speed;
 		// Boat->MoveY -= map_speed;
-	};
+	}
 	if (Boat->MoveY < 0) {
 		Dy = -map_speed; // Boat->Y -= map_speed;
 		// Boat->MoveY += map_speed;
-	};
+	}
 
 	Boat->Y += Dy;
 	Boat->MoveY -= Dy;
@@ -1295,7 +1295,7 @@ void Handle_boat(struct map_object *Boat)
 
 		Boat->Y += Boat->Data1;
 		Boat->Data0 += Boat->Data1;
-	};
+	}
 }
 
 void Handle_ship(struct map_object *Ship)
@@ -1331,29 +1331,29 @@ void Handle_map_monster(struct map_object *Monster)
 				     /*Monster->*/ X, /*Monster->*/ Y))) {
 				Monster->Sprite = map_monster_right_spr;
 				// Monster->Mask = map_monster_right_msk;
-			};
+			}
 			break;
-		};
+		}
 		case 1: {
 			if ((Monster->MoveX = Free_left_map(/*Monster->*/ X,
 							    /*Monster->*/ Y))) {
 				Monster->Sprite = map_monster_left_spr;
 				// Monster->Mask = map_monster_left_msk;
-			};
+			}
 
 			break;
-		};
+		}
 		case 2: {
 			Monster->MoveY =
 				Free_up_map(/*Monster->*/ X, /*Monster->*/ Y);
 			break;
-		};
+		}
 		case 3: {
 			Monster->MoveY =
 				Free_down_map(/*Monster->*/ X, /*Monster->*/ Y);
 			break;
-		};
-		};
+		}
+		}
 
 		// avoid settling at non-nodes
 		uint8_t Temp = Get_map_tile(Monster->X + Monster->MoveX -
@@ -1380,19 +1380,19 @@ void Handle_map_monster(struct map_object *Monster)
 				if (Monster->MoveX > 0) {
 					Monster->X += 2;
 					Monster->MoveX -= 2;
-				};
+				}
 				if (Monster->MoveX < 0) {
 					Monster->X -= 2;
 					Monster->MoveX += 2;
-				};
+				}
 				if (Monster->MoveY > 0) {
 					Monster->Y += 2;
 					Monster->MoveY -= 2;
-				};
+				}
 				if (Monster->MoveY < 0) {
 					Monster->Y -= 2;
 					Monster->MoveY += 2;
-				};
+				}
 
 			} else { // outside visible screen
 				Monster->X += Monster->MoveX;
@@ -1406,16 +1406,16 @@ void Handle_map_monster(struct map_object *Monster)
 				Monster->Data1 = 1;
 				Monster->Sprite = map_monster_right_spr;
 				// Monster->Mask = map_monster_right_msk;
-			};
+			}
 			if (Monster->Data0 == 8) {
 				Monster->Data1 = -1;
 				Monster->Sprite = map_monster_left_spr;
 				// Monster->Mask = map_monster_left_msk;
-			};
+			}
 			Monster->X += Monster->Data1;
 			Monster->Data0 += Monster->Data1;
-		};
-	};
+		}
+	}
 };
 /*
 void Enter_map_anim(){
@@ -1525,8 +1525,8 @@ int16_t Free_left_map(int16_t X, int16_t Y)
 		DX -= 16;
 		if (Get_map_tile(X + DX, Y) >= walkable_node_low) {
 			break;
-		};
-	};
+		}
+	}
 
 	return DX;
 };
@@ -1540,8 +1540,8 @@ int16_t Free_right_map(int16_t X, int16_t Y)
 		DX += 16;
 		if (Get_map_tile(X + DX, Y) >= walkable_node_low) {
 			break;
-		};
-	};
+		}
+	}
 
 	return DX;
 };
@@ -1554,8 +1554,8 @@ int16_t Free_up_map(int16_t X, int16_t Y)
 		DY -= 16;
 		if (Get_map_tile(X, Y + DY) >= walkable_node_low) {
 			break;
-		};
-	};
+		}
+	}
 
 	return DY;
 };
@@ -1568,8 +1568,8 @@ int16_t Free_down_map(int16_t X, int16_t Y)
 		DY += 16;
 		if (Get_map_tile(X, Y + DY) >= walkable_node_low) {
 			break;
-		};
-	};
+		}
+	}
 
 	return DY;
 };
@@ -1586,7 +1586,7 @@ void Replace_map_tile(uint8_t Tile)
 		/*else{
 
     }*/
-	};
+	}
 }
 
 void Replace_by_road(int16_t X, int16_t Y)
@@ -1772,7 +1772,7 @@ void Add_map_event(uint8_t Event)
         */
 
 				break;
-			};
-		};
-	};
+			}
+		}
+	}
 };

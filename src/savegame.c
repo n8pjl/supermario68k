@@ -55,11 +55,11 @@ void Savegame(char Slot)
 			// Levelsetdata.Savegames[C] = Size;
 
 			Size += Levelsetdata.Savegame_size[C];
-		};
+		}
 
 		// Levelsetdata.Savegames[C];
 		// Levelsetdata.Savegame_size[C];
-	};
+	}
 
 	//	HeapUnlock(	Levelsetfile_sym->handle );
 	HeapUnlock(Temp);
@@ -148,7 +148,7 @@ void Savegame(char Slot)
 	// short SlotSize = sizeof(saveplayer)+10+RLESize;
 	for (C = 0; C < MapSize; C++) { // Undo loading of original map
 		*(Map + C) += *(TempBuffer2 /*Fg_mask.p.big_vscreen*/ + C);
-	};
+	}
 
 	Map_data.Border_left = SavePlayer.MapBorderLeft;
 	Map_data.Border_right = SavePlayer.MapBorderRight;
@@ -289,7 +289,7 @@ void Loadgame(char Slot /* , char* Raw0*/)
 	// even though he used a star just before saving
 	if (SavePlayer.Attribs & 0b10000000) {
 		Player.Immortal = star_immortal_time;
-	};
+	}
 	// End of new
 
 	Map_data.Border_left = SavePlayer.MapBorderLeft;
