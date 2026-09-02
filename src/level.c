@@ -1,7 +1,6 @@
 #include "level.h"
 #include "bosses.h"
 #include "comp.h"
-#include "compat/alloc.h"
 #include "compat/tios.h"
 #include "control.h"
 #include "flying.h"
@@ -1001,8 +1000,6 @@ Boss_sprites + (long)Boss->Sprite;
 
   };
   */
-	HeapUnlock(Temp /*Levelfile_sym->handle*/); // unlock levelfile
-
 	return 0;
 }
 
@@ -1324,8 +1321,6 @@ if( !(Temp = Levelfile_sym->handle) ){
 					(void (*)(void *))Handle_boat;
 		}
 	}
-
-	HeapUnlock(Temp); // unlock levelfile
 
 	return 0;
 };

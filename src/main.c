@@ -20,7 +20,6 @@
 
 // switch that gives warnings when inlineing fails: -Winline
 
-#include "compat/alloc.h"
 #include "compat/gray.h"
 #include "control.h"
 #include "error.h"
@@ -217,10 +216,4 @@ Quit:
 	Free(Level);
 	Free(Map);
 	Free(Filenames);
-
-	// unlock memblocks used by GFX-files
-	HeapUnlock(Tilefile_sym_h);
-	HeapUnlock(Spritefile_sym_h);
-	HeapUnlock(Bg_file_sym_h);
-	HeapUnlock(TextFile_sym_h);
 }

@@ -1,5 +1,4 @@
 #include "text.h"
-#include "compat/alloc.h"
 #include "compat/extgraph.h"
 #include "compat/graph.h"
 #include "compat/tios.h"
@@ -157,16 +156,6 @@ int16_t do_menu(const char *menu_id)
 	return ret;
 }
 
-int16_t do_saveslot_menu(bool is_save)
-{
-	const char *menu_id = is_save ? "Save" : "load_menu";
-
-	struct menu_text *options = get_menu_text(menu_id);
-
-	// TODO
-	return 0;
-}
-
 int16_t Menus()
 {
 	SYM_ENTRY *SymPtr;
@@ -265,9 +254,6 @@ int16_t Menus()
 	memcpy(Filenames,
 	       HeapDeref(Temp) + 2 + sizeof(struct levelsetdata) + 21,
 	       9 * Levelsetdata.Nr_of_files);
-
-	// HeapUnlock(	SymPtr->handle );
-	HeapUnlock(Temp);
 
 	// New: V 1.01 Added error check
 	if (Show_titlescreen()) {

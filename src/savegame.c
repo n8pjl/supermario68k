@@ -1,10 +1,8 @@
 #include "savegame.h"
-#include "compat/alloc.h"
 #include "compat/extgraph.h"
 #include "compat/graph.h"
 #include "compat/tios.h"
 #include "gameloop.h"
-#include "gfx.h"
 #include "items.h"
 #include "level.h"
 #include "levelset.h"
@@ -60,9 +58,6 @@ void Savegame(char Slot)
 		// Levelsetdata.Savegames[C];
 		// Levelsetdata.Savegame_size[C];
 	}
-
-	//	HeapUnlock(	Levelsetfile_sym->handle );
-	HeapUnlock(Temp);
 
 	// generate savegame :
 	// save player
@@ -320,9 +315,6 @@ void Loadgame(char Slot /* , char* Raw0*/)
 
 		// Handle_map_monster
 	}
-
-	//	HeapUnlock(	Levelsetfile_sym->handle );
-	HeapUnlock(Temp);
 };
 
 HANDLE

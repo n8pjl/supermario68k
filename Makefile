@@ -39,7 +39,7 @@ NAMES = main.c enemies.c gameloop.c items.c player.c render.c \
         scankeys.c shells.c custom.c objects.c flying.c smallgames.c \
         bounch.c map.c titlescreen.c text.c rle.c level.c savegame.c \
         stringcopy.c error.c bosses.c gfx.c \
-        compat/alloc.c compat/tios.c compat/tilemap.c compat/extgraph.c \
+        compat/tios.c compat/tilemap.c compat/extgraph.c \
         compat/graph.c compat/font_data.c compat/gray.c
 
 SRCS = $(addprefix $(SRCDIR)/,$(NAMES))
@@ -50,23 +50,15 @@ HDRS = $(wildcard $(SRCDIR)/*.h $(SRCDIR)/compat/*.h)
 OBJS = $(SRCS:.c=.o)
 DEPS = $(OBJS:.o=.d)
 
-.PHONY: all clean data FORCE
+.PHONY: all clean data
 
 all: $(DIST)
-
-# Both the objects and the data depend on which calculator is being built for,
-# so record it in a stamp file that changes whenever CALC does. Without this,
-# switching targets would leave stale objects and the wrong data packaged.
-.calc-stamp: FORCE
-	@echo "$(CALC)" | cmp -s - $@ || echo "$(CALC)" > $@
-
-FORCE:
 
 # The link depends on this rather than on a phony `data` target, so that
 # changing the converter or the target actually repackages mario.data - a
 # preloaded file is baked in at link time, and a phony prerequisite would be
 # rebuilt without the link noticing.
-.data-stamp: tools/mkdata.py .calc-stamp
+.data-stamp: tools/mkdata.py
 	python3 tools/mkdata.py calc-data data
 	@touch $@
 
@@ -74,7 +66,7 @@ data: .data-stamp
 
 # CFLAGS and LDFLAGS live here, so a change to this file has to rebuild and
 # relink - the same reason the data and the headers are prerequisites.
-$(OBJS): .calc-stamp Makefile
+$(OBJS): Makefile
 
 # Order-only: the link also drops mario.wasm and mario.data next to $@, so the
 # directory has to exist, but its timestamp must not force a relink.
@@ -112,5 +104,5 @@ format: $(SRCS) $(HDRS)
 -include $(DEPS)
 
 clean:
-	rm -f $(OBJS) $(DEPS) .calc-stamp .data-stamp $(DIST)
+	rm -f $(OBJS) $(DEPS) .data-stamp $(DIST)
 	rm -rf $(OUTDIR) $(BUILDDIR) data
