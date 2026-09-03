@@ -9,7 +9,8 @@
 // route, so inserting a split into a route leaves the times either side of it
 // where they were.
 
-import { type Route } from "./route.ts";
+import { type SplitGroup } from "./groups.ts";
+import { type Route, timedSplits } from "./route.ts";
 import { duration, parseDuration, shorter } from "./times.ts";
 
 export interface SplitTime {
@@ -29,10 +30,19 @@ export interface RouteRecord {
   readonly pb: RunRecord | null;
   /** Best segment - not cumulative - for each split id that has ever closed. */
   readonly best: ReadonlyMap<string, Temporal.Duration>;
+  /**
+   * Best segment for each world group that has ever closed as a whole.
+   *
+   * Kept apart from `best` rather than added up from it: a world's best segment
+   * is the fastest that world has been run start to end in one go, which is not
+   * the sum of the best its levels have ever been on their own. Keyed by
+   * SplitGroup.id; see groups.ts.
+   */
+  readonly bestGroups: ReadonlyMap<string, Temporal.Duration>;
 }
 
 export function emptyRecord(route: string): RouteRecord {
-  return { route, pb: null, best: new Map() };
+  return { route, pb: null, best: new Map(), bestGroups: new Map() };
 }
 
 /** The cumulative time a run reached at one split, if it closed it. */
@@ -67,14 +77,60 @@ export function segments(run: RunRecord): Map<string, Temporal.Duration> {
   return out;
 }
 
+/**
+ * A run's world-segment times: how long each group took start to end.
+ *
+ * A group's start is the clock at the last split that closed before it, or zero
+ * where it opens the run; its end is its own last split. Skipped splits inside a
+ * group do not stop it having a segment - a warp through the middle of a world
+ * is part of that world's time - but a group whose last split was skipped has no
+ * clean end and gets none.
+ */
+export function groupSegments(
+  run: RunRecord,
+  groups: readonly SplitGroup[],
+): Map<string, Temporal.Duration> {
+  const out = new Map<string, Temporal.Duration>();
+
+  for (const group of groups) {
+    const end = run.splits[group.to]?.at ?? null;
+    if (end === null) continue;
+
+    let start = duration(0);
+    for (let i = group.from - 1; i >= 0; i--) {
+      const at = run.splits[i]?.at;
+      if (at != null) {
+        start = at;
+        break;
+      }
+    }
+
+    out.set(group.id, end.subtract(start));
+  }
+
+  return out;
+}
+
 /** The record after a run: a new best if it beat one, and any better segments. */
-export function withRun(record: RouteRecord, run: RunRecord): RouteRecord {
+export function withRun(
+  record: RouteRecord,
+  run: RunRecord,
+  groups: readonly SplitGroup[] = [],
+): RouteRecord {
   const best = new Map(record.best);
 
   for (const [id, segment] of segments(run)) {
     const was = best.get(id);
 
     best.set(id, was === undefined ? segment : shorter(was, segment));
+  }
+
+  const bestGroups = new Map(record.bestGroups);
+
+  for (const [id, segment] of groupSegments(run, groups)) {
+    const was = bestGroups.get(id);
+
+    bestGroups.set(id, was === undefined ? segment : shorter(was, segment));
   }
 
   // Only a finished run can be a personal best; an abandoned one is not a time
@@ -86,7 +142,7 @@ export function withRun(record: RouteRecord, run: RunRecord): RouteRecord {
       ? run
       : record.pb;
 
-  return { route: record.route, pb, best };
+  return { route: record.route, pb, best, bestGroups };
 }
 
 /**
@@ -95,6 +151,10 @@ export function withRun(record: RouteRecord, run: RunRecord): RouteRecord {
  * Null rather than a partial total: a sum missing a segment is not a time the
  * route could be run in, and showing it as one would flatter every comparison
  * made against it.
+ *
+ * Warps are left out - they are not a segment the run keeps on its own (see
+ * route.ts), and their time is already inside the split that follows them - so
+ * this stays a total the route could really be run in.
  */
 export function sumOfBest(
   route: Route,
@@ -102,7 +162,7 @@ export function sumOfBest(
 ): Temporal.Duration | null {
   let total = duration(0);
 
-  for (const split of route.splits) {
+  for (const split of timedSplits(route.splits)) {
     const best = record.best.get(split.id);
     if (best === undefined) return null;
 
@@ -165,10 +225,21 @@ export function parseRouteRecord(value: unknown): RouteRecord | null {
     if (parsed !== null) best.set(id, parsed);
   }
 
+  // Absent in a file written before world groups: an older record still loads,
+  // it just has no world bests until a run sets some.
+  const bestGroups = new Map<string, Temporal.Duration>();
+  const rawGroups = asRecordObject(raw["groups"]) ?? {};
+
+  for (const [id, time] of Object.entries(rawGroups)) {
+    const parsed = parseDuration(time);
+    if (parsed !== null) bestGroups.set(id, parsed);
+  }
+
   return {
     route: raw["route"],
     pb: raw["pb"] === undefined || raw["pb"] === null ? null : parseRun(raw["pb"]),
     best,
+    bestGroups,
   };
 }
 
@@ -189,6 +260,9 @@ export function recordToJSON(record: RouteRecord): unknown {
     pb: record.pb === null ? null : runToJSON(record.pb),
     best: Object.fromEntries(
       [...record.best].map(([id, time]) => [id, time.toString()]),
+    ),
+    groups: Object.fromEntries(
+      [...record.bestGroups].map(([id, time]) => [id, time.toString()]),
     ),
   };
 }

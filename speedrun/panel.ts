@@ -1,7 +1,7 @@
 // The panel beside the screen. Draws a TimerView and nothing else: every
 // decision about what a run is worth was made before it got here.
 
-import { type SplitView, type TimerView } from "./timer.ts";
+import { type GroupView, type SplitView, type TimerView } from "./timer.ts";
 import { formatDelta, formatDuration } from "./times.ts";
 
 interface Row {
@@ -45,6 +45,10 @@ export class SpeedrunPanel {
 
   /** One row per split of the route last drawn, rebuilt when that changes. */
   #rows: Row[] = [];
+  /** One row per world group, when the route is nested; empty when it is flat. */
+  #groupRows: Row[] = [];
+  /** The shape last laid out - nested or not, and where the groups fall. */
+  #signature = "";
   /** The row last scrolled to, so a route being run only scrolls when it moves on. */
   #following = -1;
 
@@ -73,29 +77,62 @@ export class SpeedrunPanel {
     container.replaceChildren(this.#title, this.#list, this.#empty, foot);
   }
 
-  // A recorded route grows a split at a time, so the row count is checked on
-  // every draw rather than only when the route is swapped.
-  #fit(count: number): void {
-    if (this.#rows.length === count) return;
+  #makeRow(className: string): Row {
+    const root = element("li", className);
+    const name = element("span", "sr-name");
+    const delta = element("span", "sr-delta");
+    const time = element("span", "sr-time");
+    // A second line under the first, holding the same two columns: the panel is
+    // narrower than a name and four figures in a row, and the pair above and the
+    // pair below are answers to different questions - where the run stands
+    // overall, and how the split (or world) just played went on its own.
+    const segmentDelta = element("span", "sr-segment-delta");
+    const segment = element("span", "sr-segment");
 
-    this.#rows = Array.from({ length: count }, () => {
-      const root = element("li", "sr-split");
-      const name = element("span", "sr-name");
-      const delta = element("span", "sr-delta");
-      const time = element("span", "sr-time");
-      // A second line under the first, holding the same two columns: the
-      // panel is narrower than a name and four figures in a row, and the pair
-      // above and the pair below are answers to different questions - where
-      // the run stands overall, and how the split just played went on its own.
-      const segmentDelta = element("span", "sr-segment-delta");
-      const segment = element("span", "sr-segment");
+    root.append(name, delta, time, segmentDelta, segment);
+    return { root, name, delta, time, segment, segmentDelta };
+  }
 
-      root.append(name, delta, time, segmentDelta, segment);
-      return { root, name, delta, time, segment, segmentDelta };
+  // A recorded route grows a split at a time, and switching route or crossing
+  // into a second world changes the shape, so the layout is checked on every
+  // draw rather than only when the route is swapped. Rebuilt only when the
+  // shape actually moved, so a route being run is not torn down each frame.
+  #layout(view: TimerView): void {
+    const signature = view.nested
+      ? `n:${view.groups.map((g) => `${g.from}-${g.to}`).join(",")}`
+      : `f:${view.splits.length}`;
+
+    if (signature === this.#signature) return;
+    this.#signature = signature;
+    this.#following = -1;
+
+    this.#rows = view.splits.map(() => this.#makeRow("sr-split"));
+
+    if (!view.nested) {
+      this.#groupRows = [];
+      this.#list.replaceChildren(...this.#rows.map((row) => row.root));
+      return;
+    }
+
+    // A header per world, then that world's split rows under it, indented by the
+    // data attribute so the CSS can step them in without a second row class.
+    this.#groupRows = view.groups.map(() => this.#makeRow("sr-group"));
+
+    const children: HTMLElement[] = [];
+    view.groups.forEach((group, g) => {
+      const header = this.#groupRows[g];
+      if (header !== undefined) children.push(header.root);
+
+      for (let i = group.from; i <= group.to; i++) {
+        const row = this.#rows[i];
+        if (row === undefined) continue;
+
+        row.root.dataset["nested"] = "true";
+        children.push(row.root);
+      }
     });
 
-    this.#list.replaceChildren(...this.#rows.map((row) => row.root));
-    this.#following = -1;
+    this.#list.replaceChildren(...children);
   }
 
   /**
@@ -155,6 +192,31 @@ export class SpeedrunPanel {
     sign(row.delta, split.delta);
   }
 
+  // The same two lines as a split row, for a whole world: its running total and
+  // where that stands against the best, and under them the world start to end
+  // and that against the best the world has been run in. A gold here is on the
+  // world segment, the same claim a split gold makes one level down.
+  #drawGroup(row: Row, group: GroupView): void {
+    row.root.dataset["state"] = group.state;
+    row.root.dataset["gold"] = String(group.gold);
+    row.name.textContent = group.name;
+
+    row.time.textContent =
+      group.at !== null
+        ? formatDuration(group.at)
+        : group.state === "skipped"
+          ? "—"
+          : "";
+
+    row.segment.textContent =
+      group.segment === null ? "" : formatDuration(group.segment);
+    row.segmentDelta.textContent =
+      group.segmentDelta === null ? "" : formatDelta(group.segmentDelta);
+
+    row.delta.textContent = group.delta === null ? "" : formatDelta(group.delta);
+    sign(row.delta, group.delta);
+  }
+
   draw(view: TimerView): void {
     this.#root.dataset["state"] = view.state;
     this.#root.dataset["recording"] = String(view.recording);
@@ -167,11 +229,17 @@ export class SpeedrunPanel {
     // once a recording is running its splits are what the panel is showing.
     this.#empty.hidden = view.recording || view.route !== null;
 
-    this.#fit(view.splits.length);
+    this.#layout(view);
     view.splits.forEach((split, i) => {
       const row = this.#rows[i];
       if (row !== undefined) this.#drawSplit(row, split);
     });
+    if (view.nested) {
+      view.groups.forEach((group, g) => {
+        const row = this.#groupRows[g];
+        if (row !== undefined) this.#drawGroup(row, group);
+      });
+    }
 
     // A recording has no split to be at - every one of them is closed as it is
     // written - so it follows the end of the list instead.

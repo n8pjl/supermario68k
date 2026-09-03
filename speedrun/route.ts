@@ -40,6 +40,23 @@ export interface Route {
   readonly splits: readonly RouteSplit[];
 }
 
+/**
+ * The splits that carry a time of their own: everything but the warp markers.
+ *
+ * A warp is kept on a route because a category's rules are checked against it -
+ * a warpless run is one with no warp on it, and a warp into the next world is
+ * invisible in the world numbers (see category.ts). But it is not a segment the
+ * player runs or reads: it takes no time that can be told apart from the split
+ * it happens during, so its time falls into the split that closes after it. The
+ * timer, the panel, the sum of best and the world grouping all work from this
+ * list; only rule checking and the saved file ever see the warps.
+ */
+export function timedSplits(
+  splits: readonly RouteSplit[],
+): readonly RouteSplit[] {
+  return splits.filter((split) => split.on.kind !== "warp-taken");
+}
+
 export function triggered(on: Trigger, event: GameEvent): boolean {
   if (on.kind !== event.kind) return false;
 

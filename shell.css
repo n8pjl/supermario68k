@@ -586,6 +586,67 @@ body.immersive canvas {
   font-weight: 600;
 }
 
+/* A world, drawn above the splits it holds when the route crosses more than one.
+   Same grid as a split so a total sits over a total, but set apart as the line a
+   long run is read down: heavier, ruled off from the world before it, and the
+   name in the same small caps the panel title uses. */
+.sr-group {
+  display: grid;
+  grid-template-columns: 1fr auto 5.6rem;
+  align-items: baseline;
+  gap: 0.15rem 0.6rem;
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.5rem 0.3rem;
+  border-top: 1px solid var(--panel-edge);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* The first world has nothing to be ruled off from. */
+.sr-group:first-child {
+  margin-top: 0;
+  border-top: none;
+}
+
+.sr-group .sr-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* The world in progress, marked the way the current split is. */
+.sr-group[data-state="current"] {
+  background: color-mix(in srgb, var(--console-hi) 55%, transparent);
+}
+
+.sr-group[data-state="current"] .sr-name {
+  color: var(--ink);
+}
+
+/* A world a warp jumped clean over: no time of its own, dimmed like a split. */
+.sr-group[data-state="skipped"] {
+  opacity: 0.45;
+}
+
+/* A gold on the world segment - the whole world run faster than ever before. */
+.sr-group[data-gold="true"] .sr-name,
+.sr-group[data-gold="true"] .sr-segment {
+  color: var(--gold);
+}
+
+.sr-group[data-gold="true"] .sr-segment {
+  font-weight: 600;
+}
+
+/* Stepped in under their world header, so the eye can tell a level from the
+   world total above it. Only when nested; a flat route keeps its splits flush. */
+.sr-split[data-nested="true"] {
+  padding-left: 1.1rem;
+}
+
 .sr-name {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -868,6 +929,28 @@ body.immersive .speedrun {
   text-align: right;
   color: var(--ink-dim);
   font-variant-numeric: tabular-nums;
+}
+
+/* A world heading across the whole grid, for a route that crosses worlds. Out
+   of the split numbering - it is not a split - and set in the panel's small
+   caps so the names below read as belonging under it. */
+.sr-split-names li.sr-group-head {
+  grid-column: 1 / -1;
+  counter-increment: none;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.sr-split-names li.sr-group-head:first-child {
+  margin-top: 0;
+}
+
+.sr-split-names li.sr-group-head::before {
+  content: none;
 }
 
 .sr-split-names input {

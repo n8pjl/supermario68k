@@ -12,8 +12,9 @@ import {
   category,
   isCategoryId,
 } from "./category.ts";
+import { entersMultipleWorlds, groupSplits } from "./groups.ts";
 import { type RouteRecord } from "./records.ts";
-import { type Route, type RouteSplit } from "./route.ts";
+import { type Route, type RouteSplit, timedSplits } from "./route.ts";
 import { type SpeedrunStore, documentToJSON, parseDocument } from "./store.ts";
 import { formatDuration } from "./times.ts";
 
@@ -215,13 +216,18 @@ export class SpeedrunManager {
     this.#status.textContent = message;
   }
 
-  /** The selected route with one split's name replaced, saved and redrawn. */
-  #rename(at: number, name: string): void {
+  /**
+   * The selected route with one split's name replaced, saved and redrawn.
+   *
+   * By id rather than by position: the fields below stand for the timed splits,
+   * warps left out, so a field's index is not an index into route.splits.
+   */
+  #rename(id: string, name: string): void {
     const route = this.#store.selected;
     if (route === null) return;
 
-    const splits: RouteSplit[] = route.splits.map((split, i) =>
-      i === at ? { ...split, name } : split,
+    const splits: RouteSplit[] = route.splits.map((split) =>
+      split.id === id ? { ...split, name } : split,
     );
 
     this.#store.putRoute({ ...route, splits });
@@ -252,31 +258,54 @@ export class SpeedrunManager {
 
     this.#routeInput.value = route.name;
 
-    if (this.#listed !== route.id || this.#fields.length !== route.splits.length) {
+    // The warps are not named: they carry no time and show nowhere else, so
+    // there is nothing to call them. Only the timed splits get a field.
+    const shown = timedSplits(route.splits);
+
+    if (this.#listed !== route.id || this.#fields.length !== shown.length) {
       this.#listed = route.id;
-      this.#fields = route.splits.map((_, i) => {
+      this.#fields = shown.map((split, i) => {
         const field = document.createElement("input");
 
         field.type = "text";
         field.setAttribute("aria-label", `Name of split ${i + 1}`);
         field.addEventListener("change", () =>
-          this.#rename(i, field.value.trim()),
+          this.#rename(split.id, field.value.trim()),
         );
 
         return field;
       });
 
-      this.#splits.replaceChildren(
-        ...this.#fields.map((field) => {
-          const row = document.createElement("li");
+      // A route that crosses worlds gets a heading per world, so the names being
+      // typed line up with the groups the panel draws. The fields stay one per
+      // timed split and in order; the headings are inert list items between them.
+      const rows: HTMLLIElement[] = [];
+      const build = (i: number): void => {
+        const field = this.#fields[i];
+        if (field === undefined) return;
 
-          row.append(field);
-          return row;
-        }),
-      );
+        const row = document.createElement("li");
+        row.append(field);
+        rows.push(row);
+      };
+
+      if (entersMultipleWorlds(shown)) {
+        for (const group of groupSplits(shown)) {
+          const head = document.createElement("li");
+          head.className = "sr-group-head";
+          head.textContent = group.name;
+          rows.push(head);
+
+          for (let i = group.from; i <= group.to; i++) build(i);
+        }
+      } else {
+        this.#fields.forEach((_, i) => build(i));
+      }
+
+      this.#splits.replaceChildren(...rows);
     }
 
-    route.splits.forEach((split, i) => {
+    shown.forEach((split, i) => {
       const field = this.#fields[i];
 
       if (field !== undefined) field.value = split.name;
@@ -340,8 +369,8 @@ export class SpeedrunManager {
         : ` The run itself is the time to beat: ${formatDuration(record.pb.total)}.`;
 
     const saved =
-      `Saved "${route.name}" with ${route.splits.length} splits under ` +
-      `${category(route.category).name}, and selected it.${time} ` +
+      `Saved "${route.name}" with ${timedSplits(route.splits).length} splits ` +
+      `under ${category(route.category).name}, and selected it.${time} ` +
       "Rename them below.";
 
     // A recording that broke its own category is worth saying out loud: the
@@ -443,7 +472,7 @@ export class SpeedrunManager {
       route === null
         ? `No ${rules.name} routes yet. Record one: turn recording on, play, ` +
           "and every level you beat becomes a split."
-        : `${route.splits.length} splits`;
+        : `${timedSplits(route.splits).length} splits`;
     this.#record.textContent = this.#recording
       ? "Stop recording"
       : "Record a route";

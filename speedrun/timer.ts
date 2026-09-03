@@ -11,7 +11,13 @@ import {
   placeIn,
 } from "./category.ts";
 import { type GameEvent } from "./events.ts";
-import { type Route, type RouteSplit, triggered } from "./route.ts";
+import { entersMultipleWorlds, groupSplits } from "./groups.ts";
+import {
+  type Route,
+  type RouteSplit,
+  timedSplits,
+  triggered,
+} from "./route.ts";
 import {
   type RouteRecord,
   type RunRecord,
@@ -48,6 +54,31 @@ export interface SplitView {
   readonly gold: boolean;
 }
 
+/**
+ * One world, timed as the long segment that holds its levels.
+ *
+ * `from` and `to` index into `TimerView.splits`, so the panel can draw a header
+ * above the rows it covers. Only worth drawing when `TimerView.nested` is set -
+ * a route that never leaves a world is read as its flat list of splits.
+ */
+export interface GroupView {
+  readonly name: string;
+  readonly world: number | null;
+  readonly from: number;
+  readonly to: number;
+  readonly state: SplitState;
+  /** The running total when the world's last split closed. */
+  readonly at: Temporal.Duration | null;
+  /** That total against the personal best's, where both reached the world's end. */
+  readonly delta: Temporal.Duration | null;
+  /** The world start to end, where this run has a segment to attribute to it. */
+  readonly segment: Temporal.Duration | null;
+  /** That world segment against the best that world has ever been run in. */
+  readonly segmentDelta: Temporal.Duration | null;
+  /** That world segment is the best it has ever been: a gold on the world. */
+  readonly gold: boolean;
+}
+
 export interface TimerView {
   /** The rules being run. There is always one; a route there may not be. */
   readonly category: Category;
@@ -57,6 +88,10 @@ export interface TimerView {
   readonly recording: boolean;
   readonly elapsed: Temporal.Duration;
   readonly splits: readonly SplitView[];
+  /** The splits gathered by world; drawn only where `nested` is set. */
+  readonly groups: readonly GroupView[];
+  /** The route crosses more than one world, so the world grouping is worth showing. */
+  readonly nested: boolean;
   readonly pace: Temporal.Duration | null;
   readonly pb: Temporal.Duration | null;
   readonly sumOfBest: Temporal.Duration | null;
@@ -86,6 +121,8 @@ export class SpeedrunTimer {
    * beat rather than against itself once it has.
    */
   #golds: ReadonlyMap<string, Temporal.Duration>;
+  /** The best each world segment had been when this run started; see #golds. */
+  #groupGolds: ReadonlyMap<string, Temporal.Duration>;
 
   #state: RunState = "idle";
   /** performance.now() when the run started. */
@@ -125,6 +162,7 @@ export class SpeedrunTimer {
     this.#record = record;
     this.#comparison = record.pb;
     this.#golds = record.best;
+    this.#groupGolds = record.bestGroups;
     this.#changed = changed;
   }
 
@@ -137,14 +175,19 @@ export class SpeedrunTimer {
   }
 
   /**
-   * The splits this run is being measured against.
+   * The splits this run is being measured against, warps aside.
    *
    * A recording is measured against the route it is writing, which is as long
    * as the run so far; anything else against the selected route, of which there
-   * may not be one.
+   * may not be one. Either way the warp markers are dropped: they are not a
+   * split the run is timed on (see route.ts), so nothing from here on - the
+   * clock, the panel, the record - ever has to think about them. They stay on
+   * `#recorded` for the route that takeRecording() writes.
    */
   get #splits(): readonly RouteSplit[] {
-    return this.#recordingRun ? this.#recorded : (this.#route?.splits ?? []);
+    return timedSplits(
+      this.#recordingRun ? this.#recorded : (this.#route?.splits ?? []),
+    );
   }
 
   get record(): RouteRecord {
@@ -223,7 +266,7 @@ export class SpeedrunTimer {
     };
     // Read before the splits are let go of: #run() is written against whatever
     // the timer is running, which for a recording is the list below.
-    const record = withRun(emptyRecord(id), this.#run());
+    const record = withRun(emptyRecord(id), this.#run(), groupSplits(this.#splits));
 
     this.#recorded = [];
     return { route, record };
@@ -257,6 +300,7 @@ export class SpeedrunTimer {
   #start(): void {
     this.#comparison = this.#record.pb;
     this.#golds = this.#record.best;
+    this.#groupGolds = this.#record.bestGroups;
     this.#state = "running";
     this.#origin = performance.now();
     this.#elapsed = 0;
@@ -280,7 +324,13 @@ export class SpeedrunTimer {
     // run over that route - so nothing is written here. Its own times go to the
     // route it just wrote, which does not have an id until takeRecording() has
     // been asked for one.
-    if (!this.#recordingRun) this.#record = withRun(this.#record, this.#run());
+    if (!this.#recordingRun) {
+      this.#record = withRun(
+        this.#record,
+        this.#run(),
+        groupSplits(this.#splits),
+      );
+    }
 
     this.#changed();
   }
@@ -364,40 +414,40 @@ export class SpeedrunTimer {
       return;
     }
 
-    // Two things are worth a split of their own. A level beaten is the obvious
-    // one. A warp is the other: it takes time, and it is the thing a category
-    // that forbids warping is checked against, so a route that took one has to
-    // say so - a warp into the next world is invisible in the world numbers.
-    if (event.kind !== "level-completed" && event.kind !== "warp-taken") {
+    // A warp is put on the route but is not a split of the run. It is the
+    // evidence a warpless category is judged against - a warp into the next
+    // world is invisible in the world numbers - so it has to be written down,
+    // but it takes no time that can be told apart from the level it happens
+    // during and it is not something the player runs or reads. So it goes onto
+    // #recorded, where takeRecording() will find it, and nothing else: no row,
+    // no name worth keeping, and no close, so its time falls into the next
+    // split's segment. A recording never ends on one either.
+    if (event.kind === "warp-taken") {
+      this.#recorded.push({
+        id: `warp${this.#recorded.length}-w${event.world}`,
+        name: "Warp",
+        on: { kind: "warp-taken", world: event.world },
+      });
       return;
     }
 
+    if (event.kind !== "level-completed") return;
+
     // Numbered rather than named: nothing here knows what the level is called,
     // and a guess at it would be a name the player has to correct rather than
-    // one they can accept. The routes section is where these get their names;
-    // the id is what a saved time is tied to, so renaming costs nothing.
-    const split: RouteSplit =
-      event.kind === "warp-taken"
-        ? {
-            // Counted rather than named after the world it lands in: one
-            // whistle is two warps - out to the warp zone and on from it - and
-            // the two can land in the same place.
-            id: `warp${this.#recorded.length}-w${event.world}`,
-            name: "Warp",
-            on: { kind: "warp-taken", world: event.world },
-          }
-        : {
-            id: `w${event.world}-l${event.level}`,
-            name: `Split ${this.#recorded.length + 1}`,
-            on: {
-              kind: "level-completed",
-              world: event.world,
-              level: event.level,
-            },
-          };
+    // one they can accept. Numbered by the timed splits so far, warps aside, so
+    // the count matches the rows the panel shows. The routes section is where
+    // these get their names; the id is what a saved time is tied to, so
+    // renaming costs nothing.
+    const number = timedSplits(this.#recorded).length + 1;
+    const split: RouteSplit = {
+      id: `w${event.world}-l${event.level}`,
+      name: `Split ${number}`,
+      on: { kind: "level-completed", world: event.world, level: event.level },
+    };
 
     this.#recorded.push(split);
-    this.#close(this.#recorded.length - 1);
+    this.#close(number - 1);
 
     // Some categories know their own end. World 1 is over when world 1's castle
     // is, and a recording that ran on past it would be writing a route for a
@@ -474,6 +524,63 @@ export class SpeedrunTimer {
       };
     });
 
+    // The same splits, cut into the world each is played in. Recomputed here
+    // rather than kept: it is derived from the route, and the route being
+    // recorded grows a split at a time.
+    const routeSplits = this.#splits;
+    const nested = entersMultipleWorlds(routeSplits);
+    const groups = groupSplits(routeSplits).map((group): GroupView => {
+      const endMs = this.#closed[group.to] ?? null;
+      const at = endMs === null ? null : duration(endMs);
+
+      // The world starts on the clock the last split before it left it at, or at
+      // zero if it opens the run. A split skipped past leaves no time, so this
+      // walks back to the last one that actually closed.
+      let startMs = 0;
+      for (let i = group.from - 1; i >= 0; i--) {
+        const ms = this.#closed[i];
+        if (ms != null) {
+          startMs = ms;
+          break;
+        }
+      }
+
+      const wholeSkipped = group.to < this.#at && at === null;
+      const endSplit = routeSplits[group.to];
+      const pbAt =
+        pb === null || endSplit === undefined ? null : timeAt(pb, endSplit.id);
+      const segment = at === null ? null : at.subtract(duration(startMs));
+      // Nothing to compare a world against while its route is being written by
+      // this very run, the same reason the split segments hold back their delta.
+      const groupBest = recording ? undefined : this.#groupGolds.get(group.id);
+
+      return {
+        name: group.name,
+        world: group.world,
+        from: group.from,
+        to: group.to,
+        state: wholeSkipped
+          ? "skipped"
+          : at !== null
+            ? "closed"
+            : running && this.#at >= group.from && this.#at <= group.to
+              ? "current"
+              : "ahead",
+        at,
+        delta: at === null || pbAt === null ? null : at.subtract(pbAt),
+        segment,
+        segmentDelta:
+          segment === null || groupBest === undefined
+            ? null
+            : segment.subtract(groupBest),
+        gold:
+          !recording &&
+          segment !== null &&
+          (groupBest === undefined ||
+            Temporal.Duration.compare(segment, groupBest) < 0),
+      };
+    });
+
     return {
       category: this.category,
       route: this.#route,
@@ -481,6 +588,8 @@ export class SpeedrunTimer {
       recording,
       elapsed: duration(this.#elapsed),
       splits,
+      groups,
+      nested,
       pace: this.#pace(),
       pb: recording ? null : (this.#record.pb?.total ?? null),
       sumOfBest:

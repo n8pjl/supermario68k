@@ -84,3 +84,15 @@ export function isEventKind(value: unknown): value is EventKind {
  * same thing in every world, and the one a recorded route can name.
  */
 export const CASTLE_LEVEL = 7;
+
+/**
+ * The world number the warp zone reports as.
+ *
+ * It is Levelsetdata.Commonfile - the shared level file, index 8, one past the
+ * eight world files (see src/levelset.h) - because the warp zone is a map like
+ * any other and that is the slot it lives in. The whistle raises
+ * `world-entered` and `warp-taken` for it on the way through. It is not a world
+ * the run is timed across, though: it is a room to pick a pipe in, so the
+ * grouping leaves it out the same way it leaves out the warps themselves.
+ */
+export const WARP_ZONE_WORLD = 8;
