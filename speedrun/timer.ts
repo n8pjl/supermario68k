@@ -14,6 +14,7 @@ import {
 import {
   type RouteRecord,
   type RunRecord,
+  segments,
   sumOfBest,
   timeAt,
   withRun,
@@ -32,12 +33,22 @@ export interface SplitView {
   readonly delta: Temporal.Duration | null;
   /** This split on its own, where the run has a segment to attribute to it. */
   readonly segment: Temporal.Duration | null;
+  /**
+   * That segment against the same one in the personal best.
+   *
+   * Two different questions, so two different figures: the delta above says
+   * where the run stands overall, and this says whether the split just played
+   * was better or worse than the one in the best - a run can be minutes down
+   * and still have just run its finest 1-2.
+   */
+  readonly segmentDelta: Temporal.Duration | null;
   /** That segment is the best this split has ever been run: a gold. */
   readonly gold: boolean;
 }
 
 export interface TimerView {
-  readonly route: Route;
+  /** Null while no route is selected: the clock still runs, nothing splits. */
+  readonly route: Route | null;
   readonly state: RunState;
   readonly recording: boolean;
   readonly elapsed: Temporal.Duration;
@@ -48,7 +59,7 @@ export interface TimerView {
 }
 
 export class SpeedrunTimer {
-  #route: Route;
+  readonly #route: Route | null;
   #record: RouteRecord;
   readonly #changed: () => void;
 
@@ -81,7 +92,7 @@ export class SpeedrunTimer {
   #recordingRun = false;
   #recorded: RouteSplit[] = [];
 
-  constructor(route: Route, record: RouteRecord, changed: () => void) {
+  constructor(route: Route | null, record: RouteRecord, changed: () => void) {
     this.#route = route;
     this.#record = record;
     this.#comparison = record.pb;
@@ -89,8 +100,19 @@ export class SpeedrunTimer {
     this.#changed = changed;
   }
 
-  get route(): Route {
+  get route(): Route | null {
     return this.#route;
+  }
+
+  /**
+   * The splits this run is being measured against.
+   *
+   * A recording is measured against the route it is writing, which is as long
+   * as the run so far; anything else against the selected route, of which there
+   * may not be one.
+   */
+  get #splits(): readonly RouteSplit[] {
+    return this.#recordingRun ? this.#recorded : (this.#route?.splits ?? []);
   }
 
   get record(): RouteRecord {
@@ -183,10 +205,7 @@ export class SpeedrunTimer {
     this.#at = 0;
     this.#recordingRun = this.#recording;
 
-    if (this.#recordingRun) {
-      this.#recorded = [];
-      this.#route = { ...this.#route, splits: [] };
-    }
+    if (this.#recordingRun) this.#recorded = [];
 
     this.#tick();
   }
@@ -217,7 +236,7 @@ export class SpeedrunTimer {
     return {
       finished: this.#state === "finished",
       total: duration(this.#elapsed),
-      splits: this.#route.splits.map((split, i) => {
+      splits: this.#splits.map((split, i) => {
         const ms = this.#closed[i];
 
         return {
@@ -244,7 +263,7 @@ export class SpeedrunTimer {
       return;
     }
 
-    const at = this.#route.splits.findIndex(
+    const at = this.#splits.findIndex(
       (split, i) => i >= this.#at && triggered(split.on, event),
     );
     if (at < 0) return;
@@ -266,7 +285,7 @@ export class SpeedrunTimer {
     // Never while recording: that route is as long as the run so far, so it is
     // out of splits after every single one of them. What ends a recording is
     // the game saying so.
-    if (!this.#recordingRun && this.#at === this.#route.splits.length) {
+    if (!this.#recordingRun && this.#at === this.#splits.length) {
       this.#stop("finished");
       return;
     }
@@ -301,13 +320,21 @@ export class SpeedrunTimer {
       on,
     });
 
-    this.#route = { ...this.#route, splits: this.#recorded.slice() };
     this.#close(this.#recorded.length - 1);
   }
 
   view(): TimerView {
     const running = this.#state === "running";
-    const pb = this.#comparison;
+    // A recording is not a run over anything: the route is being written by it,
+    // so there is no earlier time these splits were reached at, no segment that
+    // was ever beaten, and nothing to be ahead of. Held back from the view
+    // rather than from the panel so that nothing downstream has to remember it.
+    const recording = this.recording;
+    const pb = recording ? null : this.#comparison;
+    // The best's splits taken apart the same way this run's are, so the two
+    // can be compared segment against segment rather than only total against
+    // total.
+    const pbSegments = pb === null ? null : segments(pb);
 
     // A split that follows skipped ones covers them too. That time is real but
     // cannot be divided up, so it is not a segment for any one of them and
@@ -315,11 +342,12 @@ export class SpeedrunTimer {
     let previous = duration(0);
     let coversSkipped = false;
 
-    const splits = this.#route.splits.map((split, i): SplitView => {
+    const splits = this.#splits.map((split, i): SplitView => {
       const ms = this.#closed[i] ?? null;
       const skipped = i < this.#at && ms === null;
       const at = ms === null ? null : duration(ms);
-      const was = pb === null ? null : timeAt(pb, split.id);
+      const pbAt = pb === null ? null : timeAt(pb, split.id);
+      const pbSegment = pbSegments?.get(split.id) ?? null;
 
       let segment: Temporal.Duration | null = null;
 
@@ -344,11 +372,16 @@ export class SpeedrunTimer {
               ? "current"
               : "ahead",
         at,
-        delta: at === null || was === null ? null : at.subtract(was),
+        delta: at === null || pbAt === null ? null : at.subtract(pbAt),
         segment,
+        segmentDelta:
+          segment === null || pbSegment === null
+            ? null
+            : segment.subtract(pbSegment),
         // Never run before is as good as it has ever been, which is what makes
         // every segment of a first run a gold.
         gold:
+          !recording &&
           segment !== null &&
           (best === undefined ||
             Temporal.Duration.compare(segment, best) < 0),
@@ -358,12 +391,15 @@ export class SpeedrunTimer {
     return {
       route: this.#route,
       state: this.#state,
-      recording: this.recording,
+      recording,
       elapsed: duration(this.#elapsed),
       splits,
       pace: this.#pace(),
-      pb: this.#record.pb?.total ?? null,
-      sumOfBest: sumOfBest(this.#route, this.#record),
+      pb: recording ? null : (this.#record.pb?.total ?? null),
+      sumOfBest:
+        recording || this.#route === null
+          ? null
+          : sumOfBest(this.#route, this.#record),
     };
   }
 
@@ -382,7 +418,7 @@ export class SpeedrunTimer {
     const now = duration(this.#elapsed);
 
     if (this.#state === "running") {
-      const here = this.#route.splits[this.#at];
+      const here = this.#splits[this.#at];
       const target = here === undefined ? null : timeAt(pb, here.id);
 
       if (target !== null && Temporal.Duration.compare(now, target) > 0) {
@@ -390,7 +426,7 @@ export class SpeedrunTimer {
       }
     }
 
-    const last = this.#route.splits[this.#at - 1];
+    const last = this.#splits[this.#at - 1];
     if (last === undefined) return null;
 
     const ms = this.#closed[this.#at - 1] ?? null;

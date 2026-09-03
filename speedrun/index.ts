@@ -11,6 +11,7 @@
 
 import { type GameEvent } from "./events.ts";
 import { SpeedrunManager } from "./manage.ts";
+import { emptyRecord } from "./records.ts";
 import { SpeedrunPanel } from "./panel.ts";
 import { type Route } from "./route.ts";
 import { SpeedrunStore } from "./store.ts";
@@ -73,12 +74,18 @@ export class Speedrun {
     this.#draw();
   }
 
-  /** A timer for whichever route is selected, with that route's times. */
+  /**
+   * A timer for whichever route is selected, with that route's times.
+   *
+   * There may be no route: the game ships none, so until one is recorded or
+   * imported the timer has a clock and nothing to split on. It is still built,
+   * because recording a route is done by a run that is being timed.
+   */
   #build(): SpeedrunTimer {
     const route = this.#store.selected;
     const timer = new SpeedrunTimer(
       route,
-      this.#store.recordFor(route.id),
+      route === null ? emptyRecord("") : this.#store.recordFor(route.id),
       () => this.#onTimerChanged(),
     );
 
@@ -94,9 +101,12 @@ export class Speedrun {
     // A run that has stopped has either set times worth keeping or written a
     // route worth saving, and neither is the timer's to store.
     if (this.#timer.recordedRun) {
+      // A recorded route joins the category of the one it was recorded
+      // alongside, there being nothing else to go on; the first route recorded
+      // on a fresh copy of the game has nothing beside it at all.
       const recorded = this.#timer.takeRecording(
         `Recorded ${new Date().toLocaleDateString()}`,
-        this.#store.selected.category,
+        this.#store.selected?.category ?? "Any%",
       );
 
       if (recorded === null) {
@@ -107,13 +117,28 @@ export class Speedrun {
       return;
     }
 
-    this.#store.putRecord(this.#timer.record);
+    // Times set with no route selected belong to no route, so there is nowhere
+    // to write them down; the run was a clock and nothing more.
+    if (this.#timer.route !== null) this.#store.putRecord(this.#timer.record);
   }
 
   #fillRoutes(): void {
+    const routes = this.#store.routes;
+
+    // Nothing recorded or imported yet. An empty picker offers no explanation
+    // for being empty, so it says what is missing instead.
+    if (routes.length === 0) {
+      const none = document.createElement("option");
+
+      none.textContent = "No routes yet";
+      none.disabled = true;
+      this.#routes.replaceChildren(none);
+      return;
+    }
+
     const groups = new Map<string, HTMLOptGroupElement>();
 
-    for (const route of this.#store.routes) {
+    for (const route of routes) {
       let group = groups.get(route.category);
 
       if (group === undefined) {
@@ -129,7 +154,7 @@ export class Speedrun {
     }
 
     this.#routes.replaceChildren(...groups.values());
-    this.#routes.value = this.#store.selected.id;
+    this.#routes.value = this.#store.selected?.id ?? "";
   }
 
   #draw(): void {
@@ -141,7 +166,7 @@ export class Speedrun {
     this.#timer.handle(event);
   }
 
-  get selected(): Route {
+  get selected(): Route | null {
     return this.#store.selected;
   }
 }

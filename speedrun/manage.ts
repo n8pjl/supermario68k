@@ -59,6 +59,7 @@ export class SpeedrunManager {
   readonly #record: HTMLButtonElement;
   readonly #remove: HTMLButtonElement;
   readonly #clear: HTMLButtonElement;
+  readonly #exportOne: HTMLButtonElement;
   readonly #file: HTMLInputElement;
 
   #recording = false;
@@ -87,8 +88,8 @@ export class SpeedrunManager {
     this.#record = button("Record a route");
     this.#remove = button("Delete route");
     this.#clear = button("Clear times");
+    this.#exportOne = button("Export route");
 
-    const exportOne = button("Export route");
     const exportAll = button("Export everything");
     const importFile = button("Import…");
 
@@ -103,7 +104,7 @@ export class SpeedrunManager {
 
     // Renaming, which is the whole of editing a route: what a split answers to
     // is recorded from the run and what it is called is not something the game
-    // can know. A shipped route names its own splits and cannot be edited.
+    // can know.
     this.#routeInput = document.createElement("input");
     this.#routeInput.type = "text";
     this.#routeInput.className = "sr-route-name";
@@ -124,7 +125,7 @@ export class SpeedrunManager {
     row.className = "sr-actions";
     row.append(
       this.#record,
-      exportOne,
+      this.#exportOne,
       exportAll,
       importFile,
       this.#clear,
@@ -141,7 +142,7 @@ export class SpeedrunManager {
     );
 
     this.#record.addEventListener("click", () => this.#toggleRecording());
-    exportOne.addEventListener("click", () => this.#export(store.selected));
+    this.#exportOne.addEventListener("click", () => this.#exportSelected());
     exportAll.addEventListener("click", () => this.#export());
     importFile.addEventListener("click", () => this.#file.click());
     this.#file.addEventListener("change", () => void this.#import());
@@ -158,7 +159,7 @@ export class SpeedrunManager {
   /** The selected route with one split's name replaced, saved and redrawn. */
   #rename(at: number, name: string): void {
     const route = this.#store.selected;
-    if (route.builtIn) return;
+    if (route === null) return;
 
     const splits: RouteSplit[] = route.splits.map((split, i) =>
       i === at ? { ...split, name } : split,
@@ -172,7 +173,7 @@ export class SpeedrunManager {
     const route = this.#store.selected;
     const name = this.#routeInput.value.trim();
 
-    if (route.builtIn || name === "" || name === route.name) return;
+    if (route === null || name === "" || name === route.name) return;
 
     this.#store.putRoute({ ...route, name });
     this.#hooks.changed();
@@ -186,9 +187,9 @@ export class SpeedrunManager {
    * rather than input: a rename per keystroke would be a storage write per
    * keystroke, and a half-typed name saved at every step of the way.
    */
-  #drawEditor(route: Route): void {
-    this.#editor.hidden = route.builtIn === true;
-    if (route.builtIn) return;
+  #drawEditor(route: Route | null): void {
+    this.#editor.hidden = route === null;
+    if (route === null) return;
 
     this.#routeInput.value = route.name;
 
@@ -264,6 +265,18 @@ export class SpeedrunManager {
     this.draw();
   }
 
+  /** The selected route and its times, if there is one to export. */
+  #exportSelected(): void {
+    const route = this.#store.selected;
+
+    if (route === null) {
+      this.#say("There is no route to export yet.");
+      return;
+    }
+
+    this.#export(route);
+  }
+
   #export(only?: Route): void {
     const doc = this.#store.document(only);
 
@@ -305,6 +318,7 @@ export class SpeedrunManager {
 
   #clearTimes(): void {
     const route = this.#store.selected;
+    if (route === null) return;
 
     this.#store.clearRecord(route.id);
     this.#hooks.changed();
@@ -313,7 +327,7 @@ export class SpeedrunManager {
 
   #removeRoute(): void {
     const route = this.#store.selected;
-    if (route.builtIn) return;
+    if (route === null) return;
 
     this.#store.removeRoute(route.id);
     this.#hooks.changed();
@@ -324,15 +338,21 @@ export class SpeedrunManager {
   draw(): void {
     const route = this.#store.selected;
 
-    this.#routeName.textContent = `Running: ${route.name} (${route.category}) — ${route.splits.length} splits`;
+    this.#routeName.textContent =
+      route === null
+        ? "No routes yet. Record one: turn recording on, play, and every level " +
+          "you beat becomes a split."
+        : `Running: ${route.name} (${route.category}) — ${route.splits.length} splits`;
     this.#record.textContent = this.#recording
       ? "Stop recording"
       : "Record a route";
     this.#record.setAttribute("aria-pressed", String(this.#recording));
 
-    // A shipped route comes from the code every time, so there is no copy of it
-    // to delete. Its times are the player's and can go.
-    this.#remove.disabled = route.builtIn === true;
+    // Everything but recording and importing acts on the selected route, and
+    // until one has been recorded or imported there is not one.
+    this.#remove.disabled = route === null;
+    this.#clear.disabled = route === null;
+    this.#exportOne.disabled = route === null;
     this.#root.dataset["recording"] = String(this.#recording);
 
     this.#drawEditor(route);

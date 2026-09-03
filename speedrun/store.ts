@@ -15,7 +15,7 @@ import {
   parseRouteRecord,
   recordToJSON,
 } from "./records.ts";
-import { BUILT_IN_ROUTES, type Route, parseRoute, routeToJSON } from "./route.ts";
+import { type Route, parseRoute, routeToJSON } from "./route.ts";
 
 const ROUTES_KEY = "sm68k.speedrun.routes";
 const RECORDS_KEY = "sm68k.speedrun.records";
@@ -89,14 +89,17 @@ export function documentToJSON(doc: SpeedrunDocument): string {
 /**
  * Everything the timer knows about, held together so the two stay in step.
  *
- * The shipped routes are not stored: they come from the code every time, so a
- * later version of the game can improve one without a stale copy in storage
- * standing in its way. Only what the player made or imported is written down.
+ * Every route here is one the player recorded or imported: the game ships none.
+ * A route is a claim about how the game is run, and the only honest source for
+ * that is a run somebody played. So there is a state with no routes in it at
+ * all - the state the game is in the first time it is opened - and everything
+ * that reads a route has to have an answer for it.
  */
 export class SpeedrunStore {
   #routes: Route[];
   #records: Map<string, RouteRecord>;
-  #selected: string;
+  /** Null until a route has been chosen, and again once that one is gone. */
+  #selected: string | null;
 
   constructor() {
     this.#routes = [];
@@ -112,23 +115,28 @@ export class SpeedrunStore {
     }
 
     const selected = read(SELECTED_KEY);
-    this.#selected =
-      typeof selected === "string" && this.find(selected) !== null
-        ? selected
-        : BUILT_IN_ROUTES[0]!.id;
+    this.#selected = typeof selected === "string" ? selected : null;
   }
 
-  /** The shipped routes first, then the player's, which is how they are listed. */
   get routes(): readonly Route[] {
-    return [...BUILT_IN_ROUTES, ...this.#routes];
+    return this.#routes;
   }
 
   find(id: string): Route | null {
     return this.routes.find((route) => route.id === id) ?? null;
   }
 
-  get selected(): Route {
-    return this.find(this.#selected) ?? BUILT_IN_ROUTES[0]!;
+  /**
+   * The route being run, or null while there is not one.
+   *
+   * Falls back to the first route held rather than to nothing when the stored
+   * choice has been deleted: something is selected whenever there is anything
+   * to select, so the picker is never empty while routes exist.
+   */
+  get selected(): Route | null {
+    const chosen = this.#selected === null ? null : this.find(this.#selected);
+
+    return chosen ?? this.#routes[0] ?? null;
   }
 
   select(id: string): void {
@@ -154,8 +162,6 @@ export class SpeedrunStore {
 
   /** Adds a route, or replaces the one already held under its id. */
   putRoute(route: Route): void {
-    if (this.find(route.id)?.builtIn) return;
-
     const at = this.#routes.findIndex((held) => held.id === route.id);
 
     if (at < 0) {
@@ -167,10 +173,8 @@ export class SpeedrunStore {
     this.#saveRoutes();
   }
 
-  /** Drops a route and the times set on it; a shipped one cannot be dropped. */
+  /** Drops a route and the times set on it. */
   removeRoute(id: string): void {
-    if (this.find(id)?.builtIn) return;
-
     this.#routes = this.#routes.filter((route) => route.id !== id);
     this.#records.delete(id);
     this.#saveRoutes();
@@ -186,10 +190,6 @@ export class SpeedrunStore {
     let routes = 0;
 
     for (const route of doc.routes) {
-      // A shipped route cannot be overwritten by a file, but the times set on
-      // one can be imported, which is the case worth having.
-      if (this.find(route.id)?.builtIn) continue;
-
       this.putRoute(route);
       routes++;
     }
@@ -202,10 +202,10 @@ export class SpeedrunStore {
 
   /** What to export: one route and its times, or the lot. */
   document(only?: Route): SpeedrunDocument {
-    const routes = only === undefined ? this.routes : [only];
+    const routes = only === undefined ? this.#routes : [only];
 
     return {
-      routes: routes.filter((route) => route.builtIn !== true),
+      routes,
       records: routes
         .map((route) => this.#records.get(route.id))
         .filter((record) => record !== undefined),

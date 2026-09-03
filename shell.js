@@ -239,15 +239,22 @@ function fitCanvas() {
     parseFloat(box.borderLeftWidth) +
     parseFloat(box.borderRightWidth);
 
-  // The timer shares the canvas's row, so what it occupies is the canvas's to
-  // lose. Below 700px shell.css stacks the two instead and the panel is on a
-  // row of its own, where it costs the canvas no width at all.
+  // The width the panel wants, and the gap it would keep from the console. Read
+  // from shell.css so the two cannot drift apart, and needed here whether or not
+  // the panel is currently standing beside anything.
   const stageStyle = getComputedStyle(stage);
+  const panelWidth = parseFloat(
+    stageStyle.getPropertyValue("--panel-width") || 0,
+  );
+  const gap = parseFloat(stageStyle.columnGap) || 0;
+
+  // The panel's width is only the canvas's to give up in fullscreen, where the
+  // canvas is fitted to the whole viewport and so there is no room beside it
+  // that was not already the screen's. On the page there is room to the side,
+  // and the canvas is fitted as though the panel were not there at all: turning
+  // the timer on never costs the screen a scale step.
   const beside =
-    speedrunPanel.hidden || stageStyle.flexDirection === "column"
-      ? 0
-      : speedrunPanel.getBoundingClientRect().width +
-        (parseFloat(stageStyle.columnGap) || 0);
+    speedrunPanel.hidden || !immersive ? 0 : panelWidth + gap;
 
   const availWidth = document.body.clientWidth - chrome - beside;
   const availHeight = immersive ? innerHeight : innerHeight * MENU_HEIGHT_SHARE;
@@ -261,6 +268,26 @@ function fitCanvas() {
 
   canvas.style.width = Math.round(width * scale) + "px";
   canvas.style.height = Math.round(height * scale) + "px";
+
+  // Where the panel goes, now that the size of the thing it is going beside is
+  // settled. Reading the console back rather than adding the canvas up again:
+  // it is the width actually laid out, bezel and all. Nothing here resizes the
+  // canvas, so there is no loop in measuring it.
+  const free =
+    document.body.clientWidth -
+    parseFloat(body.paddingLeft) -
+    parseFloat(body.paddingRight) -
+    consoleBox.getBoundingClientRect().width;
+
+  // The console keeps the middle of the page whether the timer is there or not,
+  // so what the panel has to stand in is the free space on its side alone: half.
+  // Anything less and it goes under the console instead, which costs the canvas
+  // nothing either. Fullscreen is already settled - the canvas gave up the width
+  // above, and shell.css holds it open.
+  stage.classList.toggle(
+    "beside",
+    !speedrunPanel.hidden && (immersive || free / 2 >= panelWidth + gap),
+  );
 }
 
 function sizeCanvas(calc) {

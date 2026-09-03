@@ -32,8 +32,6 @@ export interface Route {
   readonly category: string;
   readonly name: string;
   readonly splits: readonly RouteSplit[];
-  /** Absent on the routes that ship with the game, which cannot be edited. */
-  readonly builtIn?: true;
 }
 
 export function triggered(on: Trigger, event: GameEvent): boolean {
@@ -132,7 +130,7 @@ export function parseRoute(value: unknown): Route | null {
   return { id, name, category, splits: parsed };
 }
 
-/** A route as it goes to file: without the flag that marks the shipped ones. */
+/** A route as it goes to file, which is also how it is kept in storage. */
 export function routeToJSON(route: Route): unknown {
   return {
     id: route.id,
@@ -145,69 +143,3 @@ export function routeToJSON(route: Route): unknown {
     })),
   };
 }
-
-// ---------------------------------------------------------------------------
-// The routes that ship with the game
-//
-// Data like any other route, and the same shape an exported one has, so they
-// double as the worked example for anyone writing one by hand.
-// ---------------------------------------------------------------------------
-
-/** Worlds in the shipped levelset - Levelsetdata.Nr_of_files in sm68k. */
-const WORLDS = 8;
-
-// A world is done the moment the next one's map comes up, which is the event
-// carrying that world's own number: CurrentWorld counts from zero, so arriving
-// at the world shown as "WORLD 2" reports 1 and closes World 1. The last world
-// has no next one to arrive at - beating Bowser is what closes it.
-function worldSplit(world: number): RouteSplit {
-  return {
-    id: `world-${world}`,
-    name: `World ${world}`,
-    on:
-      world < WORLDS
-        ? { kind: "world-entered", world }
-        : { kind: "run-ended" },
-  };
-}
-
-export const ANY_PERCENT: Route = {
-  id: "any",
-  category: "Any%",
-  name: "Any% — by world",
-  splits: Array.from({ length: WORLDS }, (_, i) => worldSplit(i + 1)),
-  builtIn: true,
-};
-
-function levelSplit(world: number, level: number, name: string): RouteSplit {
-  return {
-    id: `w${world}-l${level}`,
-    name,
-    on: { kind: "level-completed", world: world - 1, level },
-  };
-}
-
-// One world, split at every level in it: the route for trying the timer out
-// without playing the whole game. The order is world 1's own map read outwards
-// from where Mario starts on it - levels 0-3, the fortress at level 6, then 4
-// and 5, and the castle at level 7. The run finishes when that last split
-// closes, so it ends with world 1 rather than waiting on a Bowser it never
-// reaches.
-export const WORLD_1: Route = {
-  id: "world-1",
-  category: "World 1",
-  name: "World 1 — every level",
-  splits: [
-    levelSplit(1, 0, "1-1"),
-    levelSplit(1, 1, "1-2"),
-    levelSplit(1, 2, "1-3"),
-    levelSplit(1, 3, "1-4"),
-    levelSplit(1, 6, "Fortress"),
-    levelSplit(1, 4, "1-5"),
-    levelSplit(1, 5, "1-6"),
-    levelSplit(1, 7, "Castle"),
-  ],
-  builtIn: true,
-};
-
-export const BUILT_IN_ROUTES: readonly Route[] = [ANY_PERCENT, WORLD_1];
