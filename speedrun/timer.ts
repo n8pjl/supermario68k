@@ -73,7 +73,14 @@ export interface GroupView {
   readonly delta: Temporal.Duration | null;
   /** The world start to end, where this run has a segment to attribute to it. */
   readonly segment: Temporal.Duration | null;
-  /** That world segment against the best that world has ever been run in. */
+  /**
+   * That world segment against the same world in the personal best.
+   *
+   * Against the best run rather than against the best that world has ever been:
+   * the same comparison the split rows make one level down, so a world and the
+   * levels under it are both read against the run this one is trying to beat.
+   * The best the world has ever been is what `gold` is claimed against.
+   */
   readonly segmentDelta: Temporal.Duration | null;
   /** That world segment is the best it has ever been: a gold on the world. */
   readonly gold: boolean;
@@ -593,6 +600,23 @@ export class SpeedrunTimer {
     // recorded grows a split at a time.
     const routeSplits = this.#splits;
     const nested = entersMultipleWorlds(routeSplits);
+
+    // The clock the best had reached when a world opened: the last split before
+    // it that the best closed, or zero where the world opens the run. The same
+    // walk back this run's own start does, over the best's times instead, so the
+    // two world segments are cut at the same places.
+    const pbStartOf = (from: number): Temporal.Duration => {
+      if (pb === null) return duration(0);
+
+      for (let i = from - 1; i >= 0; i--) {
+        const split = routeSplits[i];
+        const at = split === undefined ? null : timeAt(pb, split.id);
+        if (at !== null) return at;
+      }
+
+      return duration(0);
+    };
+
     const groups = groupSplits(routeSplits).map((group): GroupView => {
       const endMs = this.#closed[group.to] ?? null;
       const at = endMs === null ? null : duration(endMs);
@@ -614,6 +638,10 @@ export class SpeedrunTimer {
       const pbAt =
         pb === null || endSplit === undefined ? null : timeAt(pb, endSplit.id);
       const segment = at === null ? null : at.subtract(duration(startMs));
+      // The best's own time through this world, which is what the segment below
+      // is shown against. Null where the best never closed the world's last
+      // split, and so has no end to measure to.
+      const pbSegment = pbAt === null ? null : pbAt.subtract(pbStartOf(group.from));
       // Nothing to compare a world against while its route is being written by
       // this very run, the same reason the split segments hold back their delta.
       const groupBest = recording ? undefined : this.#groupGolds.get(group.id);
@@ -634,9 +662,9 @@ export class SpeedrunTimer {
         delta: at === null || pbAt === null ? null : at.subtract(pbAt),
         segment,
         segmentDelta:
-          segment === null || groupBest === undefined
+          segment === null || pbSegment === null
             ? null
-            : segment.subtract(groupBest),
+            : segment.subtract(pbSegment),
         gold:
           !recording &&
           segment !== null &&
