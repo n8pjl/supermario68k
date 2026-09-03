@@ -407,9 +407,21 @@ export class SpeedrunTimer {
 
   /** One more split on the route being written, for what the game just did. */
   #appendRecorded(event: GameEvent): void {
-    // Nothing left to record: the game is over and the route is whatever was
-    // played. An abandoned run is stopped by run-abandoned in handle().
+    // Beating Bowser is the run's last split. The game does not report it as a
+    // completed level - there is no walk back to the map, the ending takes over
+    // from the frame Bowser falls - so it arrives as run-ended, and the split
+    // is closed on that. Then the recording stops, because a route that ran to
+    // the end of the game has nothing after it. An abandoned run never gets
+    // here: run-abandoned stops it from handle().
     if (event.kind === "run-ended") {
+      const last = timedSplits(this.#recorded).length + 1;
+
+      this.#recorded.push({
+        id: "run-ended",
+        name: `Split ${last}`,
+        on: { kind: "run-ended" },
+      });
+      this.#close(last - 1);
       this.#stop("finished");
       return;
     }
