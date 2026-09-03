@@ -27,7 +27,7 @@ import {
   timeAt,
   withRun,
 } from "./records.ts";
-import { duration } from "./times.ts";
+import { duration, shorter } from "./times.ts";
 
 export type RunState = "idle" | "running" | "finished" | "abandoned";
 
@@ -490,6 +490,12 @@ export class SpeedrunTimer {
     let previous = duration(0);
     let coversSkipped = false;
 
+    // The bests the sum of best is added up from, with this run folded in as it
+    // goes: a segment that has just beaten its best belongs to the sum from the
+    // moment it closes rather than from whenever the record is written, which
+    // is what makes the figure in the panel move during the run that earns it.
+    const liveBest = new Map(this.#golds);
+
     const splits = this.#splits.map((split, i): SplitView => {
       const ms = this.#closed[i] ?? null;
       const skipped = i < this.#at && ms === null;
@@ -509,6 +515,15 @@ export class SpeedrunTimer {
       }
 
       const best = this.#golds.get(split.id);
+
+      if (segment !== null) {
+        const was = liveBest.get(split.id);
+
+        liveBest.set(
+          split.id,
+          was === undefined ? segment : shorter(was, segment),
+        );
+      }
 
       return {
         name: split.name,
@@ -607,7 +622,7 @@ export class SpeedrunTimer {
       sumOfBest:
         recording || this.#route === null
           ? null
-          : sumOfBest(this.#route, this.#record),
+          : sumOfBest(this.#route, liveBest),
     };
   }
 

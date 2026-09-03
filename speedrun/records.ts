@@ -155,18 +155,23 @@ export function withRun(
  * Warps are left out - they are not a segment the run keeps on its own (see
  * route.ts), and their time is already inside the split that follows them - so
  * this stays a total the route could really be run in.
+ *
+ * Takes the bests as a map rather than a whole record so that a run in progress
+ * can hand in the record's bests with its own golds already folded through
+ * them: a segment that has just beaten its best is part of the sum from the
+ * moment it closes, not from whenever the run is over.
  */
 export function sumOfBest(
   route: Route,
-  record: RouteRecord,
+  best: ReadonlyMap<string, Temporal.Duration>,
 ): Temporal.Duration | null {
   let total = duration(0);
 
   for (const split of timedSplits(route.splits)) {
-    const best = record.best.get(split.id);
-    if (best === undefined) return null;
+    const segment = best.get(split.id);
+    if (segment === undefined) return null;
 
-    total = total.add(best);
+    total = total.add(segment);
   }
 
   return total.round({ largestUnit: "hour", smallestUnit: "millisecond" });
