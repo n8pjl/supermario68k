@@ -97,6 +97,9 @@ export interface TimerView {
   readonly sumOfBest: Temporal.Duration | null;
 }
 
+/** A view but for the two figures that move with the clock; see #settledView. */
+type SettledView = Omit<TimerView, "elapsed" | "pace">;
+
 export class SpeedrunTimer {
   /**
    * The rules being run.
@@ -135,6 +138,19 @@ export class SpeedrunTimer {
   #at = 0;
 
   #frame: number | null = null;
+
+  /**
+   * The last view's invariant half, kept between frames.
+   *
+   * Everything in a view but the clock and the pace is settled by the splits
+   * that have closed, and those only move when the game says something. The
+   * clock ticks sixty times a second regardless, and rebuilding the splits and
+   * the world groups against it each time - a Temporal.Duration for every
+   * figure on every row, thrown away a frame later - was most of what the GC
+   * was collecting. Cleared by every entry point that can move the run;
+   * #tick(), which only ever advances #elapsed, deliberately leaves it alone.
+   */
+  #settledView: SettledView | null = null;
 
   /** Armed to record the next run rather than time it against the route. */
   #recording = false;
@@ -230,6 +246,7 @@ export class SpeedrunTimer {
    * reasonably mean while a game is going on.
    */
   arm(recording: boolean): void {
+    this.#settledView = null;
     this.#recording = recording;
 
     if (!recording && this.#recordingRun && this.#state === "running") {
@@ -257,6 +274,8 @@ export class SpeedrunTimer {
   takeRecording(name: string): { route: Route; record: RouteRecord } | null {
     if (this.#recorded.length === 0) return null;
 
+    this.#settledView = null;
+
     const id = `rec-${Date.now().toString(36)}`;
     const route: Route = {
       id,
@@ -277,6 +296,12 @@ export class SpeedrunTimer {
   }
 
   handle(event: GameEvent): void {
+    // Every event either starts, stops or splits the run, so the settled half
+    // of the view is rebuilt on the next draw. Invalidated here rather than at
+    // each of the places below that write to the run, so that what has to be
+    // remembered is only that this and the two above are the ways in.
+    this.#settledView = null;
+
     switch (event.kind) {
       case "run-started":
         this.#start();
@@ -471,7 +496,19 @@ export class SpeedrunTimer {
     }
   }
 
+  /**
+   * The run as it stands: the settled half as it was last built, and the clock
+   * and the pace read fresh, because those two are what a tick moves.
+   */
   view(): TimerView {
+    this.#settledView ??= this.#compose();
+
+    const elapsed = duration(this.#elapsed);
+
+    return { ...this.#settledView, elapsed, pace: this.#pace(elapsed) };
+  }
+
+  #compose(): SettledView {
     const running = this.#state === "running";
     // A recording is not a run over anything: the route is being written by it,
     // so there is no earlier time these splits were reached at, no segment that
@@ -613,11 +650,9 @@ export class SpeedrunTimer {
       route: this.#route,
       state: this.#state,
       recording,
-      elapsed: duration(this.#elapsed),
       splits,
       groups,
       nested,
-      pace: this.#pace(),
       pb: recording ? null : (this.#record.pb?.total ?? null),
       sumOfBest:
         recording || this.#route === null
@@ -634,11 +669,9 @@ export class SpeedrunTimer {
    * is the moment this split stopped being on pace - there is nothing to say
    * before that except that the split is not over.
    */
-  #pace(): Temporal.Duration | null {
+  #pace(now: Temporal.Duration): Temporal.Duration | null {
     const pb = this.#comparison;
     if (pb === null || this.#state === "idle" || this.#recordingRun) return null;
-
-    const now = duration(this.#elapsed);
 
     if (this.#state === "running") {
       const here = this.#splits[this.#at];

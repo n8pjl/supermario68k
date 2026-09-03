@@ -25,11 +25,30 @@ function element<K extends keyof HTMLElementTagNameMap>(
   return el;
 }
 
+/**
+ * Write text only where it is not already what is being written.
+ *
+ * Assigning textContent replaces the text node whether or not the string is the
+ * same one, and a replaced text node dirties layout for the whole list. The
+ * panel is drawn on every animation frame, so every field of every row was
+ * being dirtied sixty times a second to show a clock that is the only thing
+ * moving. The comparison is what keeps the rest of the panel off the layout
+ * path between splits.
+ */
+function text(el: HTMLElement, value: string): void {
+  if (el.textContent !== value) el.textContent = value;
+}
+
+/** The same, for a data attribute: setting one restyles even when it matches. */
+function mark(el: HTMLElement, name: string, value: string): void {
+  if (el.dataset[name] !== value) el.dataset[name] = value;
+}
+
 function sign(el: HTMLElement, d: Temporal.Duration | null): void {
   if (d === null) {
-    delete el.dataset["sign"];
+    if (el.dataset["sign"] !== undefined) delete el.dataset["sign"];
   } else {
-    el.dataset["sign"] = d.sign < 0 ? "ahead" : "behind";
+    mark(el, "sign", d.sign < 0 ? "ahead" : "behind");
   }
 }
 
@@ -161,34 +180,40 @@ export class SpeedrunPanel {
   }
 
   #drawSplit(row: Row, split: SplitView): void {
-    row.root.dataset["state"] = split.state;
+    mark(row.root, "state", split.state);
     // Marked on the row rather than on the time, so the whole line reads as the
     // best that split has been - which is the thing being claimed.
-    row.root.dataset["gold"] = String(split.gold);
-    row.name.textContent = split.name;
+    mark(row.root, "gold", String(split.gold));
+    text(row.name, split.name);
 
-    row.time.textContent =
+    text(
+      row.time,
       split.at !== null
         ? formatDuration(split.at)
         : split.state === "skipped"
           ? "—"
-          : "";
+          : "",
+    );
 
     // Blank where the time cannot be attributed to this split alone - it is
     // still ahead, or it was skipped past, or it covers splits that were - and
     // blank again where there is a segment but the best has none to set it
     // against, which is every split of a first run.
-    row.segment.textContent =
-      split.segment === null ? "" : formatDuration(split.segment);
+    text(
+      row.segment,
+      split.segment === null ? "" : formatDuration(split.segment),
+    );
 
     // Left the colour of the panel rather than marked ahead or behind: two
     // coloured deltas on one row read as two verdicts on the run, and only the
     // one above is that. This is an aside about the split just played, and it
     // says which way it went with its own sign.
-    row.segmentDelta.textContent =
-      split.segmentDelta === null ? "" : formatDelta(split.segmentDelta);
+    text(
+      row.segmentDelta,
+      split.segmentDelta === null ? "" : formatDelta(split.segmentDelta),
+    );
 
-    row.delta.textContent = split.delta === null ? "" : formatDelta(split.delta);
+    text(row.delta, split.delta === null ? "" : formatDelta(split.delta));
     sign(row.delta, split.delta);
   }
 
@@ -197,37 +222,47 @@ export class SpeedrunPanel {
   // and that against the best the world has been run in. A gold here is on the
   // world segment, the same claim a split gold makes one level down.
   #drawGroup(row: Row, group: GroupView): void {
-    row.root.dataset["state"] = group.state;
-    row.root.dataset["gold"] = String(group.gold);
-    row.name.textContent = group.name;
+    mark(row.root, "state", group.state);
+    mark(row.root, "gold", String(group.gold));
+    text(row.name, group.name);
 
-    row.time.textContent =
+    text(
+      row.time,
       group.at !== null
         ? formatDuration(group.at)
         : group.state === "skipped"
           ? "—"
-          : "";
+          : "",
+    );
 
-    row.segment.textContent =
-      group.segment === null ? "" : formatDuration(group.segment);
-    row.segmentDelta.textContent =
-      group.segmentDelta === null ? "" : formatDelta(group.segmentDelta);
+    text(
+      row.segment,
+      group.segment === null ? "" : formatDuration(group.segment),
+    );
+    text(
+      row.segmentDelta,
+      group.segmentDelta === null ? "" : formatDelta(group.segmentDelta),
+    );
 
-    row.delta.textContent = group.delta === null ? "" : formatDelta(group.delta);
+    text(row.delta, group.delta === null ? "" : formatDelta(group.delta));
     sign(row.delta, group.delta);
   }
 
   draw(view: TimerView): void {
-    this.#root.dataset["state"] = view.state;
-    this.#root.dataset["recording"] = String(view.recording);
+    // Guarded like every other write below: these two sit on the panel root, so
+    // setting them restyles everything under it.
+    mark(this.#root, "state", view.state);
+    mark(this.#root, "recording", String(view.recording));
 
-    this.#title.textContent = view.recording
-      ? `Recording ${view.category.name}`
-      : view.category.name;
+    text(
+      this.#title,
+      view.recording ? `Recording ${view.category.name}` : view.category.name,
+    );
 
     // Only worth saying before anything has been recorded in this category:
     // once a recording is running its splits are what the panel is showing.
-    this.#empty.hidden = view.recording || view.route !== null;
+    const empty = view.recording || view.route !== null;
+    if (this.#empty.hidden !== empty) this.#empty.hidden = empty;
 
     this.#layout(view);
     view.splits.forEach((split, i) => {
@@ -246,20 +281,25 @@ export class SpeedrunPanel {
     const at = view.splits.findIndex((split) => split.state === "current");
     this.#follow(at < 0 ? view.splits.length - 1 : at);
 
-    this.#clock.textContent = formatDuration(view.elapsed);
-    this.#pace.textContent = view.pace === null ? "" : formatDelta(view.pace);
+    text(this.#clock, formatDuration(view.elapsed));
+    text(this.#pace, view.pace === null ? "" : formatDelta(view.pace));
     sign(this.#pace, view.pace);
 
     // Nothing at all while recording: a route being written has no earlier run
     // to have been slower than, and "no finished run yet" would read as one.
-    this.#best.textContent = view.recording
-      ? ""
-      : view.pb === null
-        ? "No finished run yet"
-        : `Best ${formatDuration(view.pb)}`;
-    this.#sob.textContent =
+    text(
+      this.#best,
+      view.recording
+        ? ""
+        : view.pb === null
+          ? "No finished run yet"
+          : `Best ${formatDuration(view.pb)}`,
+    );
+    text(
+      this.#sob,
       view.sumOfBest === null
         ? ""
-        : `Sum of best ${formatDuration(view.sumOfBest)}`;
+        : `Sum of best ${formatDuration(view.sumOfBest)}`,
+    );
   }
 }
