@@ -13,41 +13,69 @@
 <body>
   <h1>Super <span>Mario</span> 68K</h1>
 
-  <!-- The canvas is sized from shell.js to match the selected game version and
-       the space the viewport has for it, so it is already the size the game
-       wants when it starts. -->
-  <div class="console">
-    <canvas id="canvas" width="240" height="128"></canvas>
+  <!-- The stage lays the timer beside the console. It is one row so that the
+       timer reads as part of the machine rather than as page furniture, and so
+       that shell.js can take the width it occupies off what the canvas is
+       fitted into. -->
+  <div class="stage">
 
-    <form class="settings" id="settings">
-      <label for="calc">Game version:</label>
-      <select id="calc" name="calc">
-        <option value="ti92">TI-92+ / Voyage 200</option>
-        <option value="ti89">TI-89 / TI-89 Titanium</option>
-      </select>
+    <!-- Filled in and driven entirely by speedrun.js, which is also what decides
+         whether anything in it means a split. Empty and hidden until the player
+         asks for the timer in the settings menu. -->
+    <aside class="speedrun" id="speedrun" hidden></aside>
 
-      <label for="lang">Language:</label>
-      <!-- Filled in from ma_texts.json by shell.js, so a language added to
-           that file is offered here without touching this list. -->
-      <select id="lang" name="lang"></select>
+    <!-- The canvas is sized from shell.js to match the selected game version and
+         the space the viewport has for it, so it is already the size the game
+         wants when it starts. -->
+    <div class="console">
+      <canvas id="canvas" width="240" height="128"></canvas>
 
-      <!-- Only shown, and only acted on, where the on-screen controls are: it
-           means nothing to a keyboard, which has no trouble holding a key. -->
-      <label class="touch-option">
-        <input type="checkbox" id="latch" name="latch" checked />
-        B stays on until tapped again
-      </label>
+      <form class="settings" id="settings">
+        <label for="calc">Game version:</label>
+        <select id="calc" name="calc">
+          <option value="ti92">TI-92+ / Voyage 200</option>
+          <option value="ti89">TI-89 / TI-89 Titanium</option>
+        </select>
 
-      <button type="submit">Start game</button>
-    </form>
+        <label for="lang">Language:</label>
+        <!-- Filled in from ma_texts.json by shell.js, so a language added to
+             that file is offered here without touching this list. -->
+        <select id="lang" name="lang"></select>
 
-    <!-- Put in place of the settings menu by shell.js when the browser is
-         missing a feature the game needs. -->
-    <div class="unsupported" id="unsupported" hidden>
-      <h2>This browser can&rsquo;t run the game</h2>
-      <p>Super Mario 68K needs browser features this one is missing.
-        Chrome 140, Firefox 153 and Safari 27 are the first versions with
-        all of them.</p>
+        <!-- Only shown, and only acted on, where the on-screen controls are: it
+             means nothing to a keyboard, which has no trouble holding a key. -->
+        <label class="option touch-option">
+          <input type="checkbox" id="latch" name="latch" checked />
+          B stays on until tapped again
+        </label>
+
+        <!-- Puts the split panel beside the screen and has the game report what
+             it is doing. Hidden by shell.js on a browser without Temporal, which
+             is what the timer keeps its times in. -->
+        <label class="option" id="speedrun-option">
+          <input type="checkbox" id="speedrun-mode" name="speedrun" />
+          Speedrun mode
+        </label>
+
+        <!-- Which route the splits are read off. Filled in from the categories
+             speedrun.js holds, grouped by category so several ways of running
+             the same rules sit together. Only shown while the timer is on. -->
+        <label class="option" id="speedrun-route-option" hidden>
+          Route:
+          <select id="speedrun-route" name="route"></select>
+        </label>
+
+        <button type="submit">Start game</button>
+      </form>
+
+      <!-- Put in place of the settings menu by shell.js when the browser is
+           missing a feature the game needs. -->
+      <div class="unsupported" id="unsupported" hidden>
+        <h2>This browser can&rsquo;t run the game</h2>
+        <p>Super Mario 68K needs browser features this one is missing.
+          Chrome 140, Firefox 153 and Safari 27 are the first versions with
+          all of them.</p>
+      </div>
     </div>
   </div>
 
@@ -62,6 +90,11 @@
     </div>
     <dl id="bindings"></dl>
   </section>
+
+  <!-- Recording, importing, exporting and deleting routes. Filled in by
+       speedrun.js and shown only while the timer is on; made inert during a
+       game, the same as the control legend above. -->
+  <section class="speedrun-manage" id="speedrun-manage" hidden></section>
 
   <footer>
     Original game by Lachprog. Web port by Saladin.<br />

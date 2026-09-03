@@ -13,6 +13,7 @@
 #include "render.h"
 #include "scankeys.h"
 #include "shells.h"
+#include "speedrun.h"
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -1052,6 +1053,11 @@ void Player_collect_dead_boss(struct item *Item)
 {
 	uint16_t C; //,E;
 
+	// As above: the castle is beaten the moment the boss is collected, and
+	// the twenty frames of flashing below are what the player watches
+	// afterwards rather than something they have to play.
+	speedrun::cleared_level();
+
 	for (C = 0; C < 20; C++) {
 		uint16_t D;
 		if (C % 2) {
@@ -1947,6 +1953,12 @@ void Levelend_handler(int16_t X, int16_t Y)
 {
 	int16_t C;
 	int16_t P;
+
+	// The level is won here, on the last input the player had to make.
+	// Everything below is the reward - walking off the edge of the screen,
+	// the card, and a whole second of DelayNFrames - so this is the moment
+	// the split belongs to, not the return to the map a few seconds later.
+	speedrun::cleared_level();
 
 	X = X & 0xfff0; //(X/16)*16;
 	Y = Y & 0xfff0; //(Y/16)*16;

@@ -16,6 +16,7 @@
 #include "savegame.h"
 #include "scankeys.h"
 #include "shells.h"
+#include "speedrun.h"
 #include "stringcopy.h"
 #include "text.h"
 #include "version.h"
@@ -228,6 +229,13 @@ void Gameloop()
 
 void New_world_screen()
 {
+	// The world's map is loaded and this card is what announces it, so it is
+	// the one place every arrival passes through: the next world after one
+	// was finished, a warp pipe landing in some other world entirely, and
+	// the first world of a new game alike.
+	speedrun::report(
+		speedrun::WorldEntered{ .world = Levelsetdata.CurrentWorld });
+
 	/*FastFilledRect_Erase_R(dBufHPL_G,0,0,239,127);
   FastFilledRect_Draw_R(dBufHPD_G,0,0,239,127);
   FastFilledRect_Erase_R(dBufHPD_G,32,32,128,68);*/

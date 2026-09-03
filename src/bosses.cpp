@@ -9,6 +9,7 @@
 #include "player.h"
 #include "render.h"
 #include "scankeys.h"
+#include "speedrun.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -722,6 +723,12 @@ void Bowser_handler(struct boss *Boss1)
 
 			} else { //! Life
 				// bowser is now defeated
+
+				// The player has no control from here on: the
+				// flashing below, the walk to meet the princess
+				// and the wait for a keypress are all the
+				// game's. This is where a run's time stops.
+				speedrun::report(speedrun::RunEnded{});
 
 				// jumpkilled x 10, or fallen down?
 

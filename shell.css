@@ -14,6 +14,13 @@
   --kbd-edge: #c9c9c3;
   /* The calculator screen colour, the same in either theme. */
   --lcd: #9ca88b;
+  /* Ahead of and behind the best run. Kept clear of --accent, which is the
+     page's own green and says nothing about a time. */
+  --ahead: #1b7f3b;
+  --behind: #b3261e;
+  /* A segment nobody has ever run faster. Gold, because that is what it is
+     called, and because it has to read as neither of the two above. */
+  --gold: #9a7400;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -30,6 +37,9 @@
     --console-hi: #404040;
     --kbd-bg: #333333;
     --kbd-edge: #555555;
+    --ahead: #6ede8a;
+    --behind: #ff8a80;
+    --gold: #e8c14a;
   }
 }
 
@@ -59,6 +69,15 @@ h1 {
 
 h1 span {
   color: var(--accent);
+}
+
+/* The console and the timer, side by side. The timer is first in the source so
+   it lands on the left, and align-items keeps it from stretching to the height
+   of a canvas that is taller than its own list of splits. */
+.stage {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
 /* The console: LCD-style bezel around the canvas. The canvas pixel size comes
@@ -217,7 +236,8 @@ canvas {
    keyboard or pad attached to a phone still works - it just cannot be remapped
    from one. */
 @media (pointer: coarse) {
-  .controls {
+  .controls,
+  .speedrun-manage {
     display: none;
   }
 }
@@ -271,23 +291,28 @@ body > footer a {
   color: var(--ink-dim);
 }
 
+/* A checkbox and its label on one line, for the settings that are one. */
+.settings .option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
 /* Shown only where the on-screen controls are; shell.js likewise only acts on
    it there, so a keyboard is never quietly running under a setting it cannot
    see. */
-.touch-option {
+.settings .touch-option {
   display: none;
 }
 
 @media (pointer: coarse) {
   .settings .touch-option {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.4rem;
   }
 }
 
-.touch-option input {
+.option input {
   width: 1.1rem;
   height: 1.1rem;
   margin: 0;
@@ -397,7 +422,7 @@ body.immersive {
   background: var(--bg);
 }
 
-body.immersive > :is(h1, .controls, footer) {
+body.immersive > :is(h1, .controls, .speedrun-manage, footer) {
   display: none;
 }
 
@@ -412,6 +437,324 @@ body.immersive .console {
 
 body.immersive canvas {
   border-radius: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   The speedrun timer
+
+   A panel of the machine rather than a page widget, so it takes the console's
+   bezel and sits flush with its top. Everything in it is built by speedrun.js;
+   what is styled here is the state each row is left in - ahead of the run, on
+   it, closed, or skipped past by a route that went another way.
+   --------------------------------------------------------------------------- */
+.speedrun {
+  flex: none;
+  width: 13rem;
+  padding: 0.75rem 0.85rem 0.85rem;
+  background: linear-gradient(var(--console-a), var(--console-b));
+  border: 1px solid var(--panel-edge);
+  border-radius: 14px;
+  box-shadow:
+    0 1px 0 var(--console-hi) inset,
+    0 20px 45px -20px #0009;
+  /* Every figure in here is a time, and times that do not shuffle sideways as
+     their digits change are far easier to read a run off. */
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-title {
+  margin: 0 0 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.sr-splits {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Name, delta, time. The name takes what is left and the two figures are given
+   fixed columns, so the times line up down the panel however long a name is. */
+.sr-split {
+  display: grid;
+  grid-template-columns: 1fr auto 4.2rem;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.22rem 0.25rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: var(--ink-dim);
+}
+
+/* The split being run. Marked rather than merely brighter: it is the one line
+   a player glances at mid-run to see where they are. */
+.sr-split[data-state="current"] {
+  color: var(--ink);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--console-hi) 55%, transparent);
+}
+
+.sr-split[data-state="closed"] {
+  color: var(--ink);
+}
+
+/* Passed over by the route actually taken - a warp pipe jumped the world. It
+   has no time of its own to show, so it is dimmed rather than left blank and
+   mistaken for one still to come. */
+.sr-split[data-state="skipped"] {
+  opacity: 0.45;
+}
+
+/* A gold: this split has never been run faster on its own, whatever the run
+   around it is doing. The whole row is marked, because that is what is being
+   claimed - the delta beside it still says how the run is going against the
+   best, and the two disagreeing is the normal case rather than a mistake. */
+.sr-split[data-gold="true"] .sr-name,
+.sr-split[data-gold="true"] .sr-time {
+  color: var(--gold);
+}
+
+.sr-split[data-gold="true"] .sr-time {
+  font-weight: 600;
+}
+
+.sr-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sr-time {
+  text-align: right;
+}
+
+.sr-delta,
+.sr-pace {
+  font-size: 0.78rem;
+}
+
+.speedrun [data-sign="ahead"] {
+  color: var(--ahead);
+}
+
+.speedrun [data-sign="behind"] {
+  color: var(--behind);
+}
+
+.sr-foot {
+  margin-top: 0.7rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--panel-edge);
+  text-align: right;
+}
+
+/* The running total, and the largest thing in the panel: it is what the whole
+   thing is for. */
+.sr-clock {
+  font-size: 1.6rem;
+  line-height: 1.1;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A run that is over stops being the live reading and becomes the result. */
+.speedrun[data-state="finished"] .sr-clock {
+  color: var(--ahead);
+}
+
+.speedrun[data-state="abandoned"] .sr-clock {
+  opacity: 0.5;
+}
+
+.sr-best,
+.sr-sob {
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+}
+
+/* The sum of best is a time nobody has run: every split at its own best, added
+   up. Held apart from the personal best above it by the colour the golds it is
+   made of are marked in. */
+.sr-sob {
+  color: var(--gold);
+}
+
+.sr-sob:empty {
+  display: none;
+}
+
+/* Recording writes the route as it is played, so there is no comparison to draw
+   and nothing on the clock to beat. Saying so is the whole of the state. */
+.speedrun[data-recording="true"] .sr-title {
+  color: var(--behind);
+}
+
+/* Narrow viewports: the console already gives up its row for the settings menu,
+   so the panel goes under it rather than squeezing the canvas from the side. */
+@media (max-width: 700px) {
+  .stage {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .speedrun {
+    order: 1;
+    width: auto;
+  }
+
+  /* Stacked and immersive at once - a phone playing fullscreen - is the one
+     place the two cannot both have their room: the canvas is already fitted to
+     the whole viewport height, and a panel under it would push the screen off
+     the bottom. The screen is what the mode is for, so the panel gives way. */
+  body.immersive .speedrun {
+    display: none;
+  }
+}
+
+/* Fullscreen, where a run is most likely to be played: the panel stays - it is
+   the point of the mode - but drops the bezel it shared with the console, which
+   has dropped its own. */
+body.immersive .speedrun {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* ---------------------------------------------------------------------------
+   The routes section
+
+   Where a route is recorded, imported, exported or thrown away. Takes the
+   control legend's panel look, sits under it, and like it is only an editor
+   between games: shell.js makes it inert while one is running.
+   --------------------------------------------------------------------------- */
+.speedrun-manage {
+  width: min(100%, 34rem);
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 12px;
+  padding: 0.4rem 1.25rem 1rem;
+}
+
+.speedrun-manage h2 {
+  margin: 0;
+  padding: 0.7rem 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.sr-current {
+  margin: 0 0 0.7rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--panel-edge);
+  color: var(--ink-dim);
+}
+
+.sr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.speedrun-manage button {
+  font: inherit;
+}
+
+.speedrun-manage button:disabled {
+  opacity: 0.45;
+}
+
+/* The button that is a mode rather than an action, while it is on. */
+.speedrun-manage [aria-pressed="true"] {
+  border-color: var(--behind);
+  color: var(--behind);
+}
+
+/* Renaming a route and its splits. What a split answers to is recorded from
+   the run; what it is called is the player's, so this is the whole of editing
+   one. Hidden for the shipped routes, which name their own splits. */
+.sr-editor {
+  margin-top: 0.9rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--panel-edge);
+}
+
+.sr-editor h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.sr-editor input {
+  font: inherit;
+  color: var(--ink);
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-edge);
+  border-radius: 5px;
+  padding: 0.2rem 0.4rem;
+  min-width: 0;
+}
+
+/* The route's own name, which is what the picker lists it under. */
+.sr-route-name {
+  width: 100%;
+  margin-bottom: 0.6rem;
+}
+
+/* Numbered by the list itself, so a field holds only the name. The count is
+   what a recorded split starts life called, and lines the two up while they
+   are still Split 1, Split 2, and so on. */
+.sr-split-names {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: sr-split;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 0.35rem;
+}
+
+.sr-split-names li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  counter-increment: sr-split;
+}
+
+.sr-split-names li::before {
+  content: counter(sr-split);
+  min-width: 1.2rem;
+  text-align: right;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-split-names input {
+  flex: 1;
+}
+
+/* Empty until something has been done, and taking no room until then, so the
+   row of buttons does not sit above a gap waiting to be filled. */
+.sr-status {
+  margin: 0.7rem 0 0;
+  color: var(--ink-dim);
+}
+
+.sr-status:empty {
+  display: none;
 }
 
 /* ---------------------------------------------------------------------------

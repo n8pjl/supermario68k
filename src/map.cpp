@@ -14,6 +14,7 @@
 #include "scankeys.h"
 #include "shells.h"
 #include "smallgames.h"
+#include "speedrun.h"
 #include <stdint.h>
 
 void Handle_player_map()
@@ -480,11 +481,21 @@ void Handle_player_map()
 							SavePlayer.MapY) -
 						   levels_low);
 
+				speedrun::entered_level(
+					Levelsetdata.CurrentWorld,
+					Temp2 - levels_low);
+
 				OldFgX = FgX;
 				OldFgY = FgY;
 
 				// Adjust_renderpoint();//Render();
 				Playloop();
+
+				// Beating it has already been reported, from
+				// the moment it happened; this is only the
+				// backstop for a way of winning that has not
+				// been taught to report for itself.
+				speedrun::left_level(Exit == 2);
 
 				Map_plane.p.force_update = 1;
 
@@ -1015,6 +1026,13 @@ void Enter_enemy_ship(struct map_object *Ship)
 	int16_t OldFgX, OldFgY, C;
 
 	Load_level(Levelfilename, 7);
+
+	// The castle or airship that ends a world. It is not on a level tile -
+	// it is the big_castle the map walks onto - so it is entered from here
+	// rather than through the path above, and level 7 is where every world
+	// file keeps it.
+	speedrun::entered_level(Levelsetdata.CurrentWorld, 7);
+
 	/*
   OldFgX=FgX;
   OldFgY=FgY;
@@ -1027,6 +1045,8 @@ void Enter_enemy_ship(struct map_object *Ship)
   FgY=OldFgY;
   */
 	Play_level();
+
+	speedrun::left_level(Exit == 2);
 
 	// Bug: FgX==0 ! WTF???
 	/*

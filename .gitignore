@@ -10,9 +10,13 @@ dist/
 build/
 node_modules/
 
+# Bundled from speedrun/ by the Makefile, for serving this directory as-is.
+speedrun.js
+
 # Build target stamps
 .calc-stamp
 .data-stamp
 .dist-stamp
+.typecheck-stamp
 # Python bytecode from the tools
 __pycache__/

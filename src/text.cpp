@@ -10,6 +10,7 @@
 #include "render.h"
 #include "savegame.h"
 #include "scankeys.h"
+#include "speedrun.h"
 #include "stringcopy.h"
 #include "titlescreen.h"
 #include "version.h"
@@ -248,7 +249,15 @@ int16_t Menus()
 
 			switch (Res) {
 			case 1: // new game
+				speedrun::report(speedrun::RunStarted{});
+
 				RunGame(-1);
+
+				// However that went - the ending, a game over,
+				// or quitting out of the middle of a level -
+				// the main menu is back and the run is over.
+				speedrun::report(speedrun::RunAbandoned{});
+
 				if (ErrorCode)
 					return ErrorCode;
 

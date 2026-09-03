@@ -13,8 +13,9 @@ Hashing has to run leafwards-first, because rewriting a reference changes the
 bytes of the file holding it, and so changes its hash:
 
     index.html -> shell.js -> mario.js -> mario.wasm
-               -> shell.css
-                           \\-> ma_texts.json
+               |          \\-> ma_texts.json
+               |          \\-> speedrun.js
+               \\-> shell.css
 
 So the leaves are hashed and renamed, then each referrer has the new names
 substituted into it, and only then is the referrer itself hashed. Doing it the
@@ -58,6 +59,19 @@ def run(args):
 
 def minify_js(src, dst):
     run([ESBUILD, src, *ESBUILD_JS, f"--outfile={dst}"])
+    return dst
+
+
+def bundle_js(src, dst):
+    """Minify a module and everything it imports into one file.
+
+    Only the speedrun timer, which is several TypeScript modules and has to
+    arrive as a single hashed leaf - see the dependency order in the docstring
+    above. esbuild reads TypeScript by extension and only strips the types,
+    which the build has already had tsc check. shell.js is deliberately NOT
+    bundled: its imports are the separately hashed mario.js and ma_texts.json.
+    """
+    run([ESBUILD, src, "--bundle", *ESBUILD_JS, f"--outfile={dst}"])
     return dst
 
 
@@ -126,6 +140,7 @@ def main():
     wasm = freeze(shutil.copy(os.path.join(build, "mario.wasm"), dst("mario.wasm")))
     texts = freeze(compact_json("ma_texts.json", dst("ma_texts.json")))
     css = freeze(minify_css("shell.css", dst("shell.css")))
+    speedrun = freeze(bundle_js("speedrun/index.ts", dst("speedrun.js")))
 
     # Emscripten's glue.
     glue = minify_js(os.path.join(build, "mario.js"), dst("mario.js"))
@@ -134,7 +149,8 @@ def main():
 
     shell = minify_js("shell.js", dst("shell.js"))
     substitute(shell, {'"./mario.js"': (f'"./{mario}"', 1),
-                       '"./ma_texts.json"': (f'"./{texts}"', 1)})
+                       '"./ma_texts.json"': (f'"./{texts}"', 1),
+                       '"./speedrun.js"': (f'"./{speedrun}"', 1)})
     shell = freeze(shell)
 
     # The entry point, and the only file without a hash: it is what a browser

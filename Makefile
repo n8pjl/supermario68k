@@ -11,7 +11,9 @@ CFLAGS = -Os -std=gnu++26 -flto -msimd128 -MMD -MP -I.
 # -sEXPORT_ES6: emit mario.mjs as an ES module (a default-exported factory),
 # so shell.js can `import` it instead of reaching for a global Module. This
 # also implies -sMODULARIZE.
-LDFLAGS = -sJSPI -Os -flto -sENVIRONMENT=web -sEXPORT_ES6=1 \
+# -lembind: speedrun.cpp reports its events through emscripten::val, and
+# registers their payload structs as value_objects so they convert themselves.
+LDFLAGS = -sJSPI -Os -flto -sENVIRONMENT=web -sEXPORT_ES6=1 -lembind \
           -sEXPORTED_FUNCTIONS=_main,_malloc
 
 SRCDIR = src
@@ -30,6 +32,18 @@ TARGET = $(BUILDDIR)/mario.js
 # skips only swaps the launcher shim for that binary.
 ESBUILD = ./node_modules/.bin/esbuild
 
+# esbuild strips the types out of the speedrun module without ever looking at
+# them; tsc is the thing that checks them. Both come from the one npm ci below.
+TSC = ./node_modules/.bin/tsc
+
+# The timer is several modules, and reaches the page as one file: esbuild
+# bundles it, so the hashed-filename scheme in tools/mkdist.py still has a
+# single leaf to name rather than a graph of imports to rewrite.
+SPEEDRUN = $(wildcard speedrun/*.ts)
+
+# Written by that check, which has nothing else to show for itself.
+TYPECHECK = .typecheck-stamp
+
 # What is served is built in one pass by tools/mkdist.py, which minifies each
 # file and renames it to carry a hash of its contents - see the comment at the
 # top of that script for why, and for the order it has to work in. Those names
@@ -40,7 +54,7 @@ DIST = .dist-stamp
 NAMES = main.cpp enemies.cpp gameloop.cpp items.cpp player.cpp render.cpp \
         scankeys.cpp shells.cpp custom.cpp objects.cpp flying.cpp smallgames.cpp \
         bounch.cpp map.cpp titlescreen.cpp text.cpp rle.cpp level.cpp savegame.cpp \
-        stringcopy.cpp error.cpp bosses.cpp gfx.cpp \
+        stringcopy.cpp error.cpp bosses.cpp gfx.cpp speedrun.cpp \
         compat/assets.cpp compat/tilemap.cpp compat/extgraph.cpp \
         compat/graph.cpp compat/font_data.cpp compat/gray.cpp
 
@@ -52,9 +66,9 @@ HDRS = $(wildcard $(SRCDIR)/*.h $(SRCDIR)/compat/*.h)
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(OBJS:.o=.d)
 
-.PHONY: all clean data
+.PHONY: all clean data format typecheck
 
-all: $(DIST)
+all: speedrun.js $(DIST)
 
 # mkdata.py reads the asset list out of assets.cpp, so a file added or renamed
 # there has to run it again.
@@ -86,8 +100,8 @@ $(BUILDDIR)/mario.wasm: $(TARGET) ;
 # mkdist.py empties $(OUTDIR) and refills it, so there is nothing here for make
 # to build incrementally and nothing for a stale hash to survive in.
 $(DIST): $(TARGET) $(BUILDDIR)/mario.wasm \
-         index.html shell.js shell.css ma_texts.json \
-         tools/mkdist.py Makefile | $(ESBUILD)
+         index.html shell.js shell.css ma_texts.json $(SPEEDRUN) \
+         $(TYPECHECK) tools/mkdist.py Makefile | $(ESBUILD)
 	ESBUILD=$(ESBUILD) python3 tools/mkdist.py $(BUILDDIR) $(OUTDIR)
 	@touch $@
 
@@ -96,6 +110,24 @@ $(DIST): $(TARGET) $(BUILDDIR)/mario.wasm \
 $(ESBUILD): package-lock.json
 	npm ci --ignore-scripts
 	@touch $@
+
+# Installed by that same npm ci, the way mario.wasm falls out of the link above.
+$(TSC): $(ESBUILD) ;
+
+# A type error fails the build rather than riding along into dist/: nothing
+# downstream of here would notice one, least of all esbuild.
+$(TYPECHECK): $(SPEEDRUN) tsconfig.json | $(TSC)
+	$(TSC) --noEmit
+	@touch $@
+
+# The speedrun module is the one source here a browser cannot load as it
+# stands, and serving this directory as it is - index.html reaches shell.js and
+# shell.css by name - is how a change gets tried without building dist/. So it
+# is bundled beside its source for that, gitignored and read by nothing else;
+# dist/'s own copy is built from the same entry point by mkdist.py.
+speedrun.js: $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
+	$(ESBUILD) speedrun/index.ts --bundle --format=esm --target=esnext \
+		--outfile=$@
 
 $(BUILDDIR):
 	mkdir -p $@
@@ -106,9 +138,11 @@ $(BUILDDIR):
 format: $(SRCS) $(HDRS)
 	clang-format --style=file --sort-includes -i $(SRCS) $(HDRS)
 
+typecheck: $(TYPECHECK)
+
 
 -include $(DEPS)
 
 clean:
-	rm -f $(OBJS) $(DEPS) .data-stamp $(DIST)
+	rm -f $(OBJS) $(DEPS) .data-stamp $(DIST) $(TYPECHECK) speedrun.js
 	rm -rf $(OUTDIR) $(BUILDDIR) data

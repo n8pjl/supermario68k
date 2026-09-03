@@ -5,6 +5,7 @@
 // fetch alongside it. All runtime output goes to the browser console.
 import createMario from "./mario.js";
 import maTexts from "./ma_texts.json" with { type: "json" };
+import { Speedrun } from "./speedrun.js";
 
 // ---------------------------------------------------------------------------
 // Actions and bindings
@@ -184,6 +185,8 @@ function listenForGameKeys() {
 const CALC_KEY = "sm68k.calc";
 const LANG_KEY = "sm68k.lang";
 const LATCH_KEY = "sm68k.latch";
+const SPEEDRUN_KEY = "sm68k.speedrun";
+const stage = document.querySelector(".stage");
 const consoleBox = document.querySelector(".console");
 const settings = document.getElementById("settings");
 const select = settings.elements.calc;
@@ -191,6 +194,11 @@ const langSelect = settings.elements.lang;
 const latchOption = settings.elements.latch;
 const canvas = document.getElementById("canvas");
 const unsupported = document.getElementById("unsupported");
+const speedrunPanel = document.getElementById("speedrun");
+const speedrunOption = settings.elements.speedrun;
+const routeOption = document.getElementById("speedrun-route-option");
+const routeSelect = settings.elements.route;
+const speedrunManage = document.getElementById("speedrun-manage");
 
 // The screens the two builds draw to, from init_calc_screen_constants() in
 // render.c, and the largest scale they are displayed at. Sizing the canvas from
@@ -231,7 +239,17 @@ function fitCanvas() {
     parseFloat(box.borderLeftWidth) +
     parseFloat(box.borderRightWidth);
 
-  const availWidth = document.body.clientWidth - chrome;
+  // The timer shares the canvas's row, so what it occupies is the canvas's to
+  // lose. Below 700px shell.css stacks the two instead and the panel is on a
+  // row of its own, where it costs the canvas no width at all.
+  const stageStyle = getComputedStyle(stage);
+  const beside =
+    speedrunPanel.hidden || stageStyle.flexDirection === "column"
+      ? 0
+      : speedrunPanel.getBoundingClientRect().width +
+        (parseFloat(stageStyle.columnGap) || 0);
+
+  const availWidth = document.body.clientWidth - chrome - beside;
   const availHeight = immersive ? innerHeight : innerHeight * MENU_HEIGHT_SHARE;
   // 3x is as large as the calculator's screen wants to be in the middle of a
   // page, but a screen given over to the game entirely should fill it.
@@ -305,9 +323,62 @@ try {
   // Absent means never chosen, which is the checked default in index.html.
   const savedLatch = localStorage.getItem(LATCH_KEY);
   if (savedLatch !== null) latchOption.checked = savedLatch === "true";
+
+  speedrunOption.checked = localStorage.getItem(SPEEDRUN_KEY) === "true";
 } catch {
   /* empty */
 }
+
+// ---------------------------------------------------------------------------
+// The speedrun timer
+//
+// speedrun.js owns the panel, the route picker, the routes section, and every
+// decision about what a game event means to a run. What is left here is whether
+// the player asked for a timer at all, and handing the runtime the hook to
+// report through.
+// ---------------------------------------------------------------------------
+
+// The timer holds and stores its times as Temporal.Duration, and there is no
+// sensible fallback for that, so where it is missing the option is taken away
+// rather than offered and then found not to work. Nothing else on the page
+// needs it: the game itself still runs.
+const speedrunSupported = typeof Temporal !== "undefined";
+
+let speedrun = null;
+
+// Built on first use and kept afterwards, so the times of a run just finished
+// are still on the page when the menu comes back, and so that turning the
+// option off and on again does not lose them. It owns the panel, the route
+// picker and the routes section; what is left here is whether the player asked
+// for one at all.
+function showSpeedrun(wanted) {
+  if (wanted && !speedrun) {
+    speedrun = new Speedrun({
+      panel: speedrunPanel,
+      manage: speedrunManage,
+      routes: routeSelect,
+    });
+  }
+
+  speedrunPanel.hidden = !wanted;
+  routeOption.hidden = !wanted;
+  speedrunManage.hidden = !wanted;
+  fitCanvas();
+}
+
+if (!speedrunSupported) {
+  speedrunOption.checked = false;
+  document.getElementById("speedrun-option").hidden = true;
+}
+
+// Shown as soon as it is asked for rather than when the game starts, so the
+// panel is where the player put it, showing the splits they will be running,
+// before they commit to a run.
+speedrunOption.addEventListener("change", () =>
+  showSpeedrun(speedrunOption.checked),
+);
+
+showSpeedrun(speedrunOption.checked);
 
 sizeCanvas(select.value);
 select.addEventListener("change", () => sizeCanvas(select.value));
@@ -742,7 +813,9 @@ function updateChrome() {
   fullscreenToggle.hidden =
     !document.fullscreenEnabled || (!playing && !isFullscreen());
   // Not just unclickable but unreachable: a Tab into the editor mid-game would
-  // put a capture in the way of the keys the game is reading.
+  // put a capture in the way of the keys the game is reading. The routes
+  // section below is deliberately left alone - it captures nothing, and a
+  // recording in progress has to be stoppable from it while the game runs.
   controlsPanel.inert = playing;
   document.body.classList.toggle(
     "immersive",
@@ -910,6 +983,7 @@ function startGame() {
     localStorage.setItem(CALC_KEY, calc);
     localStorage.setItem(LANG_KEY, lang);
     localStorage.setItem(LATCH_KEY, String(latchOption.checked));
+    localStorage.setItem(SPEEDRUN_KEY, String(speedrunOption.checked));
   } catch {
     /* empty */
   }
@@ -928,6 +1002,10 @@ function startGame() {
 
   const keys = listenForGameKeys();
 
+  // Absent unless there is a timer to report to, which is what src/speedrun.cpp
+  // checks for before building an event at all.
+  const timer = speedrunOption.checked ? speedrun : null;
+
   // run() awaits main(), which JSPI makes asynchronous, so this promise
   // settling means the game itself has exited.
   createMario({
@@ -941,6 +1019,7 @@ function startGame() {
     onAbort: (w) => console.error("ABORT: " + w),
     gameActions,
     keyPressPromises,
+    onSpeedrunEvent: timer ? (event) => timer.handle(event) : undefined,
     // gray.c only resizes the canvas if the game asks for a screen other than
     // the one the menu sized it to, but if it ever does, the fitted display
     // size has to be recomputed for the new aspect.
