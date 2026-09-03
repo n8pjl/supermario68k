@@ -50,13 +50,17 @@ export class SpeedrunPanel {
 
   constructor(container: HTMLElement) {
     this.#root = container;
+    // The category rather than the route: what the run is worth is a time under
+    // a set of rules, and which of the routes to those rules is being taken is
+    // the splits below rather than a name worth a line of its own. In immersive
+    // mode this panel is the only place the rules are on screen at all.
     this.#title = element("h2", "sr-title");
     this.#list = element("ol", "sr-splits");
     this.#empty = element(
       "p",
       "sr-empty",
-      "No route yet. Record one below: play a game with recording on and every " +
-        "level you beat becomes a split.",
+      "No route in this category yet. Record one below: play a game with " +
+        "recording on and every level you beat becomes a split.",
     );
     this.#pace = element("span", "sr-pace");
     this.#clock = element("div", "sr-clock");
@@ -156,11 +160,11 @@ export class SpeedrunPanel {
     this.#root.dataset["recording"] = String(view.recording);
 
     this.#title.textContent = view.recording
-      ? "Recording a route"
-      : (view.route?.name ?? "No route");
+      ? `Recording ${view.category.name}`
+      : view.category.name;
 
-    // Only worth saying before anything has been recorded: once a recording is
-    // running its splits are what the panel is showing.
+    // Only worth saying before anything has been recorded in this category:
+    // once a recording is running its splits are what the panel is showing.
     this.#empty.hidden = view.recording || view.route !== null;
 
     this.#fit(view.splits.length);

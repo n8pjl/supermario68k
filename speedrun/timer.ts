@@ -4,16 +4,18 @@
 // run, which panel.ts draws and manage.ts reads; that split is what lets the
 // whole of the timing be exercised without a DOM.
 
-import { type GameEvent } from "./events.ts";
 import {
-  type Route,
-  type RouteSplit,
-  type Trigger,
-  triggered,
-} from "./route.ts";
+  type Category,
+  type CategoryId,
+  category,
+  placeIn,
+} from "./category.ts";
+import { type GameEvent } from "./events.ts";
+import { type Route, type RouteSplit, triggered } from "./route.ts";
 import {
   type RouteRecord,
   type RunRecord,
+  emptyRecord,
   segments,
   sumOfBest,
   timeAt,
@@ -47,6 +49,8 @@ export interface SplitView {
 }
 
 export interface TimerView {
+  /** The rules being run. There is always one; a route there may not be. */
+  readonly category: Category;
   /** Null while no route is selected: the clock still runs, nothing splits. */
   readonly route: Route | null;
   readonly state: RunState;
@@ -59,6 +63,15 @@ export interface TimerView {
 }
 
 export class SpeedrunTimer {
+  /**
+   * The rules being run.
+   *
+   * A run is under a category first and over a route second: the category is
+   * what the time will be comparable against, and it is what a recording is
+   * written for. So it is fixed when the timer is built, alongside the route,
+   * rather than being asked for once the run is over.
+   */
+  readonly #category: CategoryId;
   readonly #route: Route | null;
   #record: RouteRecord;
   readonly #changed: () => void;
@@ -91,13 +104,32 @@ export class SpeedrunTimer {
   /** This run is a recording, which is fixed when it starts and not after. */
   #recordingRun = false;
   #recorded: RouteSplit[] = [];
+  /**
+   * The recording ran out of category: it wrote the last split the rules have.
+   *
+   * Which is the one thing here the game is told about, because it is the one
+   * thing the game cannot work out for itself - it would carry on into the next
+   * level with the player still playing, timing nothing. Cleared when a run
+   * starts, so it only ever describes the run that just stopped.
+   */
+  #completedRecording = false;
 
-  constructor(route: Route | null, record: RouteRecord, changed: () => void) {
+  constructor(
+    under: CategoryId,
+    route: Route | null,
+    record: RouteRecord,
+    changed: () => void,
+  ) {
+    this.#category = under;
     this.#route = route;
     this.#record = record;
     this.#comparison = record.pb;
     this.#golds = record.best;
     this.#changed = changed;
+  }
+
+  get category(): Category {
+    return category(this.#category);
   }
 
   get route(): Route | null {
@@ -138,6 +170,14 @@ export class SpeedrunTimer {
   }
 
   /**
+   * That recording stopped because its category was over, not because the game
+   * was: there is nothing left to record and the game should stop too.
+   */
+  get completedRecording(): boolean {
+    return this.#completedRecording;
+  }
+
+  /**
    * Record the next run rather than time it against the route.
    *
    * The splits are appended as they are played, so the panel shows the route
@@ -154,20 +194,39 @@ export class SpeedrunTimer {
     }
   }
 
-  /** The route just recorded, or null if the last run was not one. */
-  takeRecording(name: string, category: string): Route | null {
+  /**
+   * The route just recorded and the times the run that wrote it set, or null if
+   * the last run was not a recording.
+   *
+   * Filed under the category it was recorded for, unless the run did not obey
+   * those rules - a warpless attempt that took the whistle - in which case it
+   * goes to the first category that will have it. Saving it somewhere is worth
+   * more than holding out for the category that was asked for: the run has
+   * already been played, and the route it wrote is a real route however it was
+   * played. Which category it landed in is the caller's to report.
+   *
+   * The times come with it because the recording was also a run of the route it
+   * was writing - the same play, timed the same way - so there is no reason for
+   * the route to arrive with nothing on it. It arrives with a best run and a
+   * gold on every split, and the next run of it is measured against the run
+   * that made it rather than against nothing at all.
+   */
+  takeRecording(name: string): { route: Route; record: RouteRecord } | null {
     if (this.#recorded.length === 0) return null;
 
     const id = `rec-${Date.now().toString(36)}`;
     const route: Route = {
       id,
-      category,
+      category: placeIn(this.#category, this.#recorded).id,
       name,
       splits: this.#recorded,
     };
+    // Read before the splits are let go of: #run() is written against whatever
+    // the timer is running, which for a recording is the list below.
+    const record = withRun(emptyRecord(id), this.#run());
 
     this.#recorded = [];
-    return route;
+    return { route, record };
   }
 
   get recorded(): readonly RouteSplit[] {
@@ -204,6 +263,7 @@ export class SpeedrunTimer {
     this.#closed = [];
     this.#at = 0;
     this.#recordingRun = this.#recording;
+    this.#completedRecording = false;
 
     if (this.#recordingRun) this.#recorded = [];
 
@@ -216,8 +276,10 @@ export class SpeedrunTimer {
     if (this.#frame !== null) cancelAnimationFrame(this.#frame);
     this.#frame = null;
 
-    // A recorded run is a route, not a time over one: there was nothing to be
-    // faster than, and its splits only became splits as it went.
+    // A recorded run sets no time on the route that was selected - it was not
+    // run over that route - so nothing is written here. Its own times go to the
+    // route it just wrote, which does not have an id until takeRecording() has
+    // been asked for one.
     if (!this.#recordingRun) this.#record = withRun(this.#record, this.#run());
 
     this.#changed();
@@ -293,7 +355,7 @@ export class SpeedrunTimer {
     this.#changed();
   }
 
-  /** One more split on the route being written, for a level just beaten. */
+  /** One more split on the route being written, for what the game just did. */
   #appendRecorded(event: GameEvent): void {
     // Nothing left to record: the game is over and the route is whatever was
     // played. An abandoned run is stopped by run-abandoned in handle().
@@ -302,25 +364,49 @@ export class SpeedrunTimer {
       return;
     }
 
-    if (event.kind !== "level-completed") return;
-
-    const on: Trigger = {
-      kind: "level-completed",
-      world: event.world,
-      level: event.level,
-    };
+    // Two things are worth a split of their own. A level beaten is the obvious
+    // one. A warp is the other: it takes time, and it is the thing a category
+    // that forbids warping is checked against, so a route that took one has to
+    // say so - a warp into the next world is invisible in the world numbers.
+    if (event.kind !== "level-completed" && event.kind !== "warp-taken") {
+      return;
+    }
 
     // Numbered rather than named: nothing here knows what the level is called,
     // and a guess at it would be a name the player has to correct rather than
     // one they can accept. The routes section is where these get their names;
     // the id is what a saved time is tied to, so renaming costs nothing.
-    this.#recorded.push({
-      id: `w${event.world}-l${event.level}`,
-      name: `Split ${this.#recorded.length + 1}`,
-      on,
-    });
+    const split: RouteSplit =
+      event.kind === "warp-taken"
+        ? {
+            // Counted rather than named after the world it lands in: one
+            // whistle is two warps - out to the warp zone and on from it - and
+            // the two can land in the same place.
+            id: `warp${this.#recorded.length}-w${event.world}`,
+            name: "Warp",
+            on: { kind: "warp-taken", world: event.world },
+          }
+        : {
+            id: `w${event.world}-l${event.level}`,
+            name: `Split ${this.#recorded.length + 1}`,
+            on: {
+              kind: "level-completed",
+              world: event.world,
+              level: event.level,
+            },
+          };
 
+    this.#recorded.push(split);
     this.#close(this.#recorded.length - 1);
+
+    // Some categories know their own end. World 1 is over when world 1's castle
+    // is, and a recording that ran on past it would be writing a route for a
+    // category that does not exist - so the recording stops itself there rather
+    // than waiting for the player to stop it or for the game to end.
+    if (this.category.complete(this.#recorded)) {
+      this.#completedRecording = true;
+      this.#stop("finished");
+    }
   }
 
   view(): TimerView {
@@ -389,6 +475,7 @@ export class SpeedrunTimer {
     });
 
     return {
+      category: this.category,
       route: this.#route,
       state: this.#state,
       recording,

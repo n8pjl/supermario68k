@@ -757,10 +757,34 @@ body.immersive .speedrun {
   color: var(--ink-dim);
 }
 
-.sr-current {
-  margin: 0 0 0.7rem;
+/* The rules being run, and the line saying what they are. First in the section
+   because everything below is filed under it: the routes listed, the one a
+   recording writes, the times any of them are compared against. */
+.sr-category-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   padding-top: 0.6rem;
   border-top: 1px solid var(--panel-edge);
+  color: var(--ink-dim);
+}
+
+.sr-category {
+  font: inherit;
+}
+
+.sr-category:disabled {
+  opacity: 0.45;
+}
+
+.sr-rules {
+  margin: 0.35rem 0 0.7rem;
+  font-size: 0.9em;
+  color: var(--ink-dim);
+}
+
+.sr-current {
+  margin: 0 0 0.7rem;
   color: var(--ink-dim);
 }
 

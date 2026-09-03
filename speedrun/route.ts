@@ -5,12 +5,18 @@
 // that is two routes rather than one split with two answers: the route says
 // which way this run goes, and two routes are compared as wholes.
 //
+// A route belongs to exactly one category, which is the set of rules it is a
+// way of running; see category.ts. The category is not just a label on the
+// route - it is checked against the splits, so a Route value is one its
+// category has agreed to have.
+//
 // A trigger is data so that a route survives a round trip through JSON, which
 // is what lets one be recorded, exported, edited by hand and shared. It names
 // an event kind and pins whichever of that event's fields matter; a field left
 // out is one the trigger does not care about, so { kind: "level-completed",
 // world: 0 } closes on any level of world 1.
 
+import { type CategoryId, category, isCategoryId } from "./category.ts";
 import { type EventKind, type GameEvent, isEventKind } from "./events.ts";
 
 export interface Trigger {
@@ -29,7 +35,7 @@ export interface RouteSplit {
 export interface Route {
   readonly id: string;
   /** The rules being run, shared by every route that is a way of running them. */
-  readonly category: string;
+  readonly category: CategoryId;
   readonly name: string;
   readonly splits: readonly RouteSplit[];
 }
@@ -107,11 +113,14 @@ export function parseRoute(value: unknown): Route | null {
   const raw = asRecord(value);
   if (raw === null) return null;
 
-  const { id, name, category, splits } = raw;
+  const { id, name, category: under, splits } = raw;
   if (typeof id !== "string" || id === "") return null;
   if (typeof name !== "string" || name === "") return null;
-  if (typeof category !== "string" || category === "") return null;
   if (!Array.isArray(splits) || splits.length === 0) return null;
+
+  // A category this build does not have is not a category: the route is for a
+  // set of rules nothing here can compare a time under, so it does not load.
+  if (!isCategoryId(under)) return null;
 
   const parsed: RouteSplit[] = [];
   const seen = new Set<string>();
@@ -127,7 +136,13 @@ export function parseRoute(value: unknown): Route | null {
     parsed.push(one);
   }
 
-  return { id, name, category, splits: parsed };
+  // The route has to obey the rules it claims to be run under. Checked here,
+  // at the one door routes come in through, so that everything downstream can
+  // take a Route's category at its word - a route filed under Any% warpless
+  // has been read, and its splits do not skip a world.
+  if (!category(under).admits(parsed)) return null;
+
+  return { id, name, category: under, splits: parsed };
 }
 
 /** A route as it goes to file, which is also how it is kept in storage. */

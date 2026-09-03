@@ -9,6 +9,7 @@
 //
 // This is the whole of what the page outside speedrun/ talks to.
 
+import { CATEGORIES } from "./category.ts";
 import { type GameEvent } from "./events.ts";
 import { SpeedrunManager } from "./manage.ts";
 import { emptyRecord } from "./records.ts";
@@ -19,6 +20,16 @@ import { SpeedrunTimer } from "./timer.ts";
 
 export { type GameEvent } from "./events.ts";
 export { type Route } from "./route.ts";
+
+/** An entry in the route picker that is not a route: why there is not one. */
+function placeholder(text: string): HTMLOptionElement {
+  const option = document.createElement("option");
+
+  option.value = "";
+  option.textContent = text;
+  option.disabled = true;
+  return option;
+}
 
 export interface SpeedrunElements {
   /** The split panel beside the screen. */
@@ -79,11 +90,14 @@ export class Speedrun {
    *
    * There may be no route: the game ships none, so until one is recorded or
    * imported the timer has a clock and nothing to split on. It is still built,
-   * because recording a route is done by a run that is being timed.
+   * because recording a route is done by a run that is being timed - and it is
+   * built for the selected category either way, which is what such a recording
+   * is written for.
    */
   #build(): SpeedrunTimer {
     const route = this.#store.selected;
     const timer = new SpeedrunTimer(
+      this.#store.category.id,
       route,
       route === null ? emptyRecord("") : this.#store.recordFor(route.id),
       () => this.#onTimerChanged(),
@@ -101,18 +115,17 @@ export class Speedrun {
     // A run that has stopped has either set times worth keeping or written a
     // route worth saving, and neither is the timer's to store.
     if (this.#timer.recordedRun) {
-      // A recorded route joins the category of the one it was recorded
-      // alongside, there being nothing else to go on; the first route recorded
-      // on a fresh copy of the game has nothing beside it at all.
+      // Recorded for whichever category is selected - the player said what they
+      // were attempting before they started - and filed elsewhere only if the
+      // run turned out not to obey it.
       const recorded = this.#timer.takeRecording(
         `Recorded ${new Date().toLocaleDateString()}`,
-        this.#store.selected?.category ?? "Any%",
       );
 
       if (recorded === null) {
         this.#manager.recordingEmpty();
       } else {
-        this.#manager.recorded(recorded);
+        this.#manager.recorded(recorded.route, recorded.record);
       }
       return;
     }
@@ -122,48 +135,90 @@ export class Speedrun {
     if (this.#timer.route !== null) this.#store.putRecord(this.#timer.record);
   }
 
+  /**
+   * The route picker: every route there is, under the category it is run for.
+   *
+   * All the categories rather than only the selected one, so that the picker
+   * beside "Start game" is the whole of the choice - picking a route here picks
+   * the rules with it, and the routes section does not have to be visited to
+   * change what is being run.
+   */
   #fillRoutes(): void {
-    const routes = this.#store.routes;
-
     // Nothing recorded or imported yet. An empty picker offers no explanation
     // for being empty, so it says what is missing instead.
-    if (routes.length === 0) {
-      const none = document.createElement("option");
-
-      none.textContent = "No routes yet";
-      none.disabled = true;
-      this.#routes.replaceChildren(none);
+    if (this.#store.routes.length === 0) {
+      this.#routes.replaceChildren(placeholder("No routes yet"));
+      this.#routes.selectedIndex = 0;
       return;
     }
 
-    const groups = new Map<string, HTMLOptGroupElement>();
+    // A category with nothing in it is left out rather than shown empty: it is
+    // in the routes section, which is where it can be recorded into.
+    const groups: (HTMLOptGroupElement | HTMLOptionElement)[] =
+      CATEGORIES.flatMap((one) => {
+        const routes = this.#store.routesIn(one.id);
+        if (routes.length === 0) return [];
 
-    for (const route of routes) {
-      let group = groups.get(route.category);
+        const group = document.createElement("optgroup");
+        group.label = one.name;
+        group.append(
+          ...routes.map((route) => {
+            const option = document.createElement("option");
 
-      if (group === undefined) {
-        group = document.createElement("optgroup");
-        group.label = route.category;
-        groups.set(route.category, group);
-      }
+            option.value = route.id;
+            option.textContent = route.name;
+            return option;
+          }),
+        );
 
-      const option = document.createElement("option");
-      option.value = route.id;
-      option.textContent = route.name;
-      group.append(option);
+        return [group];
+      });
+
+    const selected = this.#store.selected;
+
+    // The selected category is empty while others are not, so there is nothing
+    // to be running. Said rather than left blank: an unset picker with routes
+    // in it reads as a picker that failed to load one.
+    if (selected === null) {
+      groups.unshift(placeholder(`No ${this.#store.category.name} routes yet`));
     }
 
-    this.#routes.replaceChildren(...groups.values());
-    this.#routes.value = this.#store.selected?.id ?? "";
+    this.#routes.replaceChildren(...groups);
+
+    // Index rather than value for the placeholder: it is disabled, and a
+    // browser will not settle on a disabled option by itself - the picker would
+    // sit there blank, saying nothing at all where the whole point of the entry
+    // is to say why there is nothing to pick.
+    if (selected === null) {
+      this.#routes.selectedIndex = 0;
+    } else {
+      this.#routes.value = selected.id;
+    }
   }
 
   #draw(): void {
     this.#panel.draw(this.#timer.view());
   }
 
-  /** The Module.onSpeedrunEvent hook: one event from the game. */
-  handle(event: GameEvent): void {
-    this.#timer.handle(event);
+  /**
+   * The Module.onSpeedrunEvent hook: one event from the game.
+   *
+   * Answers true when the game should stop where it stands, which is only ever
+   * a recording that has just written the last split its category has. The
+   * panel is showing a finished route at that point and the game is not part of
+   * the run any more, so it is ended rather than left running with the player
+   * holding the keys; the game unwinds out of the level and the page takes its
+   * keyboard back. Anything else is answered false and the game plays on.
+   *
+   * The timer is held across the call rather than read back off the field
+   * afterwards: saving the route it just recorded rebuilds the timer, and it is
+   * the one that did the recording that knows how it ended.
+   */
+  handle(event: GameEvent): boolean {
+    const timer = this.#timer;
+
+    timer.handle(event);
+    return timer.completedRecording;
   }
 
   get selected(): Route | null {

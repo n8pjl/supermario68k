@@ -6,8 +6,16 @@
 // done between runs. Made inert while a game is running, the way the control
 // legend is.
 
+import {
+  CATEGORIES,
+  type CategoryId,
+  category,
+  isCategoryId,
+} from "./category.ts";
+import { type RouteRecord } from "./records.ts";
 import { type Route, type RouteSplit } from "./route.ts";
 import { type SpeedrunStore, documentToJSON, parseDocument } from "./store.ts";
+import { formatDuration } from "./times.ts";
 
 const FILENAME = "sm68k-speedrun.json";
 
@@ -51,6 +59,8 @@ export class SpeedrunManager {
   readonly #hooks: ManageHooks;
 
   readonly #root: HTMLElement;
+  readonly #category: HTMLSelectElement;
+  readonly #rules: HTMLElement;
   readonly #routeName: HTMLElement;
   readonly #status: HTMLElement;
   readonly #editor: HTMLElement;
@@ -63,6 +73,14 @@ export class SpeedrunManager {
   readonly #file: HTMLInputElement;
 
   #recording = false;
+  /**
+   * The category the recording now running was armed for.
+   *
+   * Held from the moment recording starts, because that is when the player said
+   * what they were attempting; the picker is inert for as long as it lasts, so
+   * the two cannot come apart. Null when nothing is being recorded.
+   */
+  #recordingFor: CategoryId | null = null;
   /**
    * The route the split editor below is currently showing.
    *
@@ -81,6 +99,30 @@ export class SpeedrunManager {
 
     const heading = document.createElement("h2");
     heading.textContent = "Speedrun routes";
+
+    // The category comes first because everything under it is filed by it: the
+    // routes listed, the one a recording writes, the times any of them are
+    // compared against. Categories are hardcoded, so this list is the same on
+    // every copy of the game and never empty.
+    this.#category = document.createElement("select");
+    this.#category.className = "sr-category";
+    this.#category.append(
+      ...CATEGORIES.map((one) => {
+        const option = document.createElement("option");
+
+        option.value = one.id;
+        option.textContent = one.name;
+        return option;
+      }),
+    );
+    this.#category.addEventListener("change", () => this.#pickCategory());
+
+    const categoryLabel = document.createElement("label");
+    categoryLabel.className = "sr-category-row";
+    categoryLabel.append("Category: ", this.#category);
+
+    this.#rules = document.createElement("p");
+    this.#rules.className = "sr-rules";
 
     this.#routeName = document.createElement("p");
     this.#routeName.className = "sr-current";
@@ -134,6 +176,8 @@ export class SpeedrunManager {
 
     container.replaceChildren(
       heading,
+      categoryLabel,
+      this.#rules,
       this.#routeName,
       row,
       this.#file,
@@ -150,6 +194,21 @@ export class SpeedrunManager {
     this.#remove.addEventListener("click", () => this.#removeRoute());
 
     this.draw();
+  }
+
+  /**
+   * Switch to another set of rules.
+   *
+   * Selecting the category selects a route inside it - whichever one was last
+   * run there, or the first, or none at all - so the panel and the picker
+   * follow along without the player having to choose twice.
+   */
+  #pickCategory(): void {
+    const id = this.#category.value;
+    if (!isCategoryId(id)) return;
+
+    this.#store.selectCategory(id);
+    this.#hooks.changed();
   }
 
   #say(message: string): void {
@@ -226,13 +285,15 @@ export class SpeedrunManager {
 
   #toggleRecording(): void {
     this.#recording = !this.#recording;
+    this.#recordingFor = this.#recording ? this.#store.category.id : null;
 
     // Said before the timer is told, not after: stopping part way through a run
     // ends the recording there and then, which saves the route and reports it
     // from inside the call below. Clearing the line afterwards would wipe that.
     this.#say(
       this.#recording
-        ? "Recording: start a new game, and every level you beat becomes a split."
+        ? `Recording under ${this.#store.category.name}: start a new game, and ` +
+          "every level you beat - and every warp you take - becomes a split."
         : "",
     );
 
@@ -243,6 +304,7 @@ export class SpeedrunManager {
   /** A recording stopped without a single level beaten, so there is no route. */
   recordingEmpty(): void {
     this.#recording = false;
+    this.#recordingFor = null;
     this.#hooks.setRecording(false);
     // Puts the selected route back in the panel, which until now has been
     // showing the empty one that was being recorded into.
@@ -251,16 +313,45 @@ export class SpeedrunManager {
     this.draw();
   }
 
-  /** Called back when a recorded run finished, with the route it produced. */
-  recorded(route: Route): void {
+  /**
+   * Called back when a recorded run finished, with the route it produced and
+   * the times the run that produced it set on that route.
+   */
+  recorded(route: Route, record: RouteRecord): void {
+    const wanted = this.#recordingFor;
+
     this.#recording = false;
+    this.#recordingFor = null;
     this.#hooks.setRecording(false);
     this.#store.putRoute(route);
+    this.#store.putRecord(record);
+    // Selecting it moves the category with it, which matters when the run did
+    // not obey the rules it was recorded for: the route is in the category it
+    // fits, and so is everything showing it.
     this.#store.select(route.id);
     this.#hooks.changed();
+
+    // The run that wrote the route is the first time on it, so there is
+    // something to say about it. An abandoned recording has no finished run and
+    // so no time, only the segments it managed.
+    const time =
+      record.pb === null
+        ? ""
+        : ` The run itself is the time to beat: ${formatDuration(record.pb.total)}.`;
+
+    const saved =
+      `Saved "${route.name}" with ${route.splits.length} splits under ` +
+      `${category(route.category).name}, and selected it.${time} ` +
+      "Rename them below.";
+
+    // A recording that broke its own category is worth saying out loud: the
+    // route is fine and has been kept, but it is not the run that was being
+    // attempted, and the player is the only one who knows whether that was the
+    // plan changing or a wrong turn.
     this.#say(
-      `Saved "${route.name}" with ${route.splits.length} splits, and selected it. ` +
-        "Rename them below.",
+      wanted === null || wanted === route.category
+        ? saved
+        : `That run did not obey ${category(wanted).name}. ${saved}`,
     );
     this.draw();
   }
@@ -337,12 +428,22 @@ export class SpeedrunManager {
 
   draw(): void {
     const route = this.#store.selected;
+    const rules = this.#store.category;
 
+    this.#category.value = rules.id;
+    this.#rules.textContent = rules.rules;
+    // Fixed for as long as a recording lasts: the route being written is being
+    // written for one set of rules, chosen before the run started.
+    this.#category.disabled = this.#recording;
+
+    // The route is not named here: which of the routes to these rules is
+    // selected is the picker's business, and what it is worth is the panel's.
+    // What this line is for is how much of a run it is.
     this.#routeName.textContent =
       route === null
-        ? "No routes yet. Record one: turn recording on, play, and every level " +
-          "you beat becomes a split."
-        : `Running: ${route.name} (${route.category}) — ${route.splits.length} splits`;
+        ? `No ${rules.name} routes yet. Record one: turn recording on, play, ` +
+          "and every level you beat becomes a split."
+        : `${route.splits.length} splits`;
     this.#record.textContent = this.#recording
       ? "Stop recording"
       : "Record a route";

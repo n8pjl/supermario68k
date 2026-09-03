@@ -20,6 +20,8 @@ EMSCRIPTEN_BINDINGS(speedrun)
 	emscripten::value_object<RunEnded>("RunEnded");
 	emscripten::value_object<WorldEntered>("WorldEntered")
 		.field("world", &WorldEntered::world);
+	emscripten::value_object<WarpTaken>("WarpTaken")
+		.field("world", &WarpTaken::world);
 	emscripten::value_object<LevelEntered>("LevelEntered")
 		.field("world", &LevelEntered::world)
 		.field("level", &LevelEntered::level);
@@ -59,7 +61,7 @@ void report(const Event &event)
 	// discriminant the shell switches on is the struct's own name. Adding an
 	// event is a struct in the header and a registration above, and nothing
 	// here.
-	hook(std::visit(
+	emscripten::val answer = hook(std::visit(
 		[](const auto &e) {
 			emscripten::val payload = emscripten::val(e);
 
@@ -67,6 +69,15 @@ void report(const Event &event)
 			return payload;
 		},
 		event));
+
+	// The shell's answer is its one way of talking back, and it only ever says
+	// one thing: this run is over, stop the game. It says it when a recording
+	// has just written the last split its category has, which is a moment the
+	// game itself has no opinion about - it would carry on into the next level
+	// with the player still holding the keys.
+	if (answer.isTrue()) {
+		throw Stopped{};
+	}
 }
 
 void entered_level(int world, int level)

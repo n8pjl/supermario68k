@@ -59,8 +59,12 @@
 
         <!-- Which route the splits are read off. Filled in from the routes
              speedrun.js holds - all of them recorded or imported by the player,
-             none shipped - grouped by category so several ways of running the
-             same rules sit together. Only shown while the timer is on. -->
+             none shipped - under the category each one is run for, so several
+             ways of running the same rules sit together and picking a route
+             picks its rules with it. The categories themselves are hardcoded
+             and the same on every copy of the game; the routes section below is
+             where one is chosen to record under. Only shown while the timer is
+             on. -->
         <label class="option" id="speedrun-route-option" hidden>
           Route:
           <select id="speedrun-route" name="route"></select>

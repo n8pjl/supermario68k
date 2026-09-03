@@ -1109,6 +1109,10 @@ function startGame() {
     onAbort: (w) => console.error("ABORT: " + w),
     gameActions,
     keyPressPromises,
+    // Its answer goes back to src/speedrun.cpp, which throws the game out of
+    // wherever it is when that answer is true. The timer only says so for a
+    // recording that has just finished: the run is over, the panel is showing
+    // the route it wrote, and there is no reason to keep the keyboard.
     onSpeedrunEvent: timer ? (event) => timer.handle(event) : undefined,
     // gray.c only resizes the canvas if the game asks for a screen other than
     // the one the menu sized it to, but if it ever does, the fitted display

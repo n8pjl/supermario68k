@@ -47,6 +47,21 @@ struct WorldEntered {
 	int world;
 };
 
+// A warp was taken: a pipe that jumps to another world, or the whistle that
+// goes to the warp zone in the first place. `world` is the one it lands in -
+// Levelsetdata.Commonfile for the whistle, since the warp zone is a map like
+// any other.
+//
+// Reported because a warp cannot always be told from the world numbers either
+// side of it: a warp to the very next world looks exactly like having finished
+// the one before. A category that forbids warping has to be told, rather than
+// left to infer it from a run that is careful enough to hide it.
+struct WarpTaken {
+	static constexpr std::string_view kind = "warp-taken";
+
+	int world;
+};
+
 // A level was started from the world map. `level` is its index within the
 // world's file - the map tile it was entered from, less levels_low - so the
 // castle that ends a world is level 7 and Bowser's is level 19. Bonus rooms
@@ -69,8 +84,23 @@ struct LevelCompleted {
 };
 
 using Event = std::variant<RunStarted, RunAbandoned, RunEnded, WorldEntered,
-			   LevelEntered, LevelCompleted>;
+			   WarpTaken, LevelEntered, LevelCompleted>;
 
+// Thrown out of report() when the shell says the run it was timing is over
+// while the game is not: a route being recorded reached the end of the category
+// it was being recorded for, so there is nothing left to record and the split
+// panel is showing a finished route the player is meant to read.
+//
+// Thrown rather than flagged because there is nowhere to check a flag. The
+// event that ends a recording is reported from the middle of a level, several
+// frames deep in code that has no way of saying "and stop", so the stack is
+// unwound out from under it and main() catches it. The game keeps nothing that
+// has to be released on the way out - the buffers it allocated are freed when
+// the page drops the whole runtime - so unwinding is enough.
+struct Stopped {};
+
+// Hands one event to the shell. Throws Stopped if the shell answers that the
+// game should stop, which it only does for a recording that has just finished.
 void report(const Event &event);
 
 // The three below are the level's own story, told by three places that each

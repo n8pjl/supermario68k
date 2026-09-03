@@ -30,6 +30,7 @@
 #include "render.h"
 #include "shells.h"
 #include "smallgames.h"
+#include "speedrun.h"
 #include "text.h"
 #include "version.h"
 #include <emscripten/em_asm.h>
@@ -176,8 +177,16 @@ int main(void)
 
 	Exit = 0;
 
-	ErrorCode =
-		Menus(); // This function enters the game itself. See "menus.c"
+	// This function enters the game itself. See "menus.c"
+	try {
+		ErrorCode = Menus();
+	} catch (const speedrun::Stopped &) {
+		// A recording finished mid-game. Falling out of main() here is
+		// what ends it: the shell is waiting on main() to return, and
+		// puts its menu back and stops listening for game keys when it
+		// does. Not an error - the run did exactly what it was asked to.
+		ErrorCode = 0;
+	}
 
 // exit stuff here
 // free allocated mem

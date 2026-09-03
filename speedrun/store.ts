@@ -8,6 +8,14 @@
 // is still timed, it just is not kept.
 
 import {
+  CATEGORIES,
+  type Category,
+  type CategoryId,
+  FALLBACK_CATEGORY,
+  category,
+  isCategoryId,
+} from "./category.ts";
+import {
   FORMAT,
   FORMAT_VERSION,
   type RouteRecord,
@@ -19,6 +27,7 @@ import { type Route, parseRoute, routeToJSON } from "./route.ts";
 
 const ROUTES_KEY = "sm68k.speedrun.routes";
 const RECORDS_KEY = "sm68k.speedrun.records";
+const CATEGORY_KEY = "sm68k.speedrun.category";
 const SELECTED_KEY = "sm68k.speedrun.route";
 
 function read(key: string): unknown {
@@ -89,61 +98,125 @@ export function documentToJSON(doc: SpeedrunDocument): string {
 /**
  * Everything the timer knows about, held together so the two stay in step.
  *
- * Every route here is one the player recorded or imported: the game ships none.
- * A route is a claim about how the game is run, and the only honest source for
- * that is a run somebody played. So there is a state with no routes in it at
- * all - the state the game is in the first time it is opened - and everything
- * that reads a route has to have an answer for it.
+ * Routes are held under categories: the categories are hardcoded and always all
+ * there, and the routes under them are whatever the player has recorded or
+ * imported. The game ships no routes - a route is a claim about how the game is
+ * run, and the only honest source for that is a run somebody played - so there
+ * is a state with a category selected and nothing in it, which is the state the
+ * game is in the first time it is opened, and everything that reads a route has
+ * to have an answer for it.
  */
 export class SpeedrunStore {
-  #routes: Route[];
+  /**
+   * The routes, under the category each one is run for.
+   *
+   * Every category has an entry, empty or not: the categories are the fixed
+   * thing here and the routes are what comes and goes, so a category with
+   * nothing in it is a normal state rather than a missing key.
+   */
+  readonly #routes: Map<CategoryId, Route[]>;
   #records: Map<string, RouteRecord>;
-  /** Null until a route has been chosen, and again once that one is gone. */
-  #selected: string | null;
+
+  /** The rules being run. There is always one - they are hardcoded. */
+  #category: CategoryId;
+  /**
+   * The route last chosen in each category.
+   *
+   * Kept per category rather than as one choice, so that going to warpless to
+   * try a route and coming back lands on the Any% route that was being run,
+   * not on whichever one happens to sort first.
+   */
+  readonly #selected: Map<CategoryId, string>;
 
   constructor() {
-    this.#routes = [];
-    for (const entry of Array.isArray(read(ROUTES_KEY)) ? (read(ROUTES_KEY) as unknown[]) : []) {
+    this.#routes = new Map(CATEGORIES.map((one) => [one.id, []]));
+
+    const stored = read(ROUTES_KEY);
+    for (const entry of Array.isArray(stored) ? stored : []) {
       const route = parseRoute(entry);
-      if (route !== null) this.#routes.push(route);
+      if (route !== null) this.#bucket(route.category).push(route);
     }
 
     this.#records = new Map();
-    for (const entry of Array.isArray(read(RECORDS_KEY)) ? (read(RECORDS_KEY) as unknown[]) : []) {
+    const records = read(RECORDS_KEY);
+    for (const entry of Array.isArray(records) ? records : []) {
       const record = parseRouteRecord(entry);
       if (record !== null) this.#records.set(record.route, record);
     }
 
+    const chosen = read(CATEGORY_KEY);
+    this.#category = isCategoryId(chosen) ? chosen : FALLBACK_CATEGORY.id;
+    this.#selected = new Map();
+
     const selected = read(SELECTED_KEY);
-    this.#selected = typeof selected === "string" ? selected : null;
+
+    if (typeof selected === "object" && selected !== null) {
+      for (const [id, route] of Object.entries(selected)) {
+        if (isCategoryId(id) && typeof route === "string") {
+          this.#selected.set(id, route);
+        }
+      }
+    }
   }
 
+  #bucket(id: CategoryId): Route[] {
+    let held = this.#routes.get(id);
+
+    if (held === undefined) {
+      held = [];
+      this.#routes.set(id, held);
+    }
+
+    return held;
+  }
+
+  /** Every route there is, category by category. */
   get routes(): readonly Route[] {
-    return this.#routes;
+    return CATEGORIES.flatMap((one) => this.#routes.get(one.id) ?? []);
+  }
+
+  /** The routes filed under one category, which may be none. */
+  routesIn(id: CategoryId): readonly Route[] {
+    return this.#routes.get(id) ?? [];
   }
 
   find(id: string): Route | null {
     return this.routes.find((route) => route.id === id) ?? null;
   }
 
-  /**
-   * The route being run, or null while there is not one.
-   *
-   * Falls back to the first route held rather than to nothing when the stored
-   * choice has been deleted: something is selected whenever there is anything
-   * to select, so the picker is never empty while routes exist.
-   */
-  get selected(): Route | null {
-    const chosen = this.#selected === null ? null : this.find(this.#selected);
-
-    return chosen ?? this.#routes[0] ?? null;
+  /** The rules being run. Never null: a category is always selected. */
+  get category(): Category {
+    return category(this.#category);
   }
 
-  select(id: string): void {
-    if (this.find(id) === null) return;
+  selectCategory(id: CategoryId): void {
+    this.#category = id;
+    write(CATEGORY_KEY, id);
+  }
 
-    this.#selected = id;
-    write(SELECTED_KEY, id);
+  /**
+   * The route being run, or null while the selected category holds none.
+   *
+   * Falls back to the first route in the category rather than to nothing when
+   * the stored choice has been deleted or moved elsewhere: something is
+   * selected whenever there is anything to select, so the picker is never empty
+   * while the category has routes.
+   */
+  get selected(): Route | null {
+    const held = this.routesIn(this.#category);
+    const chosen = this.#selected.get(this.#category);
+
+    return held.find((route) => route.id === chosen) ?? held[0] ?? null;
+  }
+
+  /** Chooses a route, and with it the category that route is filed under. */
+  select(id: string): void {
+    const route = this.find(id);
+    if (route === null) return;
+
+    this.selectCategory(route.category);
+    this.#selected.set(route.category, route.id);
+    this.#saveSelected();
   }
 
   recordFor(id: string): RouteRecord {
@@ -160,25 +233,34 @@ export class SpeedrunStore {
     this.#saveRecords();
   }
 
-  /** Adds a route, or replaces the one already held under its id. */
+  /**
+   * Adds a route, or replaces the one already held under its id.
+   *
+   * The replacement is looked for everywhere rather than in its own category,
+   * because the two need not be the same one: a route that comes back from a
+   * file under different rules moves, taking its times with it.
+   */
   putRoute(route: Route): void {
-    const at = this.#routes.findIndex((held) => held.id === route.id);
-
-    if (at < 0) {
-      this.#routes.push(route);
-    } else {
-      this.#routes[at] = route;
-    }
-
+    this.#drop(route.id);
+    this.#bucket(route.category).push(route);
     this.#saveRoutes();
   }
 
   /** Drops a route and the times set on it. */
   removeRoute(id: string): void {
-    this.#routes = this.#routes.filter((route) => route.id !== id);
+    this.#drop(id);
     this.#records.delete(id);
     this.#saveRoutes();
     this.#saveRecords();
+  }
+
+  /** Takes a route out of whichever category is holding it. */
+  #drop(id: string): void {
+    for (const held of this.#routes.values()) {
+      const at = held.findIndex((route) => route.id === id);
+
+      if (at >= 0) held.splice(at, 1);
+    }
   }
 
   /**
@@ -202,7 +284,7 @@ export class SpeedrunStore {
 
   /** What to export: one route and its times, or the lot. */
   document(only?: Route): SpeedrunDocument {
-    const routes = only === undefined ? this.#routes : [only];
+    const routes = only === undefined ? this.routes : [only];
 
     return {
       routes,
@@ -213,10 +295,14 @@ export class SpeedrunStore {
   }
 
   #saveRoutes(): void {
-    write(ROUTES_KEY, this.#routes.map(routeToJSON));
+    write(ROUTES_KEY, this.routes.map(routeToJSON));
   }
 
   #saveRecords(): void {
     write(RECORDS_KEY, [...this.#records.values()].map(recordToJSON));
+  }
+
+  #saveSelected(): void {
+    write(SELECTED_KEY, Object.fromEntries(this.#selected));
   }
 }

@@ -23,6 +23,20 @@ export interface WorldEntered {
   readonly world: number;
 }
 
+/**
+ * A warp was taken: a pipe that jumps to another world, or the whistle that
+ * goes to the warp zone. `world` is the one it lands in.
+ *
+ * Reported because a warp cannot be told from the world numbers either side of
+ * it - a warp into the very next world looks exactly like having finished the
+ * one before - so a category that forbids warping has to be told rather than
+ * left to work it out.
+ */
+export interface WarpTaken {
+  readonly kind: "warp-taken";
+  readonly world: number;
+}
+
 export interface LevelEntered {
   readonly kind: "level-entered";
   readonly world: number;
@@ -41,6 +55,7 @@ export type GameEvent =
   | RunAbandoned
   | RunEnded
   | WorldEntered
+  | WarpTaken
   | LevelEntered
   | LevelCompleted;
 
@@ -52,6 +67,7 @@ export const EVENT_KINDS: readonly EventKind[] = [
   "run-abandoned",
   "run-ended",
   "world-entered",
+  "warp-taken",
   "level-entered",
   "level-completed",
 ];

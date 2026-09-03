@@ -5,7 +5,15 @@ CC = em++
 # ignored and the link fails - or worse, does not.
 # -I.: compat/assets.cpp reaches the game data as #embed "data/<name>.bin", which
 # is resolved from here rather than from the including file's directory.
-CFLAGS = -Os -std=gnu++26 -flto -msimd128 -MMD -MP -I.
+# -fwasm-exceptions: the WebAssembly exception proposal rather than Emscripten's
+# JS-based unwinding, which is a size and speed cost on every call. There is one
+# throw in the whole game - speedrun::Stopped, unwinding out of a level when a
+# recording is finished with it - and main() is the only thing that catches.
+# -sWASM_LEGACY_EXCEPTIONS=0: emit the standardised try_table rather than the
+# superseded try, which browsers now warn about on every load. Both are a
+# compile and link setting, so both appear in LDFLAGS as well.
+CFLAGS = -Os -std=gnu++26 -flto -msimd128 -MMD -MP -I. -fwasm-exceptions \
+         -sWASM_LEGACY_EXCEPTIONS=0
 # -sENVIRONMENT=web: this only ever runs in a browser, so drop the node,
 # worker and shell startup paths Emscripten emits by default.
 # -sEXPORT_ES6: emit mario.mjs as an ES module (a default-exported factory),
@@ -13,7 +21,8 @@ CFLAGS = -Os -std=gnu++26 -flto -msimd128 -MMD -MP -I.
 # also implies -sMODULARIZE.
 # -lembind: speedrun.cpp reports its events through emscripten::val, and
 # registers their payload structs as value_objects so they convert themselves.
-LDFLAGS = -sJSPI -Os -flto -sENVIRONMENT=web -sEXPORT_ES6=1 -lembind \
+LDFLAGS = -sJSPI -Os -flto -fwasm-exceptions -sWASM_LEGACY_EXCEPTIONS=0 \
+          -sENVIRONMENT=web -sEXPORT_ES6=1 -lembind \
           -sEXPORTED_FUNCTIONS=_main,_malloc
 
 SRCDIR = src
