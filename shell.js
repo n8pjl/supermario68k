@@ -890,6 +890,67 @@ document.addEventListener("fullscreenchange", () => {
   fitCanvas();
 });
 
+// ---------------------------------------------------------------------------
+// Keeping the screen on
+//
+// A gamepad is not an input the system's idle timer watches: a player who has
+// both hands on a pad and never touches the keyboard or the mouse looks idle
+// to it, and the screen blanks in the middle of a level. The wake lock is the
+// web's answer to that, and it is best-effort throughout - a browser without
+// the API, or one refusing the request on a low battery, just means the screen
+// may blank, which is a nuisance rather than a bug.
+//
+// The lock is only held while a game is up, and the browser takes it away by
+// itself whenever the page is hidden without ever handing it back, so coming
+// back to a backgrounded tab has to ask again.
+// ---------------------------------------------------------------------------
+let wakeLock = null;
+
+function acquireWakeLock() {
+  if (!navigator.wakeLock || wakeLock) return;
+
+  // What is stored is the request rather than the sentinel it resolves to, so
+  // that a second call arriving before the first has been answered does not
+  // ask for a second lock. Both handlers clear it only if it is still theirs,
+  // since a release racing with the next game's request would otherwise throw
+  // that request away.
+  const request = navigator.wakeLock.request("screen").then(
+    (lock) => {
+      lock.addEventListener("release", () => {
+        if (wakeLock === request) wakeLock = null;
+      });
+      return lock;
+    },
+    () => {
+      if (wakeLock === request) wakeLock = null;
+      return null;
+    },
+  );
+
+  wakeLock = request;
+}
+
+async function releaseWakeLock() {
+  const held = wakeLock;
+  wakeLock = null;
+  try {
+    await (await held)?.release();
+  } catch {
+    /* Already gone, which is the state this was asking for. */
+  }
+}
+
+// Asking again after a tab switch, a phone unlock, or anything else that hid
+// the page long enough for the browser to drop the lock.
+document.addEventListener("visibilitychange", () => {
+  if (
+    document.visibilityState === "visible" &&
+    document.body.classList.contains("playing")
+  ) {
+    acquireWakeLock();
+  }
+});
+
 // START on the gamepad submits the settings form, so the game can be started
 // without touching the keyboard. Polling only happens while the menu is up,
 // and only once there is a gamepad to poll: with none connected this waits on
@@ -994,6 +1055,7 @@ addEventListener("popstate", () => {
 function showSettings() {
   document.body.classList.remove("playing");
   touchpad.hidden = true;
+  releaseWakeLock();
   dropGameHistory();
   updateChrome();
   sizeCanvas(select.value);
@@ -1022,6 +1084,7 @@ function startGame() {
   // finger, so a desktop sees neither.
   document.body.classList.add("playing");
   touchpad.hidden = false;
+  acquireWakeLock();
   latchRun = latchOption.checked;
   pushGameHistory();
   updateChrome();
