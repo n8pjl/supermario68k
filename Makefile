@@ -79,10 +79,17 @@ DEPS = $(OBJS:.o=.d)
 
 all: speedrun.js $(DIST)
 
-# mkdata.py reads the asset list out of assets.cpp, so a file added or renamed
-# there has to run it again.
-.data-stamp: tools/mkdata.py $(SRCDIR)/compat/assets.cpp
+# The level data's source: JSON under levels/, compiled to the blobs the game
+# embeds. See tools/mklevels.py for the format and for why encoding it
+# reproduces the shipped bytes exactly.
+LEVELS = $(wildcard levels/*.json)
+
+# Both tools read the asset list out of assets.cpp and check their half of it,
+# so a file added or renamed there has to run them again.
+.data-stamp: tools/mkdata.py tools/mklevels.py $(LEVELS) \
+             $(SRCDIR)/compat/assets.cpp
 	python3 tools/mkdata.py calc-data data
+	python3 tools/mklevels.py levels data
 	@touch $@
 
 data: .data-stamp

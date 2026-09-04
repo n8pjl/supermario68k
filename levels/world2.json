@@ -1,0 +1,1448 @@
+{
+ "format": 1,
+ "name": "world2",
+ "tag": "MLEV",
+ "unused": {
+  "nr_of_levels": 5,
+  "total_size": 0,
+  "name": ""
+ },
+ "map": {
+  "width": 21,
+  "height": 10,
+  "player_x": 16,
+  "player_y": 112,
+  "warp_x": 48,
+  "warp_y": 80,
+  "fg_x": 0,
+  "fg_y": 64,
+  "border_left": 0,
+  "border_right": 336,
+  "color": 0,
+  "spare": 0,
+  "legend": {
+   "00": "walkable",
+   "01": "walkable",
+   "11": "walkable_node",
+   "12": "walkable_node",
+   "14": "walkable_node",
+   "15": "walkable_node",
+   "18": "walkable_node",
+   "22": "big_castle",
+   "23": "mushrom_house",
+   "24": "game_house",
+   "2d": "levels",
+   "2e": "levels",
+   "2f": "levels",
+   "30": "levels",
+   "31": "levels",
+   "33": "small_castle",
+   "35": "levels",
+   "36": "levels",
+   "41": "ground",
+   "42": "rock",
+   "44": "walkable",
+   "4b": "walkable",
+   "4c": "walkable",
+   "4d": "walkable",
+   "4e": "locked_door"
+  },
+  "tiles": [
+   "41 41 42 41 41 42 41 41 42 41 41 42 41 41 41 41 42 41 41 42 41",
+   "41 18 00 00 2e 41 24 00 00 36 00 00 11 00 30 00 11 41 41 41 41",
+   "41 01 4b 41 01 41 01 4b 4b 01 41 41 01 4b 4d 4c 01 41 42 44 41",
+   "4b 01 4d 4b 33 4b 01 4d 4b 01 4b 4b 01 41 4b 41 35 00 00 22 41",
+   "41 2d 4b 4b 01 41 01 41 41 01 4d 41 01 42 4c 41 01 41 41 41 41",
+   "42 01 41 41 12 00 2f 00 00 14 4b 42 31 00 11 00 14 41 4c 41 41",
+   "42 01 41 42 41 41 42 41 42 41 41 41 41 42 42 41 42 41 41 41 41",
+   "4b 15 4e 00 23 41 41 42 41 41 41 42 41 42 01 41 41 42 42 41 41",
+   "41 41 42 41 41 41 41 41 41 41 41 41 23 00 14 41 41 42 41 41 41",
+   "41 42 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41"
+  ],
+  "triggers": [],
+  "objects": [
+   {
+    "x": 192,
+    "y": 80,
+    "mode": 3,
+    "data0": 0,
+    "data1": -1,
+    "move_x": 0,
+    "move_y": 0,
+    "treasure": 56,
+    "handler": "monster",
+    "sprite": 866,
+    "mask": 64
+   },
+   {
+    "x": 256,
+    "y": 16,
+    "mode": 3,
+    "data0": 0,
+    "data1": -1,
+    "move_x": 0,
+    "move_y": 0,
+    "treasure": 58,
+    "handler": "monster",
+    "sprite": 866,
+    "mask": 64
+   },
+   {
+    "x": 224,
+    "y": 128,
+    "mode": 4,
+    "data0": 0,
+    "data1": -1,
+    "move_x": 0,
+    "move_y": 0,
+    "treasure": 57,
+    "handler": "monster",
+    "sprite": 866,
+    "mask": 64
+   }
+  ]
+ },
+ "levels": {
+  "0": {
+   "width": 108,
+   "height": 11,
+   "bg_height": 9227,
+   "border_left": 0,
+   "border_right": 1487,
+   "player_x": 8,
+   "player_y": 160,
+   "background": 5,
+   "bg_scrollrate": 2,
+   "bg_offset": 0,
+   "event": 0,
+   "condition": 0,
+   "event_x": 0,
+   "event_y": 0,
+   "spare1": 0,
+   "spare2": 0,
+   "size": 1462,
+   "legend": {
+    "00": "blank",
+    "0d": "dark_gray",
+    "17": "non_solid",
+    "18": "non_solid",
+    "19": "non_solid",
+    "1a": "non_solid",
+    "1b": "non_solid",
+    "35": "coin",
+    "3e": "non_solid_bonus",
+    "58": "non_solid_interactive",
+    "72": "solid_interactive_left_right",
+    "76": "solid_interactive_up",
+    "77": "solid_interactive_up",
+    "7e": "brick",
+    "81": "solid_interactive_bounch",
+    "83": "solid_interactive_bounch",
+    "85": "solid_interactive_bounch",
+    "92": "note",
+    "96": "solid_interactive_down",
+    "97": "solid_interactive_down",
+    "99": "pow_item",
+    "a7": "solid",
+    "a8": "solid",
+    "a9": "solid",
+    "aa": "solid",
+    "ac": "solid",
+    "ad": "solid",
+    "b1": "solid",
+    "b3": "wood_block",
+    "b4": "solid",
+    "b7": "solid",
+    "bd": "solid",
+    "cb": "solid",
+    "cc": "solid",
+    "cd": "solid"
+   },
+   "tiles": [
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 b4 b4 b4 a7 a8 b4 b4 b4 b4 b4 b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 b4 b4 00 a7 a8 00 00 00 00 b4 b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 cb cc cc 7e cc cc cc cc cc cc cc cb 00 00 00 00 cb cc cc cc cc cc cc cc cc 7e cc cb 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 b4 b4 00 76 77 00 00 00 00 b4 b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 cd 00 00 00 00 00 00 00 00 00 00 cd 00 00 00 00 cd 00 00 00 00 00 00 00 00 00 00 cd 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 b4 b4 00 00 00 00 00 00 00 b4 b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 cd 00 00 00 00 85 00 00 00 00 00 cd 00 00 00 00 cd 00 00 35 35 35 35 35 35 00 00 cd 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 b4 b4 00 00 00 00 00 00 00 b4 b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 cd 00 00 00 00 00 00 00 00 00 00 cd 00 00 00 00 cd 00 00 35 35 35 35 35 35 00 00 cd 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 b4 b4 00 b4 b4 00 00 00 00 b4 b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 92 00 cd 00 00 00 00 00 00 00 00 00 00 cd 00 00 00 00 cd 00 00 00 00 00 00 00 00 00 00 cd 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 1a 0d 0d 0d b4 b4 b4 b4 00 00 00 00 00 00 00 b4 b4 b4 b4",
+    "00 00 00 00 00 00 00 00 7e 81 00 7e 00 00 7e 00 00 00 00 83 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 cb cc cb cc cc cc cc cb cc 7e cc cb 00 00 58 00 cb cc 7e cb cc cc cc cc cb cc 7e cb 00 00 00 72 00 00 00 00 00 00 00 00 00 00 7e 7e 00 00 00 00 00 17 0d 0d 18 3e 19 0d 0d b4 b4 b4 b4 00 00 00 00 99 00 00 b4 b4 b4 b4",
+    "00 00 00 00 00 7e 00 7e 7e 00 00 7e 7e 7e 7e 00 00 00 00 00 00 00 00 7e 00 00 00 00 00 7e 00 00 00 00 00 00 00 00 cd 00 00 00 00 cd 00 00 00 00 00 00 00 00 00 00 00 cd 00 00 00 00 cd 00 00 00 00 00 00 b3 00 00 7e 00 00 00 00 96 97 7e 7e 7e 7e ac ad 00 00 17 0d 0d 0d 1b 0d 0d 0d a9 a9 a9 a9 b1 00 00 b4 b4 b4 00 b4 b4 b4 b4",
+    "00 00 00 00 00 7e 7e 7e 7e 00 00 7e 7e 7e 7e 00 00 00 00 00 00 00 00 7e 00 00 00 7e 00 7e 00 00 7e 7e 00 00 00 00 cd 00 00 00 00 cd 00 00 00 00 00 00 00 00 00 00 00 cd 00 00 00 00 cd 00 00 00 00 00 7e b3 7e 7e 7e 00 00 00 00 a7 a8 7e 7e 7e 7e a7 a8 00 00 17 0d 0d 0d 0d 0d 0d 0d aa aa aa aa bd 00 00 00 00 00 00 b4 b4 b4 b4",
+    "b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4"
+   ],
+   "enemies": [
+    {
+     "model": "flower1",
+     "x": 81,
+     "y": 8
+    },
+    {
+     "model": "flower2",
+     "x": 75,
+     "y": 8
+    },
+    {
+     "model": "turtle_free",
+     "x": 21,
+     "y": 9,
+     "face": -1
+    },
+    {
+     "model": "goomba_limited",
+     "x": 63,
+     "y": 1,
+     "face": -1,
+     "range": 11
+    },
+    {
+     "model": "jumping_brick",
+     "x": 13,
+     "y": 7
+    },
+    {
+     "model": "jumping_brick",
+     "x": 23,
+     "y": 7
+    },
+    {
+     "model": "jumping_brick",
+     "x": 29,
+     "y": 7
+    },
+    {
+     "model": "jumping_brick",
+     "x": 69,
+     "y": 8
+    }
+   ],
+   "triggers": [
+    {
+     "x": 75,
+     "y": 8,
+     "new_x": 98,
+     "new_y": 10,
+     "border_left": 93,
+     "border_right": 108,
+     "anim": "pipe_right",
+     "new_bg": 4,
+     "new_bg_offset": 0
+    },
+    {
+     "x": 98,
+     "y": 2,
+     "new_x": 81,
+     "new_y": 8,
+     "border_left": 0,
+     "border_right": 93,
+     "anim": "pipe_up",
+     "new_bg": 5,
+     "new_bg_offset": 0
+    }
+   ],
+   "platforms": [],
+   "bosses": []
+  },
+  "9": {
+   "width": 78,
+   "height": 10,
+   "bg_height": 3071,
+   "border_left": 0,
+   "border_right": 1246,
+   "player_x": 8,
+   "player_y": 144,
+   "background": 5,
+   "bg_scrollrate": 2,
+   "bg_offset": 0,
+   "event": 0,
+   "condition": 0,
+   "event_x": 0,
+   "event_y": 0,
+   "spare1": 0,
+   "spare2": 0,
+   "size": 1068,
+   "legend": {
+    "00": "blank",
+    "0d": "dark_gray",
+    "17": "non_solid",
+    "18": "non_solid",
+    "19": "non_solid",
+    "1a": "non_solid",
+    "1b": "non_solid",
+    "3e": "non_solid_bonus",
+    "50": "non_solid_interactive",
+    "51": "non_solid_interactive",
+    "72": "solid_interactive_left_right",
+    "7e": "brick",
+    "a7": "solid",
+    "a8": "solid",
+    "ac": "solid",
+    "ad": "solid",
+    "b6": "solid",
+    "b7": "solid",
+    "b8": "solid",
+    "b9": "solid",
+    "ba": "solid",
+    "bb": "solid",
+    "ed": "slope_under_left",
+    "f4": "slope_under_right"
+   },
+   "tiles": [
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ac ad 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ed b8 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 1a 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 72 00 00 00 00 00 00 00 00 00 00 a7 a8 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ed b7 f4 00 00 00 00 ed ba bb 00 00 00 ac ad 00 00 00 00 00 00 00 00 00 00 17 0d 0d 18 3e 19 0d 0d",
+    "00 00 00 00 00 ed b7 b7 f4 00 00 00 00 00 ed b7 b7 f4 00 00 00 00 00 ed b7 b8 a7 a8 b6 f4 00 00 00 00 00 00 00 00 00 00 00 00 00 ed b7 ba ba ba f4 00 00 00 b9 ba ba f4 00 00 a7 a8 b6 f4 00 00 00 00 00 00 00 00 17 0d 0d 0d 1b 0d 0d 0d",
+    "00 00 00 00 ed ba ba ba ba f4 00 00 00 ed ba ba ba ba f4 00 00 00 ed ba ba bb a7 a8 b9 ba f4 00 00 00 7e 7e 00 00 00 7e 7e 00 ed ba ba ba ba ba bb 50 50 50 b9 ba ba bb 00 00 a7 a8 b9 ba f4 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 ed ba ba ba ba ba bb 50 50 50 b9 ba ba ba ba bb 50 50 50 b9 ba ba bb a7 a8 b9 ba ba b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 ba ba ba ba ba ba bb 51 51 51 b9 ba ba bb 00 00 a7 a8 b9 ba ba b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7",
+    "b7 b7 b7 ba ba ba ba ba ba bb 51 51 51 b9 ba ba ba ba bb 51 51 51 b9 ba ba bb a7 a8 b9 ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba bb 51 51 51 b9 ba ba bb 00 00 a7 b9 ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba"
+   ],
+   "enemies": [
+    {
+     "model": "flower1",
+     "x": 26,
+     "y": 4
+    },
+    {
+     "model": "flower1",
+     "x": 58,
+     "y": 5
+    },
+    {
+     "model": "flower2",
+     "x": 11,
+     "y": 8
+    },
+    {
+     "model": "flower2",
+     "x": 20,
+     "y": 8
+    },
+    {
+     "model": "flower2",
+     "x": 50,
+     "y": 7
+    },
+    {
+     "model": "goomba_limited",
+     "x": 8,
+     "y": 5,
+     "face": -1,
+     "range": 11
+    },
+    {
+     "model": "turtle_free",
+     "x": 70,
+     "y": 7,
+     "face": -1
+    },
+    {
+     "model": "jumping_brick",
+     "x": 33,
+     "y": 7
+    },
+    {
+     "model": "jumping_brick",
+     "x": 38,
+     "y": 7
+    }
+   ],
+   "triggers": [],
+   "platforms": [],
+   "bosses": []
+  },
+  "1": {
+   "width": 95,
+   "height": 14,
+   "bg_height": 0,
+   "border_left": 0,
+   "border_right": 1263,
+   "player_x": 8,
+   "player_y": 208,
+   "background": 5,
+   "bg_scrollrate": 2,
+   "bg_offset": 0,
+   "event": 1,
+   "condition": 44,
+   "event_x": 9,
+   "event_y": 5,
+   "spare1": 0,
+   "spare2": 0,
+   "size": 1636,
+   "legend": {
+    "00": "blank",
+    "0d": "dark_gray",
+    "17": "non_solid",
+    "18": "non_solid",
+    "19": "non_solid",
+    "1a": "non_solid",
+    "1b": "non_solid",
+    "1f": "non_solid",
+    "20": "non_solid",
+    "21": "non_solid",
+    "35": "coin",
+    "3e": "non_solid_bonus",
+    "50": "non_solid_interactive",
+    "51": "non_solid_interactive",
+    "68": "solid_down",
+    "69": "solid_down",
+    "6a": "solid_down",
+    "79": "solid_interactive_bounch",
+    "7e": "brick",
+    "81": "solid_interactive_bounch",
+    "82": "solid_interactive_bounch",
+    "86": "bonusbox_1_coin",
+    "8d": "bonusbox_8_coins",
+    "8f": "solid_interactive_bounch",
+    "96": "solid_interactive_down",
+    "97": "solid_interactive_down",
+    "a7": "solid",
+    "a8": "solid",
+    "ab": "solid",
+    "ac": "solid",
+    "ad": "solid",
+    "b3": "wood_block",
+    "b4": "solid",
+    "b7": "solid",
+    "b9": "solid",
+    "ba": "solid",
+    "bb": "solid",
+    "ed": "slope_under_left",
+    "f4": "slope_under_right"
+   },
+   "tiles": [
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ab 00 00 00 00 00 00 00 00 00 a7 a8 68 69 69 6a 00 00 00 00 68 69 69 6a 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 a7 a8 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 35 35 00 00 00 35 35 00 00 00 35 35 00 00 00 00 00 00 00 00 00 00 ac ad 1f 20 20 21 86 86 8d 82 1f 20 20 21 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 a7 a8 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 96 97 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 68 69 69 6a 68 69 69 6a 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 ac ad 00 00 00 00 00 00 00 00 00 00 00 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 a7 a8 00 00 ab ab 00 00 00 ab ab 00 00 ab ab ab ab 00 ab ab ab 00 00 00 00 00 00 00 00 00 00 00 00 1f 20 20 21 1f 20 20 21 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 00 00 7e 00 7e 00 7e 00 7e 00 7e 00 00 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ab ab 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ab ab ab ab ab ab ab ab ab ab 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 00 00 00 7e 00 7e 00 7e 00 7e 00 00 00 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 00 00 7e 00 7e 00 7e 00 7e 00 7e 00 00 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 00 00 00 7e 00 7e 00 7e 00 35 00 00 00 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 00 00 7e 00 7e 00 7e 00 81 00 35 00 00 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 00 00 00 00 00 00 00 00 00 00 00 00 00 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 68 69 69 6a 00 00 00 00 00 00 b3 00 00 00 00 00 00 00 b3 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 1a 0d 0d 0d b4 00 00 35 35 35 35 00 35 35 8f 35 00 00 b4",
+    "00 00 00 00 00 ed b7 b7 f4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 68 69 69 6a b3 b3 b3 b3 00 00 b3 b3 b3 00 00 b3 b3 b3 00 00 b3 b3 b3 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 b3 00 17 0d 0d 18 3e 19 0d 0d b4 00 00 00 00 00 00 00 00 00 00 00 96 97 b4",
+    "00 00 00 00 ed ba ba ba ba f4 00 00 00 00 ed b7 f4 00 00 00 00 ed b7 f4 00 00 00 00 68 69 6a 1f 20 20 21 b3 b3 7e 7e 00 00 b3 b3 b3 00 00 7e 7e 00 00 00 b3 b3 b3 b3 b3 00 00 00 00 00 00 00 00 00 b3 00 00 00 00 b3 00 17 0d 0d 0d 1b 0d 0d 0d b4 00 00 00 00 00 00 00 00 00 00 00 a7 a8 b4",
+    "00 00 00 ed ba ba ba ba ba bb 50 50 50 50 b9 ba bb 50 50 50 50 b9 ba bb 00 00 00 00 1f 20 21 b3 b3 b3 b3 b3 8d 7e 7e 00 00 b3 b3 b3 00 79 7e 7e 00 00 00 b3 b3 b3 b3 b3 00 00 00 00 00 00 00 00 00 b3 00 00 00 00 b3 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 a7 a8 b4",
+    "b7 b7 b7 ba ba ba ba ba ba bb 51 51 51 51 b9 ba bb 51 51 51 51 b9 ba ba b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 a7 a8 b4"
+   ],
+   "enemies": [
+    {
+     "model": "goomba_limited",
+     "x": 34,
+     "y": 11,
+     "face": -1,
+     "range": 3
+    },
+    {
+     "model": "goomba_limited",
+     "x": 36,
+     "y": 8,
+     "face": -1,
+     "range": 3
+    },
+    {
+     "model": "turtle_limited",
+     "x": 48,
+     "y": 9,
+     "respawn": true,
+     "face": -1,
+     "range": 2
+    },
+    {
+     "model": "turtle_limited",
+     "x": 38,
+     "y": 9,
+     "respawn": true,
+     "face": -1,
+     "range": 7
+    },
+    {
+     "model": "goomba_free",
+     "x": 8,
+     "y": 9,
+     "face": -1
+    },
+    {
+     "model": "flower2",
+     "x": 11,
+     "y": 12
+    },
+    {
+     "model": "flower2",
+     "x": 18,
+     "y": 12
+    },
+    {
+     "model": "flying_turtle",
+     "x": 63,
+     "y": 10,
+     "mode": 216,
+     "range": 2
+    },
+    {
+     "model": "flying_goomba",
+     "x": 68,
+     "y": 13
+    }
+   ],
+   "triggers": [
+    {
+     "x": 24,
+     "y": 2,
+     "new_x": 81,
+     "new_y": 3,
+     "border_left": 80,
+     "border_right": 95,
+     "anim": "pipe_down",
+     "new_bg": 4,
+     "new_bg_offset": 0
+    },
+    {
+     "x": 92,
+     "y": 10,
+     "new_x": 55,
+     "new_y": 2,
+     "border_left": 0,
+     "border_right": 80,
+     "anim": "pipe_down",
+     "new_bg": 5,
+     "new_bg_offset": 0
+    }
+   ],
+   "platforms": [],
+   "bosses": []
+  },
+  "2": {
+   "width": 90,
+   "height": 12,
+   "bg_height": 0,
+   "border_left": 0,
+   "border_right": 1438,
+   "player_x": 8,
+   "player_y": 176,
+   "background": 5,
+   "bg_scrollrate": 2,
+   "bg_offset": 0,
+   "event": 0,
+   "condition": 0,
+   "event_x": 0,
+   "event_y": 0,
+   "spare1": 0,
+   "spare2": 0,
+   "size": 1368,
+   "legend": {
+    "00": "blank",
+    "0d": "dark_gray",
+    "17": "non_solid",
+    "18": "non_solid",
+    "19": "non_solid",
+    "1a": "non_solid",
+    "1b": "non_solid",
+    "1f": "non_solid",
+    "20": "non_solid",
+    "21": "non_solid",
+    "3e": "non_solid_bonus",
+    "68": "solid_down",
+    "69": "solid_down",
+    "6a": "solid_down",
+    "72": "solid_interactive_left_right",
+    "7c": "solid_interactive_bounch",
+    "7e": "brick",
+    "81": "solid_interactive_bounch",
+    "86": "bonusbox_1_coin",
+    "b3": "wood_block",
+    "b6": "solid",
+    "b7": "solid",
+    "b8": "solid"
+   },
+   "tiles": [
+    "00 00 00 00 00 00 00 00 00 00 00 86 86 86 86 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 00 00 68 69 69 6a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 68 69 69 6a 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 00 00 1f 20 20 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f 20 20 21 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 68 69 69 69 69 69 69 6a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 7e 7e 7e 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 68 69 69 69 69 69 69 6a 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 1f 20 20 20 20 20 20 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 7e 7e 7c 7e 7e 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f 20 20 20 20 20 20 21 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 68 69 69 69 69 69 69 69 69 69 69 6a 00 00 00 00 00 00 00 00 00 00 00 00 7e 7e 7e 7e 7e 7e 7e 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 68 69 69 69 69 69 69 69 69 69 69 6a 00 00 00 00 00 17 0d 0d 0d 1a 0d 0d 0d",
+    "00 00 00 00 00 00 00 1f 20 20 20 20 20 20 20 20 20 20 21 00 00 00 00 b3 b3 00 00 00 00 00 7e 7e 7e 7e 7e 7e 7e 7e 7e 00 00 00 00 81 86 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f 20 20 20 20 20 20 20 20 20 20 21 00 00 00 00 00 17 0d 0d 18 3e 19 0d 0d",
+    "00 00 00 00 00 68 69 69 69 69 69 69 69 69 69 69 69 69 69 69 6a 00 00 00 00 00 00 00 00 7e 7e 7e 7e 7e 7e 7e 7e 7e 7e 7e 00 00 00 00 00 00 00 00 7e 00 00 00 00 7e 00 00 00 00 00 00 00 00 00 68 69 69 69 69 69 69 69 69 69 69 69 69 69 69 6a 00 00 00 17 0d 0d 0d 1b 0d 0d 0d",
+    "00 00 00 00 00 1f 20 20 20 20 20 20 20 20 20 20 20 20 20 20 21 00 00 00 00 00 00 00 7e 7e 7e 7e 7e 7e 7e 7e 7e 7e 7e 7e 7e 00 00 00 00 00 00 00 7e 00 00 00 00 7e 00 00 72 b3 b3 b3 00 00 00 1f 20 20 20 20 20 20 20 20 20 20 20 20 20 20 21 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b8 00 00 b6 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b8 00 00 b6 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7"
+   ],
+   "enemies": [
+    {
+     "model": "goomba_free",
+     "x": 50,
+     "y": 10,
+     "face": -1
+    },
+    {
+     "model": "goomba_limited",
+     "x": 74,
+     "y": 4,
+     "face": -1,
+     "range": 7
+    },
+    {
+     "model": "goomba_limited",
+     "x": 20,
+     "y": 8,
+     "face": -1,
+     "range": 15
+    },
+    {
+     "model": "turtle_free",
+     "x": 34,
+     "y": 4,
+     "face": -1
+    },
+    {
+     "model": "turtle_limited",
+     "x": 14,
+     "y": 2,
+     "face": -1,
+     "range": 3
+    },
+    {
+     "model": "turtle_limited",
+     "x": 72,
+     "y": 2,
+     "face": -1,
+     "range": 3
+    },
+    {
+     "model": "turtle_limited",
+     "x": 78,
+     "y": 8,
+     "face": -1,
+     "range": 15
+    },
+    {
+     "model": "jumping_brick",
+     "x": 34,
+     "y": 4
+    },
+    {
+     "model": "jumping_brick",
+     "x": 53,
+     "y": 8
+    }
+   ],
+   "triggers": [],
+   "platforms": [],
+   "bosses": []
+  },
+  "4": {
+   "width": 66,
+   "height": 14,
+   "bg_height": 0,
+   "border_left": 0,
+   "border_right": 1054,
+   "player_x": 24,
+   "player_y": 208,
+   "background": 5,
+   "bg_scrollrate": 2,
+   "bg_offset": 0,
+   "event": 59,
+   "condition": 38,
+   "event_x": 12,
+   "event_y": 1,
+   "spare1": 0,
+   "spare2": 0,
+   "size": 1212,
+   "legend": {
+    "00": "blank",
+    "0d": "dark_gray",
+    "17": "non_solid",
+    "18": "non_solid",
+    "19": "non_solid",
+    "1a": "non_solid",
+    "1b": "non_solid",
+    "22": "non_solid",
+    "23": "non_solid",
+    "24": "non_solid",
+    "25": "non_solid",
+    "35": "coin",
+    "3e": "non_solid_bonus",
+    "7e": "brick",
+    "82": "solid_interactive_bounch",
+    "84": "solid_interactive_bounch",
+    "85": "solid_interactive_bounch",
+    "a7": "solid",
+    "a8": "solid",
+    "ab": "solid",
+    "ac": "solid",
+    "ad": "solid",
+    "ce": "solid",
+    "cf": "solid",
+    "d0": "solid",
+    "d1": "solid",
+    "d2": "solid",
+    "d3": "solid"
+   },
+   "tiles": [
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 7e 7e 00 7e 7e 7e 7e 7e 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 35 35 00 7e 7e 7e 7e 7e 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 35 35 35 35 85 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "35 35 22 23 35 35 22 23 00 22 23 35 35 22 23 35 35 22 23 00 00 22 23 35 35 00 35 35 35 35 35 22 23 35 35 22 23 35 35 22 23 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 24 25 00 00 24 25 00 24 25 00 00 24 25 00 00 24 25 00 00 24 25 00 00 84 00 00 00 00 00 24 25 00 00 24 25 00 00 24 25 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 24 25 00 00 24 25 00 24 25 00 00 24 25 00 00 24 25 00 00 24 25 00 00 00 00 00 00 00 00 24 25 00 00 24 25 00 00 24 25 00 00 00 00 00 00 ab ab ab ab ab ab ab 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "cf cf cf cf cf cf cf d0 7e ce cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf d0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "d2 d2 d2 d2 d2 d2 d2 d3 7e d1 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d2 d3 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "d0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "d3 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "d0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 1a 0d 0d 0d",
+    "d3 00 00 00 00 00 00 00 00 22 23 00 82 00 00 00 00 00 00 00 00 22 23 00 22 23 00 22 23 00 00 00 00 82 ac ad 00 22 23 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 22 23 00 17 0d 0d 18 3e 19 0d 0d",
+    "d0 00 00 00 00 00 ac ad 00 24 25 00 00 00 00 00 ce cf cf d0 00 24 25 00 24 25 00 24 25 00 00 00 00 00 a7 a8 00 24 25 00 ce cf cf d0 35 ce cf cf d0 35 ce cf cf d0 00 24 25 00 17 0d 0d 0d 1b 0d 0d 0d",
+    "d3 00 00 00 00 00 a7 a8 00 24 25 00 00 00 00 00 d1 d2 d2 d3 00 24 25 00 24 25 00 24 25 00 00 00 00 00 a7 a8 00 24 25 00 d1 d2 d2 d3 35 d1 d2 d2 d3 35 d1 d2 d2 d3 00 24 25 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "cf cf cf d0 00 00 a7 a8 ce cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf d0 00 00 ce cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf cf"
+   ],
+   "enemies": [
+    {
+     "model": "flower2",
+     "x": 6,
+     "y": 11
+    },
+    {
+     "model": "flower2",
+     "x": 34,
+     "y": 10
+    },
+    {
+     "model": "flying_goomba",
+     "x": 30,
+     "y": 13
+    },
+    {
+     "model": "goomba_limited",
+     "x": 48,
+     "y": 10,
+     "face": -1,
+     "range": 3
+    },
+    {
+     "model": "flying_turtle",
+     "x": 21,
+     "y": 2,
+     "mode": 80,
+     "range": 4
+    },
+    {
+     "model": "flying_turtle",
+     "x": 19,
+     "y": 2,
+     "mode": 80,
+     "range": 4
+    },
+    {
+     "model": "boomerang_guy_s",
+     "x": 20,
+     "y": 11
+    },
+    {
+     "model": "boomerang_guy_s",
+     "x": 44,
+     "y": 11
+    },
+    {
+     "model": "boomerang_guy_s",
+     "x": 54,
+     "y": 11
+    }
+   ],
+   "triggers": [],
+   "platforms": [],
+   "bosses": []
+  },
+  "3": {
+   "width": 123,
+   "height": 14,
+   "bg_height": 15407,
+   "border_left": 0,
+   "border_right": 1726,
+   "player_x": 8,
+   "player_y": 208,
+   "background": 5,
+   "bg_scrollrate": 2,
+   "bg_offset": 0,
+   "event": 0,
+   "condition": 0,
+   "event_x": 0,
+   "event_y": 0,
+   "spare1": 0,
+   "spare2": 0,
+   "size": 1996,
+   "legend": {
+    "00": "blank",
+    "0d": "dark_gray",
+    "17": "non_solid",
+    "18": "non_solid",
+    "19": "non_solid",
+    "1a": "non_solid",
+    "1b": "non_solid",
+    "1f": "non_solid",
+    "20": "non_solid",
+    "21": "non_solid",
+    "22": "non_solid",
+    "23": "non_solid",
+    "24": "non_solid",
+    "25": "non_solid",
+    "35": "coin",
+    "3e": "non_solid_bonus",
+    "53": "water_surface",
+    "54": "water",
+    "58": "non_solid_interactive",
+    "68": "solid_down",
+    "69": "solid_down",
+    "6a": "solid_down",
+    "72": "solid_interactive_left_right",
+    "7d": "solid_interactive_bounch",
+    "7e": "brick",
+    "84": "solid_interactive_bounch",
+    "85": "solid_interactive_bounch",
+    "86": "bonusbox_1_coin",
+    "96": "solid_interactive_down",
+    "97": "solid_interactive_down",
+    "a7": "solid",
+    "a8": "solid",
+    "ab": "solid",
+    "ac": "solid",
+    "ad": "solid",
+    "b3": "wood_block",
+    "b4": "solid",
+    "b6": "solid",
+    "b7": "solid",
+    "b8": "solid",
+    "ba": "solid",
+    "bb": "solid",
+    "ed": "slope_under_left",
+    "ee": "slope_under_left",
+    "ef": "slope_under_left",
+    "f4": "slope_under_right"
+   },
+   "tiles": [
+    "00 00 00 00 00 00 00 00 85 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 a7 a8 17 0d 0d 0d 0d 0d 0d 0d b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 35 00 35 00 35 00 35 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 a7 a8 17 0d 0d 0d 0d 0d 0d 0d b4 b4 00 00 00 00 00 00 00 00 00 00 b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 35 00 35 00 35 00 35 00 35 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 35 35 35 35 00 00 00 00 00 00 00 00 ac ad 17 0d 0d 0d 0d 0d 0d 0d b4 b4 00 00 00 00 00 00 00 00 00 00 b4 b4 b4",
+    "00 00 00 00 00 ab ab ab ab 00 00 00 00 00 00 00 00 00 00 00 00 00 00 35 00 35 00 35 00 35 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 35 35 35 35 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 35 35 35 35 35 35 35 35 35 35 b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 7e 7e 7e 7e 7e 7e 7e 7e 7e 7e b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 86 00 00 7e 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 00 00 00 00 00 00 00 00 00 00 b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 b3 00 00 b3 00 00 00 00 00 00 00 00 00 22 23 00 00 00 00 00 00 00 00 00 00 00 00 7d 00 00 00 7d 7e 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 35 35 35 35 35 35 35 35 35 35 b4 b4 b4",
+    "00 00 58 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 22 23 00 00 00 00 00 00 00 00 00 00 00 00 b3 00 00 b3 00 00 00 00 00 00 00 00 00 24 25 00 00 00 00 00 00 00 00 00 00 00 7d 7e 00 00 00 7d 7e 7e 00 00 00 00 00 00 00 00 00 58 22 23 00 00 00 00 00 00 00 00 00 00 00 00 22 23 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 7e 7e 7e 7e 7e 7e 7e 7e 7e 7e b4 b4 b4",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 24 25 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 24 25 00 00 00 00 00 00 00 00 00 00 7d 00 00 7e 7e 7e 7d 7e 7e 7e 00 00 00 00 00 00 00 00 00 24 25 00 00 00 00 00 00 00 00 00 00 00 00 24 25 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 00 00 00 00 00 00 00 00 00 00 b4 b4 b4",
+    "00 00 00 00 68 6a 72 b3 b3 b3 00 00 00 00 00 00 00 00 00 00 00 00 24 25 b3 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ed b7 b7 f4 00 00 00 00 00 00 00 00 7d 7e 00 00 7e 96 97 7e 7e 7e 7e 7e 00 00 00 00 00 00 00 00 24 25 00 00 00 00 00 00 00 00 00 00 00 00 24 25 00 00 00 00 17 0d 0d 0d 1a 0d 0d 0d b4 b4 00 00 00 00 00 00 00 00 00 00 b4 b4 b4",
+    "00 00 00 00 1f 21 b3 b3 b3 b3 00 00 00 00 00 00 00 00 00 00 00 ed b7 b7 b8 53 53 53 53 53 53 53 53 53 53 53 53 53 53 53 53 53 53 53 53 53 53 ee ba ba ba ba f4 00 00 00 00 00 00 7d 7e 7e 00 00 7e a7 a8 7e 7e 7e 7e 7e 7e 00 00 00 00 00 00 ed b7 b7 f4 00 00 00 00 00 00 00 00 00 00 ed b7 b7 f4 00 00 00 17 0d 0d 18 3e 19 0d 0d b4 b4 00 00 84 00 00 00 00 00 96 97 b4 b4 b4",
+    "00 00 68 69 69 6a b3 b3 b3 b3 68 69 69 6a 00 00 00 00 00 00 ed ba ba ba bb 54 54 54 54 54 54 54 54 54 54 54 54 54 54 54 54 54 54 54 54 54 ef ba ba ba ba ba ba f4 00 00 00 00 7e 7e 7e 7e 7e 7e 7e a7 a8 7e 7e 7e 7e 7e 7e 7e 00 00 00 00 ed ba ba ba bb 53 53 53 53 53 53 53 53 53 ee ba ba ba bb 00 00 00 17 0d 0d 0d 1b 0d 0d 0d b4 b4 00 00 00 00 00 00 00 00 a7 a8 b4 b4 b4",
+    "00 00 1f 20 20 21 b3 b3 b3 b3 1f 20 20 21 00 00 00 00 00 ed ba ba ba ba bb 54 54 54 54 54 54 54 54 54 54 54 54 54 54 54 54 54 54 54 54 ef ba ba ba ba ba ba ba ba f4 00 00 7e 7e 7e 7e 7e 7e 7e 7e a7 a8 7e 7e 7e 7e 7e 7e 7e 7e 00 00 ed ba ba ba ba bb 54 54 54 54 54 54 54 54 ef ba ba ba ba bb 00 00 00 17 0d 0d 0d 0d 0d 0d 0d b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 a7 a8 b4 b4 b4",
+    "b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 ba ba ba ba ba ba b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 ba ba ba ba ba ba ba ba ba ba b7 b7 b7 b7 b7 b7 b7 b7 b7 b8 a7 a8 b6 b7 b7 b7 b7 b7 b7 b7 b7 b7 ba ba ba ba ba ba b7 b7 b7 b7 b7 b7 b7 b7 ba ba ba ba ba ba b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 a7 a8 b4 b4 b4"
+   ],
+   "enemies": [
+    {
+     "model": "goomba_limited",
+     "x": 5,
+     "y": 10,
+     "face": -1,
+     "range": 3
+    },
+    {
+     "model": "turtle_free",
+     "x": 18,
+     "y": 12,
+     "face": -1
+    },
+    {
+     "model": "turtle_free",
+     "x": 65,
+     "y": 7,
+     "face": -1
+    },
+    {
+     "model": "turtle_limited",
+     "x": 9,
+     "y": 8,
+     "face": -1,
+     "range": 5
+    },
+    {
+     "model": "fish_limited",
+     "x": 34,
+     "y": 11,
+     "face": -1,
+     "range": 8
+    },
+    {
+     "model": "fish_limited",
+     "x": 43,
+     "y": 11,
+     "face": -1,
+     "range": 8
+    },
+    {
+     "model": "flying_turtle",
+     "x": 92,
+     "y": 8,
+     "mode": 208,
+     "range": 2
+    },
+    {
+     "model": "flying_turtle",
+     "x": 35,
+     "y": 8,
+     "mode": 128,
+     "range": 0
+    }
+   ],
+   "triggers": [
+    {
+     "x": 65,
+     "y": 9,
+     "new_x": 118,
+     "new_y": 10,
+     "border_left": 108,
+     "border_right": 123,
+     "anim": "pipe_up",
+     "new_bg": 4,
+     "new_bg_offset": 0
+    },
+    {
+     "x": 118,
+     "y": 10,
+     "new_x": 98,
+     "new_y": 3,
+     "border_left": 0,
+     "border_right": 108,
+     "anim": "pipe_down",
+     "new_bg": 5,
+     "new_bg_offset": 0
+    }
+   ],
+   "platforms": [],
+   "bosses": []
+  },
+  "6": {
+   "width": 97,
+   "height": 10,
+   "bg_height": 0,
+   "border_left": 0,
+   "border_right": 1310,
+   "player_x": 32,
+   "player_y": 112,
+   "background": 1,
+   "bg_scrollrate": 2,
+   "bg_offset": 0,
+   "event": 0,
+   "condition": 0,
+   "event_x": 0,
+   "event_y": 0,
+   "spare1": 0,
+   "spare2": 0,
+   "size": 1428,
+   "legend": {
+    "00": "blank",
+    "1c": "non_solid",
+    "4b": "non_solid_hostile",
+    "4c": "non_solid_hostile",
+    "5a": "non_solid_interactive",
+    "82": "solid_interactive_bounch",
+    "b3": "wood_block",
+    "b4": "solid",
+    "be": "solid",
+    "bf": "solid",
+    "c0": "solid"
+   },
+   "tiles": [
+    "b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4",
+    "b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 00 00 00 b4 b4 00 b4 b4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 b4 b4 b4 b4 b4 b4 00 00 00 00 00 00 00 00 00 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4",
+    "b4 b4 b4 b4 00 00 00 00 00 00 00 00 b4 b4 00 b4 b4 00 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 b4 b4 b4 b4 b4 b4 00 00 00 00 00 00 00 00 00 b4 b4 00 00 00 00 00 00 00 00 00 00 00 b4 b4",
+    "b4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 b4 b4 00 b4 b4 00 b4 b4 b4 b4 b4 b4 b4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 b4 b4 b4 b4 b4 b4 00 00 00 00 00 00 00 00 00 b4 b4 00 00 00 00 00 00 00 00 00 00 00 b4 b4",
+    "b4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 b4 b4 00 00 00 b4 b4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 b4 b4 4b 4b b4 b4 00 00 00 00 00 00 00 00 00 b4 b4 00 00 00 00 00 00 00 00 00 00 00 b4 b4",
+    "b4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 b4 b4 00 00 00 00 00 00 00 00 00 00 00 b4 b4",
+    "b4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 be bf c0 00 00 00 b3 82 00 b3 00 00 00 be bf c0 00 00 00 be bf c0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1c 00 b4 b4 00 00 00 00 00 00 00 00 00 00 00 b4 b4",
+    "b4 b4 b4 b4 00 00 00 00 00 00 00 00 00 b4 b4 b4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 b4 b4 00 00 00 00 00 00 b4 b4 00 00 00 00 00 00 00 00 00 5a 00 b4 b4 00 00 00 00 00 00 00 00 00 00 00 b4 b4",
+    "b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 4c 4c 4c 4c 4c 4c b4 00 00 b4 4c 4c 4c 4c 4c 4c 4c 4c 4c 4c 4c 4c b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4",
+    "b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4 b4"
+   ],
+   "enemies": [
+    {
+     "model": "skel_tur_limited",
+     "x": 8,
+     "y": 8,
+     "face": -1,
+     "range": 4
+    },
+    {
+     "model": "skel_tur_limited",
+     "x": 12,
+     "y": 8,
+     "face": -1,
+     "range": 3
+    },
+    {
+     "model": "skel_tur_limited",
+     "x": 60,
+     "y": 8,
+     "face": -1,
+     "range": 3
+    },
+    {
+     "model": "skel_tur_free",
+     "x": 20,
+     "y": 8,
+     "face": -1
+    },
+    {
+     "model": "skel_tur_free",
+     "x": 68,
+     "y": 8,
+     "face": -1
+    },
+    {
+     "model": "falling_brick",
+     "x": 14,
+     "y": 2
+    },
+    {
+     "model": "falling_brick",
+     "x": 22,
+     "y": 3
+    },
+    {
+     "model": "falling_brick",
+     "x": 25,
+     "y": 3
+    },
+    {
+     "model": "falling_brick",
+     "x": 28,
+     "y": 4
+    },
+    {
+     "model": "falling_brick",
+     "x": 30,
+     "y": 4
+    },
+    {
+     "model": "falling_brick",
+     "x": 42,
+     "y": 1
+    },
+    {
+     "model": "ghost_free",
+     "x": 60,
+     "y": 2
+    },
+    {
+     "model": "ghost_free",
+     "x": 73,
+     "y": 3
+    }
+   ],
+   "triggers": [
+    {
+     "x": 80,
+     "y": 7,
+     "new_x": 84,
+     "new_y": 8,
+     "border_left": 82,
+     "border_right": 97,
+     "anim": "none",
+     "new_bg": -1,
+     "new_bg_offset": 0
+    }
+   ],
+   "platforms": [],
+   "bosses": [
+    {
+     "model": "boom_boom",
+     "x": 93,
+     "y": 8
+    }
+   ]
+  },
+  "8": {
+   "width": 142,
+   "height": 10,
+   "bg_height": 0,
+   "border_left": 0,
+   "border_right": 238,
+   "player_x": 32,
+   "player_y": 128,
+   "background": 5,
+   "bg_scrollrate": 2,
+   "bg_offset": 22,
+   "event": 0,
+   "condition": 0,
+   "event_x": 0,
+   "event_y": 0,
+   "spare1": 0,
+   "spare2": 0,
+   "size": 1748,
+   "legend": {
+    "00": "blank",
+    "0d": "dark_gray",
+    "17": "non_solid",
+    "18": "non_solid",
+    "19": "non_solid",
+    "1a": "non_solid",
+    "1b": "non_solid",
+    "1c": "non_solid",
+    "1f": "non_solid",
+    "20": "non_solid",
+    "35": "coin",
+    "3e": "non_solid_bonus",
+    "3f": "treasure_cloud",
+    "5a": "non_solid_interactive",
+    "68": "solid_down",
+    "69": "solid_down",
+    "75": "solid_interactive_right",
+    "76": "solid_interactive_up",
+    "77": "solid_interactive_up",
+    "7e": "brick",
+    "82": "solid_interactive_bounch",
+    "85": "solid_interactive_bounch",
+    "96": "solid_interactive_down",
+    "97": "solid_interactive_down",
+    "a7": "solid",
+    "a8": "solid",
+    "a9": "solid",
+    "aa": "solid",
+    "ac": "solid",
+    "ad": "solid",
+    "ae": "solid",
+    "af": "solid",
+    "b1": "solid",
+    "b4": "solid",
+    "b6": "solid",
+    "b7": "solid",
+    "b8": "solid",
+    "ba": "solid",
+    "c2": "solid",
+    "c3": "solid",
+    "c4": "solid",
+    "c5": "solid",
+    "c6": "solid",
+    "c7": "solid",
+    "c8": "solid",
+    "c9": "solid",
+    "ca": "solid",
+    "ce": "solid",
+    "cf": "solid",
+    "d0": "solid",
+    "d1": "solid",
+    "d2": "solid",
+    "d3": "solid",
+    "ec": "slope_under_left",
+    "f3": "slope_under_right",
+    "fa": "slope_over_left",
+    "fd": "slope_over_right"
+   },
+   "tiles": [
+    "00 00 00 00 00 00 00 00 00 00 00 00 ce cf cf c6 c6 c6 c6 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c6 c6 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 ca a7 a8 c8 c9 ca a7 a8 c8 c9 c9 c9 c9 c9 c9 c9 c9 ca a7 a8 c8 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 ce cf d0 ce cf d0 ce cf d0 ce cf d0 ce cf d0 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 00 00 00 d1 d2 d2 c6 c6 c6 c7 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 c5 c7 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ae af 00 00 00 76 77 00 00 00 00 00 00 00 00 00 00 a7 a8 00 00 00 00 00 00 00 00 00 00 00 00 c5 c6 c6 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c6 c6 c6 c6 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c6 d1 d2 d3 d1 d2 d3 d1 d2 d3 d1 d2 d3 d1 d2 d3 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 00 68 69 69 1c 69 c6 c6 c6 c7 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 c5 c7 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ae af 00 00 00 00 00 00 00 00 00 00 00 00 c8 c6 c7 00 00 00 00 00 00 00 00 00 00 c5 c6 c6 c7 00 00 00 00 00 00 00 00 00 00 00 c5 ce cf d0 00 00 00 00 00 00 00 00 00 ce cf d0 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 00 00 1f 20 20 5a 20 c6 c6 c6 c7 00 00 00 00 00 00 00 00 00 00 00 00 c2 c3 c3 c3 c3 c6 c6 c3 c3 c3 c3 c4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 b1 a9 c6 c7 00 00 00 00 00 00 00 00 00 00 c5 c6 c6 c7 00 00 00 00 00 00 00 00 00 00 00 c5 d1 d2 d3 00 00 00 00 00 00 00 00 00 d1 d2 d3 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 ce cf cf cf cf cf cf c6 c9 c9 ca 00 00 00 00 00 7e 82 00 00 7e 00 00 fa c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 fd 00 00 00 c2 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 f3 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 75 aa c6 c7 00 00 00 00 00 00 00 00 00 00 c5 c6 c6 c7 00 00 00 85 35 35 35 35 00 3f 00 c5 ce cf d0 00 35 35 35 35 35 00 00 00 ce cf d0 00 00 00 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "00 00 00 00 00 00 00 00 d1 d2 d2 d2 d2 d2 d2 c7 00 00 00 00 00 00 00 00 7e 00 00 00 7e 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 fa c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c9 c6 c6 c6 c6 f3 00 00 00 00 00 00 00 00 ec c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 c6 c7 96 97 00 00 96 97 00 00 96 97 c5 c6 c6 c7 00 00 00 00 35 35 35 35 b4 b4 b4 c5 d1 d2 d3 00 35 35 35 35 35 00 00 00 d1 d2 d3 00 00 00 00 00 00 00 17 0d 0d 0d 1a 0d 0d 0d",
+    "00 00 00 00 00 00 ce cf cf cf cf cf cf cf cf c7 00 00 00 00 00 00 00 00 7e 00 00 00 7e 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 7e 00 00 00 00 7e 00 00 00 c5 c6 c6 c6 c6 f3 00 00 00 00 00 00 ec c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c7 a7 a8 00 00 a7 a8 00 00 a7 a8 c5 c6 c6 c7 00 00 00 00 35 35 35 35 00 00 00 c5 ce cf d0 00 00 00 00 00 00 00 96 97 ce cf d0 00 00 00 00 00 00 00 17 0d 0d 18 3e 19 0d 0d",
+    "00 00 00 00 00 00 d1 d2 d2 d2 d2 d2 d2 d2 d2 c6 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 f3 00 00 00 00 7e 00 ac ad 00 00 ec c3 c3 f3 00 00 00 00 7e 00 00 00 00 7e 00 00 00 c5 c6 c6 c6 c6 c6 f3 00 00 00 00 ec c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c3 c3 c3 c3 c3 c3 c3 c3 c3 c3 c6 c6 c6 c7 00 ac ad 00 35 35 35 35 00 00 00 c5 d1 d2 d3 00 00 00 00 00 00 00 a7 a8 d1 d2 d3 00 ac ad 00 00 00 00 17 0d 0d 0d 1b 0d 0d 0d",
+    "b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c3 c3 c3 c3 c3 c4 a7 a8 c2 c3 c6 c6 c6 c6 f3 00 00 00 7e 00 00 00 00 7e 00 96 97 c5 c6 c6 c6 c6 c6 c6 f3 00 00 ec c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c4 a7 a8 c2 c3 c3 c3 c3 c3 c3 c3 c6 ce cf d0 ce cf d0 ce cf d0 ce cf d0 ce cf d0 00 a7 a8 00 00 00 00 17 0d 0d 0d 0d 0d 0d 0d",
+    "ba ba ba ba ba ba ba ba ba ba ba ba ba ba ba c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c7 a7 a8 c5 c6 c6 c6 c6 c6 c6 c3 c3 c3 c3 c3 c3 c3 c3 c3 c4 a7 a8 c5 c6 c6 c6 c6 c6 c6 c7 00 00 c5 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c6 c7 a7 a8 c5 c6 c6 c6 c6 c6 c6 c6 c6 d1 d2 d3 d1 d2 d3 d1 d2 d3 d1 d2 d3 d1 d2 d3 b8 a7 a8 b6 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7 b7"
+   ],
+   "enemies": [
+    {
+     "model": "flower1",
+     "x": 38,
+     "y": 7
+    },
+    {
+     "model": "flower1_upside_down",
+     "x": 57,
+     "y": 2
+    },
+    {
+     "model": "flower2_upside_down",
+     "x": 52,
+     "y": 2
+    },
+    {
+     "model": "beetle_free",
+     "x": 35,
+     "y": 7,
+     "respawn": true,
+     "face": -1
+    },
+    {
+     "model": "beetle_free",
+     "x": 49,
+     "y": 8,
+     "respawn": true,
+     "face": -1
+    },
+    {
+     "model": "beetle_free",
+     "x": 54,
+     "y": 8,
+     "respawn": true,
+     "face": -1
+    },
+    {
+     "model": "beetle_limited",
+     "x": 80,
+     "y": 4,
+     "face": -1,
+     "range": 0
+    },
+    {
+     "model": "beetle_limited",
+     "x": 66,
+     "y": 7,
+     "face": -1,
+     "range": 0
+    }
+   ],
+   "triggers": [
+    {
+     "x": 13,
+     "y": 3,
+     "new_x": 17,
+     "new_y": 7,
+     "border_left": 15,
+     "border_right": 84,
+     "anim": "none",
+     "new_bg": 0,
+     "new_bg_offset": 48
+    },
+    {
+     "x": 57,
+     "y": 8,
+     "new_x": 86,
+     "new_y": 5,
+     "border_left": 84,
+     "border_right": 99,
+     "anim": "pipe_up",
+     "new_bg": 0,
+     "new_bg_offset": 48
+    },
+    {
+     "x": 86,
+     "y": 5,
+     "new_x": 69,
+     "new_y": 3,
+     "border_left": 15,
+     "border_right": 84,
+     "anim": "pipe_down",
+     "new_bg": 0,
+     "new_bg_offset": 48
+    },
+    {
+     "x": 90,
+     "y": 5,
+     "new_x": 101,
+     "new_y": 7,
+     "border_left": 97,
+     "border_right": 112,
+     "anim": "pipe_up",
+     "new_bg": 4,
+     "new_bg_offset": 0
+    },
+    {
+     "x": 94,
+     "y": 5,
+     "new_x": 128,
+     "new_y": 7,
+     "border_left": 127,
+     "border_right": 142,
+     "anim": "pipe_up",
+     "new_bg": 5,
+     "new_bg_offset": 4
+    },
+    {
+     "x": 82,
+     "y": 4,
+     "new_x": 128,
+     "new_y": 7,
+     "border_left": 127,
+     "border_right": 142,
+     "anim": "pipe_up",
+     "new_bg": 5,
+     "new_bg_offset": 4
+    },
+    {
+     "x": 57,
+     "y": 1,
+     "new_x": 122,
+     "new_y": 6,
+     "border_left": 112,
+     "border_right": 127,
+     "anim": "pipe_up",
+     "new_bg": 4,
+     "new_bg_offset": 20
+    },
+    {
+     "x": 122,
+     "y": 6,
+     "new_x": 69,
+     "new_y": 3,
+     "border_left": 15,
+     "border_right": 84,
+     "anim": "pipe_down",
+     "new_bg": 0,
+     "new_bg_offset": 48
+    }
+   ],
+   "platforms": [],
+   "bosses": []
+  },
+  "7": {
+   "width": 105,
+   "height": 10,
+   "bg_height": 0,
+   "border_left": 0,
+   "border_right": 1438,
+   "player_x": 48,
+   "player_y": 96,
+   "background": 3,
+   "bg_scrollrate": 2,
+   "bg_offset": 0,
+   "event": 8,
+   "condition": 1,
+   "event_x": 0,
+   "event_y": 0,
+   "spare1": 0,
+   "spare2": 0,
+   "size": 1412,
+   "legend": {
+    "00": "blank",
+    "1d": "non_solid",
+    "1e": "non_solid",
+    "26": "non_solid",
+    "27": "non_solid",
+    "96": "solid_interactive_down",
+    "97": "solid_interactive_down",
+    "a7": "solid",
+    "a8": "solid",
+    "d4": "solid",
+    "d5": "solid",
+    "d6": "solid",
+    "d7": "solid",
+    "d8": "solid",
+    "d9": "solid",
+    "da": "solid",
+    "db": "solid",
+    "dd": "solid"
+   },
+   "tiles": [
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 d4 d6 d6 d6 d6 d6 d6 d7 00 00 00 00 00 00 00 00 00 00 00 00 00 00 d4 d6 d6 d6 d6 d6 d6 d6 d6 d7 00 00 00 00 00 00 00 00 00 00 00 00 00 00 d9 d9 d9 d9 d9 d9 d9 d9 d9 d9 d9 d9 d9 d9 d9",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 d4 d6 d6 d6 d6 d7 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 d4 d6 d6 d6 d6 d6 d6 d6 d7 00 00 00 00 00 00 00 00 00 00 00 00 00 00 d9 d9 00 00 00 00 00 00 00 00 00 00 00 d9 d9",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1d 00 00 1d 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1d 00 db 00 00 db 1d 00 00 00 00 00 00 00 00 00 96 97 00 00 00 00 d9 d9 00 00 00 00 00 00 00 00 00 00 00 d9 d9",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 d5 d6 d6 d6 d7 00 00 00 00 00 00 00 00 1d 00 00 1d 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1d 00 00 00 00 00 1d 00 00 00 26 26 26 26 26 26 a7 a8 26 26 27 00 d9 d9 00 00 00 00 00 00 00 00 00 00 00 d9 d9",
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 da 00 00 00 00 00 00 1d 00 00 00 d4 d6 d7 00 00 00 00 00 00 1d 00 00 1d 00 00 00 00 00 00 00 d5 d6 d6 d7 00 00 00 00 00 00 00 1d 00 00 00 00 00 1d 00 00 00 d5 d6 d6 d6 d6 d6 d6 d6 d6 d7 00 00 d9 d9 00 00 00 00 00 00 00 00 00 00 00 d9 d9",
+    "00 00 00 00 00 00 00 00 00 00 00 00 d5 d6 d7 00 00 dd 00 00 00 00 00 da 00 00 d8 00 00 00 00 00 00 1e 00 00 00 00 d4 d6 d6 d7 00 dd 00 00 1d 00 00 1d 00 00 00 00 00 00 00 1d 00 d4 d6 d7 00 00 00 da 00 00 1d 00 00 00 00 00 1d 00 00 00 1d 00 d4 d6 d6 d6 d6 d6 d6 d7 00 00 d9 d9 00 00 00 00 00 00 00 00 00 00 00 d9 d9",
+    "00 d4 d6 d6 d6 d6 d7 00 00 00 00 00 1d 00 d4 d6 d6 d6 d7 00 00 00 00 d8 00 00 d9 00 00 dd d5 d6 d6 d7 00 00 00 00 00 d4 d6 d6 d6 d7 00 00 1e 00 00 1e 00 00 00 00 da 00 00 1e 00 00 d4 d6 d7 00 00 d8 00 00 1e 00 00 00 00 00 1e 00 00 00 1e 00 00 d4 d6 d6 d6 d6 d6 d7 00 00 d9 d9 00 00 00 00 00 00 00 00 00 00 00 d9 d9",
+    "00 00 d4 d6 d6 d6 d7 00 00 00 da 00 1e 00 00 d4 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d7 00 00 00 00 00 00 00 d4 d6 d6 d6 d6 d6 d7 00 00 d5 d6 d6 d6 d6 d6 d6 d6 d7 00 00 00 d4 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d7 00 00 00 d4 d6 d6 d6 d7 00 00 00 d9 d9 00 00 d8 d8 d8 00 00 00 00 00 00 d9 d9",
+    "00 00 00 d4 d6 d6 d6 d6 d6 d6 d6 d6 d7 00 00 00 d4 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d6 d7 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 d4 d6 d7 00 00 00 00 d9 d9 d8 d8 d9 d9 d9 d8 d8 d8 d8 d8 d8 d9 d9",
+    "00 00 00 00 d4 d6 d6 d6 d6 d6 d6 d7 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 d9 d9 d9 d9 d9 d9 d9 d9 d9 d9 d9 d9 d9 d9 d9"
+   ],
+   "enemies": [
+    {
+     "model": "horizontal_cannon",
+     "x": 10,
+     "y": 7,
+     "face": 0,
+     "interval": 75
+    },
+    {
+     "model": "horizontal_cannon",
+     "x": 26,
+     "y": 4,
+     "face": 0,
+     "interval": 75
+    },
+    {
+     "model": "horizontal_cannon",
+     "x": 65,
+     "y": 5,
+     "face": 0,
+     "interval": 75
+    },
+    {
+     "model": "horizontal_cannon",
+     "x": 23,
+     "y": 5,
+     "face": -1,
+     "interval": 75
+    },
+    {
+     "model": "horizontal_cannon",
+     "x": 54,
+     "y": 6,
+     "face": -1,
+     "interval": 75
+    },
+    {
+     "model": "diagonal_cannon",
+     "x": 29,
+     "y": 6,
+     "interval": 40,
+     "dx": -2,
+     "dy": -2
+    },
+    {
+     "model": "diagonal_cannon",
+     "x": 17,
+     "y": 5,
+     "interval": 40,
+     "dx": -2,
+     "dy": -2
+    },
+    {
+     "model": "diagonal_cannon",
+     "x": 73,
+     "y": 2,
+     "interval": 40,
+     "dx": -2,
+     "dy": 2
+    },
+    {
+     "model": "diagonal_cannon",
+     "x": 43,
+     "y": 5,
+     "interval": 50,
+     "dx": -2,
+     "dy": -2
+    },
+    {
+     "model": "diagonal_cannon",
+     "x": 70,
+     "y": 2,
+     "interval": 60,
+     "dx": -2,
+     "dy": 2
+    }
+   ],
+   "triggers": [
+    {
+     "x": 84,
+     "y": 2,
+     "new_x": 94,
+     "new_y": 2,
+     "border_left": 90,
+     "border_right": 105,
+     "anim": "none",
+     "new_bg": 8,
+     "new_bg_offset": 0
+    }
+   ],
+   "platforms": [],
+   "bosses": [
+    {
+     "model": "koopa_kid",
+     "x": 100,
+     "y": 7
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,31 @@
+{
+ "format": 1,
+ "name": "sm68k",
+ "tag": "MLST",
+ "mode": 1,
+ "current_world": 0,
+ "compatibility": 1,
+ "title": "Super Mario 68K",
+ "savegames": [
+  0,
+  0,
+  0
+ ],
+ "savegame_sizes": [
+  0,
+  0,
+  0
+ ],
+ "spare": 0,
+ "files": [
+  "world1",
+  "world2",
+  "world3",
+  "world4",
+  "world5",
+  "world6",
+  "world7",
+  "world8",
+  "common"
+ ]
+}
