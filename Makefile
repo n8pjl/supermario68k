@@ -75,7 +75,7 @@ HDRS = $(wildcard $(SRCDIR)/*.h $(SRCDIR)/compat/*.h)
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(OBJS:.o=.d)
 
-.PHONY: all clean data format typecheck
+.PHONY: all clean data format typecheck verify-levels
 
 all: speedrun.js $(DIST)
 
@@ -84,10 +84,28 @@ all: speedrun.js $(DIST)
 # reproduces the shipped bytes exactly.
 LEVELS = $(wildcard levels/*.json)
 
+# The level tool's round-trip test: decode the shipped calculator variables,
+# encode the result again, and require the original bytes back. It guards the
+# assumptions the encoder is built on - the model-dependent record lengths, the
+# RLE encoder matching rle.cpp, the fields carried verbatim - any of which
+# would otherwise fail silently, because nothing downstream of here bounds-
+# checks a level.
+#
+# It reads calc-data/ and never looks at levels/, which is what makes it safe
+# to run on every build: it stays true after a level is deliberately edited.
+# For the other question - whether levels/ is still the game as it shipped -
+# run `make verify-levels`, which does compare the two and so is expected to
+# fail once a level has been changed on purpose.
+LEVELCHECK = .levelcheck-stamp
+
+$(LEVELCHECK): tools/mklevels.py $(wildcard calc-data/*.9x*)
+	python3 tools/mklevels.py --selftest calc-data
+	@touch $@
+
 # Both tools read the asset list out of assets.cpp and check their half of it,
 # so a file added or renamed there has to run them again.
 .data-stamp: tools/mkdata.py tools/mklevels.py $(LEVELS) \
-             $(SRCDIR)/compat/assets.cpp
+             $(SRCDIR)/compat/assets.cpp $(LEVELCHECK)
 	python3 tools/mkdata.py calc-data data
 	python3 tools/mklevels.py levels data
 	@touch $@
@@ -156,9 +174,16 @@ format: $(SRCS) $(HDRS)
 
 typecheck: $(TYPECHECK)
 
+# Not part of the build: this one does compare levels/ against the shipped
+# data, so it answers "is this still the original game" rather than "does the
+# tool round-trip". Expected to fail once a level has been edited on purpose.
+verify-levels:
+	python3 tools/mklevels.py --verify levels calc-data
+
 
 -include $(DEPS)
 
 clean:
-	rm -f $(OBJS) $(DEPS) .data-stamp $(DIST) $(TYPECHECK) speedrun.js
+	rm -f $(OBJS) $(DEPS) .data-stamp $(LEVELCHECK) $(DIST) $(TYPECHECK) \
+	      speedrun.js
 	rm -rf $(OUTDIR) $(BUILDDIR) data

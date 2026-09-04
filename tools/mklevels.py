@@ -52,9 +52,14 @@ by its slot number, so "levels" is keyed by slot and its key order is the
 physical order in the file. Preserve both and the offsets fall out.
 
 Usage:
-  mklevels.py <json dir> <out dir>            JSON -> data/*.bin
-  mklevels.py --decode <bin dir> <json dir>   data/*.bin -> JSON
-  mklevels.py --verify <json dir> <bin dir>   encode and byte-compare
+  mklevels.py <json dir> <out dir>             JSON -> data/*.bin
+  mklevels.py --decode <src dir> <json dir>    calc-data/ or data/ -> JSON
+  mklevels.py --selftest [<src dir>]           decode and re-encode the
+                                               originals; require the bytes
+                                               back. Tests the tool, not
+                                               levels/, so it survives edits.
+  mklevels.py --verify <json dir> <src dir>    is levels/ still the shipped
+                                               data, byte for byte?
 """
 import json
 import os
@@ -62,7 +67,7 @@ import re
 import struct
 import sys
 
-from mkdata import declared_assets
+from mkdata import declared_assets, swap, unwrap
 
 SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src")
 
@@ -966,6 +971,52 @@ def encode_file(doc):
     return encode_world(doc)
 
 
+# The 16-bit runs mkdata.py used to swap in these two files before it handed
+# them over. They live here now, and only so that the shipped calculator files
+# can be read back for the round-trip test: the swaps are what turns the
+# big-endian m68k originals into the little-endian form encode_world() and
+# encode_levelset() write. Everything else in a level file is either bytes or
+# left big-endian for Load_level() and Swap_map_payload() to deal with.
+LEVELFILEDATA_RUNS = [(0, 22)]   # Nr_of_levels, Total_size, Levels[20]
+MAPDATA_RUNS = [(0, 14)]         # the whole of struct map_data
+LEVELSETDATA_RUNS = [(4, 8)]     # Compatibility, Savegames[3], sizes[3], Spare
+
+CALC_EXTENSIONS = (".9xz", ".9xy", ".89z", ".89y")
+
+
+def to_wasm_byte_order(content, tag):
+    """One variable file's contents, swapped the way the build wants them."""
+    b = bytearray(content)
+    if tag == "MLST":
+        swap(b, 0, LEVELSETDATA_RUNS)
+    elif tag == "MLEV":
+        swap(b, 0, LEVELFILEDATA_RUNS)
+        swap(b, SIZEOF_LEVELFILEDATA, MAPDATA_RUNS)
+    else:
+        raise ValueError("%s is not a level file tag" % tag)
+    return bytes(b)
+
+
+def read_source(srcdir, name):
+    """`name`'s blob, from a directory of either .bin files or .9x* variables.
+
+    So that --decode and the round-trip test can both be pointed straight at
+    calc-data/, which is the provenance, rather than at data/, which this tool
+    now writes itself and could not meaningfully be checked against.
+    """
+    path = os.path.join(srcdir, name + ".bin")
+    if os.path.exists(path):
+        return open(path, "rb").read()
+    for ext in CALC_EXTENSIONS:
+        path = os.path.join(srcdir, name + ext)
+        if not os.path.exists(path):
+            continue
+        _, content = unwrap(open(path, "rb").read(), name)
+        return to_wasm_byte_order(content, tag_of(content))
+    raise ValueError("%s: no %s.bin or %s%s in %s"
+                     % (name, name, name, CALC_EXTENSIONS[0], srcdir))
+
+
 def read_json(jsondir, name):
     with open(os.path.join(jsondir, name + ".json")) as f:
         return json.load(f)
@@ -977,10 +1028,10 @@ def write_json(jsondir, name, doc):
         f.write("\n")
 
 
-def do_decode(bindir, jsondir):
+def do_decode(srcdir, jsondir):
     os.makedirs(jsondir, exist_ok=True)
     for name in WORLDS + [LEVELSET]:
-        content = open(os.path.join(bindir, name + ".bin"), "rb").read()
+        content = read_source(srcdir, name)
         doc = decode_file(name, content)
         write_json(jsondir, name, doc)
         levels = len(doc.get("levels", {}))
@@ -1008,21 +1059,48 @@ def do_encode(jsondir, outdir):
                  % (sorted(declared.items()), sorted(written.items())))
 
 
-def do_verify(jsondir, bindir):
+def compare(name, got, want):
+    """Report one blob against its reference; True if they differ."""
+    if got == want:
+        print("%-8s ok   %6d bytes" % (name, len(got)))
+        return False
+    if len(got) != len(want):
+        print("%-8s SIZE %d, want %d" % (name, len(got), len(want)))
+        return True
+    first = next(i for i, (a, b) in enumerate(zip(got, want)) if a != b)
+    differ = sum(1 for a, b in zip(got, want) if a != b)
+    print("%-8s DIFF %d bytes, first at %d" % (name, differ, first))
+    return True
+
+
+def do_selftest(srcdir):
+    """Decode the shipped files and encode them again; require the bytes back.
+
+    This tests the tool rather than levels/, which is what makes it safe to
+    run on every build: it stays true after a level is edited, because it
+    never looks at levels/ at all. What it catches is a change to the decoder
+    or the encoder that quietly stops being reversible - a record length that
+    no longer matches Load_level(), a field dropped on the way through.
+    """
     bad = 0
     for name in WORLDS + [LEVELSET]:
-        want = open(os.path.join(bindir, name + ".bin"), "rb").read()
-        got = encode_file(read_json(jsondir, name))
-        if got == want:
-            print("%-8s ok   %6d bytes" % (name, len(got)))
-            continue
-        bad += 1
-        if len(got) != len(want):
-            print("%-8s SIZE %d, want %d" % (name, len(got), len(want)))
-            continue
-        first = next(i for i, (a, b) in enumerate(zip(got, want)) if a != b)
-        differ = sum(1 for a, b in zip(got, want) if a != b)
-        print("%-8s DIFF %d bytes, first at %d" % (name, differ, first))
+        want = read_source(srcdir, name)
+        bad += compare(name, encode_file(decode_file(name, want)), want)
+    return bad
+
+
+def do_verify(jsondir, srcdir):
+    """Check levels/ still encodes to the shipped data, byte for byte.
+
+    Unlike the self-test this does look at levels/, so it fails once a level
+    is deliberately changed. That is the point of it: it answers "is this
+    still the game as it shipped", which is worth asking after a refactor and
+    not worth asking after a level edit.
+    """
+    bad = 0
+    for name in WORLDS + [LEVELSET]:
+        bad += compare(name, encode_file(read_json(jsondir, name)),
+                       read_source(srcdir, name))
     return bad
 
 
@@ -1033,9 +1111,12 @@ def main():
     try:
         if args and args[0] == "--decode":
             do_decode(args[1], args[2])
+        elif args and args[0] == "--selftest":
+            if do_selftest(args[1] if len(args) > 1 else "calc-data"):
+                sys.exit("decoding and re-encoding does not round-trip")
         elif args and args[0] == "--verify":
             if do_verify(args[1], args[2]):
-                sys.exit("encoded output does not match the shipped blobs")
+                sys.exit("levels/ no longer encodes to the shipped data")
         else:
             do_encode(args[0] if args else "levels",
                       args[1] if len(args) > 1 else "data")
