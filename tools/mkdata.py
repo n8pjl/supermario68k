@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Turn the shipped TI variable files into the blobs the wasm build loads.
+"""Turn the shipped TI graphics variables into the blobs the wasm build loads.
+
+The level data no longer comes through here: the worlds and the levelset are
+built from the JSON under levels/ by tools/mklevels.py, which owns their
+MLEV and MLST tags. What is left is the three graphics blobs - ma_tiles,
+ma_sprts and ma_bckgr - which are still converted straight from calc-data.
 
 Two jobs:
 
@@ -14,10 +19,6 @@ Two jobs:
    big-endian m68k; wasm is little-endian. What must be left alone is whatever
    the game reads a byte at a time:
 
-     - Level payloads (enemies, flying platforms, triggers) are read one
-       unsigned char at a time by level.c, so they are NOT touched. Neither
-       are the level headers, which Load_level() swaps as it reads them - see
-       Swap_leveldata() there for why they cannot be done here.
      - Inside the GFX blobs, the two byte-addressed regions - Smallsprites
        (8-pixel-wide sprites, one byte per row) and the Games blob - are NOT
        touched. Everything else in them is.
@@ -41,15 +42,13 @@ import struct
 import sys
 
 # (offset, count) runs of unsigned short within each struct, TIGCC layout.
-LEVELSETDATA = [(4, 8)]          # Compatibility, Savegames[3], Savegame_size[3], Spare
-GAMETEXTDATA = [(0, 24)]         # 24 string offsets
-LEVELFILEDATA = [(0, 22)]        # Nr_of_levels, Total_size, Levels[20]
-SIZEOF_LEVELFILEDATA = 66        # + char Mode + char Name[20], padded to even
-MAPDATA = [(0, 14)]              # 14 shorts, the whole of struct map_data
-SIZEOF_MAPDATA = 28
 BGFILEDATA = [(2, 21)]           # char Nr_of_bgs + pad, then Backgrounds[20], Size
 SIZEOF_BGFILEDATA = 44
 BGDATA = [(0, 2)]                # Height, Width
+
+# The tags this tool owns. Everything else in calc-data/ is level data and
+# belongs to mklevels.py.
+GRAPHICS_TAGS = frozenset(("GFX", "MBG"))
 
 
 SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src")
@@ -65,6 +64,10 @@ def declared_assets():
     data/. A mismatch either way is a build error - a file nobody embeds is
     dead weight, and an entry with no file would fail to compile anyway, but
     with a #embed error naming a path rather than anything about the levelset.
+
+    Two tools fill data/ now, so each checks its own half: the GFX and MBG
+    entries are this one's, the MLEV and MLST entries are mklevels.py's.
+    Between them every entry is accounted for.
     """
     src = open(ASSETS_SOURCE).read()
     body = re.search(r"#define ASSET_LIST\(X\)(.*?)\n\n", src, re.S)
@@ -207,19 +210,7 @@ def tag_of(content):
 
 def convert(content, tag, name):
     b = bytearray(content)
-    if tag == "MLST":
-        swap(b, 0, LEVELSETDATA)
-    elif tag == "MTXT":
-        swap(b, 0, GAMETEXTDATA)
-    elif tag == "MLEV":
-        # Only the two structures at fixed offsets. The per-level headers are
-        # swapped by Load_level() at load time instead: their offsets are in
-        # Levels[], whose valid length is not recorded anywhere - Nr_of_levels
-        # says 1 for common, which has at least eight levels - and whose
-        # trailing entries are junk. See Swap_leveldata() in level.c.
-        swap(b, 0, LEVELFILEDATA)
-        swap(b, SIZEOF_LEVELFILEDATA, MAPDATA)
-    elif tag == "MBG":
+    if tag == "MBG":
         swap(b, 0, BGFILEDATA)
         swap_backgrounds(b, name, len(content) - (len(tag) + 3))
     elif tag == "GFX":
@@ -244,7 +235,8 @@ def main():
     src = sys.argv[1] if len(sys.argv) > 1 else "calc-data"
     out = sys.argv[2] if len(sys.argv) > 2 else "data"
     os.makedirs(out, exist_ok=True)
-    declared = declared_assets()
+    declared = {name: tag for name, tag in declared_assets().items()
+                if tag in GRAPHICS_TAGS}
     converted = {}
     # Data variables: .89y/.89z on the TI-89, .9xy/.9xz on the 92+ and V200.
     # The .89p/.9xp/.v2y/.v2z files are the calculator executable itself.
@@ -258,13 +250,17 @@ def main():
             sys.exit(str(e))
         name = os.path.splitext(fn)[0]
         tag = tag_of(content)
+        # The worlds and the levelset live in the same directory and are built
+        # from levels/ instead; skip them rather than converting them twice.
+        if tag not in GRAPHICS_TAGS:
+            continue
         body = convert(content, tag, name)
         converted[name] = tag
         open(os.path.join(out, name + ".bin"), "wb").write(body)
         print("%-10s %-5s %6d bytes" % (name, tag or "-", len(body)))
 
     if converted != declared:
-        sys.exit("%s: ASSET_LIST is %s, data/ is %s"
+        sys.exit("%s: ASSET_LIST graphics entries are %s, data/ has %s"
                  % (ASSETS_SOURCE, sorted(declared.items()),
                     sorted(converted.items())))
 
