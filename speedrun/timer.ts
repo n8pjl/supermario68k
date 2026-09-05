@@ -15,6 +15,7 @@ import { entersMultipleWorlds, groupSplits } from "./groups.ts";
 import {
   type Route,
   type RouteSplit,
+  type Trigger,
   timedSplits,
   triggered,
 } from "./route.ts";
@@ -106,6 +107,36 @@ export interface TimerView {
 
 /** A view but for the two figures that move with the clock; see #settledView. */
 type SettledView = Omit<TimerView, "elapsed" | "pace">;
+
+/**
+ * The split one event closes on a route being written, or null for an event
+ * that closes none.
+ *
+ * Two events do: a stage beaten, and an overworld monster beaten. Both are
+ * something the player went into and came back from, and both are named by
+ * what they were rather than by when they happened - the id is what a saved
+ * time is tied to, so it has to come out the same on the next run of the
+ * route. The monster is named by its map object rather than by the arena it
+ * loaded, which is shared between every monster of its kind (see events.ts).
+ */
+function closes(event: GameEvent): { id: string; on: Trigger } | null {
+  switch (event.kind) {
+    case "level-completed":
+      return {
+        id: `w${event.world}-l${event.level}`,
+        on: { kind: event.kind, world: event.world, level: event.level },
+      };
+
+    case "monster-defeated":
+      return {
+        id: `w${event.world}-m${event.monster}`,
+        on: { kind: event.kind, world: event.world, monster: event.monster },
+      };
+
+    default:
+      return null;
+  }
+}
 
 export class SpeedrunTimer {
   /**
@@ -475,7 +506,8 @@ export class SpeedrunTimer {
       return;
     }
 
-    if (event.kind !== "level-completed") return;
+    const closed = closes(event);
+    if (closed === null) return;
 
     // Numbered rather than named: nothing here knows what the level is called,
     // and a guess at it would be a name the player has to correct rather than
@@ -485,9 +517,9 @@ export class SpeedrunTimer {
     // renaming costs nothing.
     const number = timedSplits(this.#recorded).length + 1;
     const split: RouteSplit = {
-      id: `w${event.world}-l${event.level}`,
+      id: closed.id,
       name: `Split ${number}`,
-      on: { kind: "level-completed", world: event.world, level: event.level },
+      on: closed.on,
     };
 
     this.#recorded.push(split);

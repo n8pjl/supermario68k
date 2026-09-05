@@ -28,6 +28,12 @@ EMSCRIPTEN_BINDINGS(speedrun)
 	emscripten::value_object<LevelCompleted>("LevelCompleted")
 		.field("world", &LevelCompleted::world)
 		.field("level", &LevelCompleted::level);
+	emscripten::value_object<MonsterFought>("MonsterFought")
+		.field("world", &MonsterFought::world)
+		.field("monster", &MonsterFought::monster);
+	emscripten::value_object<MonsterDefeated>("MonsterDefeated")
+		.field("world", &MonsterDefeated::world)
+		.field("monster", &MonsterDefeated::monster);
 }
 
 namespace
@@ -35,13 +41,18 @@ namespace
 
 struct Playing {
 	int world;
-	int level;
+	// The level's index in the world file, or, where `monster` is set, the
+	// monster's index in the map's objects. Which of the two it is decides
+	// what beating it reports, and nothing else here looks at it.
+	int index;
+	bool monster;
 	bool reported;
 };
 
-// The level being played, if one is. Let go of when the level returns, so that
-// a bonus room or a pipe passage - neither of which is a level, and neither of
-// which reports - cannot be taken for the level before it.
+// What is being played, if anything is: a level, or the fight an overworld
+// monster drops the player into. Let go of when it returns, so that a bonus
+// room or a pipe passage - neither of which is either, and neither of which
+// reports - cannot be taken for the one before it.
 std::optional<Playing> playing;
 
 }
@@ -82,9 +93,22 @@ void report(const Event &event)
 
 void entered_level(int world, int level)
 {
-	playing = Playing{ .world = world, .level = level, .reported = false };
+	playing = Playing{ .world = world,
+			   .index = level,
+			   .monster = false,
+			   .reported = false };
 
 	report(LevelEntered{ .world = world, .level = level });
+}
+
+void entered_monster(int world, int monster)
+{
+	playing = Playing{ .world = world,
+			   .index = monster,
+			   .monster = true,
+			   .reported = false };
+
+	report(MonsterFought{ .world = world, .monster = monster });
 }
 
 void cleared_level()
@@ -95,8 +119,14 @@ void cleared_level()
 
 	playing->reported = true;
 
+	if (playing->monster) {
+		report(MonsterDefeated{ .world = playing->world,
+					.monster = playing->index });
+		return;
+	}
+
 	report(LevelCompleted{ .world = playing->world,
-			       .level = playing->level });
+			       .level = playing->index });
 }
 
 void left_level(bool completed)

@@ -1531,6 +1531,14 @@ void Fight_monster(struct map_object *Monster)
 
 	Load_level(Commonfilename, Monster->Mode - 1);
 
+	// The object's index rather than the level just loaded: the arena is a
+	// level of the common file, shared by every monster of that kind in the
+	// game, so the level number says which sort of Bros. this is and nothing
+	// about which of them it is. The index in the map file does, and it is
+	// the same one next run.
+	speedrun::entered_monster(Levelsetdata.CurrentWorld,
+				  (int)(Monster - Map_objects));
+
 	for (C = 0; C < Leveldata.Nr_of_enemies; C++) {
 		Enemies[C].Life = Monster->Treasure;
 	}
@@ -1545,6 +1553,11 @@ void Fight_monster(struct map_object *Monster)
   FgY=OldFgY;
   */
 	Play_level();
+
+	// Nothing inside the fight reports winning it - it ends by collecting
+	// the treasure the last one drops, which is not a goal or a boss - so
+	// the game's own verdict on the way out is what closes the split.
+	speedrun::left_level(Exit == 2);
 
 	SavePlayer.Attribs = SavePlayer.Attribs &
 			     0b01110111; // disable star and p-wing

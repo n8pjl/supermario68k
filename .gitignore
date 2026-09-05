@@ -17,6 +17,7 @@ speedrun.js
 .calc-stamp
 .data-stamp
 .levelcheck-stamp
+.stagecheck-stamp
 .dist-stamp
 .typecheck-stamp
 # Python bytecode from the tools

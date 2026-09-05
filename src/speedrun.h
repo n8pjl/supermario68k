@@ -83,8 +83,32 @@ struct LevelCompleted {
 	int level;
 };
 
+// An overworld monster was walked into: the Hammer Bros. and the Boomerang,
+// Fire and Sledge Bros. that share their handler. They are map objects rather
+// than map tiles, so they are entered from Fight_monster() rather than from the
+// map's level path, and `monster` is the object's index in the world's map
+// file. That index, and not the level, is what tells two of them apart: the
+// arena they drop into is a level of the common file, shared between every
+// monster of that kind in the game.
+struct MonsterFought {
+	static constexpr std::string_view kind = "monster-fought";
+
+	int world;
+	int monster;
+};
+
+// That monster was beaten, rather than run from or died to. Raised where the
+// game concluded as much, the same as a level.
+struct MonsterDefeated {
+	static constexpr std::string_view kind = "monster-defeated";
+
+	int world;
+	int monster;
+};
+
 using Event = std::variant<RunStarted, RunAbandoned, RunEnded, WorldEntered,
-			   WarpTaken, LevelEntered, LevelCompleted>;
+			   WarpTaken, LevelEntered, LevelCompleted,
+			   MonsterFought, MonsterDefeated>;
 
 // Thrown out of report() when the shell says the run it was timing is over
 // while the game is not: a route being recorded reached the end of the category
@@ -103,17 +127,24 @@ struct Stopped {};
 // game should stop, which it only does for a recording that has just finished.
 void report(const Event &event);
 
-// The three below are the level's own story, told by three places that each
-// know one part of it. The level being played is remembered between them, so
-// that the code which knows a level has been beaten - deep in items.cpp, where
-// the goal is touched and the dead boss is collected - does not have to know
-// which level that was, or have it threaded down through a dozen handlers with
-// no use for it.
+// The four below are the level's own story, told by four places that each know
+// one part of it. What is being played is remembered between them, so that the
+// code which knows it has been beaten - deep in items.cpp, where the goal is
+// touched and the dead boss is collected - does not have to know what it was,
+// or have it threaded down through a dozen handlers with no use for it.
+//
+// A monster fight is one of those things being played: it is a level of the
+// common file, entered from the map and returned from the same way, so the two
+// below it are shared with it and report whichever of the two was entered.
 
 // A level was started from the world map. Reports LevelEntered.
 void entered_level(int world, int level);
 
-// It has just been won.
+// An overworld monster was walked into. Reports MonsterFought.
+void entered_monster(int world, int monster);
+
+// It has just been won. Reports LevelCompleted, or MonsterDefeated where what
+// is being played is a monster fight.
 //
 // Reported from the moment of winning rather than from the map's check for it
 // afterwards, because everything in between is the reward animation - the walk
@@ -123,7 +154,7 @@ void entered_level(int world, int level);
 void cleared_level();
 
 // It has returned to the map. `completed` is the game's own verdict on it: if
-// that says the level was beaten and nothing inside it said so first - a way of
+// that says it was beaten and nothing inside it said so first - a way of
 // winning that is not instrumented - the split lands here instead, late but not
 // lost.
 void left_level(bool completed);

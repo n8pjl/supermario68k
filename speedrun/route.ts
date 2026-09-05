@@ -23,6 +23,8 @@ export interface Trigger {
   readonly kind: EventKind;
   readonly world?: number;
   readonly level?: number;
+  /** The map object an overworld monster event is about; see events.ts. */
+  readonly monster?: number;
 }
 
 export interface RouteSplit {
@@ -60,10 +62,12 @@ export function timedSplits(
 export function triggered(on: Trigger, event: GameEvent): boolean {
   if (on.kind !== event.kind) return false;
 
-  const seen: Partial<Record<"world" | "level", number>> = event as never;
+  const seen: Partial<Record<"world" | "level" | "monster", number>> =
+    event as never;
 
   if (on.world !== undefined && on.world !== seen.world) return false;
   if (on.level !== undefined && on.level !== seen.level) return false;
+  if (on.monster !== undefined && on.monster !== seen.monster) return false;
 
   return true;
 }
@@ -96,11 +100,16 @@ function parseTrigger(value: unknown): Trigger | null {
   // Built one field at a time rather than spread: an absent field and one
   // present as undefined mean different things to a trigger, and only the
   // first of those is "do not care".
-  const trigger: { kind: EventKind; world?: number; level?: number } = {
+  const trigger: {
+    kind: EventKind;
+    world?: number;
+    level?: number;
+    monster?: number;
+  } = {
     kind: raw["kind"],
   };
 
-  for (const field of ["world", "level"] as const) {
+  for (const field of ["world", "level", "monster"] as const) {
     if (raw[field] === undefined) continue;
 
     const n = asIndex(raw[field]);

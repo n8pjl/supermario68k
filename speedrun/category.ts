@@ -18,12 +18,20 @@
 // Hardcoded is also what makes them checkable. Each carries `admits`, which
 // reads a route's splits and says whether that route obeys the rules; a Route
 // value only exists once its category has admitted it (see route.ts), so
-// nothing downstream has to ask again. Two of them have something to check: a
-// warpless route is one the game never reported a warp during, and a World 1
-// route has to stay in world 1 and stop at its castle.
+// nothing downstream has to ask again. Three of them have something to check: a
+// warpless route is one the game never reported a warp during, a World 1 route
+// has to stay in world 1 and stop at its castle, and a 100% route has to have
+// been through every stage and every overworld monster there is.
+//
+// That last one is the one rule that is not about the run alone: what there is
+// to have been through is a fact about the level set, so it is read from
+// stages.ts, which is generated from levels/ and checked against it on every
+// build. A stage added to a map is then a stage this category asks for, rather
+// than one it quietly stops asking for.
 
-import { CASTLE_LEVEL } from "./events.ts";
-import { type RouteSplit } from "./route.ts";
+import { BOWSER_LEVEL, CASTLE_LEVEL } from "./events.ts";
+import { type RouteSplit, type Trigger } from "./route.ts";
+import { STAGES } from "./stages.ts";
 
 /**
  * Every category there is.
@@ -33,7 +41,7 @@ import { type RouteSplit } from "./route.ts";
  * or defined here under the wrong id, is a type error rather than a category
  * that quietly does not exist.
  */
-export type CategoryId = "any" | "any-warpless" | "world-1";
+export type CategoryId = "any" | "any-warpless" | "100" | "world-1";
 
 export interface Category {
   readonly id: CategoryId;
@@ -158,6 +166,110 @@ const WORLD_1 = {
   complete: endsAtWorld1Castle,
 } satisfies Category;
 
+// ---------------------------------------------------------------------------
+// 100%: every stage, and every overworld monster
+// ---------------------------------------------------------------------------
+
+/** One thing the rules ask for, in a form two lists of them can be compared by. */
+function stage(world: number, level: number): string {
+  return `w${world}l${level}`;
+}
+
+function fight(world: number, monster: number): string {
+  return `w${world}m${monster}`;
+}
+
+/**
+ * Bowser's castle, which is asked for like any other stage and closed unlike
+ * any other.
+ *
+ * Nothing ever reports it completed: the game does not come back to the map
+ * from it, so it arrives as `run-ended` (see events.ts). The last world is the
+ * one it is in, and the worlds are in order, so that is the last of them.
+ */
+const BOWSER_CASTLE = stage(STAGES.length - 1, BOWSER_LEVEL);
+
+/** Everything a 100% run has to have completed, stages and monsters together. */
+const REQUIRED: readonly string[] = STAGES.flatMap((world) => [
+  ...world.levels.map((level) => stage(world.world, level)),
+  ...world.monsters.map((monster) => fight(world.world, monster)),
+]);
+
+/**
+ * What closing this split proves was completed, or null where it proves
+ * nothing.
+ *
+ * "Proves" is why the world and the level both have to be pinned: a trigger
+ * that leaves a field off closes on any value of it (see route.ts), so
+ * { kind: "level-completed", world: 0 } is a split that closes on one of world
+ * 1's stages without saying which. That is a fine split to run on and no
+ * evidence at all that a particular stage was played, and this category is
+ * evidence.
+ */
+function completes(on: Trigger): string | null {
+  if (on.kind === "run-ended") return BOWSER_CASTLE;
+
+  if (on.world === undefined) return null;
+
+  if (on.kind === "level-completed" && on.level !== undefined) {
+    return stage(on.world, on.level);
+  }
+
+  if (on.kind === "monster-defeated" && on.monster !== undefined) {
+    return fight(on.world, on.monster);
+  }
+
+  return null;
+}
+
+/** Whether these splits close every stage and every fight the rules name. */
+function coversEverything(splits: readonly RouteSplit[]): boolean {
+  const done = new Set<string>();
+
+  for (const split of splits) {
+    const one = completes(split.on);
+
+    if (one !== null) done.add(one);
+  }
+
+  return REQUIRED.every((one) => done.has(one));
+}
+
+/**
+ * Modelled on Super Mario Bros. 3's 100%, which is the rule set this one is
+ * meant to be read against: every action stage, and every overworld Hammer
+ * Bros. including the Boomerang, Fire and Sledge variations.
+ *
+ * The two halves of that land on the two things this game has. An action stage
+ * is a level tile on a world map - numbered stages, fortresses, the castle or
+ * airship the map walks onto at the end of a world - and the plants and hands
+ * that stand in the way in SMB3's later worlds are, here, map objects fought
+ * where they stand, which is what the game's own code calls a monster and what
+ * the Hammer Bros. are too. So the list is stages and monsters, and stages.ts
+ * has both straight out of the maps.
+ *
+ * What SMB3 leaves out is left out here as well: mushroom houses, the card and
+ * roulette games and the overworld pipes are allowed and not required, and
+ * nothing asks about them because none of them reports (see src/speedrun.h).
+ */
+const HUNDRED = {
+  id: "100",
+  name: "100%",
+  rules:
+    "Beat the game, entering and completing every stage and every overworld " +
+    "Hammer Bros. Mushroom houses, card games and pipes are allowed but not " +
+    "required.",
+  // Which is the whole of the rule, and it is a rule warps cannot be run
+  // around: a warp skips worlds, and every one of their stages is on this
+  // list. So there is nothing to say about warping here that the stages do
+  // not already say.
+  admits: coversEverything,
+  // Over when the game is, like Any%. The last thing the rules ask for is
+  // Bowser's castle, and beating him is what ends a run from the game's side -
+  // so there is no end here that the splits could reach first.
+  complete: () => false,
+} satisfies Category;
+
 /**
  * Lookup, keyed so that the key and the category's own id cannot disagree.
  *
@@ -167,11 +279,17 @@ const WORLD_1 = {
 const BY_ID: Readonly<{ [K in CategoryId]: Category & { readonly id: K } }> = {
   any: ANY,
   "any-warpless": ANY_WARPLESS,
+  "100": HUNDRED,
   "world-1": WORLD_1,
 };
 
 /** Every category, in the order they are offered. */
-export const CATEGORIES: readonly Category[] = [ANY, ANY_WARPLESS, WORLD_1];
+export const CATEGORIES: readonly Category[] = [
+  ANY,
+  ANY_WARPLESS,
+  HUNDRED,
+  WORLD_1,
+];
 
 /**
  * The category anything unplaceable ends up in.

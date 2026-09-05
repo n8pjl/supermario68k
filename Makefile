@@ -75,7 +75,7 @@ HDRS = $(wildcard $(SRCDIR)/*.h $(SRCDIR)/compat/*.h)
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(OBJS:.o=.d)
 
-.PHONY: all clean data format typecheck verify-levels
+.PHONY: all clean data format stages typecheck verify-levels
 
 all: speedrun.js $(DIST)
 
@@ -101,6 +101,26 @@ LEVELCHECK = .levelcheck-stamp
 $(LEVELCHECK): tools/mklevels.py $(wildcard calc-data/*.9x*)
 	python3 tools/mklevels.py --selftest calc-data
 	@touch $@
+
+# The 100% category's manifest: which stages and which overworld Hammer Bros.
+# there are to have been through. It is generated from levels/ - the timer
+# cannot tell a complete run from one that missed a fortress unless it is told
+# what there was to miss - but it is committed rather than built, because the
+# timer is bundled from speedrun/ as it stands and a generated module would
+# have to exist before make could see it.
+#
+# So the build checks the committed copy instead of writing it: edit a map and
+# this fails, rather than leaving a category quietly asking for a stage that is
+# no longer there. `make stages` writes the new one.
+STAGES = speedrun/stages.ts
+STAGECHECK = .stagecheck-stamp
+
+$(STAGECHECK): tools/mkstages.py $(LEVELS) $(STAGES) $(SRCDIR)/map.h
+	python3 tools/mkstages.py --check levels $(STAGES)
+	@touch $@
+
+stages:
+	python3 tools/mkstages.py levels $(STAGES)
 
 # Both tools read the asset list out of assets.cpp and check their half of it,
 # so a file added or renamed there has to run them again.
@@ -150,7 +170,7 @@ $(TSC): $(ESBUILD) ;
 
 # A type error fails the build rather than riding along into dist/: nothing
 # downstream of here would notice one, least of all esbuild.
-$(TYPECHECK): $(SPEEDRUN) tsconfig.json | $(TSC)
+$(TYPECHECK): $(SPEEDRUN) tsconfig.json $(STAGECHECK) | $(TSC)
 	$(TSC) --noEmit
 	@touch $@
 
@@ -184,6 +204,6 @@ verify-levels:
 -include $(DEPS)
 
 clean:
-	rm -f $(OBJS) $(DEPS) .data-stamp $(LEVELCHECK) $(DIST) $(TYPECHECK) \
-	      speedrun.js
+	rm -f $(OBJS) $(DEPS) .data-stamp $(LEVELCHECK) $(STAGECHECK) $(DIST) \
+	      $(TYPECHECK) speedrun.js
 	rm -rf $(OUTDIR) $(BUILDDIR) data

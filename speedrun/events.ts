@@ -50,6 +50,28 @@ export interface LevelCompleted {
   readonly level: number;
 }
 
+/**
+ * An overworld monster was walked into: a Hammer Bros. or one of the Boomerang,
+ * Fire and Sledge Bros. that share its handler.
+ *
+ * `monster` is the object's index in the world's map file, not a level. The
+ * arena it drops into is a level of the common file, shared by every monster of
+ * that kind in the game, so the level says which sort of Bros. this is and
+ * nothing about which of them - and 100% is a rule about which of them.
+ */
+export interface MonsterFought {
+  readonly kind: "monster-fought";
+  readonly world: number;
+  readonly monster: number;
+}
+
+/** That monster was beaten, rather than run from or died to. */
+export interface MonsterDefeated {
+  readonly kind: "monster-defeated";
+  readonly world: number;
+  readonly monster: number;
+}
+
 export type GameEvent =
   | RunStarted
   | RunAbandoned
@@ -57,7 +79,9 @@ export type GameEvent =
   | WorldEntered
   | WarpTaken
   | LevelEntered
-  | LevelCompleted;
+  | LevelCompleted
+  | MonsterFought
+  | MonsterDefeated;
 
 export type EventKind = GameEvent["kind"];
 
@@ -70,6 +94,8 @@ export const EVENT_KINDS: readonly EventKind[] = [
   "warp-taken",
   "level-entered",
   "level-completed",
+  "monster-fought",
+  "monster-defeated",
 ];
 
 export function isEventKind(value: unknown): value is EventKind {
@@ -84,6 +110,16 @@ export function isEventKind(value: unknown): value is EventKind {
  * same thing in every world, and the one a recorded route can name.
  */
 export const CASTLE_LEVEL = 7;
+
+/**
+ * The level index world 8 keeps Bowser's castle under.
+ *
+ * The one stage no split can name as completed: the game never returns to the
+ * map from it - the ending takes over the frame Bowser falls - so it is
+ * reported as `run-ended` and as nothing else. A category that asks for every
+ * stage has to know that (see category.ts).
+ */
+export const BOWSER_LEVEL = 19;
 
 /**
  * The world number the warp zone reports as.
