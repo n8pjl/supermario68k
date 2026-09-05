@@ -11,18 +11,45 @@
 
 import { type SplitGroup } from "./groups.ts";
 import { type Route, timedSplits } from "./route.ts";
-import { duration, parseDuration, shorter } from "./times.ts";
+import {
+  duration,
+  epoch,
+  parseDuration,
+  parseStamp,
+  shorter,
+} from "./times.ts";
 
 export interface SplitTime {
   readonly id: string;
   /** Time on the clock when the split closed; null if the run skipped it. */
   readonly at: Temporal.Duration | null;
+  /**
+   * The moment on the wall clock the split closed at - the end of its segment.
+   *
+   * The other half of `at`, and a different kind of answer: `at` is how far
+   * into the run it was, measured with a clock that cannot step backwards,
+   * while this is the evening it happened on. Nothing here reads it yet - it
+   * is kept so that a run already recorded can be asked about later.
+   *
+   * The epoch where there is nothing to say: a split the run skipped never
+   * closed, and a record written before this field existed never said. See
+   * `epoch()` in times.ts.
+   */
+  readonly when: Temporal.ZonedDateTime;
 }
 
 export interface RunRecord {
   readonly finished: boolean;
   readonly total: Temporal.Duration;
   readonly splits: readonly SplitTime[];
+  /**
+   * When the run ended, on the wall clock; see SplitTime.when.
+   *
+   * The end rather than the start, so that every stamp kept here is the same
+   * kind of thing: the moment the run or the segment it belongs to was over.
+   * The epoch where nothing recorded one.
+   */
+  readonly when: Temporal.ZonedDateTime;
 }
 
 export interface RouteRecord {
@@ -241,10 +268,21 @@ function parseRun(value: unknown): RunRecord | null {
     splits.push({
       id: split["id"],
       at: split["at"] === null ? null : parseDuration(split["at"]),
+      // Absent in a file written before the stamps, and absent for a split the
+      // run skipped. Both mean the same thing here - nobody wrote a moment
+      // down - so both read back as the epoch rather than failing the record:
+      // a time that has been kept for years is not worth throwing away over a
+      // field it predates.
+      when: parseStamp(split["when"]) ?? epoch(),
     });
   }
 
-  return { finished: raw["finished"] !== false, total, splits };
+  return {
+    finished: raw["finished"] !== false,
+    total,
+    splits,
+    when: parseStamp(raw["when"]) ?? epoch(),
+  };
 }
 
 export function parseRouteRecord(value: unknown): RouteRecord | null {
@@ -281,9 +319,11 @@ function runToJSON(run: RunRecord): unknown {
   return {
     finished: run.finished,
     total: run.total.toString(),
+    when: run.when.toString(),
     splits: run.splits.map((split) => ({
       id: split.id,
       at: split.at?.toString() ?? null,
+      when: split.when.toString(),
     })),
   };
 }

@@ -19,12 +19,47 @@ export function duration(ms: number): Temporal.Duration {
   });
 }
 
+/**
+ * When something happened, in the zone it happened in.
+ *
+ * Wall clock rather than the monotonic one a run is measured with: this says
+ * which evening a time was set on, which is a different question from how long
+ * it took and is the only one a calendar can answer.
+ */
+export function stamp(): Temporal.ZonedDateTime {
+  return Temporal.Now.zonedDateTimeISO();
+}
+
+/**
+ * The stamp a time carries when nothing recorded one.
+ *
+ * A function rather than a constant, and this is not a style choice: shell.js
+ * imports the timer on every browser and only then asks whether Temporal is
+ * there, so a module here that reaches for Temporal while it is being loaded
+ * would take the whole page down on the browsers the timer is meant to be
+ * quietly missing from.
+ */
+export function epoch(): Temporal.ZonedDateTime {
+  return new Temporal.ZonedDateTime(0n, "UTC");
+}
+
 /** A duration read back from a file, or null if it is not one. */
 export function parseDuration(value: unknown): Temporal.Duration | null {
   if (typeof value !== "string") return null;
 
   try {
     return Temporal.Duration.from(value);
+  } catch {
+    return null;
+  }
+}
+
+/** A stamp read back from a file, or null if it is not one. */
+export function parseStamp(value: unknown): Temporal.ZonedDateTime | null {
+  if (typeof value !== "string") return null;
+
+  try {
+    return Temporal.ZonedDateTime.from(value);
   } catch {
     return null;
   }

@@ -29,7 +29,7 @@ import {
   timeAt,
   withRun,
 } from "./records.ts";
-import { duration, shorter } from "./times.ts";
+import { duration, epoch, shorter, stamp } from "./times.ts";
 
 export type RunState = "idle" | "running" | "finished" | "abandoned";
 
@@ -197,6 +197,20 @@ export class SpeedrunTimer {
   #elapsed = 0;
   /** Cumulative milliseconds at each closed split; null where skipped. */
   #closed: (number | null)[] = [];
+  /**
+   * The moment on the wall clock each of those closed at, for the record.
+   *
+   * The end of the segment, which is what a stamp here is: the split closing is
+   * the event there is a moment for, and the one before it closing is where it
+   * began. Taken beside the milliseconds rather than worked out from them
+   * afterwards, because the two clocks are not the same clock - #elapsed comes
+   * from performance.now(), which is the one that cannot step backwards mid-run
+   * - and adding an offset from one to a reading of the other would be a moment
+   * nothing ever observed. Null where a split was skipped, and so never closed.
+   */
+  #stamps: (Temporal.ZonedDateTime | null)[] = [];
+  /** When the run ended, on the same wall clock. Null until it has. */
+  #endedAt: Temporal.ZonedDateTime | null = null;
   /** The split being run, one past the last once every split is closed. */
   #at = 0;
 
@@ -421,6 +435,8 @@ export class SpeedrunTimer {
     this.#origin = performance.now();
     this.#elapsed = 0;
     this.#closed = [];
+    this.#stamps = [];
+    this.#endedAt = null;
     this.#at = 0;
     this.#recordingRun = this.#recording;
     this.#completedRecording = false;
@@ -432,6 +448,8 @@ export class SpeedrunTimer {
 
   #stop(state: "finished" | "abandoned"): void {
     this.#state = state;
+    // Before the record is written below, which is what reads it.
+    this.#endedAt = stamp();
 
     if (this.#frame !== null) cancelAnimationFrame(this.#frame);
     this.#frame = null;
@@ -464,12 +482,17 @@ export class SpeedrunTimer {
     return {
       finished: this.#state === "finished",
       total: duration(this.#elapsed),
+      // The epoch stands for "nobody wrote a moment down", which is what a
+      // split that was skipped past has and what a run still going would have;
+      // see records.ts.
+      when: this.#endedAt ?? epoch(),
       splits: this.#splits.map((split, i) => {
         const ms = this.#closed[i];
 
         return {
           id: split.id,
           at: ms === undefined || ms === null ? null : duration(ms),
+          when: this.#stamps[i] ?? epoch(),
         };
       }),
     };
@@ -503,6 +526,7 @@ export class SpeedrunTimer {
     this.#elapsed = performance.now() - this.#origin;
 
     while (this.#at < at) this.#closed[this.#at++] = null;
+    this.#stamps[this.#at] = stamp();
     this.#closed[this.#at++] = this.#elapsed;
 
     // The route is out of splits, so the run is over. What finishes a run is
