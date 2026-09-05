@@ -198,6 +198,8 @@ const speedrunPanel = document.getElementById("speedrun");
 const speedrunOption = settings.elements.speedrun;
 const routeOption = document.getElementById("speedrun-route-option");
 const routeSelect = settings.elements.route;
+const worldsOption = document.getElementById("speedrun-worlds-option");
+const worldsCheck = settings.elements.worlds;
 const speedrunManage = document.getElementById("speedrun-manage");
 
 // The screens the two builds draw to, from init_calc_screen_constants() in
@@ -384,11 +386,13 @@ function showSpeedrun(wanted) {
       panel: speedrunPanel,
       manage: speedrunManage,
       routes: routeSelect,
+      worlds: worldsCheck,
     });
   }
 
   speedrunPanel.hidden = !wanted;
   routeOption.hidden = !wanted;
+  worldsOption.hidden = !wanted;
   speedrunManage.hidden = !wanted;
   fitCanvas();
 }

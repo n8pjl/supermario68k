@@ -177,6 +177,35 @@ export function sumOfBest(
   return total.round({ largestUnit: "hour", smallestUnit: "millisecond" });
 }
 
+/**
+ * The route run with every world at its best, or null if one has never closed.
+ *
+ * The world-at-a-time reading of the sum above, for a panel being read that
+ * way, and null for the same reason: a sum missing a world is not a time the
+ * route could be run in.
+ *
+ * It is not the split sum rounded differently, and it is never shorter than it:
+ * a world's best is one run of that world start to end, so unlike the sum of
+ * the splits it cannot be assembled out of levels from different attempts. Two
+ * honest figures about the same route - which is why the panel shows whichever
+ * one it is showing rows for.
+ */
+export function sumOfGroupBest(
+  groups: readonly SplitGroup[],
+  best: ReadonlyMap<string, Temporal.Duration>,
+): Temporal.Duration | null {
+  let total = duration(0);
+
+  for (const group of groups) {
+    const segment = best.get(group.id);
+    if (segment === undefined) return null;
+
+    total = total.add(segment);
+  }
+
+  return total.round({ largestUnit: "hour", smallestUnit: "millisecond" });
+}
+
 // ---------------------------------------------------------------------------
 // The file
 //

@@ -25,6 +25,7 @@ import {
   emptyRecord,
   segments,
   sumOfBest,
+  sumOfGroupBest,
   timeAt,
   withRun,
 } from "./records.ts";
@@ -100,6 +101,17 @@ export interface TimerView {
   readonly groups: readonly GroupView[];
   /** The route crosses more than one world, so the world grouping is worth showing. */
   readonly nested: boolean;
+  /**
+   * The run is being read a world at a time: the panel shows the world rows
+   * alone, and the two figures below them are about worlds.
+   *
+   * A reading of the same run rather than a different run: every split is timed
+   * and recorded either way, and what changes is which of them the player is
+   * being shown and, with them, what the pace and the sum of best are figures
+   * about. Only ever set where `nested` is - a route inside a single world has
+   * one world row, which is nothing to read.
+   */
+  readonly worlds: boolean;
   readonly pace: Temporal.Duration | null;
   readonly pb: Temporal.Duration | null;
   readonly sumOfBest: Temporal.Duration | null;
@@ -107,6 +119,19 @@ export interface TimerView {
 
 /** A view but for the two figures that move with the clock; see #settledView. */
 type SettledView = Omit<TimerView, "elapsed" | "pace">;
+
+/**
+ * One row of the panel, for the figures that are read against a row.
+ *
+ * A split is one of these on its own; a world is the run of splits under one
+ * header, and either way `to` is the split whose closing ends it and `id` is
+ * the split a saved time is looked up by. The pace is measured against these,
+ * so that what the footer says is a verdict on what the panel is showing.
+ */
+interface Unit {
+  readonly id: string;
+  readonly to: number;
+}
 
 /**
  * The split one event closes on a route being written, or null for an event
@@ -189,6 +214,25 @@ export class SpeedrunTimer {
    * #tick(), which only ever advances #elapsed, deliberately leaves it alone.
    */
   #settledView: SettledView | null = null;
+  /**
+   * The rows the pace is read against, rebuilt with the view above.
+   *
+   * Built there rather than on demand because it moves for exactly the same
+   * reasons the settled view does - a split closing, a route being written -
+   * and because the clock asks for the pace sixty times a second, which is not
+   * a rate to be cutting a route into worlds at.
+   */
+  #units: readonly Unit[] = [];
+
+  /**
+   * Read this run a world at a time; the player's choice, and only a reading.
+   *
+   * It reaches the timer rather than stopping at the panel because two of the
+   * figures the panel draws are answers about the row being run - the pace and
+   * the sum of best - and a panel showing worlds with a pace on the level
+   * inside one is showing two different runs at once.
+   */
+  #worldsOnly = false;
 
   /** Armed to record the next run rather than time it against the route. */
   #recording = false;
@@ -222,6 +266,15 @@ export class SpeedrunTimer {
 
   get category(): Category {
     return category(this.#category);
+  }
+
+  get worldsOnly(): boolean {
+    return this.#worldsOnly;
+  }
+
+  set worldsOnly(only: boolean) {
+    this.#settledView = null;
+    this.#worldsOnly = only;
   }
 
   get route(): Route | null {
@@ -632,6 +685,16 @@ export class SpeedrunTimer {
     // recorded grows a split at a time.
     const routeSplits = this.#splits;
     const nested = entersMultipleWorlds(routeSplits);
+    // Asking for worlds only gets them where there are worlds to tell apart,
+    // which is the test `nested` already is: a route inside a single world has
+    // one world row, and a panel showing nothing but that says less than the
+    // splits it replaced.
+    const worlds = this.#worldsOnly && nested;
+
+    // The world bests with this run folded in as it goes, the same way the
+    // split bests are above: a world that has just been run faster than ever
+    // belongs to the sum from the moment it closes.
+    const liveGroupBest = new Map(this.#groupGolds);
 
     // The clock the best had reached when a world opened: the last split before
     // it that the best closed, or zero where the world opens the run. The same
@@ -649,7 +712,12 @@ export class SpeedrunTimer {
       return duration(0);
     };
 
-    const groups = groupSplits(routeSplits).map((group): GroupView => {
+    // The worlds themselves, held as well as drawn: the sum of best and the
+    // pace are both read off them when the panel is being read a world at a
+    // time, and a GroupView is a row rather than a world.
+    const splitGroups = groupSplits(routeSplits);
+
+    const groups = splitGroups.map((group): GroupView => {
       const endMs = this.#closed[group.to] ?? null;
       const at = endMs === null ? null : duration(endMs);
 
@@ -678,6 +746,15 @@ export class SpeedrunTimer {
       // this very run, the same reason the split segments hold back their delta.
       const groupBest = recording ? undefined : this.#groupGolds.get(group.id);
 
+      if (segment !== null) {
+        const was = liveGroupBest.get(group.id);
+
+        liveGroupBest.set(
+          group.id,
+          was === undefined ? segment : shorter(was, segment),
+        );
+      }
+
       return {
         name: group.name,
         world: group.world,
@@ -705,6 +782,16 @@ export class SpeedrunTimer {
       };
     });
 
+    // Which rows the pace is read against: the worlds if that is what is being
+    // shown, and every split otherwise.
+    this.#units = worlds
+      ? splitGroups.flatMap((group) => {
+          const end = routeSplits[group.to];
+
+          return end === undefined ? [] : [{ id: end.id, to: group.to }];
+        })
+      : routeSplits.map((split, i) => ({ id: split.id, to: i }));
+
     return {
       category: this.category,
       route: this.#route,
@@ -713,11 +800,18 @@ export class SpeedrunTimer {
       splits,
       groups,
       nested,
+      worlds,
       pb: recording ? null : (this.#record.pb?.total ?? null),
+      // Added up out of whichever rows are being shown. The two are different
+      // figures about the same route - a world's best is one run of it start to
+      // end, where the split sum takes each level from wherever it was best -
+      // so the one on screen is the one the rows above it could add up to.
       sumOfBest:
         recording || this.#route === null
           ? null
-          : sumOfBest(this.#route, liveBest),
+          : worlds
+            ? sumOfGroupBest(splitGroups, liveGroupBest)
+            : sumOfBest(this.#route, liveBest),
     };
   }
 
@@ -733,8 +827,12 @@ export class SpeedrunTimer {
     const pb = this.#comparison;
     if (pb === null || this.#state === "idle" || this.#recordingRun) return null;
 
+    // Against the rows the panel is drawing, which is the whole reason the
+    // reading reaches this far down: a run read a world at a time is behind
+    // when it is behind on a world, not when it is behind on the level it
+    // happens to be inside.
     if (this.#state === "running") {
-      const here = this.#splits[this.#at];
+      const here = this.#units.find((unit) => unit.to >= this.#at);
       const target = here === undefined ? null : timeAt(pb, here.id);
 
       if (target !== null && Temporal.Duration.compare(now, target) > 0) {
@@ -742,10 +840,10 @@ export class SpeedrunTimer {
       }
     }
 
-    const last = this.#splits[this.#at - 1];
+    const last = this.#units.findLast((unit) => unit.to < this.#at);
     if (last === undefined) return null;
 
-    const ms = this.#closed[this.#at - 1] ?? null;
+    const ms = this.#closed[last.to] ?? null;
     const was = timeAt(pb, last.id);
 
     return ms === null || was === null ? null : duration(ms).subtract(was);

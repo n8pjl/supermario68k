@@ -70,6 +70,21 @@
           <select id="speedrun-route" name="route"></select>
         </label>
 
+        <!-- Reads the run a world at a time: the level rows go away and the
+             world rows they sit under stay, so a long route is eight lines
+             rather than eighty, and the pace and the sum of best under them
+             become figures about worlds rather than about the level being
+             played. Only the reading changes - every level is still a split,
+             still timed, still recorded and still compared - so it can be
+             turned on and off between runs without any time meaning something
+             different. Nothing to do for a route that never leaves one world,
+             which has no worlds to be read a world at a time. Only shown while
+             the timer is on. -->
+        <label class="option" id="speedrun-worlds-option" hidden>
+          <input type="checkbox" id="speedrun-worlds" name="worlds" />
+          Split on worlds only
+        </label>
+
         <button type="submit">Start game</button>
       </form>
 

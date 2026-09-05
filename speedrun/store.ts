@@ -29,6 +29,7 @@ const ROUTES_KEY = "sm68k.speedrun.routes";
 const RECORDS_KEY = "sm68k.speedrun.records";
 const CATEGORY_KEY = "sm68k.speedrun.category";
 const SELECTED_KEY = "sm68k.speedrun.route";
+const WORLDS_KEY = "sm68k.speedrun.worlds";
 
 function read(key: string): unknown {
   try {
@@ -128,6 +129,17 @@ export class SpeedrunStore {
    */
   readonly #selected: Map<CategoryId, string>;
 
+  /**
+   * Read the panel a world at a time rather than a split at a time.
+   *
+   * Kept here with the rest of what the timer remembers between visits, though
+   * it is the one thing here that changes nothing about a run: every split is
+   * still timed and still recorded whichever way the panel is being read. It is
+   * off unless it was turned on, so the panel a player has never touched shows
+   * the splits they recorded.
+   */
+  #worldsOnly: boolean;
+
   constructor() {
     this.#routes = new Map(CATEGORIES.map((one) => [one.id, []]));
 
@@ -147,6 +159,8 @@ export class SpeedrunStore {
     const chosen = read(CATEGORY_KEY);
     this.#category = isCategoryId(chosen) ? chosen : FALLBACK_CATEGORY.id;
     this.#selected = new Map();
+
+    this.#worldsOnly = read(WORLDS_KEY) === true;
 
     const selected = read(SELECTED_KEY);
 
@@ -217,6 +231,16 @@ export class SpeedrunStore {
     this.selectCategory(route.category);
     this.#selected.set(route.category, route.id);
     this.#saveSelected();
+  }
+
+  /** Whether the panel is being read a world at a time. */
+  get worldsOnly(): boolean {
+    return this.#worldsOnly;
+  }
+
+  set worldsOnly(only: boolean) {
+    this.#worldsOnly = only;
+    write(WORLDS_KEY, only);
   }
 
   recordFor(id: string): RouteRecord {

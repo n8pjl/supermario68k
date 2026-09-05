@@ -66,7 +66,7 @@ export class SpeedrunPanel {
   #rows: Row[] = [];
   /** One row per world group, when the route is nested; empty when it is flat. */
   #groupRows: Row[] = [];
-  /** The shape last laid out - nested or not, and where the groups fall. */
+  /** The shape last laid out - which rows, and where the groups fall. */
   #signature = "";
   /** The row last scrolled to, so a route being run only scrolls when it moves on. */
   #following = -1;
@@ -117,15 +117,30 @@ export class SpeedrunPanel {
   // draw rather than only when the route is swapped. Rebuilt only when the
   // shape actually moved, so a route being run is not torn down each frame.
   #layout(view: TimerView): void {
-    const signature = view.nested
-      ? `n:${view.groups.map((g) => `${g.from}-${g.to}`).join(",")}`
-      : `f:${view.splits.length}`;
+    // Whether the run is being read a world at a time, which the timer decides:
+    // the pace and the sum of best in the footer are read off the same rows, so
+    // there is one answer to which rows those are and it is not the panel's.
+    const worlds = view.worlds;
+    const signature =
+      (worlds ? "w:" : "s:") +
+      (view.nested
+        ? `n:${view.groups.map((g) => `${g.from}-${g.to}`).join(",")}`
+        : `f:${view.splits.length}`);
 
     if (signature === this.#signature) return;
     this.#signature = signature;
     this.#following = -1;
 
-    this.#rows = view.splits.map(() => this.#makeRow("sr-split"));
+    // No split rows at all rather than hidden ones: they are what the option
+    // was turned on to be rid of, and a row that is not in the list is one
+    // nothing has to draw or measure.
+    this.#rows = worlds ? [] : view.splits.map(() => this.#makeRow("sr-split"));
+
+    if (worlds) {
+      this.#groupRows = view.groups.map(() => this.#makeRow("sr-group"));
+      this.#list.replaceChildren(...this.#groupRows.map((row) => row.root));
+      return;
+    }
 
     if (!view.nested) {
       this.#groupRows = [];
@@ -162,8 +177,8 @@ export class SpeedrunPanel {
    * split closed would be unplayable. Nothing is moved until the split does, so
    * the list can be scrolled back to read an earlier one mid-run.
    */
-  #follow(at: number): void {
-    const row = this.#rows[at]?.root;
+  #follow(rows: readonly Row[], at: number): void {
+    const row = rows[at]?.root;
 
     if (row === undefined || at === this.#following) return;
     this.#following = at;
@@ -278,8 +293,18 @@ export class SpeedrunPanel {
 
     // A recording has no split to be at - every one of them is closed as it is
     // written - so it follows the end of the list instead.
-    const at = view.splits.findIndex((split) => split.state === "current");
-    this.#follow(at < 0 ? view.splits.length - 1 : at);
+    const current = view.splits.findIndex((split) => split.state === "current");
+    const at = current < 0 ? view.splits.length - 1 : current;
+
+    if (view.worlds) {
+      // The world that split is in, because it is the row that is on screen.
+      this.#follow(
+        this.#groupRows,
+        view.groups.findIndex((group) => at >= group.from && at <= group.to),
+      );
+    } else {
+      this.#follow(this.#rows, at);
+    }
 
     text(this.#clock, formatDuration(view.elapsed));
     text(this.#pace, view.pace === null ? "" : formatDelta(view.pace));

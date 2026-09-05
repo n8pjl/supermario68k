@@ -38,6 +38,8 @@ export interface SpeedrunElements {
   readonly manage: HTMLElement;
   /** Which route is being run, in the settings menu. */
   readonly routes: HTMLSelectElement;
+  /** Whether the panel is read a world at a time, beside it. */
+  readonly worlds: HTMLInputElement;
 }
 
 export class Speedrun {
@@ -45,6 +47,7 @@ export class Speedrun {
   readonly #panel: SpeedrunPanel;
   readonly #manager: SpeedrunManager;
   readonly #routes: HTMLSelectElement;
+  readonly #worlds: HTMLInputElement;
 
   #timer: SpeedrunTimer;
   #recording = false;
@@ -53,6 +56,7 @@ export class Speedrun {
     this.#store = new SpeedrunStore();
     this.#panel = new SpeedrunPanel(elements.panel);
     this.#routes = elements.routes;
+    this.#worlds = elements.worlds;
 
     this.#timer = this.#build();
 
@@ -72,6 +76,21 @@ export class Speedrun {
         this.#manager.draw();
         this.#draw();
       },
+    });
+
+    // How the run is read, which the timer is told rather than the panel: the
+    // rows are the panel's, but the pace and the sum of best under them are
+    // figures about a row, so there is one answer to which rows those are.
+    // Nothing about the run changes - every split is still timed and still
+    // recorded - so it can be switched between runs, or during one. The box is
+    // set from what was stored rather than from the markup, so the choice
+    // survives a reload the way the route does.
+    this.#worlds.checked = this.#store.worldsOnly;
+
+    this.#worlds.addEventListener("change", () => {
+      this.#store.worldsOnly = this.#worlds.checked;
+      this.#timer.worldsOnly = this.#worlds.checked;
+      this.#draw();
     });
 
     this.#routes.addEventListener("change", () => {
@@ -103,6 +122,7 @@ export class Speedrun {
       () => this.#onTimerChanged(),
     );
 
+    timer.worldsOnly = this.#store.worldsOnly;
     timer.arm(this.#recording);
     return timer;
   }
