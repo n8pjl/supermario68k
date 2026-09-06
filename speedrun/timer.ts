@@ -29,7 +29,7 @@ import {
   timeAt,
   withRun,
 } from "./records.ts";
-import { duration, epoch, shorter, stamp } from "./times.ts";
+import { duration, epoch, longer, shorter, stamp } from "./times.ts";
 
 export type RunState = "idle" | "running" | "finished" | "abandoned";
 
@@ -972,10 +972,18 @@ export class SpeedrunTimer {
   /**
    * Where the run stands against the best.
    *
-   * At a closed split that is the difference there. Between splits it appears
-   * only once the clock has passed the time the best had reached by now, which
-   * is the moment this split stopped being on pace - there is nothing to say
-   * before that except that the split is not over.
+   * At a closed row that is the difference there. Between rows it is the worse
+   * of that standing figure and the live one - where the run would stand if the
+   * row it is in ended this instant - because time spent in a row can only ever
+   * cost the run, never gain it: the row cannot now end sooner than the clock.
+   *
+   * Taking the worse of the two is what makes the reading continuous. The live
+   * figure passes the standing one at the moment the row has taken exactly as
+   * long as it did in the best, so from there the lead is eaten away a
+   * hundredth at a time rather than sitting still and then landing on nothing.
+   * Reading only the live figure would be worse than either: it starts a row a
+   * whole segment ahead of where the run really stands, and would report a lead
+   * nobody has and then take it back.
    */
   #pace(now: Temporal.Duration): Temporal.Duration | null {
     const pb = this.#comparison;
@@ -985,21 +993,26 @@ export class SpeedrunTimer {
     // reading reaches this far down: a run read a world at a time is behind
     // when it is behind on a world, not when it is behind on the level it
     // happens to be inside.
-    if (this.#state === "running") {
-      const here = this.#units.find((unit) => unit.to >= this.#at);
-      const target = here === undefined ? null : timeAt(pb, here.id);
-
-      if (target !== null && Temporal.Duration.compare(now, target) > 0) {
-        return now.subtract(target);
-      }
-    }
-
     const last = this.#units.findLast((unit) => unit.to < this.#at);
-    if (last === undefined) return null;
+    const ms = last === undefined ? null : (this.#closed[last.to] ?? null);
+    const was = last === undefined ? null : timeAt(pb, last.id);
+    const standing =
+      ms === null || was === null ? null : duration(ms).subtract(was);
 
-    const ms = this.#closed[last.to] ?? null;
-    const was = timeAt(pb, last.id);
+    if (this.#state !== "running") return standing;
 
-    return ms === null || was === null ? null : duration(ms).subtract(was);
+    const here = this.#units.find((unit) => unit.to >= this.#at);
+    const target = here === undefined ? null : timeAt(pb, here.id);
+    if (target === null) return standing;
+
+    const live = now.subtract(target);
+
+    // Nothing has closed yet, so there is no standing figure to hold: the run
+    // is inside its first row and the only thing that can be said about it is
+    // that it has already lost time. Before that there is nothing to say
+    // except that the row is not over.
+    if (standing === null) return live.sign > 0 ? live : null;
+
+    return longer(standing, live);
   }
 }
