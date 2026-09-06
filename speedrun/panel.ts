@@ -61,6 +61,7 @@ export class SpeedrunPanel {
   readonly #clock: HTMLElement;
   readonly #best: HTMLElement;
   readonly #sob: HTMLElement;
+  readonly #bpt: HTMLElement;
 
   /** One row per split of the route last drawn, rebuilt when that changes. */
   #rows: Row[] = [];
@@ -89,9 +90,10 @@ export class SpeedrunPanel {
     this.#clock = element("div", "sr-clock");
     this.#best = element("div", "sr-best");
     this.#sob = element("div", "sr-sob");
+    this.#bpt = element("div", "sr-bpt");
 
     const foot = element("div", "sr-foot");
-    foot.append(this.#pace, this.#clock, this.#best, this.#sob);
+    foot.append(this.#pace, this.#clock, this.#best, this.#sob, this.#bpt);
 
     container.replaceChildren(this.#title, this.#list, this.#empty, foot);
   }
@@ -325,6 +327,17 @@ export class SpeedrunPanel {
       view.sumOfBest === null
         ? ""
         : `Sum of best ${formatDuration(view.sumOfBest)}`,
+    );
+
+    // Under the sum of best because it is read against it: the sum is what the
+    // route could be, and this is what this run still could be. Gone between
+    // runs, when there is no run to be projecting; the timer decides that, and
+    // an empty line here is the whole of showing it.
+    text(
+      this.#bpt,
+      view.bestPossible === null
+        ? ""
+        : `Best possible ${formatDuration(view.bestPossible)}`,
     );
   }
 }

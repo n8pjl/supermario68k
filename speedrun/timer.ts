@@ -116,10 +116,21 @@ export interface TimerView {
   /** The best being run against, which is the one every delta here is from. */
   readonly pb: Temporal.Duration | null;
   readonly sumOfBest: Temporal.Duration | null;
+  /**
+   * What this run would end on if the rest of it went as well as it ever has.
+   *
+   * The clock as it stands, plus the best the rows still to come have ever
+   * been, so it falls as a row is run well and climbs as one is run badly -
+   * unlike the sum of best above it, which is a figure about the route rather
+   * than about this attempt at it. Only ever set while a run is going: before
+   * one there is nothing under way to project, and after one the projection is
+   * the time on the clock.
+   */
+  readonly bestPossible: Temporal.Duration | null;
 }
 
-/** A view but for the two figures that move with the clock; see #settledView. */
-type SettledView = Omit<TimerView, "elapsed" | "pace">;
+/** A view but for the figures that move with the clock; see #settledView. */
+type SettledView = Omit<TimerView, "elapsed" | "pace" | "bestPossible">;
 
 /**
  * One row of the panel, for the figures that are read against a row.
@@ -132,6 +143,22 @@ type SettledView = Omit<TimerView, "elapsed" | "pace">;
 interface Unit {
   readonly id: string;
   readonly to: number;
+  /** The best that row has ever been run on its own, if it ever has. */
+  readonly best: Temporal.Duration | undefined;
+}
+
+/**
+ * The parts of a best possible time that do not move with the clock.
+ *
+ * Milliseconds, because the clock they are added to is milliseconds and this is
+ * worked out once per split rather than once per frame; see #toRun().
+ */
+interface Remaining {
+  /** The clock when the row being run began - zero if it opens the run. */
+  readonly from: number;
+  /** The best that row has ever been, and the best the rows after it have. */
+  readonly best: number;
+  readonly rest: number;
 }
 
 /**
@@ -238,6 +265,14 @@ export class SpeedrunTimer {
    * a rate to be cutting a route into worlds at.
    */
   #units: readonly Unit[] = [];
+  /**
+   * What is left to run at its best, rebuilt with the rows above.
+   *
+   * Null where there is no such figure: nothing is being run, a route is being
+   * recorded rather than run against, or one of the rows still to come has
+   * never been closed and so has no best to stand in for it.
+   */
+  #remaining: Remaining | null = null;
 
   /**
    * Read this run a world at a time; the player's choice, and only a reading.
@@ -622,7 +657,12 @@ export class SpeedrunTimer {
 
     const elapsed = duration(this.#elapsed);
 
-    return { ...this.#settledView, elapsed, pace: this.#pace(elapsed) };
+    return {
+      ...this.#settledView,
+      elapsed,
+      pace: this.#pace(elapsed),
+      bestPossible: this.#bestPossible(),
+    };
   }
 
   #compose(): SettledView {
@@ -807,15 +847,32 @@ export class SpeedrunTimer {
       };
     });
 
-    // Which rows the pace is read against: the worlds if that is what is being
-    // shown, and every split otherwise.
+    // Which rows the pace and the best possible time are read against: the
+    // worlds if that is what is being shown, and every split otherwise. A row
+    // is named by the split a saved time is looked up by - which for a world is
+    // the split that ends it - and carries the best it has ever been run in,
+    // which for a world is the world's own and not its levels added up.
     this.#units = worlds
       ? splitGroups.flatMap((group) => {
           const end = routeSplits[group.to];
 
-          return end === undefined ? [] : [{ id: end.id, to: group.to }];
+          return end === undefined
+            ? []
+            : [
+                {
+                  id: end.id,
+                  to: group.to,
+                  best: liveGroupBest.get(group.id),
+                },
+              ];
         })
-      : routeSplits.map((split, i) => ({ id: split.id, to: i }));
+      : routeSplits.map((split, i) => ({
+          id: split.id,
+          to: i,
+          best: liveBest.get(split.id),
+        }));
+
+    this.#remaining = recording || this.#route === null ? null : this.#toRun();
 
     return {
       category: this.category,
@@ -843,6 +900,73 @@ export class SpeedrunTimer {
             ? sumOfGroupBest(splitGroups, liveGroupBest)
             : sumOfBest(this.#route, liveBest),
     };
+  }
+
+  /**
+   * The row being run and everything after it, each at its best.
+   *
+   * Read off the same rows the pace is, so that a run being read a world at a
+   * time is projected a world at a time: a world's best is one run of it start
+   * to end, which is not the sum of the best its levels have ever been, and
+   * mixing the two would project a time made of neither.
+   *
+   * A row after this one that has never closed leaves nothing to stand in for
+   * it and there is no figure at all - the same answer, and for the same
+   * reason, that a sum of best gives. Only the rows from here on, though: a
+   * split fumbled and never closed on some earlier run does not stop this run
+   * having a best possible ending once it is past.
+   */
+  #toRun(): Remaining | null {
+    const at = this.#units.findIndex((unit) => unit.to >= this.#at);
+    const current = this.#units[at];
+
+    if (current === undefined || current.best === undefined) return null;
+
+    let rest = 0;
+
+    for (const unit of this.#units.slice(at + 1)) {
+      if (unit.best === undefined) return null;
+
+      rest += unit.best.total("millisecond");
+    }
+
+    // The clock the row being run started on: the last row before it that
+    // closed, or zero where it opens the run. A row skipped past left no time,
+    // so this walks back the way every other segment here is cut.
+    let from = 0;
+
+    for (let i = at - 1; i >= 0; i--) {
+      const to = this.#units[i]?.to;
+      const ms = to === undefined ? null : this.#closed[to];
+
+      if (ms != null) {
+        from = ms;
+        break;
+      }
+    }
+
+    return { from, best: current.best.total("millisecond"), rest };
+  }
+
+  /**
+   * The time this run would end on if the rest of it were its best ever.
+   *
+   * The row being run can no longer end before the clock does, so its end is
+   * the later of the two: where its best would have put it, and now. Which is
+   * what keeps this a time the run could still be finished in once the row has
+   * gone on longer than its best ever took - without it the figure would sink
+   * below the clock it is being read beside and promise a run already lost.
+   *
+   * Only while a run is going. Idle there is nothing under way to project, and
+   * once a run has stopped the best it could possibly have been is the time it
+   * actually was.
+   */
+  #bestPossible(): Temporal.Duration | null {
+    const left = this.#remaining;
+
+    if (left === null || this.#state !== "running") return null;
+
+    return duration(Math.max(this.#elapsed, left.from + left.best) + left.rest);
   }
 
   /**
