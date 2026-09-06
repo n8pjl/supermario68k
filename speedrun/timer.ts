@@ -113,6 +113,7 @@ export interface TimerView {
    */
   readonly worlds: boolean;
   readonly pace: Temporal.Duration | null;
+  /** The best being run against, which is the one every delta here is from. */
   readonly pb: Temporal.Duration | null;
   readonly sumOfBest: Temporal.Duration | null;
 }
@@ -825,7 +826,12 @@ export class SpeedrunTimer {
       groups,
       nested,
       worlds,
-      pb: recording ? null : (this.#record.pb?.total ?? null),
+      // The best this run set out to beat, not the one on the record. They are
+      // the same figure until a run beats it, and then for as long as that run
+      // is on screen they are the two times worth seeing side by side: the time
+      // just set, and the time it went. The record has already been written -
+      // the next run to start is measured against the new best.
+      pb: recording ? null : (this.#comparison?.total ?? null),
       // Added up out of whichever rows are being shown. The two are different
       // figures about the same route - a world's best is one run of it start to
       // end, where the split sum takes each level from wherever it was best -
