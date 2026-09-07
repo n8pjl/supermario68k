@@ -85,6 +85,20 @@
           Split on worlds only
         </label>
 
+        <!-- The input display, one half at a time: a keyboard is watched with
+             listeners and a controller by polling, so neither costs anything
+             while it is off. Both are off by default - the display is for
+             recording, practising and checking a rebind, not for playing. -->
+        <label class="option">
+          <input type="checkbox" id="keyboard-inputs" name="keyboardinputs" />
+          Show keyboard inputs
+        </label>
+
+        <label class="option">
+          <input type="checkbox" id="gamepad-inputs" name="gamepadinputs" />
+          Show gamepad inputs
+        </label>
+
         <button type="submit">Start game</button>
       </form>
 
@@ -97,6 +111,101 @@
           all of them.</p>
       </div>
     </div>
+
+    <!-- What is being pressed right now, on the console's other side from the
+         timer. The keys are filled in by shell.js from the bindings, so the row
+         changes with them; the controller below is drawn here because it is a
+         picture rather than a list, and shell.js only lights it up. Every
+         element it drives is named by what it stands for - a button index, an
+         axis pair - so the two halves cannot drift apart. -->
+    <aside class="inputs" id="inputs" hidden>
+
+      <section class="input-keyboard" id="input-keyboard" hidden>
+        <h2>Keyboard</h2>
+        <!-- One chip per key that is bound to something, lit while it is held,
+             followed by a chip for any key pressed that is bound to nothing:
+             the display is of the keyboard, not of the eight actions, so a
+             stray press is still a press and shows as one. -->
+        <div class="input-keys" id="input-keys"></div>
+      </section>
+
+      <section class="input-gamepad" id="input-gamepad" hidden>
+        <h2>Gamepad</h2>
+
+        <!-- The standard mapping, which is the only one the bindings read:
+             the button indices are fixed by the spec, so this picture is right
+             for any pad claiming it. data-b is a button index, and a stick
+             names the two axes it reads and the button pressing it in. The
+             shoulders and triggers are not drawn: nothing binds them, and a
+             row of parts that never light is a row of parts in the way. -->
+        <svg class="pad-map" id="pad" viewBox="0 0 260 128" aria-hidden="true">
+          <path class="pad-body" d="M62,8 H198 C216,8 228,20 228,38
+            C228,60 224,84 216,104 C210,118 190,120 182,106 L170,84
+            C166,77 160,74 152,74 H108 C100,74 94,77 90,84 L78,106
+            C70,120 50,118 44,104 C36,84 32,60 32,38 C32,20 44,8 62,8 Z" />
+
+          <!-- One cross, outlined once: an arm is a fill inside it rather
+               than a key of its own, so the d-pad reads as the single piece of
+               plastic it is however many of its arms are held. -->
+          <path class="pad-dpad" d="M64,16 H80 V30 H94 V46 H80 V60
+            H64 V46 H50 V30 H64 Z" />
+          <g class="pad-button pad-arm" data-b="12">
+            <rect class="pad-cap" x="64" y="16" width="16" height="15" />
+          </g>
+          <g class="pad-button pad-arm" data-b="13">
+            <rect class="pad-cap" x="64" y="45" width="16" height="15" />
+          </g>
+          <g class="pad-button pad-arm" data-b="14">
+            <rect class="pad-cap" x="50" y="30" width="15" height="16" />
+          </g>
+          <g class="pad-button pad-arm" data-b="15">
+            <rect class="pad-cap" x="79" y="30" width="15" height="16" />
+          </g>
+
+          <g class="pad-button" data-b="3">
+            <circle class="pad-cap" cx="188" cy="20" r="9" />
+            <text x="188" y="23">Y</text>
+          </g>
+          <g class="pad-button" data-b="2">
+            <circle class="pad-cap" cx="170" cy="38" r="9" />
+            <text x="170" y="41">X</text>
+          </g>
+          <g class="pad-button" data-b="1">
+            <circle class="pad-cap" cx="206" cy="38" r="9" />
+            <text x="206" y="41">B</text>
+          </g>
+          <g class="pad-button" data-b="0">
+            <circle class="pad-cap" cx="188" cy="56" r="9" />
+            <text x="188" y="59">A</text>
+          </g>
+
+          <g class="pad-button" data-b="16">
+            <circle class="pad-cap" cx="130" cy="18" r="7" />
+          </g>
+          <g class="pad-button" data-b="8">
+            <rect class="pad-cap" x="106" y="34" width="16" height="8" rx="4" />
+            <text class="pad-small" x="114" y="50">SELECT</text>
+          </g>
+          <g class="pad-button" data-b="9">
+            <rect class="pad-cap" x="138" y="34" width="16" height="8" rx="4" />
+            <text class="pad-small" x="146" y="50">START</text>
+          </g>
+
+          <g class="pad-stick" data-x-axis="0" data-y-axis="1" data-press="10">
+            <circle class="pad-gate" cx="68" cy="84" r="17" />
+            <circle class="pad-pivot" cx="68" cy="84" r="1.5" />
+            <circle class="pad-dot" cx="68" cy="84" r="7" />
+          </g>
+          <g class="pad-stick" data-x-axis="2" data-y-axis="3" data-press="11">
+            <circle class="pad-gate" cx="192" cy="84" r="17" />
+            <circle class="pad-pivot" cx="192" cy="84" r="1.5" />
+            <circle class="pad-dot" cx="192" cy="84" r="7" />
+          </g>
+        </svg>
+
+        <p class="pad-note" id="pad-note"></p>
+      </section>
+    </aside>
   </div>
 
   <!-- The control map, and the place it is changed. shell.js fills this in from

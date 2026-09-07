@@ -85,6 +85,7 @@ h1 span {
    for it beside the console. */
 .stage {
   --panel-width: 352px;
+  --inputs-width: 320px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -107,6 +108,20 @@ h1 span {
      bottom and taking the clock with it. Stacked it is in the flow again, and
      there the page is free to be as long as the route is. */
   max-height: calc(100vh - 10rem);
+}
+
+/* The input display's side. The timer is flush with the top of the console
+   because a run is read downwards from a clock; this is flush with the bottom
+   because it grows upwards - a key pressed that is bound to nothing adds a chip
+   to the row above the controller, and the controller itself should not be
+   shuffled down the page every time one does. As with the timer, shell.js only
+   puts it here when there is room on this side that the console was not using;
+   otherwise it falls into the flow under the console. */
+.stage.inputs-beside .inputs {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--inputs-width);
 }
 
 /* The console: LCD-style bezel around the canvas. The canvas pixel size comes
@@ -797,6 +812,209 @@ body.immersive .stage.beside {
 }
 
 body.immersive .speedrun {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* ---------------------------------------------------------------------------
+   The input display
+
+   A panel of the machine, the same as the timer, and on the console's other
+   side. Two halves, each shown only if it was asked for: a row of keys, and a
+   picture of a controller.
+   --------------------------------------------------------------------------- */
+.inputs {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  /* After the timer when both are stacked under the console, which is the order
+     they are in beside it - the console between them - read left to right. */
+  order: 2;
+  width: min(100%, var(--inputs-width));
+  padding: 1.25rem 1.4rem 1.4rem;
+  background: linear-gradient(var(--console-a), var(--console-b));
+  border: 1px solid var(--panel-edge);
+  border-radius: 14px;
+  box-shadow:
+    0 1px 0 var(--console-hi) inset,
+    0 20px 45px -20px #0009;
+}
+
+/* The display above wins over the UA stylesheet's [hidden], the same trap the
+   timer falls into - and the two halves inside are hidden one at a time. */
+.inputs[hidden],
+.inputs section[hidden] {
+  display: none;
+}
+
+.inputs h2 {
+  margin: 0 0 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.input-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+/* The same keycap the control legend uses, without the x: this is a readout,
+   not an editor. Dim until held, so the row reads as what is being pressed
+   rather than as a list of what could be. */
+.input-key {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.9rem;
+  color: var(--ink-dim);
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-edge);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+}
+
+.input-key.held {
+  color: var(--panel);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* A key nothing is bound to, which is on the row only for as long as it is
+   held. Not lit the same green as the rest: it was pressed, but it pressed
+   nothing, and that difference is the reason to show it at all. */
+.input-key.unbound.held {
+  color: var(--ink);
+  background: var(--kbd-bg);
+  border-color: var(--ink-dim);
+  border-style: dashed;
+  border-bottom-width: 1px;
+}
+
+/* Not .pad: that is the control legend's chip for a controller binding, and a
+   rule here under that name would reach it. */
+.pad-map {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Nothing connected: the picture stays, faded, so it is clear what will appear
+   there rather than leaving the half of the panel empty. */
+.pad-map.idle {
+  opacity: 0.4;
+}
+
+.pad-body {
+  fill: color-mix(in srgb, var(--ink) 8%, transparent);
+  stroke: var(--panel-edge);
+  stroke-width: 1.5;
+}
+
+.pad-cap,
+.pad-dpad,
+.pad-gate {
+  fill: var(--kbd-bg);
+  stroke: var(--kbd-edge);
+  stroke-width: 1.5;
+}
+
+.pad-map text {
+  fill: var(--ink-dim);
+  font: 600 9px/1 system-ui, sans-serif;
+  text-anchor: middle;
+}
+
+.pad-map .pad-small {
+  font-size: 7px;
+}
+
+/* The arms are lit inside the cross drawn above them, so they carry no outline
+   of their own and nothing at all until they are held. */
+.pad-arm .pad-cap {
+  fill: none;
+  stroke: none;
+}
+
+.pad-arm.held .pad-cap {
+  stroke: none;
+}
+
+/* Held, for anything that is on or off. The label goes with the cap it is
+   written on, which is why each button is a group of the two. */
+.pad-button.held .pad-cap {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.pad-button.held text {
+  fill: var(--panel);
+}
+
+/* Except these two, whose labels are written on the body under the cap rather
+   than on the cap itself: nothing lit up behind them to be read against. */
+.pad-button.held .pad-small {
+  fill: var(--accent);
+}
+
+.pad-pivot {
+  fill: var(--kbd-edge);
+}
+
+/* The dot is the stick's actual position, so it is moved rather than switched:
+   shell.js translates it by however far the axes say, and the ring it sits in
+   is the travel it is being measured against. */
+.pad-dot {
+  fill: var(--ink-dim);
+}
+
+/* Pushed far enough that a binding on this stick would be reading it as a
+   press. Below that the dot still moves - a stick nudged off centre is worth
+   seeing - it just is not saying anything to the game yet. */
+.pad-stick.active .pad-dot {
+  fill: var(--accent);
+}
+
+/* Pressed in as a button, which is a different thing from being pushed. */
+.pad-stick.held .pad-gate {
+  fill: color-mix(in srgb, var(--accent) 20%, transparent);
+  stroke: var(--accent);
+}
+
+.pad-note {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+  color: var(--ink-dim);
+}
+
+/* Nothing to say, so no room taken saying it: without this the note's margin
+   would hold a gap under a pad that is simply working. */
+.pad-note:empty {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  /* The same trade the timer makes: stacked and immersive at once leaves no
+     room under a canvas already fitted to the whole viewport. */
+  body.immersive .inputs {
+    display: none;
+  }
+}
+
+/* Fullscreen, where the canvas does yield the width - see the timer above for
+   why - so the room the panel was given is held open here rather than letting
+   the screen centre itself back over it. */
+body.immersive .stage.inputs-beside {
+  padding-right: calc(var(--inputs-width) + 1rem);
+}
+
+body.immersive .inputs {
   border: 0;
   border-radius: 0;
   background: none;

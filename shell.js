@@ -69,6 +69,13 @@ let boundCodes = new Set();
 const pressedCodes = new Set();
 const touchActions = new Set();
 
+// Every key currently down, whether or not anything is bound to it. Kept apart
+// from pressedCodes above because it answers a different question and lives a
+// different life: that one is the game's, held only while a game is running and
+// only for keys the game reads, while this one is the input display's and holds
+// whatever the keyboard is actually doing. Empty unless the display is on.
+const heldCodes = new Set();
+
 function isGamepadBinding(binding) {
   return binding.startsWith(GP);
 }
@@ -186,6 +193,8 @@ const CALC_KEY = "sm68k.calc";
 const LANG_KEY = "sm68k.lang";
 const LATCH_KEY = "sm68k.latch";
 const SPEEDRUN_KEY = "sm68k.speedrun";
+const KEYBOARD_INPUTS_KEY = "sm68k.keyboardinputs";
+const GAMEPAD_INPUTS_KEY = "sm68k.gamepadinputs";
 const stage = document.querySelector(".stage");
 const consoleBox = document.querySelector(".console");
 const settings = document.getElementById("settings");
@@ -196,6 +205,14 @@ const canvas = document.getElementById("canvas");
 const unsupported = document.getElementById("unsupported");
 const speedrunPanel = document.getElementById("speedrun");
 const speedrunOption = settings.elements.speedrun;
+const keyboardInputsOption = settings.elements.keyboardinputs;
+const gamepadInputsOption = settings.elements.gamepadinputs;
+const inputsPanel = document.getElementById("inputs");
+const keyboardInputs = document.getElementById("input-keyboard");
+const gamepadInputs = document.getElementById("input-gamepad");
+const inputKeys = document.getElementById("input-keys");
+const padSvg = document.getElementById("pad");
+const padNote = document.getElementById("pad-note");
 const routeOption = document.getElementById("speedrun-route-option");
 const routeSelect = settings.elements.route;
 const worldsOption = document.getElementById("speedrun-worlds-option");
@@ -248,15 +265,20 @@ function fitCanvas() {
   const panelWidth = parseFloat(
     stageStyle.getPropertyValue("--panel-width") || 0,
   );
+  const inputsWidth = parseFloat(
+    stageStyle.getPropertyValue("--inputs-width") || 0,
+  );
   const gap = parseFloat(stageStyle.columnGap) || 0;
 
   // The panel's width is only the canvas's to give up in fullscreen, where the
   // canvas is fitted to the whole viewport and so there is no room beside it
   // that was not already the screen's. On the page there is room to the side,
   // and the canvas is fitted as though the panel were not there at all: turning
-  // the timer on never costs the screen a scale step.
+  // the timer on never costs the screen a scale step. There is one panel a
+  // side, so what the canvas gives up is whichever of the two are there.
   const beside =
-    speedrunPanel.hidden || !immersive ? 0 : panelWidth + gap;
+    (speedrunPanel.hidden || !immersive ? 0 : panelWidth + gap) +
+    (inputsPanel.hidden || !immersive ? 0 : inputsWidth + gap);
 
   const availWidth = document.body.clientWidth - chrome - beside;
   const availHeight = immersive ? innerHeight : innerHeight * MENU_HEIGHT_SHARE;
@@ -286,9 +308,17 @@ function fitCanvas() {
   // Anything less and it goes under the console instead, which costs the canvas
   // nothing either. Fullscreen is already settled - the canvas gave up the width
   // above, and shell.css holds it open.
+  //
+  // The timer stands in the free space on one side and the input display in the
+  // other, which is why each is measured against half of it rather than all of
+  // it: neither can be given room the other is standing in.
   stage.classList.toggle(
     "beside",
     !speedrunPanel.hidden && (immersive || free / 2 >= panelWidth + gap),
+  );
+  stage.classList.toggle(
+    "inputs-beside",
+    !inputsPanel.hidden && (immersive || free / 2 >= inputsWidth + gap),
   );
 }
 
@@ -354,6 +384,14 @@ try {
   if (savedLatch !== null) latchOption.checked = savedLatch === "true";
 
   speedrunOption.checked = localStorage.getItem(SPEEDRUN_KEY) === "true";
+
+  // Absent means never asked for, which is off: the display is for looking at
+  // the controls rather than for playing, so it is not something to be found
+  // switched on by a player who never went looking for it.
+  keyboardInputsOption.checked =
+    localStorage.getItem(KEYBOARD_INPUTS_KEY) === "true";
+  gamepadInputsOption.checked =
+    localStorage.getItem(GAMEPAD_INPUTS_KEY) === "true";
 } catch {
   /* empty */
 }
@@ -530,6 +568,7 @@ function refreshBindings() {
   }
 
   renderBindings();
+  renderKeyboardKeys();
 }
 
 // The same, for a change the player made. Loading the page is not one of those:
@@ -816,6 +855,321 @@ for (const type of ["pointerup", "pointercancel"]) {
 }
 
 // ---------------------------------------------------------------------------
+// The input display
+//
+// What is being pressed, right now, as a picture of the hardware rather than a
+// reading of the eight actions: a key bound to nothing still lights up, and a
+// stick is drawn at how far it is pushed rather than at whether that is far
+// enough to count. Something that only reported the actions would answer the
+// question the game asks and not the one the player does - why did that input
+// not come out, why did the run drift left - which is the whole reason to have
+// it on screen.
+//
+// The two halves are asked for separately and both start off. They cost nothing
+// while they are off, and that is deliberate rather than incidental: the
+// keyboard's listeners are not bound and the controller's loop is not running,
+// so a player who never turns them on never pays for a frame of them.
+// ---------------------------------------------------------------------------
+
+// The keyboard half. Every key some action is bound to gets a chip, in the
+// order the actions are listed, so the row is the same shape from one frame to
+// the next and a glance finds a key where it was last time. Chips for unbound
+// keys are appended as they are pressed and dropped as they are let go: the
+// row's fixed part is the control map, its tail is everything else the keyboard
+// is doing.
+//
+// The chips are the state - each carries the code it stands for - so nothing
+// here has a copy of the row to be kept in step with it.
+function renderKeyboardKeys() {
+  const chips = new Map();
+
+  for (const action of ACTIONS) {
+    for (const binding of bindings[action]) {
+      if (isGamepadBinding(binding)) continue;
+
+      // One key can press two actions; it is still one key, and one chip
+      // naming both of them.
+      const seen = chips.get(binding);
+      if (seen) {
+        seen.title += " / " + ACTION_LABELS[action];
+        continue;
+      }
+
+      const chip = document.createElement("span");
+      chip.className = "input-key";
+      chip.dataset.code = binding;
+      chip.textContent = bindingLabel(binding);
+      chip.title = ACTION_LABELS[action];
+      chips.set(binding, chip);
+    }
+  }
+
+  inputKeys.replaceChildren(...chips.values());
+  paintKeyboard();
+}
+
+// Lighting the row for what is held. Called from the key listeners rather than
+// from a frame loop: a keyboard says when it changes, so there is nothing to
+// poll for and nothing to redraw in between.
+function paintKeyboard() {
+  // A copy, because the unbound chips are removed from the live list below.
+  for (const chip of [...inputKeys.children]) {
+    const held = heldCodes.has(chip.dataset.code);
+
+    // An unbound chip is only there for as long as the key is down: it is
+    // saying that a key was pressed, not listing the keyboard.
+    if (!held && chip.classList.contains("unbound")) {
+      chip.remove();
+      continue;
+    }
+
+    chip.classList.toggle("held", held);
+  }
+
+  for (const code of heldCodes) {
+    const selector = '[data-code="' + CSS.escape(code) + '"]';
+    if (inputKeys.querySelector(selector)) continue;
+
+    const chip = document.createElement("span");
+    chip.className = "input-key unbound held";
+    chip.dataset.code = code;
+    chip.textContent = bindingLabel(code);
+    chip.title = "Not bound to anything";
+    inputKeys.append(chip);
+  }
+}
+
+let keyWatch = null;
+
+function watchKeyboardInputs(wanted) {
+  if (!wanted) {
+    keyWatch?.abort();
+    keyWatch = null;
+    heldCodes.clear();
+    return;
+  }
+
+  if (keyWatch) return;
+
+  keyWatch = new AbortController();
+  const opts = { signal: keyWatch.signal };
+
+  // Bubble phase, and nothing here calls preventDefault: the display only
+  // watches. What a key means - whether the game takes it, whether the page
+  // scrolls on it, whether the bindings editor is waiting for it - is settled
+  // by the listeners that own it, and showing a key must not change the
+  // answer. The editor's capture-phase listener stops its keypress reaching
+  // here at all, which is right: the key it swallowed was never pressed at
+  // the game, and its keyup arrives to find nothing held.
+  addEventListener(
+    "keydown",
+    (e) => {
+      // Auto-repeat is the same key still down, not a new press.
+      if (heldCodes.has(e.code)) return;
+
+      heldCodes.add(e.code);
+      paintKeyboard();
+    },
+    opts,
+  );
+
+  addEventListener(
+    "keyup",
+    (e) => {
+      if (heldCodes.delete(e.code)) paintKeyboard();
+    },
+    opts,
+  );
+
+  // A key let go of while the window is looking elsewhere never reports it,
+  // and the display would show it held for good.
+  addEventListener(
+    "blur",
+    () => {
+      if (heldCodes.size === 0) return;
+
+      heldCodes.clear();
+      paintKeyboard();
+    },
+    opts,
+  );
+}
+
+// The controller half. The picture is in index.html, and every part of it names
+// what it stands for; these are those parts, looked up the once. The loop below
+// runs every frame and has no business asking the document for them again each
+// time.
+const padButtons = new Map();
+const padSticks = [];
+
+for (const el of padSvg.querySelectorAll("[data-b]")) {
+  padButtons.set(Number(el.dataset.b), el);
+}
+
+for (const el of padSvg.querySelectorAll(".pad-stick")) {
+  padSticks.push({
+    group: el,
+    dot: el.querySelector(".pad-dot"),
+    xAxis: Number(el.dataset.xAxis),
+    yAxis: Number(el.dataset.yAxis),
+    press: Number(el.dataset.press),
+  });
+}
+
+// How far the dot travels from the middle of its gate at full deflection, in
+// the SVG's own units: the gate's radius less the dot's, so a stick pushed all
+// the way sits inside the ring rather than over it.
+const STICK_TRAVEL = 10;
+
+// Every connected pad read as one, because that is how the bindings read them:
+// any pad can press an action, so any pad can light the picture. A button is
+// held if it is held anywhere, and an axis is taken at the furthest it is
+// pushed anywhere, which is the same rule.
+function mergedPad(pads) {
+  const pressed = [];
+  const axes = [];
+  let count = 0;
+
+  for (const gp of pads) {
+    // The standard mapping is the only one the bindings resolve against,
+    // and the only one these indices mean anything under.
+    if (gp?.mapping !== "standard") continue;
+
+    count++;
+
+    gp.buttons.forEach((button, i) => {
+      if (button.pressed) pressed[i] = true;
+    });
+
+    gp.axes.forEach((value, i) => {
+      if (Math.abs(value) > Math.abs(axes[i] ?? 0)) axes[i] = value;
+    });
+  }
+
+  return { pressed, axes, count };
+}
+
+function paintGamepad(pad) {
+  for (const [index, el] of padButtons) {
+    el.classList.toggle("held", Boolean(pad.pressed[index]));
+  }
+
+  for (const stick of padSticks) {
+    let x = pad.axes[stick.xAxis] ?? 0;
+    let y = pad.axes[stick.yAxis] ?? 0;
+
+    // A stick held into a corner reports a pair the round gate it is drawn
+    // as has no room for. Scaling it back keeps the dot on the ring rather
+    // than outside it, and keeps the direction it is being held, which is
+    // the part being read.
+    const pull = Math.hypot(x, y);
+    if (pull > 1) {
+      x /= pull;
+      y /= pull;
+    }
+
+    const dx = x * STICK_TRAVEL;
+    const dy = y * STICK_TRAVEL;
+
+    stick.dot.style.transform = "translate(" + dx + "px," + dy + "px)";
+
+    // Two different things, and worth telling apart: the stick pressed in
+    // as a button, and the stick pushed past the point a binding on it
+    // calls a press. The second is what says why the player is walking.
+    stick.group.classList.toggle("held", Boolean(pad.pressed[stick.press]));
+    stick.group.classList.toggle("active", pull > AXIS_THRESHOLD);
+  }
+}
+
+// Only ever what the picture cannot say for itself. A pad that is connected and
+// being read needs no line under it: the diagram lighting up is the whole of
+// that message, and a pad's own name for itself is two lines of vendor and
+// product ids that say nothing about what is being pressed.
+function padNoteText(pad, pads) {
+  if (pad.count > 1) return pad.count + " gamepads, shown as one";
+  if (pad.count === 1) return "";
+
+  // A pad the browser has no standard mapping for cannot be bound either, so
+  // the picture being dark with one plainly plugged in wants explaining.
+  if (pads.some(Boolean)) {
+    return "Gamepad connected, but not in the standard layout the game reads.";
+  }
+
+  return "No gamepad connected. Press a button on one to wake it up.";
+}
+
+// Polled, because a controller has no events to raise for what it is doing, and
+// because navigator.getGamepads() only refreshes its snapshots when it is
+// asked. Not polled when there is nothing to poll: with no pad the mapping
+// applies to, this waits on a connection rather than burning a frame callback
+// against an empty list - the same trade listenForGamepadStart() below makes.
+async function watchGamepadInputs(signal) {
+  while (!signal.aborted) {
+    const pads = navigator.getGamepads();
+    const pad = mergedPad(pads);
+
+    paintGamepad(pad);
+    padSvg.classList.toggle("idle", pad.count === 0);
+
+    // Read back rather than written every frame: the note only changes when a
+    // pad is plugged in or pulled out, and the rest of this loop is already
+    // touching the document sixty times a second.
+    const note = padNoteText(pad, pads);
+    if (padNote.textContent !== note) padNote.textContent = note;
+
+    if (pad.count === 0) {
+      await new Promise((resolve) => {
+        addEventListener("gamepadconnected", resolve, {
+          once: true,
+          signal,
+        });
+        // So the note stops naming a pad that has been unplugged.
+        addEventListener("gamepaddisconnected", resolve, {
+          once: true,
+          signal,
+        });
+        signal.addEventListener("abort", resolve, { once: true });
+      });
+      continue;
+    }
+
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+}
+
+let padWatch = null;
+
+// Shown as soon as it is asked for rather than when the game starts, the same
+// as the timer: a rebind is worth watching take effect, and a stick worth
+// checking before finding out mid-level that it drifts.
+function showInputs() {
+  const keyboard = keyboardInputsOption.checked;
+  const gamepad = gamepadInputsOption.checked;
+
+  keyboardInputs.hidden = !keyboard;
+  gamepadInputs.hidden = !gamepad;
+  inputsPanel.hidden = !keyboard && !gamepad;
+
+  watchKeyboardInputs(keyboard);
+  if (keyboard) paintKeyboard();
+
+  if (gamepad && !padWatch) {
+    padWatch = new AbortController();
+    watchGamepadInputs(padWatch.signal);
+  } else if (!gamepad && padWatch) {
+    padWatch.abort();
+    padWatch = null;
+  }
+
+  fitCanvas();
+}
+
+keyboardInputsOption.addEventListener("change", showInputs);
+gamepadInputsOption.addEventListener("change", showInputs);
+
+showInputs();
+
+// ---------------------------------------------------------------------------
 // Fullscreen and orientation
 //
 // A phone shows the game far larger with the browser chrome out of the way and
@@ -1077,6 +1431,14 @@ function startGame() {
     localStorage.setItem(LANG_KEY, lang);
     localStorage.setItem(LATCH_KEY, String(latchOption.checked));
     localStorage.setItem(SPEEDRUN_KEY, String(speedrunOption.checked));
+    localStorage.setItem(
+      KEYBOARD_INPUTS_KEY,
+      String(keyboardInputsOption.checked),
+    );
+    localStorage.setItem(
+      GAMEPAD_INPUTS_KEY,
+      String(gamepadInputsOption.checked),
+    );
   } catch {
     /* empty */
   }
