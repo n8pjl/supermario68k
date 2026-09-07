@@ -125,11 +125,9 @@ static int16_t do_menu_inner(struct menu_text *options)
 		ScanKeys();
 
 		if (Keystate.esc) {
-			free(options);
 			return 0;
 		}
 		if (Keystate.enter || Keystate.jump) {
-			free(options);
 			return current_selection;
 		}
 

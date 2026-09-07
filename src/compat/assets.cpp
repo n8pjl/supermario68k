@@ -110,8 +110,9 @@ static struct asset Assets[] = { ASSET_LIST(ASSET_ENTRY) };
 // for its frame timestamp, so localStorage and the decode each happen once.
 static void load_save(struct asset *a)
 {
-  int len = EM_ASM_INT({
-	// clang-format off
+	int len = EM_ASM_INT(
+		{
+			// clang-format off
 		// Everything below throws rather than returns on bad input -
 		// a missing entry, a record that is not JSON, a version that
 		// is not ours, base64 that does not decode - and the catch
@@ -129,26 +130,28 @@ static void load_save(struct asset *a)
 			globalThis.__sm68kSave = null;
 			return -1;
 		}
-// clang-format on
-}, a->name, SAVE_VERSION);
-if (len < 0)
-	return;
+			// clang-format on
+		},
+		a->name, SAVE_VERSION);
+	if (len < 0)
+		return;
 
-uint8_t *save = (uint8_t *)malloc((size_t)len + 1); // +1: never malloc(0)
-if (!save) {
-	EM_ASM({ globalThis.__sm68kSave = null; });
-	return;
-}
-EM_ASM(
-	{
-		HEAPU8.set(globalThis.__sm68kSave, $0);
-		globalThis.__sm68kSave = null;
-	},
-	save);
+	uint8_t *save =
+		(uint8_t *)malloc((size_t)len + 1); // +1: never malloc(0)
+	if (!save) {
+		EM_ASM({ globalThis.__sm68kSave = null; });
+		return;
+	}
+	EM_ASM(
+		{
+			HEAPU8.set(globalThis.__sm68kSave, $0);
+			globalThis.__sm68kSave = null;
+		},
+		save);
 
-a->data = save;
-a->size = (size_t)len;
-a->saved = true;
+	a->data = save;
+	a->size = (size_t)len;
+	a->saved = true;
 }
 
 // localStorage is read once per file, on the first lookup of any of them. Only
@@ -199,8 +202,9 @@ bool Asset_save(struct asset *a, const void *data, size_t size)
 	// A record that cannot be written is not a failed save: the copy above
 	// still shadows the file for the rest of the session, which is what the
 	// game shows the player. Only the next session loses it.
-  EM_ASM({
-	// clang-format off
+	EM_ASM(
+		{
+			// clang-format off
 		try {
 			// slice() copies the range out of the wasm heap;
 			// toBase64() then encodes that copy.
@@ -213,14 +217,15 @@ bool Asset_save(struct asset *a, const void *data, size_t size)
 				saved: new Date().toISOString(),
 			}));
 		} catch {}
-// clang-format on
-}, a->name, save, size, SAVE_VERSION);
+			// clang-format on
+		},
+		a->name, save, size, SAVE_VERSION);
 
-if (a->saved)
-	free((void *)a->data); // ours: the save it is replacing
+	if (a->saved)
+		free((void *)a->data); // ours: the save it is replacing
 
-a->data = save;
-a->size = size;
-a->saved = true;
-return true;
+	a->data = save;
+	a->size = size;
+	a->saved = true;
+	return true;
 }

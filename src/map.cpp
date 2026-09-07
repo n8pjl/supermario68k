@@ -664,10 +664,10 @@ void Handle_player_map()
 								// is what says it was
 								// a warp that got
 								// there.
-								speedrun::report(
-									speedrun::WarpTaken{
-										.world = Levelsetdata
-												 .CurrentWorld });
+								speedrun::report(speedrun::WarpTaken{
+									.world =
+										Levelsetdata
+											.CurrentWorld });
 								Exit = 3;
 							} else { // the pipe wraps to another location in the current
 								// world
@@ -905,8 +905,9 @@ void Handle_player_map()
 					// played for the warp zone, and the pipe
 					// taken there reports its own.
 					speedrun::report(speedrun::WarpTaken{
-						.world = Levelsetdata
-								 .CurrentWorld });
+						.world =
+							Levelsetdata
+								.CurrentWorld });
 					Load_map(Commonfilename);
 					// set MapY, depending on current world
 					SavePlayer.MapX = WarpX;
