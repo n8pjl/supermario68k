@@ -44,7 +44,7 @@ static struct menu_text *get_menu_text(const char *menu)
 					if (HEAPU16[$1 / 2 + i] === 0)
 						arr.push(oldArr[2]);
 					else
-						arr.push(oldArr[1].slice(0, oldArr[2].length - 2) + (i + 1));
+						arr.push(oldArr[1].slice(0, oldArr[1].length - 1) + (i + 1));
 				}
 			}
 			let size = 4 + arr.length * 4;
