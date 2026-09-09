@@ -439,6 +439,16 @@ function showSpeedrun(wanted) {
   worldsOption.hidden = !wanted;
   speedrunManage.hidden = !wanted;
 
+  // The other half of the exclusion below: practice mode is held off while the
+  // timer is on, the same way and for the same reason, so whichever of the two
+  // was asked for first is the one that stands and the other reads as
+  // unavailable rather than as merely unticked.
+  practiceOption.disabled = wanted;
+  if (wanted && practiceOption.checked) {
+    practiceOption.checked = false;
+    showPractice(false);
+  }
+
   fitCanvas();
 }
 
@@ -466,6 +476,9 @@ showSpeedrun(speedrunOption.checked);
 // It is deliberately not a timer's friend: warping past a level and handing
 // yourself a P-wing are exactly the things a run is timed for not doing, so the
 // two options exclude each other rather than letting practice write a record.
+// The exclusion runs both ways - each switches the other off and holds it there
+// while it is on - so it is the player's choice which of the two they keep,
+// rather than one of them always being the one to give way.
 // ---------------------------------------------------------------------------
 
 let practice = null;
@@ -479,7 +492,10 @@ function showPractice(wanted) {
 
   // The timer is not taken away, only switched off and held there while
   // practice mode is on: turning practice back off gives the player their
-  // timer setting back, rather than making them find it again.
+  // timer setting back, rather than making them find it again. showSpeedrun()
+  // does the same to this option, and the two calls settle rather than chase
+  // each other: the one switched off is called with false, which disables
+  // nothing and so asks nothing of the one that switched it off.
   speedrunOption.disabled = wanted;
   if (wanted && speedrunOption.checked) {
     speedrunOption.checked = false;

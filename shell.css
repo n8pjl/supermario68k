@@ -354,6 +354,16 @@ body > footer a {
   margin-top: 0.4rem;
 }
 
+/* An option another one is holding off - the timer while practice mode is on,
+   which is shell.js switching it off and keeping it there - reads as
+   unavailable rather than as merely unticked. The box is the browser's own
+   greyed one; this is the words beside it going with it, so the reason it will
+   not tick is on the menu rather than only in the click that does nothing. */
+.settings .option:has(input:disabled) {
+  color: color-mix(in srgb, var(--ink-dim) 55%, transparent);
+  cursor: not-allowed;
+}
+
 /* As with the notice below: the display above wins over the UA stylesheet's
    rule for [hidden], so an option shell.js has hidden - the route picker with
    the timer switched off, the timer itself on a browser that cannot keep its
