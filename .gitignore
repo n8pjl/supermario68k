@@ -10,8 +10,9 @@ dist/
 build/
 node_modules/
 
-# Bundled from speedrun/ by the Makefile, for serving this directory as-is.
+# Built from their TypeScript by the Makefile, for serving this directory as-is.
 speedrun.js
+practice.js
 
 # Build target stamps
 .calc-stamp

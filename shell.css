@@ -1378,3 +1378,173 @@ body.fullscreen .fullscreen-toggle .icon-enter {
 body.fullscreen .fullscreen-toggle .icon-exit {
   display: inline;
 }
+
+/* ---------------------------------------------------------------------------
+   Practice mode
+   ---------------------------------------------------------------------------
+   Built by practice.js into the empty section index.html leaves for it, and
+   shaped after the control legend above: the same card, the same quiet heading,
+   the same panel colours. It is a workbench rather than part of the machine,
+   which is why it sits under the console with the other page furniture instead
+   of beside the screen where the timer goes - and why it is the one section
+   that stays live while a game is running.
+   --------------------------------------------------------------------------- */
+.practice {
+  width: min(100%, 34rem);
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 12px;
+  padding: 0.4rem 1.25rem 1rem;
+}
+
+.practice-header {
+  padding: 0.7rem 0 0.5rem;
+}
+
+.practice h2 {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* Where the player is and what they are, as the game last reported it - or what
+   the panel is still waiting to hand over. The one line in here that changes on
+   its own, so it is given its own row rather than being tucked beside a
+   control. */
+.practice-state {
+  margin: 0.35rem 0 0;
+  font-size: 0.9em;
+  color: var(--ink-dim);
+}
+
+.practice-box {
+  margin: 0.6rem 0 0;
+  padding: 0.2rem 0.9rem 0.8rem;
+  border: 1px solid var(--panel-edge);
+  border-radius: 8px;
+}
+
+.practice-box legend {
+  padding: 0 0.35rem;
+  font-size: 0.9em;
+  color: var(--ink-dim);
+}
+
+.practice-field {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  color: var(--ink-dim);
+}
+
+.practice-check {
+  display: block;
+  padding: 0.25rem 0;
+  color: var(--ink-dim);
+}
+
+/* Between warping to a world and getting about the one you are on: the same
+   box, because both are the map, and a line because they are not the same
+   errand. */
+.practice-rule {
+  margin: 0.9rem 0 0.6rem;
+  border: 0;
+  border-top: 1px solid var(--panel-edge);
+}
+
+.practice select,
+.practice input,
+.practice button {
+  font: inherit;
+}
+
+.practice button {
+  margin-top: 0.5rem;
+  color: var(--ink);
+  background: none;
+  border: 1px solid var(--panel-edge);
+  border-radius: 5px;
+  padding: 0.2rem 0.7rem;
+  cursor: pointer;
+}
+
+.practice button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.practice-note {
+  margin: 0.7rem 0 0.3rem;
+  color: var(--ink-dim);
+}
+
+/* The item list, in the order the game holds it: the leftmost chip is the one
+   the item screen opens on. Chips rather than a list because it is short, and
+   because dropping one is the only thing to do to it besides adding. */
+.practice-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  min-height: 2rem;
+  align-items: center;
+}
+
+.practice-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.1rem 0.2rem 0.1rem 0.45rem;
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-edge);
+  border-radius: 5px;
+}
+
+/* Quiet until reached for, the same as the bindings editor's x: a row of chips
+   each carrying a hard button reads as a row of buttons. */
+.practice-chip button {
+  margin: 0;
+  padding: 0 0.2rem;
+  line-height: 1;
+  border-color: transparent;
+  color: color-mix(in srgb, currentColor 45%, transparent);
+}
+
+.practice-chip button:hover {
+  color: currentColor;
+  border-color: transparent;
+}
+
+.practice-empty {
+  color: var(--ink-dim);
+  font-style: italic;
+}
+
+.practice-add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* The select in that row is the only control here that is not a button, and it
+   would otherwise sit a button's top margin higher than the two beside it. */
+.practice-add select {
+  margin-top: 0.5rem;
+}
+
+/* A button that is not offering anything: no level is being stood on, so there
+   is none to write off. */
+.practice button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.practice button:disabled:hover {
+  border-color: var(--panel-edge);
+  color: var(--ink);
+}

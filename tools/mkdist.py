@@ -15,6 +15,7 @@ bytes of the file holding it, and so changes its hash:
     index.html -> shell.js -> mario.js -> mario.wasm
                |          \\-> ma_texts.json
                |          \\-> speedrun.js
+               |          \\-> practice.js
                \\-> shell.css
 
 So the leaves are hashed and renamed, then each referrer has the new names
@@ -58,6 +59,13 @@ def run(args):
 
 
 def minify_js(src, dst):
+    """Minify one module, leaving its imports as imports.
+
+    esbuild reads TypeScript by extension and only strips the types, which the
+    build has already had tsc check, so a .ts source arrives here the same as a
+    .js one - see the practice panel, which imports nothing and so needs no
+    bundling.
+    """
     run([ESBUILD, src, *ESBUILD_JS, f"--outfile={dst}"])
     return dst
 
@@ -141,6 +149,7 @@ def main():
     texts = freeze(compact_json("ma_texts.json", dst("ma_texts.json")))
     css = freeze(minify_css("shell.css", dst("shell.css")))
     speedrun = freeze(bundle_js("speedrun/index.ts", dst("speedrun.js")))
+    practice = freeze(minify_js("practice.ts", dst("practice.js")))
 
     # Emscripten's glue.
     glue = minify_js(os.path.join(build, "mario.js"), dst("mario.js"))
@@ -150,7 +159,8 @@ def main():
     shell = minify_js("shell.js", dst("shell.js"))
     substitute(shell, {'"./mario.js"': (f'"./{mario}"', 1),
                        '"./ma_texts.json"': (f'"./{texts}"', 1),
-                       '"./speedrun.js"': (f'"./{speedrun}"', 1)})
+                       '"./speedrun.js"': (f'"./{speedrun}"', 1),
+                       '"./practice.js"': (f'"./{practice}"', 1)})
     shell = freeze(shell)
 
     # The entry point, and the only file without a hash: it is what a browser

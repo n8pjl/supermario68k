@@ -85,6 +85,15 @@
           Split on worlds only
         </label>
 
+        <!-- Practice mode: the panel below the page, and the game answering
+             its questions. Excludes the timer above rather than sitting beside
+             it - warping to world 8 with a P-wing is not a run - so shell.js
+             holds that option off while this one is on. -->
+        <label class="option">
+          <input type="checkbox" id="practice-mode" name="practice" />
+          Practice mode
+        </label>
+
         <!-- The input display, one half at a time: a keyboard is watched with
              listeners and a controller by polling, so neither costs anything
              while it is off. Both are off by default - the display is for
@@ -219,6 +228,12 @@
     </div>
     <dl id="bindings"></dl>
   </section>
+
+  <!-- Where a world, a square on its map, a powerup and an item list are
+       chosen. Filled in by practice.js and shown only while practice mode is
+       on; unlike the control legend above it stays live during a game, because
+       being able to change any of it mid-game is the whole point of it. -->
+  <section class="practice" id="practice" hidden></section>
 
   <!-- Recording, importing, exporting and deleting routes. Filled in by
        speedrun.js and shown only while the timer is on; made inert during a

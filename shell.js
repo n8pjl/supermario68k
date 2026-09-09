@@ -6,6 +6,7 @@
 import createMario from "./mario.js";
 import maTexts from "./ma_texts.json" with { type: "json" };
 import { Speedrun } from "./speedrun.js";
+import { Practice } from "./practice.js";
 
 // ---------------------------------------------------------------------------
 // Actions and bindings
@@ -193,6 +194,7 @@ const CALC_KEY = "sm68k.calc";
 const LANG_KEY = "sm68k.lang";
 const LATCH_KEY = "sm68k.latch";
 const SPEEDRUN_KEY = "sm68k.speedrun";
+const PRACTICE_KEY = "sm68k.practice";
 const KEYBOARD_INPUTS_KEY = "sm68k.keyboardinputs";
 const GAMEPAD_INPUTS_KEY = "sm68k.gamepadinputs";
 const stage = document.querySelector(".stage");
@@ -218,6 +220,8 @@ const routeSelect = settings.elements.route;
 const worldsOption = document.getElementById("speedrun-worlds-option");
 const worldsCheck = settings.elements.worlds;
 const speedrunManage = document.getElementById("speedrun-manage");
+const practicePanel = document.getElementById("practice");
+const practiceOption = settings.elements.practice;
 
 // The screens the two builds draw to, from init_calc_screen_constants() in
 // render.c, and the largest scale they are displayed at. Sizing the canvas from
@@ -384,6 +388,7 @@ try {
   if (savedLatch !== null) latchOption.checked = savedLatch === "true";
 
   speedrunOption.checked = localStorage.getItem(SPEEDRUN_KEY) === "true";
+  practiceOption.checked = localStorage.getItem(PRACTICE_KEY) === "true";
 
   // Absent means never asked for, which is off: the display is for looking at
   // the controls rather than for playing, so it is not something to be found
@@ -448,6 +453,43 @@ speedrunOption.addEventListener("change", () =>
 );
 
 showSpeedrun(speedrunOption.checked);
+
+// ---------------------------------------------------------------------------
+// Practice mode
+//
+// practice.js owns the panel and everything the player does in it; what is left
+// here is whether they asked for it, and handing the runtime the hook the game
+// polls - see src/practice.h for what the game does with it.
+//
+// It is deliberately not a timer's friend: warping past a level and handing
+// yourself a P-wing are exactly the things a run is timed for not doing, so the
+// two options exclude each other rather than letting practice write a record.
+// ---------------------------------------------------------------------------
+
+let practice = null;
+
+function showPractice(wanted) {
+  if (wanted && !practice) {
+    practice = new Practice(practicePanel);
+  }
+
+  practicePanel.hidden = !wanted;
+
+  // The timer is not taken away, only switched off and held there while
+  // practice mode is on: turning practice back off gives the player their
+  // timer setting back, rather than making them find it again.
+  speedrunOption.disabled = wanted;
+  if (wanted && speedrunOption.checked) {
+    speedrunOption.checked = false;
+    showSpeedrun(false);
+  }
+}
+
+practiceOption.addEventListener("change", () =>
+  showPractice(practiceOption.checked),
+);
+
+showPractice(practiceOption.checked);
 
 sizeCanvas(select.value);
 select.addEventListener("change", () => sizeCanvas(select.value));
@@ -1431,6 +1473,7 @@ function startGame() {
     localStorage.setItem(LANG_KEY, lang);
     localStorage.setItem(LATCH_KEY, String(latchOption.checked));
     localStorage.setItem(SPEEDRUN_KEY, String(speedrunOption.checked));
+    localStorage.setItem(PRACTICE_KEY, String(practiceOption.checked));
     localStorage.setItem(
       KEYBOARD_INPUTS_KEY,
       String(keyboardInputsOption.checked),
@@ -1462,6 +1505,10 @@ function startGame() {
   // checks for before building an event at all.
   const timer = speedrunOption.checked ? speedrun : null;
 
+  // The same, for the practice panel: absent unless it was asked for, which is
+  // what src/practice.cpp checks for once and then never asks about again.
+  const room = practiceOption.checked ? practice : null;
+
   // run() awaits main(), which JSPI makes asynchronous, so this promise
   // settling means the game itself has exited.
   createMario({
@@ -1480,6 +1527,9 @@ function startGame() {
     // recording that has just finished: the run is over, the panel is showing
     // the route it wrote, and there is no reason to keep the keyboard.
     onSpeedrunEvent: timer ? (event) => timer.handle(event) : undefined,
+    // Polled from the world map, and answered with a warp, a powerup or an item
+    // list when the player has asked the panel for one.
+    onPracticeRequest: room ? (status) => room.handle(status) : undefined,
     // gray.c only resizes the canvas if the game asks for a screen other than
     // the one the menu sized it to, but if it ever does, the fitted display
     // size has to be recomputed for the new aspect.

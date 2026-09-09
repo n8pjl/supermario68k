@@ -50,6 +50,10 @@ TSC = ./node_modules/.bin/tsc
 # single leaf to name rather than a graph of imports to rewrite.
 SPEEDRUN = $(wildcard speedrun/*.ts)
 
+# The practice panel, which is one file rather than a directory: it has one
+# consumer, no state to keep between sessions and nothing to share.
+PRACTICE = practice.ts
+
 # Written by that check, which has nothing else to show for itself.
 TYPECHECK = .typecheck-stamp
 
@@ -64,6 +68,7 @@ NAMES = main.cpp enemies.cpp gameloop.cpp items.cpp player.cpp render.cpp \
         scankeys.cpp shells.cpp custom.cpp objects.cpp flying.cpp smallgames.cpp \
         bounch.cpp map.cpp titlescreen.cpp text.cpp rle.cpp level.cpp savegame.cpp \
         stringcopy.cpp error.cpp bosses.cpp gfx.cpp speedrun.cpp \
+        practice.cpp \
         compat/assets.cpp compat/tilemap.cpp compat/extgraph.cpp \
         compat/graph.cpp compat/font_data.cpp compat/gray.cpp
 
@@ -77,7 +82,7 @@ DEPS = $(OBJS:.o=.d)
 
 .PHONY: all clean data format stages typecheck verify-levels
 
-all: speedrun.js $(DIST)
+all: speedrun.js practice.js $(DIST)
 
 # The level data's source: JSON under levels/, compiled to the blobs the game
 # embeds. See tools/mklevels.py for the format and for why encoding it
@@ -154,7 +159,7 @@ $(BUILDDIR)/mario.wasm: $(TARGET) ;
 # mkdist.py empties $(OUTDIR) and refills it, so there is nothing here for make
 # to build incrementally and nothing for a stale hash to survive in.
 $(DIST): $(TARGET) $(BUILDDIR)/mario.wasm \
-         index.html shell.js shell.css ma_texts.json $(SPEEDRUN) \
+         index.html shell.js shell.css ma_texts.json $(SPEEDRUN) $(PRACTICE) \
          $(TYPECHECK) tools/mkdist.py Makefile | $(ESBUILD)
 	ESBUILD=$(ESBUILD) python3 tools/mkdist.py $(BUILDDIR) $(OUTDIR)
 	@touch $@
@@ -170,7 +175,7 @@ $(TSC): $(ESBUILD) ;
 
 # A type error fails the build rather than riding along into dist/: nothing
 # downstream of here would notice one, least of all esbuild.
-$(TYPECHECK): $(SPEEDRUN) tsconfig.json $(STAGECHECK) | $(TSC)
+$(TYPECHECK): $(SPEEDRUN) $(PRACTICE) tsconfig.json $(STAGECHECK) | $(TSC)
 	$(TSC) --noEmit
 	@touch $@
 
@@ -182,6 +187,11 @@ $(TYPECHECK): $(SPEEDRUN) tsconfig.json $(STAGECHECK) | $(TSC)
 speedrun.js: $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
 	$(ESBUILD) speedrun/index.ts --bundle --format=esm --target=esnext \
 		--outfile=$@
+
+# The same for the practice panel: shell.js imports it by its built name, so
+# serving this directory as it stands needs the types stripped off it first.
+practice.js: $(PRACTICE) $(TYPECHECK) | $(ESBUILD)
+	$(ESBUILD) $(PRACTICE) --format=esm --target=esnext --outfile=$@
 
 $(BUILDDIR):
 	mkdir -p $@

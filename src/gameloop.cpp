@@ -12,6 +12,7 @@
 #include "levelset.h"
 #include "map.h"
 #include "player.h"
+#include "practice.h"
 #include "render.h"
 #include "savegame.h"
 #include "scankeys.h"
@@ -141,6 +142,12 @@ void Gameloop()
 	// long D;//for test
 
 	while ((!Exit) && (ErrorCode == 0) && (SavePlayer.Lives > 0)) {
+		// Practice mode's one way in, and a no-op unless the shell asked
+		// for it. Here at the top of the map loop because this is where
+		// the player is between levels and every piece of state it
+		// rewrites is at rest - see src/practice.h.
+		practice::poll();
+
 		Render_map();
 
 		for (C = 0; C < 10000; C++)
