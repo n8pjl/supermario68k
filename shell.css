@@ -129,6 +129,13 @@ h1 span {
    is displayed at is fitted to the viewport by shell.js. */
 .console {
   position: relative;
+  /* One cell, with the canvas and the menu laid over each other in it. The cell
+     is as large as the larger of the two, so a menu with every option on it -
+     the timer's route and world rows are the ones that make it grow - pushes
+     the bezel out rather than scrolling inside a screen that cannot hold it.
+     The canvas is centred in whatever room that leaves. */
+  display: grid;
+  place-items: center;
   padding: 1rem;
   background: linear-gradient(var(--console-a), var(--console-b));
   border: 1px solid var(--panel-edge);
@@ -140,10 +147,11 @@ h1 span {
 
 canvas {
   display: block;
-  /* The TI-92+/V200 screen at 3x, until shell.js sets the size it has fitted
+  grid-area: 1 / 1;
+  /* The TI-92+/V200 screen at 4x, until shell.js sets the size it has fitted
      the selected game version's screen to as an inline style. */
-  width: 720px;
-  height: 384px;
+  width: 960px;
+  height: 512px;
   image-rendering: pixelated;
   background: var(--lcd);
   border-radius: 4px;
@@ -314,11 +322,17 @@ body > footer a {
 }
 
 /* The pre-game settings menu, laid over the canvas until the game starts, and
-   the notice that takes its place on a browser missing a needed feature. */
+   the notice that takes its place on a browser missing a needed feature. Both
+   share the canvas's cell in the console grid and stretch across it, so they
+   cover the screen exactly while it is the larger of the two and grow the
+   console when they are. Nothing here scrolls: a menu too tall for the viewport
+   makes the page long, and the Start button at the bottom of it is reached the
+   way the rest of the page is. */
 .settings,
 .unsupported {
-  position: absolute;
-  inset: 1rem;
+  grid-area: 1 / 1;
+  align-self: stretch;
+  justify-self: stretch;
   border-radius: 4px;
   padding: 1.25rem;
   background: color-mix(in srgb, var(--panel) 92%, transparent);
@@ -326,9 +340,6 @@ body > footer a {
   flex-direction: column;
   align-items: start;
   gap: 0.4rem;
-  /* On a short viewport the menu can be taller than the canvas it sits over,
-     and a Start button that cannot be reached is a dead end. */
-  overflow: auto;
 }
 
 .settings label {
@@ -401,7 +412,6 @@ body > footer a {
 }
 
 .unsupported {
-  overflow: auto;
   gap: 0.8rem;
 }
 
@@ -428,8 +438,8 @@ body > footer a {
   color: var(--ink-dim);
 }
 
-/* Narrow viewports: the menu no longer fits over the canvas, so it drops below
-   it and the console grows to hold both. */
+/* Narrow viewports: the menu no longer fits over the canvas, so it drops into a
+   row of its own under it and the console grows to hold both. */
 @media (max-width: 700px) {
   body {
     padding: 1.5rem 0.75rem 0;
@@ -443,8 +453,7 @@ body > footer a {
 
   .settings,
   .unsupported {
-    position: static;
-    inset: auto;
+    grid-area: auto;
     margin-top: 0.5rem;
     padding: 0.75rem;
     border-radius: 8px;

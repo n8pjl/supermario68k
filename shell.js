@@ -227,7 +227,7 @@ const practiceOption = settings.elements.practice;
 // render.c, and the largest scale they are displayed at. Sizing the canvas from
 // here shows the difference between the versions while choosing, and leaves the
 // canvas at the size the game wants, so gray.c never resizes it.
-const SCALE = 3;
+const SCALE = 4;
 const CALCS = {
   ti92: { width: 240, height: 128 },
   ti89: { width: 160, height: 100 },
@@ -235,11 +235,12 @@ const CALCS = {
 
 // How much of the viewport height the menu leaves the canvas. The rest is for
 // the title above it and, on a narrow screen where the menu no longer fits over
-// the canvas, the settings below it.
-const MENU_HEIGHT_SHARE = 0.6;
+// the canvas, the settings below it. Neither wants much: what is held back here
+// is mostly so that a page of nothing but screen still reads as a page.
+const MENU_HEIGHT_SHARE = 0.7;
 
-// A phone screen is nowhere near 720px wide, so the canvas is displayed at
-// whatever scale up to 3x the space actually allows. The pixel size is left
+// A phone screen is nowhere near 960px wide, so the canvas is displayed at
+// whatever scale up to 4x the space actually allows. The pixel size is left
 // alone - that is the calculator's screen and the game draws to it - so this
 // only ever changes the CSS size, and image-rendering: pixelated keeps the
 // result sharp. Called again whenever the space changes: a rotation, a
@@ -286,7 +287,7 @@ function fitCanvas() {
 
   const availWidth = document.body.clientWidth - chrome - beside;
   const availHeight = immersive ? innerHeight : innerHeight * MENU_HEIGHT_SHARE;
-  // 3x is as large as the calculator's screen wants to be in the middle of a
+  // 4x is as large as the calculator's screen wants to be in the middle of a
   // page, but a screen given over to the game entirely should fill it.
   const cap = isFullscreen() ? Infinity : SCALE;
   const scale = Math.max(
@@ -437,6 +438,7 @@ function showSpeedrun(wanted) {
   routeOption.hidden = !wanted;
   worldsOption.hidden = !wanted;
   speedrunManage.hidden = !wanted;
+
   fitCanvas();
 }
 
@@ -1232,7 +1234,7 @@ function isFullscreen() {
 //
 // The immersive class goes on for a game running either on a touch device or
 // fullscreen. That second half is what the fullscreen button buys a desktop
-// player: without it, going fullscreen would only put the same 720px canvas in
+// player: without it, going fullscreen would only put the same 960px canvas in
 // the middle of a bigger empty page.
 function updateChrome() {
   const playing = document.body.classList.contains("playing");
