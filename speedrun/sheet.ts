@@ -79,15 +79,15 @@ function table(caption: string, first: string): {
 
   grid.append(element("caption", "", caption));
 
-  for (const [label, scope] of [
-    [first, "col"],
-    ["Best run", "col"],
-    ["Segment", "col"],
-    ["Best segment", "col"],
+  for (const label of [
+    first,
+    "Best run",
+    "Segment",
+    "Best segment",
   ] as const) {
     const th = element("th", "", label);
 
-    th.scope = scope;
+    th.scope = "col";
     tr.append(th);
   }
 

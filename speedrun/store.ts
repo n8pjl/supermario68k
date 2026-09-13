@@ -323,7 +323,7 @@ export class SpeedrunStore {
   }
 
   #saveRecords(): void {
-    write(RECORDS_KEY, [...this.#records.values()].map(recordToJSON));
+    write(RECORDS_KEY, [...this.#records.values().map(recordToJSON)]);
   }
 
   #saveSelected(): void {
