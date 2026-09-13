@@ -1125,7 +1125,8 @@ body.immersive .inputs {
   border-top: 1px solid var(--panel-edge);
 }
 
-.sr-editor h3 {
+.sr-editor h3,
+.sr-sheet h3 {
   margin: 0 0 0.5rem;
   font-size: 0.8rem;
   font-weight: 600;
@@ -1213,6 +1214,90 @@ body.immersive .inputs {
 
 .sr-status:empty {
   display: none;
+}
+
+/* ---------------------------------------------------------------------------
+   The times sheet
+
+   What the route has been run in, folded away until it is asked for: the best
+   run split by split, the best each split and each world has ever been on its
+   own, and the sums those add up to. Nothing in it is edited here - every figure
+   was written by a run - so it is a table and not a form.
+   --------------------------------------------------------------------------- */
+.sr-sheet {
+  margin-top: 0.9rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--panel-edge);
+}
+
+.sr-sheet-best {
+  margin: 0;
+}
+
+/* The sums, in the colour the panel gives the golds they are added up from.
+   Gone when neither can be added up, which is any route with a segment that has
+   never been run. */
+.sr-sheet-sums {
+  margin: 0.2rem 0 0;
+  color: var(--gold);
+}
+
+.sr-sheet-sums:empty {
+  display: none;
+}
+
+.sr-sheet-empty {
+  margin: 0;
+  color: var(--ink-dim);
+}
+
+/* Sideways inside the section on a narrow phone, rather than squeezing four
+   columns of times into it or taking the page with it. */
+.sr-sheet-scroll {
+  overflow-x: auto;
+}
+
+/* Figures are read down a column against each other, so they are tabular and
+   hard right; the names beside them are the only prose in the table. */
+.sr-sheet-table {
+  width: 100%;
+  margin-top: 0.8rem;
+  border-collapse: collapse;
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-sheet-table caption {
+  padding-bottom: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--ink-dim);
+}
+
+.sr-sheet-table :is(th, td) {
+  padding: 0.2rem 0 0.2rem 0.5rem;
+  text-align: right;
+  border-bottom: 1px solid var(--panel-edge);
+}
+
+.sr-sheet-table thead th {
+  color: var(--ink-dim);
+  font-weight: 600;
+}
+
+.sr-sheet-table :is(th, td):first-child {
+  padding-left: 0;
+  text-align: left;
+  font-weight: 400;
+}
+
+/* The best segment a split or a world has ever had, which is the same claim the
+   panel paints gold mid-run. */
+.sr-sheet-table tbody td:last-child {
+  color: var(--gold);
 }
 
 /* ---------------------------------------------------------------------------

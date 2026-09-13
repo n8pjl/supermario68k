@@ -15,6 +15,7 @@ import {
 import { entersMultipleWorlds, groupSplits } from "./groups.ts";
 import { type RouteRecord } from "./records.ts";
 import { type Route, type RouteSplit, timedSplits } from "./route.ts";
+import { SpeedrunSheet } from "./sheet.ts";
 import { type SpeedrunStore, documentToJSON, parseDocument } from "./store.ts";
 import { formatDuration } from "./times.ts";
 
@@ -65,15 +66,26 @@ export class SpeedrunManager {
   readonly #routeName: HTMLElement;
   readonly #status: HTMLElement;
   readonly #editor: HTMLElement;
+  readonly #sheet: SpeedrunSheet;
   readonly #routeInput: HTMLInputElement;
   readonly #splits: HTMLElement;
   readonly #record: HTMLButtonElement;
   readonly #remove: HTMLButtonElement;
   readonly #clear: HTMLButtonElement;
+  readonly #showTimes: HTMLButtonElement;
   readonly #exportOne: HTMLButtonElement;
   readonly #file: HTMLInputElement;
 
   #recording = false;
+  /**
+   * Whether the times of the selected route have been asked for.
+   *
+   * Held here rather than read back off the sheet, because it is what the
+   * player asked for and the sheet is only shown when there is a route to show:
+   * deleting the last route folds it away without the answer being forgotten,
+   * so recording another one brings it back open.
+   */
+  #wantTimes = false;
   /**
    * The category the recording now running was armed for.
    *
@@ -131,6 +143,7 @@ export class SpeedrunManager {
     this.#record = button("Record a route");
     this.#remove = button("Delete route");
     this.#clear = button("Clear times");
+    this.#showTimes = button("Show times");
     this.#exportOne = button("Export route");
 
     const exportAll = button("Export everything");
@@ -164,10 +177,23 @@ export class SpeedrunManager {
     this.#editor.className = "sr-editor";
     this.#editor.append(editorHead, this.#routeInput, this.#splits);
 
+    // Above the names rather than below them: it is what the buttons it is
+    // opened from are about, and the names are an editor that has nothing to do
+    // with any of it.
+    const sheet = document.createElement("div");
+    sheet.id = "sr-times";
+    this.#sheet = new SpeedrunSheet(sheet);
+
+    // A disclosure rather than a mode: aria-expanded says the button folds the
+    // section below out, where the aria-pressed the recording button carries
+    // would say the game is doing something different while it is on.
+    this.#showTimes.setAttribute("aria-controls", sheet.id);
+
     const row = document.createElement("div");
     row.className = "sr-actions";
     row.append(
       this.#record,
+      this.#showTimes,
       this.#exportOne,
       exportAll,
       importFile,
@@ -183,6 +209,7 @@ export class SpeedrunManager {
       row,
       this.#file,
       this.#status,
+      sheet,
       this.#editor,
     );
 
@@ -191,6 +218,7 @@ export class SpeedrunManager {
     exportAll.addEventListener("click", () => this.#export());
     importFile.addEventListener("click", () => this.#file.click());
     this.#file.addEventListener("change", () => void this.#import());
+    this.#showTimes.addEventListener("click", () => this.#toggleTimes());
     this.#clear.addEventListener("click", () => this.#clearTimes());
     this.#remove.addEventListener("click", () => this.#removeRoute());
 
@@ -327,6 +355,12 @@ export class SpeedrunManager {
     );
 
     this.#hooks.setRecording(this.#recording);
+    this.draw();
+  }
+
+  /** Fold the times of the selected route out, or away again. */
+  #toggleTimes(): void {
+    this.#wantTimes = !this.#wantTimes;
     this.draw();
   }
 
@@ -483,7 +517,21 @@ export class SpeedrunManager {
     this.#remove.disabled = route === null;
     this.#clear.disabled = route === null;
     this.#exportOne.disabled = route === null;
+    this.#showTimes.disabled = route === null;
     this.#root.dataset["recording"] = String(this.#recording);
+
+    // Drawn whether or not it is on screen only when it is on screen: the rows
+    // are rebuilt from the record each time, and a folded-away sheet is not
+    // worth rebuilding for a run that is about to change it again.
+    this.#sheet.shown = this.#wantTimes && route !== null;
+    this.#showTimes.textContent = this.#sheet.shown
+      ? "Hide times"
+      : "Show times";
+    this.#showTimes.setAttribute("aria-expanded", String(this.#sheet.shown));
+
+    if (this.#sheet.shown && route !== null) {
+      this.#sheet.draw(route, this.#store.recordFor(route.id));
+    }
 
     this.#drawEditor(route);
   }

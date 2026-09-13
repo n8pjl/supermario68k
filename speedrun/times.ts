@@ -110,3 +110,18 @@ export function formatDelta(d: Temporal.Duration): string {
     ? `${sign}${t.minutes}:${ss}.${tenth}`
     : `${sign}${t.seconds}.${tenth}`;
 }
+
+/**
+ * The day a time was set on, or null where nothing wrote one down.
+ *
+ * The epoch is that "nothing": a split the run skipped never closed, and a
+ * record written before the stamps existed never said (see records.ts). Shown
+ * as the local date and nothing finer - which evening a time was set on is the
+ * question a stamp is kept for, and the clock time it happened at says no more
+ * about the run than the duration beside it already does.
+ */
+export function formatDay(when: Temporal.ZonedDateTime): string | null {
+  return when.epochMilliseconds === 0
+    ? null
+    : when.toPlainDate().toLocaleString();
+}
