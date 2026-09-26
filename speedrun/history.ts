@@ -32,6 +32,33 @@ const DB_VERSION = 1;
 const STORE = "attempts";
 
 /**
+ * Where every write is announced, once it has landed.
+ *
+ * IndexedDB says nothing to anyone else when it changes, and the data page is
+ * usually open in another tab while the game is played in this one. So each
+ * write is posted here as the rows it wrote, in their stored form, and a page
+ * that wants to follow along merges them rather than reading everything again.
+ * Posted after the transaction completes, so a reader that does go back to the
+ * database finds what it was told about.
+ */
+export const HISTORY_CHANNEL = "sm68k.history";
+
+/** Made the first time there is something to say. Null where there is none. */
+let channel: BroadcastChannel | null | undefined;
+
+function announce(rows: readonly unknown[]): void {
+  if (channel === undefined) {
+    try {
+      channel = new BroadcastChannel(HISTORY_CHANNEL);
+    } catch {
+      channel = null;
+    }
+  }
+
+  channel?.postMessage(rows);
+}
+
+/**
  * What an attempt was.
  *
  * A run is what the timer timed, from a new game to a route finished or
@@ -296,9 +323,11 @@ export class RunHistory {
         if (db === null) return;
 
         try {
-          const store = db.transaction(STORE, "readwrite").objectStore(STORE);
+          const transaction = db.transaction(STORE, "readwrite");
+          const store = transaction.objectStore(STORE);
 
           for (const row of rows) store.put(row);
+          transaction.oncomplete = () => announce(rows);
         } catch {
           /* Nothing to be done, and nothing that depends on it having worked. */
         }

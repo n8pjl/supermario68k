@@ -165,8 +165,12 @@ main {
   gap: 0.75rem;
 }
 
+/* Layout containment: the page updates while a game is played in another tab,
+   and a figure or a row changing inside one of these is then laid out inside
+   it, rather than asking the whole page to be laid out again. */
 .tile,
 .card {
+  contain: layout;
   background: var(--panel);
   border: 1px solid var(--panel-edge);
   border-radius: 10px;

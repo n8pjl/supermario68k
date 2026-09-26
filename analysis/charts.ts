@@ -1,7 +1,9 @@
 // The page's three charts, drawn as SVG at the width they are given.
 //
-// Each takes a host element, empties it and draws into it at the host's current
-// width, so redrawing on a resize is calling it again. Values are milliseconds
+// Each takes a host element and the width to draw at, empties the host and
+// draws into it, so redrawing on a resize is calling it again. The width is
+// handed in rather than read off the host: reading it would make the browser
+// lay the page out there and then, in the middle of whatever else is changing. Values are milliseconds
 // or counts; every chart reads the colours it uses off the page's custom
 // properties (data.css), so light and dark are the stylesheet's business.
 // Every mark carries its own tooltip text, shown on hover and on focus.
@@ -106,8 +108,8 @@ function shortClock(ms: number): string {
   return clock(ms).replace(/\.\d\d$/, "");
 }
 
-function frame(host: HTMLElement, height: number, label: string) {
-  const width = Math.max(280, host.clientWidth);
+function frame(host: HTMLElement, hostWidth: number, height: number, label: string) {
+  const width = Math.max(280, hostWidth);
   const root = svg("svg", {
     width,
     height,
@@ -131,9 +133,13 @@ export interface TimePoint {
  * Finished run times against the day they were set, with the best time so far
  * stepped along underneath: the one line anyone asks of a run history.
  */
-export function progressChart(host: HTMLElement, points: readonly TimePoint[]): void {
+export function progressChart(
+  host: HTMLElement,
+  hostWidth: number,
+  points: readonly TimePoint[],
+): void {
   const height = 260;
-  const { root, width } = frame(host, height, "Finished run times over time");
+  const { root, width } = frame(host, hostWidth, height, "Finished run times over time");
   const m = { top: 12, right: 16, bottom: 28, left: 56 };
   const w = width - m.left - m.right;
   const h = height - m.top - m.bottom;
@@ -188,10 +194,15 @@ export interface Bar {
 }
 
 /** Counts, one bar each, largest first, labelled at both ends. */
-export function barChart(host: HTMLElement, bars: readonly Bar[], label: string): void {
+export function barChart(
+  host: HTMLElement,
+  hostWidth: number,
+  bars: readonly Bar[],
+  label: string,
+): void {
   const row = 26;
   const height = bars.length * row + 8;
-  const { root, width } = frame(host, height, label);
+  const { root, width } = frame(host, hostWidth, height, label);
   const labelWidth = Math.min(180, width * 0.4);
   const w = width - labelWidth - 48;
   const max = Math.max(1, ...bars.map((b) => b.value));
@@ -241,11 +252,15 @@ export interface Strip {
  * out by how long it lasted: clears where they finished, deaths where they
  * happened.
  */
-export function stripChart(host: HTMLElement, strips: readonly Strip[]): void {
+export function stripChart(
+  host: HTMLElement,
+  hostWidth: number,
+  strips: readonly Strip[],
+): void {
   const row = 34;
   const m = { top: 8, right: 16, bottom: 28, left: 120 };
   const height = m.top + strips.length * row + m.bottom;
-  const { root, width } = frame(host, height, "Time in each visit, by loadout");
+  const { root, width } = frame(host, hostWidth, height, "Time in each visit, by loadout");
   const w = width - m.left - m.right;
   const max = Math.max(1000, ...strips.flatMap((s) => s.points.map((p) => p.value)));
   const xTicks = timeTicks(0, max, 6);
