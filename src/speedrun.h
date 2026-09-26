@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <emscripten/val.h>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -132,9 +133,27 @@ struct MonsterDefeated {
 	int monster;
 };
 
+// A life was lost in whatever is being played: a level, where `level` is set,
+// or a monster fight, where `monster` is. Raised the moment it happens, before
+// the fall off the bottom of the screen, which is the game's time and not the
+// player's. `player` is what they died as - a pit takes a racoon suit with it
+// where an enemy would only have knocked it off.
+//
+// Only while something is being played, so a death is always a death in
+// something a route can name. The title screen's demo and the passages behind
+// map pipes are neither, and a death in either reports nothing.
+struct PlayerDied {
+	static constexpr std::string_view kind = "player-died";
+
+	int world;
+	std::optional<int> level;
+	std::optional<int> monster;
+	Loadout player;
+};
+
 using Event = std::variant<RunStarted, RunAbandoned, RunEnded, WorldEntered,
 			   WarpTaken, LevelEntered, LevelCompleted,
-			   MonsterFought, MonsterDefeated>;
+			   MonsterFought, MonsterDefeated, PlayerDied>;
 
 // Thrown out of report() when the shell says the run it was timing is over
 // while the game is not: a route being recorded reached the end of the category
@@ -178,6 +197,10 @@ void entered_monster(int world, int monster);
 // lands before all that is one the player has a second to read before they have
 // to act again. Only the first call for a level reports.
 void cleared_level();
+
+// A life has just been lost. Reports PlayerDied, with the level or the monster
+// fight it was lost in; see there for when it reports nothing.
+void died();
 
 // It has returned to the map. `completed` is the game's own verdict on it: if
 // that says it was beaten and nothing inside it said so first - a way of

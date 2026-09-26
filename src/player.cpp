@@ -8,6 +8,7 @@
 #include "render.h"
 #include "scankeys.h"
 #include "smallgames.h"
+#include "speedrun.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -1383,6 +1384,11 @@ void Player_die_hard()
 {
 	// New: V 1.04 Increased speed of die animation
 	/*char*/ int16_t Temp = -2;
+
+	// Every lost life comes through here - an enemy touched while small, a
+	// pit, a crusher - so this is the one place to say so, and before the
+	// animation below rather than after it.
+	speedrun::died();
 
 	SavePlayer.Spritenr = 9;
 

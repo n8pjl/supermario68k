@@ -110,6 +110,23 @@ export interface MonsterDefeated {
   readonly monster: number;
 }
 
+/**
+ * A life was lost in a level or a monster fight: exactly one of `level` and
+ * `monster` says which, the other crossing as undefined. Raised the moment it
+ * happens, before the death animation.
+ *
+ * Only ever inside something being played, so a death in the title screen's
+ * demo or in a pipe passage off the map reports nothing. `player` is what the
+ * player died as - see src/speedrun.h.
+ */
+export interface PlayerDied {
+  readonly kind: "player-died";
+  readonly world: number;
+  readonly level?: number | undefined;
+  readonly monster?: number | undefined;
+  readonly player: Loadout;
+}
+
 export type GameEvent =
   | RunStarted
   | RunAbandoned
@@ -119,7 +136,8 @@ export type GameEvent =
   | LevelEntered
   | LevelCompleted
   | MonsterFought
-  | MonsterDefeated;
+  | MonsterDefeated
+  | PlayerDied;
 
 export type EventKind = GameEvent["kind"];
 
@@ -134,6 +152,7 @@ export const EVENT_KINDS: readonly EventKind[] = [
   "level-completed",
   "monster-fought",
   "monster-defeated",
+  "player-died",
 ];
 
 export function isEventKind(value: unknown): value is EventKind {
