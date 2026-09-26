@@ -371,7 +371,7 @@ export class Practice {
       element("legend", "", "History"),
       said,
       button("Export history", () => {
-        void exportHistory().then((message) => {
+        exportHistory().then((message) => {
           said.textContent = message;
         });
       }),

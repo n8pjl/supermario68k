@@ -319,7 +319,7 @@ export class RunHistory {
       const rows = [...this.#dirty].map(attemptToJSON);
 
       this.#dirty.clear();
-      void this.#database().then((db) => {
+      this.#database().then((db) => {
         if (db === null) return;
 
         try {

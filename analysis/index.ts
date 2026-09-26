@@ -831,8 +831,8 @@ const tasks = typeof scheduler === "undefined" ? null : scheduler;
 
 /** Run this at that priority: "background" is when nothing else is waiting. */
 function post(task: () => Promise<void>, priority: TaskPriority): void {
-  if (tasks === null) setTimeout(() => void task(), 0);
-  else void tasks.postTask(task, { priority });
+  if (tasks === null) setTimeout(task, 0);
+  else tasks.postTask(task, { priority });
 }
 
 /** Let the page, and anything more pressing, have the thread for a moment. */
@@ -1017,7 +1017,7 @@ async function start(): Promise<void> {
   // background is not woken for one - so coming back to the tab reads the
   // history again, and whatever changed is merged like any other update.
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) void reload();
+    if (!document.hidden) reload();
   });
 
   if (!(await reload("user-visible"))) {
@@ -1027,4 +1027,4 @@ async function start(): Promise<void> {
   }
 }
 
-void start();
+start();
