@@ -27,7 +27,7 @@ for (const { world, levels, monsters } of STAGES) {
 }
 
 /**
- * A level as the map shows it: "1-3", "2-Pyramid", "4-Castle".
+ * A level as the map shows it: "1-3", "2-Pyramid", "8-Bowser".
  *
  * Every level a map tile enters has a name. One that does not - reached some
  * other way, or reported by a build whose level set this one does not have -

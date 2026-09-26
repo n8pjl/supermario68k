@@ -16,7 +16,7 @@
 export interface Stage {
   /** The level index the events report. */
   readonly level: number;
-  /** As the map shows it: "1-3", "2-Pyramid", "4-Castle". */
+  /** As the map shows it: "1-3", "2-Pyramid", "8-Bowser". */
   readonly name: string;
 }
 
@@ -49,7 +49,7 @@ export const STAGES: readonly WorldStages[] = [
       { level: 4, name: "1-5" },
       { level: 5, name: "1-6" },
       { level: 6, name: "1-Fortress" },
-      { level: 7, name: "1-Airship" },
+      { level: 7, name: "1-Castle" },
     ],
     monsters: [
       { monster: 0, name: "1-Hammer Bros." },
@@ -66,7 +66,7 @@ export const STAGES: readonly WorldStages[] = [
       { level: 6, name: "2-Fortress" },
       { level: 8, name: "2-Pyramid" },
       { level: 9, name: "2-Quicksand" },
-      { level: 7, name: "2-Airship" },
+      { level: 7, name: "2-Castle" },
     ],
     monsters: [
       { monster: 0, name: "2-Boomerang Bros. 1" },
@@ -87,7 +87,7 @@ export const STAGES: readonly WorldStages[] = [
       { level: 6, name: "3-Fortress 1" },
       { level: 10, name: "3-Fortress 2" },
       { level: 15, name: "3-Bonus" },
-      { level: 7, name: "3-Airship" },
+      { level: 7, name: "3-Castle" },
     ],
     monsters: [
       { monster: 0, name: "3-Hammer Bros. 1" },
@@ -117,7 +117,7 @@ export const STAGES: readonly WorldStages[] = [
       { level: 3, name: "5-4" },
       { level: 4, name: "5-5" },
       { level: 6, name: "5-Fortress" },
-      { level: 7, name: "5-Airship" },
+      { level: 7, name: "5-Castle" },
     ],
     monsters: [
       { monster: 0, name: "5-Boomerang Bros." },
@@ -137,7 +137,7 @@ export const STAGES: readonly WorldStages[] = [
       { level: 6, name: "6-Fortress 1" },
       { level: 10, name: "6-Fortress 2" },
       { level: 15, name: "6-Bonus" },
-      { level: 7, name: "6-Airship" },
+      { level: 7, name: "6-Castle" },
     ],
     monsters: [
       { monster: 0, name: "6-Hammer Bros. 1" },
@@ -157,7 +157,7 @@ export const STAGES: readonly WorldStages[] = [
       { level: 11, name: "7-7" },
       { level: 6, name: "7-Fortress" },
       { level: 15, name: "7-Bonus" },
-      { level: 7, name: "7-Airship" },
+      { level: 7, name: "7-Castle" },
     ],
     monsters: [
       { monster: 0, name: "7-Hammer Bros. 1" },
@@ -175,7 +175,7 @@ export const STAGES: readonly WorldStages[] = [
       { level: 4, name: "8-5" },
       { level: 5, name: "8-6" },
       { level: 6, name: "8-Fortress" },
-      { level: 19, name: "Bowser's Castle" },
+      { level: 19, name: "8-Bowser" },
     ],
     monsters: [],
   },

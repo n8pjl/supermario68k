@@ -33,17 +33,17 @@ player works it out, from what the map shows:
     as 7 and 8 (so 1-3 is the tile drawn with a 3, whatever its index), and
     the rest by what they are - Fortress, Pyramid, Quicksand, Bonus. A world
     with both fortress tiles has a Fortress 1 and a Fortress 2. Bowser's
-    castle is Bowser's Castle.
+    castle is Bowser.
 
-  - The world's end is an Airship, unless its level 7 has condition 0, which
-    is Enter_enemy_ship()'s test for there being no ship: then it is a Castle.
+  - The world's end is the Castle, whether or not an airship flies off from
+    it: the map shows the one castle tile either way.
 
   - A monster is named by the Bros. its arena holds - the common-file level
     Fight_monster() loads, mode less one - and numbered in object order where
     one world has two of a kind. Those numbers are only an order: the Bros.
     walk about, so nothing on the map says which is which.
 
-The name is "<world>-<name>", except Bowser's Castle, which there is one of.
+The name is "<world>-<name>", Bowser's included: 8-Bowser.
 
 The tile numbers and the enum come out of src/map.h, so the game stays the one
 place they are written down. What the numbered and plain level tiles are drawn
@@ -86,7 +86,7 @@ LEVEL_TILES = {
 # map counts them, then the rest, ending with whatever ends the world.
 LEVEL_ORDER = ["1", "2", "3", "4", "5", "6", "7", "8", "Fortress",
                "Fortress 1", "Fortress 2", "Pyramid", "Quicksand", "Bonus",
-               "Airship", "Castle", "Bowser's Castle"]
+               "Castle", "Bowser"]
 
 # What an arena's enemies say about which Bros. it is, by the model name's
 # prefix. The suffixes are how one behaves, not what it is.
@@ -112,7 +112,7 @@ HEADER = '''\
 export interface Stage {
   /** The level index the events report. */
   readonly level: number;
-  /** As the map shows it: "1-3", "2-Pyramid", "4-Castle". */
+  /** As the map shows it: "1-3", "2-Pyramid", "8-Bowser". */
   readonly name: string;
 }
 
@@ -175,7 +175,7 @@ def stages_of(doc, common, world, levels_range, tiles):
     cells = [int(cell, 16) for row in doc["map"]["tiles"] for cell in row.split()]
     special = {tiles["small_castle"]: "Fortress",
                tiles["small_castle_2"]: "Fortress 2",
-               tiles["bowser_castle"]: "Bowser's Castle"}
+               tiles["bowser_castle"]: "Bowser"}
 
     named = {}
     for tile in cells:
@@ -191,9 +191,7 @@ def stages_of(doc, common, world, levels_range, tiles):
         named[tile - low] = name
 
     if tiles["big_castle"] in cells:
-        level = doc["levels"].get(str(CASTLE_LEVEL))
-        named[CASTLE_LEVEL] = ("Castle" if level and level["condition"] == 0
-                               else "Airship")
+        named[CASTLE_LEVEL] = "Castle"
 
     # A stage on the map that the world file has no level for would crash the
     # game on the way in; here it would be a stage the category waits forever
@@ -208,7 +206,7 @@ def stages_of(doc, common, world, levels_range, tiles):
                  for level, name in named.items()}
 
     def full(name):
-        return name if name == "Bowser's Castle" else "%d-%s" % (world + 1, name)
+        return "%d-%s" % (world + 1, name)
 
     levels = [(level, full(named[level]))
               for level in sorted(named,
