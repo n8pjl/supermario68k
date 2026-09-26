@@ -633,9 +633,11 @@ export function search(
       if (u === -1) break;
       settled[u] = 1;
 
-      // A stage not yet beaten is walked onto and no further.
+      // A stage not yet beaten is walked onto and no further - the player's
+      // own square included, which is one only when a cloud has just set
+      // them down on it, and from there it is that stage or nothing.
       const st = world.stage[u];
-      if (st && !(s.done & st.bit) && u !== s.pos) continue;
+      if (st && !(s.done & st.bit)) continue;
 
       for (const link of world.links[u]!) {
         if (link.door !== 0 && !(s.done & world.opens[link.door])) continue;
@@ -849,9 +851,12 @@ export function search(
 
       // A cloud carries the player over a stage without playing it, onto
       // whatever is beyond; the stage is still there to block the way back.
-      if (settings.items && !final && count(s.inv, S.cloud) > 0) {
+      // Beyond can be another stage not yet beaten - 8-6 is crossed onto
+      // Bowser's castle - and the player is then standing at it, to play it
+      // and nothing else, as if they had walked up to it.
+      if (settings.items && !final && node.id !== s.pos && count(s.inv, S.cloud) > 0) {
         for (const link of world.links[node.id]!) {
-          if (dist[link.to] !== Infinity || !open(world, s, link.to)) continue;
+          if (dist[link.to] !== Infinity) continue;
           if (link.door !== 0 && !(s.done & world.opens[link.door])) continue;
           if (link.rock !== 0 && !(s.done & link.rock)) continue;
 
