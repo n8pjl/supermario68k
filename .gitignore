@@ -14,12 +14,15 @@ node_modules/
 speedrun.js
 practice.js
 analysis.js
+routing.js
+routing-worker.js
 
 # Build target stamps
 .calc-stamp
 .data-stamp
 .levelcheck-stamp
 .stagecheck-stamp
+.mapcheck-stamp
 .dist-stamp
 .typecheck-stamp
 # Python bytecode from the tools

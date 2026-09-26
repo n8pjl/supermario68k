@@ -1,0 +1,336 @@
+/* The routing page: data.css, which it shares with the run data page, and
+   what only this page has - the settings form, the route table and the world
+   maps. The map colours follow the game's own: grass-coloured land left
+   plain, water, and roads; how much history a stage has is the stage's
+   colour, and the route is the page's accent. Each also differs in shape or
+   stroke, so colour is never the only thing telling them apart. */
+
+:root {
+  --water: #d6e6f5;
+  --road: #b9b39f;
+  --ok: #2e7d32;
+  --thin: #c77c02;
+  --none: #c62828;
+  --route: #2a78d6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --water: #1b2a38;
+    --road: #5d584a;
+    --ok: #7ac07a;
+    --thin: #e0a33c;
+    --none: #ef6b6b;
+    --route: #5aa2f0;
+  }
+}
+
+h3 {
+  margin: 1rem 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.source label {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+input[type="number"] {
+  width: 7rem;
+  font: inherit;
+  color: var(--ink);
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-edge);
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+}
+
+.filters label.check {
+  flex-direction: row;
+  align-items: center;
+  align-self: flex-end;
+  gap: 0.4rem;
+  color: var(--ink);
+  padding-bottom: 0.4rem;
+}
+
+.timings {
+  flex-basis: 100%;
+}
+
+.timings summary {
+  cursor: pointer;
+  color: var(--ink-dim);
+}
+
+.timings .filters {
+  margin: 0.5rem 0;
+}
+
+/* --- The route ----------------------------------------------------------- */
+
+.route .world-row td {
+  background: var(--bg);
+  font-weight: 600;
+}
+
+.route td {
+  vertical-align: top;
+}
+
+.route td.wrap {
+  white-space: normal;
+  min-width: 12rem;
+}
+
+.weak {
+  color: var(--thin);
+}
+
+.missing {
+  color: var(--none);
+}
+
+.dim {
+  color: var(--ink-dim);
+}
+
+.use {
+  display: inline-block;
+  padding: 0 0.4rem;
+  margin-right: 0.25rem;
+  border-radius: 4px;
+  background: var(--select);
+  font-size: 0.85rem;
+}
+
+/* --- Worlds -------------------------------------------------------------- */
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.tabs button[aria-selected="true"] {
+  background: var(--select);
+  border-color: var(--route);
+}
+
+.map-host {
+  overflow-x: auto;
+}
+
+.world-map {
+  display: block;
+  width: 100%;
+  min-width: 480px;
+  height: auto;
+  font-size: 9px;
+}
+
+.world-map .water {
+  fill: var(--water);
+}
+
+.world-map .road,
+.world-map .locked {
+  fill: none;
+  stroke: var(--road);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.world-map .locked {
+  stroke-dasharray: 4 4;
+}
+
+.world-map .boat-link {
+  fill: none;
+  stroke: var(--road);
+  stroke-width: 2;
+  stroke-dasharray: 1 5;
+  stroke-linecap: round;
+}
+
+.world-map .pipe-link {
+  fill: none;
+  stroke: var(--road);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+
+.world-map .door rect {
+  fill: var(--panel);
+  stroke: var(--ink-dim);
+  stroke-width: 1.5;
+}
+
+.world-map .rock path {
+  fill: var(--ink-dim);
+  stroke: var(--panel);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.world-map .route-line {
+  fill: none;
+  stroke: var(--route);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+
+.world-map .route-line.pipe,
+.world-map .route-line.cloud {
+  stroke-dasharray: 5 4;
+}
+
+.world-map text {
+  text-anchor: middle;
+  font-weight: 600;
+  fill: var(--ink);
+  pointer-events: none;
+}
+
+.world-map .node circle,
+.world-map .node rect {
+  fill: var(--panel);
+  stroke: var(--ink-dim);
+  stroke-width: 1.5;
+}
+
+.world-map .junction circle {
+  fill: var(--road);
+  stroke: none;
+}
+
+.world-map [tabindex] {
+  cursor: pointer;
+  outline: none;
+}
+
+.world-map .data-ok rect {
+  stroke: var(--ok);
+  stroke-width: 2.5;
+}
+
+.world-map .data-thin rect {
+  stroke: var(--thin);
+  stroke-width: 2.5;
+  stroke-dasharray: 5 2;
+}
+
+.world-map .data-none rect {
+  stroke: var(--none);
+  stroke-width: 2.5;
+  stroke-dasharray: 2 2;
+}
+
+.world-map .selected rect,
+.world-map [tabindex]:focus-visible rect {
+  fill: var(--select);
+  stroke-width: 3.5;
+}
+
+.world-map .bros path {
+  fill: var(--panel);
+  stroke-width: 2;
+}
+
+.world-map .bros.data-ok path {
+  stroke: var(--ok);
+}
+
+.world-map .bros.data-thin path {
+  stroke: var(--thin);
+}
+
+.world-map .bros.data-none path {
+  stroke: var(--none);
+}
+
+.world-map .start circle {
+  fill: var(--ink);
+}
+
+.world-map .start text {
+  fill: var(--panel);
+  font-size: 7px;
+}
+
+.world-map .step-badge rect {
+  fill: var(--route);
+}
+
+.world-map .step-badge text {
+  fill: #fff;
+  font-size: 8px;
+}
+
+.key.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 2px solid;
+}
+
+.key.swatch.data-ok {
+  border-color: var(--ok);
+}
+
+.key.swatch.data-thin {
+  border-color: var(--thin);
+  border-style: dashed;
+}
+
+.key.swatch.data-none {
+  border-color: var(--none);
+  border-style: dotted;
+}
+
+.key.tri {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 10px solid var(--ink-dim);
+}
+
+.key.route-key {
+  width: 16px;
+  height: 3px;
+  background: var(--route);
+}
+
+.key.dashed {
+  width: 16px;
+  border-top: 3px dashed var(--road);
+}
+
+.key.rock-key {
+  width: 10px;
+  height: 8px;
+  background: var(--ink-dim);
+  clip-path: polygon(0 100%, 25% 0, 80% 10%, 100% 100%);
+}
+
+.items {
+  margin: 0.25rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.items li {
+  margin: 0.15rem 0;
+}
+
+.detail {
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--panel-edge);
+}

@@ -3,8 +3,8 @@
 
 The point is cache headers. Everything here can be served immutable with a
 year-long TTL, because a file's name changes whenever its bytes do; only
-the two pages - index.html and data/index.html - are fetched every visit, and
-they are the only files that carry no hash.
+the three pages - index.html, data/index.html and routing/index.html - are
+fetched every visit, and they are the only files that carry no hash.
 That also makes a deploy atomic without any coordination: one revalidated
 document names one consistent set of frozen URLs, so a browser can never pair
 shell.js from one revision with mario.wasm from another - which it otherwise
@@ -21,6 +21,10 @@ bytes of the file holding it, and so changes its hash:
 
     data/index.html -> analysis.js
                     \\-> data.css
+
+    routing/index.html -> routing.js -> routing-worker.js
+                       \\-> data.css
+                       \\-> routing.css
 
 So the leaves are hashed and renamed, then each referrer has the new names
 substituted into it, and only then is the referrer itself hashed. Doing it the
@@ -156,6 +160,14 @@ def main():
     practice = freeze(minify_js("practice.ts", dst("practice.js")))
     data_css = freeze(minify_css("data.css", dst("data.css")))
     analysis = freeze(bundle_js("analysis/index.ts", dst("analysis.js")))
+    routing_css = freeze(minify_css("routing.css", dst("routing.css")))
+    worker = freeze(bundle_js("routing/worker.ts", dst("routing-worker.js")))
+
+    # The routing page's script names its worker, which it loads by URL from
+    # beside itself rather than importing.
+    routing = bundle_js("routing/index.ts", dst("routing.js"))
+    substitute(routing, {'"./routing-worker.js"': (f'"./{worker}"', 1)})
+    routing = freeze(routing)
 
     # Emscripten's glue.
     glue = minify_js(os.path.join(build, "mario.js"), dst("mario.js"))
@@ -174,7 +186,8 @@ def main():
     html = shutil.copy("index.html", dst("index.html"))
     substitute(html, {'"shell.js"': (f'"{shell}"', 1),
                       '"shell.css"': (f'"{css}"', 1),
-                      '"data.html"': ('"data/"', 1)})
+                      '"data.html"': ('"data/"', 1),
+                      '"routing.html"': ('"routing/"', 1)})
 
     # The data page, the other unhashed entry point. It is served as data/ so
     # that it is reached as /data, which puts it a directory down from the
@@ -184,12 +197,23 @@ def main():
     page = shutil.copy("data.html", os.path.join(out, "data", "index.html"))
     substitute(page, {'"analysis.js"': (f'"../{analysis}"', 1),
                       '"data.css"': (f'"../{data_css}"', 1),
-                      '"index.html"': ('"../"', 1)})
+                      '"index.html"': ('"../"', 1),
+                      '"routing.html"': ('"../routing/"', 1)})
+
+    # The routing page, served as routing/ for the same reason.
+    os.makedirs(dst("routing"))
+    route_page = shutil.copy("routing.html", os.path.join(out, "routing", "index.html"))
+    substitute(route_page, {'"routing.js"': (f'"../{routing}"', 1),
+                            '"data.css"': (f'"../{data_css}"', 1),
+                            '"routing.css"': (f'"../{routing_css}"', 1),
+                            '"index.html"': ('"../"', 1),
+                            '"data.html"': ('"../data/"', 1)})
 
     for name in sorted(os.listdir(out)):
         if os.path.isfile(dst(name)):
             print(f"  {os.path.getsize(dst(name)):>7}  {name}")
     print(f"  {os.path.getsize(page):>7}  data/index.html")
+    print(f"  {os.path.getsize(route_page):>7}  routing/index.html")
 
 
 if __name__ == "__main__":

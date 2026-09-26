@@ -59,6 +59,12 @@ PRACTICE = practice.ts
 # the obvious name and is already the game's converted blobs.
 ANALYSIS = $(wildcard analysis/*.ts)
 
+# The routing page's script, and the route search it runs on a worker - a
+# second entry point, bundled on its own, because a worker is loaded by URL
+# rather than imported. It reads the run history the way the data page does,
+# and imports from there.
+ROUTING = $(wildcard routing/*.ts)
+
 # Written by that check, which has nothing else to show for itself.
 TYPECHECK = .typecheck-stamp
 
@@ -85,9 +91,9 @@ HDRS = $(wildcard $(SRCDIR)/*.h $(SRCDIR)/compat/*.h)
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(OBJS:.o=.d)
 
-.PHONY: all clean data format stages typecheck verify-levels
+.PHONY: all clean data format maps stages typecheck verify-levels
 
-all: speedrun.js practice.js analysis.js $(DIST)
+all: speedrun.js practice.js analysis.js routing.js routing-worker.js $(DIST)
 
 # The level data's source: JSON under levels/, compiled to the blobs the game
 # embeds. See tools/mklevels.py for the format and for why encoding it
@@ -132,6 +138,21 @@ $(STAGECHECK): tools/mkstages.py $(LEVELS) $(STAGES) $(SRCDIR)/map.h
 stages:
 	python3 tools/mkstages.py levels $(STAGES)
 
+# The world maps as graphs, for the routing page to draw and search: committed
+# and checked for the same reason as the stage manifest above, and written the
+# same way, by `make maps`. It reads the stage manifest's tool for what counts
+# as a monster and a castle, so a change there is a change here.
+MAPS = routing/maps.ts
+MAPCHECK = .mapcheck-stamp
+
+$(MAPCHECK): tools/mkmaps.py tools/mkstages.py $(LEVELS) $(MAPS) \
+             $(SRCDIR)/map.h $(SRCDIR)/level.h
+	python3 tools/mkmaps.py --check levels $(MAPS)
+	@touch $@
+
+maps:
+	python3 tools/mkmaps.py levels $(MAPS)
+
 # Both tools read the asset list out of assets.cpp and check their half of it,
 # so a file added or renamed there has to run them again.
 .data-stamp: tools/mkdata.py tools/mklevels.py $(LEVELS) \
@@ -166,6 +187,7 @@ $(BUILDDIR)/mario.wasm: $(TARGET) ;
 $(DIST): $(TARGET) $(BUILDDIR)/mario.wasm \
          index.html shell.js shell.css ma_texts.json $(SPEEDRUN) $(PRACTICE) \
          data.html data.css $(ANALYSIS) \
+         routing.html routing.css $(ROUTING) \
          $(TYPECHECK) tools/mkdist.py Makefile | $(ESBUILD)
 	ESBUILD=$(ESBUILD) python3 tools/mkdist.py $(BUILDDIR) $(OUTDIR)
 	@touch $@
@@ -181,7 +203,8 @@ $(TSC): $(ESBUILD) ;
 
 # A type error fails the build rather than riding along into dist/: nothing
 # downstream of here would notice one, least of all esbuild.
-$(TYPECHECK): $(SPEEDRUN) $(PRACTICE) $(ANALYSIS) tsconfig.json $(STAGECHECK) | $(TSC)
+$(TYPECHECK): $(SPEEDRUN) $(PRACTICE) $(ANALYSIS) $(ROUTING) tsconfig.json \
+              $(STAGECHECK) $(MAPCHECK) | $(TSC)
 	$(TSC) --noEmit
 	@touch $@
 
@@ -202,6 +225,16 @@ practice.js: $(PRACTICE) $(TYPECHECK) | $(ESBUILD)
 # And for the data page, which data.html reaches by this name.
 analysis.js: $(ANALYSIS) $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
 	$(ESBUILD) analysis/index.ts --bundle --format=esm --target=esnext \
+		--outfile=$@
+
+# And the routing page, which routing.html reaches by this name, and its
+# worker, which the page reaches as ./routing-worker.js beside itself.
+routing.js: $(ROUTING) $(ANALYSIS) $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
+	$(ESBUILD) routing/index.ts --bundle --format=esm --target=esnext \
+		--outfile=$@
+
+routing-worker.js: $(ROUTING) $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
+	$(ESBUILD) routing/worker.ts --bundle --format=esm --target=esnext \
 		--outfile=$@
 
 $(BUILDDIR):
@@ -226,5 +259,6 @@ verify-levels:
 
 clean:
 	rm -f $(OBJS) $(DEPS) .data-stamp $(LEVELCHECK) $(STAGECHECK) $(DIST) \
-	      $(TYPECHECK) speedrun.js practice.js analysis.js
+	      $(MAPCHECK) $(TYPECHECK) speedrun.js practice.js analysis.js \
+	      routing.js routing-worker.js
 	rm -rf $(OUTDIR) $(BUILDDIR) data

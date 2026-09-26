@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Routing · Super Mario 68K</title>
+  <link rel="stylesheet" href="data.css" />
+  <link rel="stylesheet" href="routing.css" />
+</head>
+<body>
+  <!-- Served as routing/ in dist/ (see tools/mkdist.py), and as routing.html
+       when this directory is served as it stands. -->
+  <header>
+    <h1>Super <span>Mario</span> 68K <small>routing Any% warpless</small></h1>
+    <nav class="back">
+      <a href="data.html">Run data</a> ·
+      <a href="index.html">Back to the game</a>
+    </nav>
+  </header>
+
+  <!-- Filled in by routing.js from the run history the game keeps in this
+       browser, and from any exported history opened here. Nothing on this
+       page writes to it. -->
+  <div class="source">
+    <p id="source" role="status">Reading the run history…</p>
+    <button type="button" id="open">Open exported history…</button>
+    <input type="file" id="file" accept=".jsonl,application/jsonl" multiple hidden />
+    <label>Played
+      <select id="filter-days">
+        <option value="0">All time</option>
+        <option value="7">Last 7 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+    </label>
+  </div>
+
+  <main>
+    <section class="card" aria-labelledby="search-title">
+      <h2 id="search-title">Route search</h2>
+      <p class="note">
+        From a new game to Bowser, with no warps. Timed runs and practice
+        count the same; where a figure leans on practice, it says so.
+      </p>
+
+      <form id="settings" class="filters">
+        <label>Aim for
+          <select name="objective">
+            <option value="expected">Expected time, deaths included</option>
+            <option value="median">Median clears, no deaths</option>
+            <option value="best">Best clears, no deaths</option>
+          </select>
+        </label>
+        <label class="check"><input type="checkbox" name="items" /> Spend items from the list</label>
+        <label class="check"><input type="checkbox" name="detours" /> Detour to houses and Bros.</label>
+        <label>Stages never played
+          <select name="unknown">
+            <option value="assume">Assume a time for them</option>
+            <option value="avoid">Keep away from them</option>
+          </select>
+        </label>
+        <label>Assumed time (s)
+          <input type="number" name="unknownMs" min="1" step="1" />
+        </label>
+        <details class="timings">
+          <summary>Map timings</summary>
+          <p class="note">
+            The history times stages and fights; nothing reports the map in
+            between, so these fill it in.
+          </p>
+          <div class="filters">
+            <label>One map square (s) <input type="number" name="msPerTile" min="0" step="0.01" /></label>
+            <label>Into and out of a stage (s) <input type="number" name="overheadMs" min="0" step="0.1" /></label>
+            <label>A death, back to the map (s) <input type="number" name="respawnMs" min="0" step="0.1" /></label>
+            <label>A mushroom house (s) <input type="number" name="houseMs" min="0" step="0.1" /></label>
+            <label>A pipe's passage (s) <input type="number" name="pipeMs" min="0" step="0.1" /></label>
+            <label>Chasing a fled airship (s) <input type="number" name="chaseMs" min="0" step="0.1" /></label>
+          </div>
+          <button type="button" id="reset-settings">Back to the defaults</button>
+        </details>
+      </form>
+
+      <p id="search-status" class="note" role="status"></p>
+      <div id="result" hidden>
+        <section class="tiles" id="result-tiles" aria-label="The route in brief"></section>
+        <div class="scroll"><table id="route-table" class="data route"></table></div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="holes-title">
+      <h2 id="holes-title">Weak data</h2>
+      <p class="note" id="holes-note"></p>
+      <div class="scroll"><table id="holes-table" class="data"></table></div>
+      <button type="button" id="holes-more" hidden></button>
+    </section>
+
+    <section class="card" aria-labelledby="worlds-title">
+      <h2 id="worlds-title">Worlds</h2>
+      <div class="tabs" id="world-tabs" role="tablist" aria-label="World"></div>
+      <div class="map-host" id="map"></div>
+      <ul class="legend map-legend">
+        <li><span class="key swatch data-ok"></span>Stage with history</li>
+        <li><span class="key swatch data-thin"></span>Under 3 clears</li>
+        <li><span class="key swatch data-none"></span>No clears</li>
+        <li><span class="key tri"></span>Bros., where it starts</li>
+        <li><span class="key route-key"></span>The route; numbers are its steps</li>
+        <li><span class="key dashed"></span>Road behind a locked door or a rock</li>
+        <li><span class="key rock-key"></span>A rock the hammer breaks</li>
+      </ul>
+
+      <h3>Stages</h3>
+      <p class="note">Median clear, and how many, by what the stage was walked into as. Select a row, or a stage on the map, for all of it.</p>
+      <div class="scroll"><table id="stages-table" class="data"></table></div>
+
+      <section id="detail" class="detail" hidden>
+        <h3 id="detail-title"></h3>
+        <p class="note" id="detail-note"></p>
+        <div class="scroll"><table id="detail-table" class="data"></table></div>
+      </section>
+
+      <div class="pair">
+        <div>
+          <h3>Items on offer</h3>
+          <ul id="items-given" class="items"></ul>
+        </div>
+        <div>
+          <h3>Spent in your history</h3>
+          <p class="note" id="items-used-note"></p>
+          <div class="scroll"><table id="items-used" class="data"></table></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="routing.js"></script>
+</body>
+</html>
