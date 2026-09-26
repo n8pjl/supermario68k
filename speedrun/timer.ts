@@ -10,8 +10,10 @@ import {
   category,
   placeIn,
 } from "./category.ts";
-import { type GameEvent } from "./events.ts";
+import { BOWSER_LEVEL, type GameEvent } from "./events.ts";
 import { entersMultipleWorlds, groupSplits } from "./groups.ts";
+import { levelName, monsterName } from "./names.ts";
+import { STAGES } from "./stages.ts";
 import {
   type Route,
   type RouteSplit,
@@ -171,18 +173,25 @@ interface Remaining {
  * time is tied to, so it has to come out the same on the next run of the
  * route. The monster is named by its map object rather than by the arena it
  * loaded, which is shared between every monster of its kind (see events.ts).
+ *
+ * The name is the one the map shows (see names.ts), which is what a split for
+ * that stage is called unless the player says otherwise.
  */
-function closes(event: GameEvent): { id: string; on: Trigger } | null {
+function closes(
+  event: GameEvent,
+): { id: string; name: string; on: Trigger } | null {
   switch (event.kind) {
     case "level-completed":
       return {
         id: `w${event.world}-l${event.level}`,
+        name: levelName(event.world, event.level),
         on: { kind: event.kind, world: event.world, level: event.level },
       };
 
     case "monster-defeated":
       return {
         id: `w${event.world}-m${event.monster}`,
+        name: monsterName(event.world, event.monster),
         on: { kind: event.kind, world: event.world, monster: event.monster },
       };
 
@@ -603,7 +612,8 @@ export class SpeedrunTimer {
 
       this.#recorded.push({
         id: "run-ended",
-        name: `Split ${last}`,
+        // The last world is the one Bowser's castle is in; see category.ts.
+        name: levelName(STAGES.length - 1, BOWSER_LEVEL),
         on: { kind: "run-ended" },
       });
       this.#close(last - 1);
@@ -631,18 +641,13 @@ export class SpeedrunTimer {
     const closed = closes(event);
     if (closed === null) return;
 
-    // Numbered rather than named: nothing here knows what the level is called,
-    // and a guess at it would be a name the player has to correct rather than
-    // one they can accept. Numbered by the timed splits so far, warps aside, so
-    // the count matches the rows the panel shows. The routes section is where
-    // these get their names; the id is what a saved time is tied to, so
-    // renaming costs nothing.
+    // Named for the stage it closes on, as the map shows it. The routes
+    // section is where a name can be changed - to say what the split is for
+    // rather than where it is - and the id is what a saved time is tied to, so
+    // renaming costs nothing. Counted by the timed splits so far, warps aside,
+    // so the index matches the rows the panel shows.
     const number = timedSplits(this.#recorded).length + 1;
-    const split: RouteSplit = {
-      id: closed.id,
-      name: `Split ${number}`,
-      on: closed.on,
-    };
+    const split: RouteSplit = { ...closed };
 
     this.#recorded.push(split);
     this.#close(number - 1);
