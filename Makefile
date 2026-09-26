@@ -12,7 +12,7 @@ CC = em++
 # -sWASM_LEGACY_EXCEPTIONS=0: emit the standardised try_table rather than the
 # superseded try, which browsers now warn about on every load. Both are a
 # compile and link setting, so both appear in LDFLAGS as well.
-CFLAGS = -Os -std=gnu++26 -flto -msimd128 -MMD -MP -I. -fwasm-exceptions \
+CFLAGS = -O2 -std=gnu++26 -flto -msimd128 -MMD -MP -I. -fwasm-exceptions \
          -sWASM_LEGACY_EXCEPTIONS=0
 # -sENVIRONMENT=web: this only ever runs in a browser, so drop the node,
 # worker and shell startup paths Emscripten emits by default.
