@@ -48,13 +48,31 @@ And what the map hands out, which is what an item route is made of:
   - A world's castle gives the item its level 7 names in `event`, and flies
     off as an airship when that level's `condition` is set - unless anchored.
 
-  - Some levels add something to the map when beaten with a particular number
-    of coins (Add_map_event): a card game, a money ship, or a hidden mushroom
-    house with a set item in it. Nothing reports the coins, so these are
-    shown and not planned on.
+  - Some levels add something to the map when beaten (Add_map_event): a card
+    game, a money ship, or a hidden mushroom house with a set item in it,
+    some of which are entered on the spot. What makes it happen is the
+    level's `condition`: the coins collected in it, which run 1 to 100 (see
+    the sum in Handle_player_map(), which gives 100 for none), so 0 is a
+    number no clear can match; or anything from 240, which is every clear.
+    The other way is the white-block secret: a level with the dark square
+    Dark_gray_magic_mode_handler() answers to can be ended by walking into it
+    from behind the scenery, which sets the condition to 240 on the way out.
+    1-3's whistle house is only ever reached that way.
+
+  - Some levels hold treasure chests of their own, in a bonus room or at the
+    end of a hidden way: opening one hands its item over and ends the level
+    (Handle_treasure_all sets Exit to 2), so a clear gets one of them at
+    most. Each stage lists what its chests hold.
 
   - Game houses are the slot machine, which pays lives and nothing else, so
     they are marked on the map and nothing more.
+
+And where a warp can go. The whistle, used anywhere on a world's map, drops
+the player into the warp zone - the common file's map - at the square that
+world's map names in warp_x, warp_y; the pipes there with a NewMap load that
+world fresh, from its start. The zone's rows are walled off from each other,
+so which pipes a world can reach is which row it drops the player on: it is
+worked out here by walking the zone from there.
 
 Usage:
   mkmaps.py <json dir> <out file>          write routing/maps.ts
@@ -81,6 +99,13 @@ TREASURES = {"treasure_rand": "random", "treasure_star": "star",
              "treasure_anchor": "anchor"}
 
 BOAT_MODE = 30
+
+# The non_solid_interactive tile Dark_gray_magic_mode_handler() is for: its
+# place in Interactive_non_solid_tile_handlers in src/player.cpp.
+DARK_GRAY_MAGIC = 15
+
+# Coins collected in a level, as Handle_player_map() adds them up: 1 to 100.
+COINS = range(1, 101)
 
 # Add_map_event()'s cases.
 CARD_GAME_EVENT = 1
@@ -119,6 +144,8 @@ export interface MapNode {
   readonly level?: number;
   /** A fortress: which of the two kinds of locked door beating it opens. */
   readonly opens?: 1 | 2;
+  /** What the chests inside the level hold, one item a clear at most. */
+  readonly chests?: readonly TreasureItem[];
 }
 
 export interface MapEdge {
@@ -150,16 +177,28 @@ export interface MapBros {
   readonly treasure: TreasureItem;
 }
 
-/** What a level adds to the map when beaten with just the right coins. */
+/** What a level adds to the map when beaten the right way. */
 export interface CoinEvent {
   readonly level: number;
   readonly kind: "card-game" | "money-ship" | "house";
-  /** Coins collected in the level that trigger it; null for any number. */
-  readonly coins: number | null;
+  /**
+   * What sets it off: beating the level with just so many coins collected,
+   * beating it at all, or ending it by the white-block secret.
+   */
+  readonly by: "coins" | "always" | "white-block";
+  /** The coins, where it is by coins. */
+  readonly coins?: number;
   /** A hidden house's item. */
   readonly item?: TreasureItem;
   /** Where it appears; null for a house entered on the spot. */
   readonly at: readonly [number, number] | null;
+}
+
+export interface Warp {
+  /** The world the pipe loads, counted from zero. */
+  readonly world: number;
+  /** Squares walked in the warp zone, from where the whistle drops the player. */
+  readonly tiles: number;
 }
 
 export type TreasureItem =
@@ -191,6 +230,8 @@ export interface WorldMap {
   /** Whether the castle flies off as an airship on a failed attempt. */
   readonly airship: boolean;
   readonly events: readonly CoinEvent[];
+  /** Where the whistle can take the player from here, and the walk to each pipe. */
+  readonly warps: readonly Warp[];
 }
 
 export const MAPS: readonly WorldMap[] = [
@@ -205,13 +246,41 @@ def map_constants():
     treasure = {tile: TREASURES[name]
                 for tile, name in enum_names(level_h, "Tiles").items()
                 if name in TREASURES}
+    ranges["non_solid_interactive"] = next(
+        (low, high) for low, high, cls in tile_ranges(level_h) if cls == "non_solid_interactive")
     return ranges, tiles, treasure
 
 
 DIRECTIONS = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
 
-def read_world(doc, world, ranges, tiles, treasure):
+def warps_from(doc, zone, ranges):
+    """The warp zone's pipes reachable from where this world's whistle drops
+    the player, and how far each is, as [{"world", "tiles"}]."""
+    m = zone["map"]
+    grid = [[int(c, 16) for c in row.split()] for row in m["tiles"]]
+    high = ranges["levels"][1]
+    start = (doc["map"]["warp_x"] // 16, doc["map"]["warp_y"] // 16)
+    pipes = {(t["x"] // 16, t["y"] // 16): t["new_map"]
+             for t in m["triggers"] if t["new_map"] >= 0}
+
+    far = {start: 0}
+    queue = [start]
+    for x, y in queue:
+        for dx, dy in DIRECTIONS:
+            nxt = (x + dx, y + dy)
+            if nxt in far or not (0 <= nxt[0] < m["width"] and 0 <= nxt[1] < m["height"]):
+                continue
+            if grid[nxt[1]][nxt[0]] <= high:
+                far[nxt] = far[(x, y)] + 1
+                queue.append(nxt)
+
+    return sorted(({"world": world, "tiles": far[at]}
+                   for at, world in pipes.items() if at in far),
+                  key=lambda w: w["world"])
+
+
+def read_world(doc, world, ranges, tiles, treasure, magic):
     m = doc["map"]
     width, height = m["width"], m["height"]
     grid = [[int(c, 16) for c in row.split()] for row in m["tiles"]]
@@ -316,6 +385,12 @@ def read_world(doc, world, ranges, tiles, treasure):
         if "level" in node and str(node["level"]) not in doc["levels"]:
             raise ValueError("%s: map enters level %d, which the file does "
                              "not have" % (doc["name"], node["level"]))
+        if "level" in node:
+            inside = doc["levels"][str(node["level"])]["tiles"]
+            chests = sorted(treasure[int(c, 16)] for row in inside
+                            for c in row.split() if int(c, 16) in treasure)
+            if chests:
+                node["chests"] = chests
 
     edges = {}
     rocks = []
@@ -427,21 +502,34 @@ def read_world(doc, world, ranges, tiles, treasure):
         event = data["event"]
         if level == CASTLE_LEVEL or event == 0:
             continue
-        coins = None if data["condition"] >= 240 else data["condition"]
+        condition = data["condition"]
+        secret = any(int(c, 16) == magic for row in data["tiles"] for c in row.split())
+        if condition >= 240:
+            how = {"by": "always"}
+        elif condition in COINS:
+            how = {"by": "coins", "coins": condition}
+        elif secret:
+            how = {"by": "white-block"}
+        else:
+            continue  # nothing can set it off
         at = [data["event_x"], data["event_y"]]
         if event == CARD_GAME_EVENT:
-            events.append({"level": level, "kind": "card-game", "coins": coins, "at": at})
+            events.append({"level": level, "kind": "card-game", **how, "at": at})
         elif event == MONEY_SHIP_EVENT:
-            events.append({"level": level, "kind": "money-ship", "coins": coins, "at": at})
+            events.append({"level": level, "kind": "money-ship", **how, "at": at})
         elif 240 <= event <= 250:
-            events.append({"level": level, "kind": "house", "coins": coins,
+            events.append({"level": level, "kind": "house", **how,
                            "item": treasure[event - 187], "at": None})
         elif event > 50:
-            events.append({"level": level, "kind": "house", "coins": coins,
+            events.append({"level": level, "kind": "house", **how,
                            "item": treasure[event], "at": at})
         else:
             raise ValueError("%s: level %d has event %d, which Add_map_event() "
                              "does nothing with" % (doc["name"], level, event))
+        # A level with the secret sets its event off by it, whatever else does.
+        if secret and how["by"] != "white-block":
+            events.append({**events[-1], "by": "white-block"})
+            events[-1].pop("coins", None)
 
     rock_cells = {(r["x"], r["y"]) for r in rocks}
     cells = []
@@ -480,6 +568,7 @@ def read_world(doc, world, ranges, tiles, treasure):
         "reward": reward,
         "airship": bool(castle and has_castle and castle["condition"]),
         "events": events,
+        "warps": [],
     }
 
 
@@ -495,16 +584,20 @@ def keyed(obj):
 
 def render(jsondir):
     ranges, tiles, treasure = map_constants()
+    magic = ranges["non_solid_interactive"][0] + DARK_GRAY_MAGIC
+    zone = read_json(jsondir, "common")
     out = [HEADER]
     for world, name in enumerate(WORLDS):
-        w = read_world(read_json(jsondir, name), world, ranges, tiles, treasure)
+        doc = read_json(jsondir, name)
+        w = read_world(doc, world, ranges, tiles, treasure, magic)
+        w["warps"] = warps_from(doc, zone, ranges)
         out.append("  {\n")
         for key in ("world", "width", "height"):
             out.append("    %s: %s,\n" % (key, ts(w[key])))
         out.append("    cells: [\n")
         out.extend("      %s,\n" % ts(row) for row in w["cells"])
         out.append("    ],\n    start: %d,\n" % w["start"])
-        for key in ("nodes", "edges", "rocks", "bros", "events"):
+        for key in ("nodes", "edges", "rocks", "bros", "events", "warps"):
             if not w[key]:
                 out.append("    %s: [],\n" % key)
                 continue

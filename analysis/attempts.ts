@@ -100,6 +100,17 @@ function parseEvent(value: unknown): TimedEvent | null {
     return { at: ms(at), event: { ...value, kind, player } as GameEvent };
   }
 
+  // Beaten, and since the game started saying so, beaten as what: kept where
+  // it reads, and left off where it is missing or does not.
+  if (kind === "level-completed" || kind === "monster-defeated") {
+    const player = parseLoadout(value["player"]);
+    const { player: _, ...rest } = value;
+    return {
+      at: ms(at),
+      event: (player === null ? { ...rest, kind } : { ...rest, kind, player }) as unknown as GameEvent,
+    };
+  }
+
   return { at: ms(at), event: value as unknown as GameEvent };
 }
 

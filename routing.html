@@ -11,7 +11,7 @@
   <!-- Served as routing/ in dist/ (see tools/mkdist.py), and as routing.html
        when this directory is served as it stands. -->
   <header>
-    <h1>Super <span>Mario</span> 68K <small>routing Any% warpless</small></h1>
+    <h1>Super <span>Mario</span> 68K <small>routing <span id="category-name"></span></small></h1>
     <nav class="back">
       <a href="data.html">Run data</a> ·
       <a href="index.html">Back to the game</a>
@@ -39,16 +39,25 @@
     <section class="card" aria-labelledby="search-title">
       <h2 id="search-title">Route search</h2>
       <p class="note">
-        From a new game to Bowser, with no warps. Timed runs and practice
-        count the same; where a figure leans on practice, it says so.
+        <span id="category-rules"></span> Timed runs and practice count the
+        same; where a figure leans on practice, it says so.
       </p>
 
       <form id="settings" class="filters">
+        <label>Category
+          <select name="category"></select>
+        </label>
         <label>Aim for
           <select name="objective">
+            <option value="best">Best clears</option>
+            <option value="median">Median clears</option>
             <option value="expected">Expected time, deaths included</option>
-            <option value="median">Median clears, no deaths</option>
-            <option value="best">Best clears, no deaths</option>
+          </select>
+        </label>
+        <label>Items by chance
+          <select name="luck">
+            <option value="sure">Only plan on what is certain</option>
+            <option value="odds">Plan on them at their odds</option>
           </select>
         </label>
         <label class="check"><input type="checkbox" name="items" /> Spend items from the list</label>
@@ -75,6 +84,7 @@
             <label>A mushroom house (s) <input type="number" name="houseMs" min="0" step="0.1" /></label>
             <label>A pipe's passage (s) <input type="number" name="pipeMs" min="0" step="0.1" /></label>
             <label>Chasing a fled airship (s) <input type="number" name="chaseMs" min="0" step="0.1" /></label>
+            <label>A whistle to the warp zone and down a pipe (s) <input type="number" name="warpMs" min="0" step="0.1" /></label>
           </div>
           <button type="button" id="reset-settings">Back to the defaults</button>
         </details>
@@ -116,6 +126,11 @@
         <h3 id="detail-title"></h3>
         <p class="note" id="detail-note"></p>
         <div class="scroll"><table id="detail-table" class="data"></table></div>
+        <p class="note">
+          The ways it has come out, each one the search can go for: what it
+          was left as, and what it was left holding that it went in without.
+        </p>
+        <div class="scroll"><table id="ways-table" class="data"></table></div>
       </section>
 
       <div class="pair">

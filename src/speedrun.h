@@ -102,11 +102,16 @@ struct LevelEntered {
 
 // That level was beaten, rather than left by dying or by quitting out. Raised
 // only where the game itself concluded as much, so the two can never disagree.
+// `player` is what they beat it as, and holding: what they walk out with, so
+// that a route can be planned on what a level hands out on the way - a leaf,
+// a chest in a bonus room - rather than having it guessed at from what they
+// walk into next.
 struct LevelCompleted {
 	static constexpr std::string_view kind = "level-completed";
 
 	int world;
 	int level;
+	Loadout player;
 };
 
 // An overworld monster was walked into: the Hammer Bros. and the Boomerang,
@@ -125,12 +130,14 @@ struct MonsterFought {
 };
 
 // That monster was beaten, rather than run from or died to. Raised where the
-// game concluded as much, the same as a level.
+// game concluded as much, the same as a level, and with what the player won
+// it as - its treasure already in the item list.
 struct MonsterDefeated {
 	static constexpr std::string_view kind = "monster-defeated";
 
 	int world;
 	int monster;
+	Loadout player;
 };
 
 // A life was lost in whatever is being played: a level, where `level` is set,

@@ -30,6 +30,8 @@ export interface MapNode {
   readonly level?: number;
   /** A fortress: which of the two kinds of locked door beating it opens. */
   readonly opens?: 1 | 2;
+  /** What the chests inside the level hold, one item a clear at most. */
+  readonly chests?: readonly TreasureItem[];
 }
 
 export interface MapEdge {
@@ -61,16 +63,28 @@ export interface MapBros {
   readonly treasure: TreasureItem;
 }
 
-/** What a level adds to the map when beaten with just the right coins. */
+/** What a level adds to the map when beaten the right way. */
 export interface CoinEvent {
   readonly level: number;
   readonly kind: "card-game" | "money-ship" | "house";
-  /** Coins collected in the level that trigger it; null for any number. */
-  readonly coins: number | null;
+  /**
+   * What sets it off: beating the level with just so many coins collected,
+   * beating it at all, or ending it by the white-block secret.
+   */
+  readonly by: "coins" | "always" | "white-block";
+  /** The coins, where it is by coins. */
+  readonly coins?: number;
   /** A hidden house's item. */
   readonly item?: TreasureItem;
   /** Where it appears; null for a house entered on the spot. */
   readonly at: readonly [number, number] | null;
+}
+
+export interface Warp {
+  /** The world the pipe loads, counted from zero. */
+  readonly world: number;
+  /** Squares walked in the warp zone, from where the whistle drops the player. */
+  readonly tiles: number;
 }
 
 export type TreasureItem =
@@ -102,6 +116,8 @@ export interface WorldMap {
   /** Whether the castle flies off as an airship on a failed attempt. */
   readonly airship: boolean;
   readonly events: readonly CoinEvent[];
+  /** Where the whistle can take the player from here, and the walk to each pipe. */
+  readonly warps: readonly Warp[];
 }
 
 export const MAPS: readonly WorldMap[] = [
@@ -204,9 +220,14 @@ export const MAPS: readonly WorldMap[] = [
       { monster: 0, node: 5, treasure: "star" },
     ],
     events: [
-      { level: 2, kind: "house", coins: 0, item: "whistle", at: null },
-      { level: 3, kind: "card-game", coins: 25, at: [8, 4] },
-      { level: 4, kind: "money-ship", coins: 26, at: [10, 7] },
+      { level: 2, kind: "house", by: "white-block", item: "whistle", at: null },
+      { level: 3, kind: "card-game", by: "coins", coins: 25, at: [8, 4] },
+      { level: 4, kind: "money-ship", by: "coins", coins: 26, at: [10, 7] },
+    ],
+    warps: [
+      { world: 1, tiles: 3 },
+      { world: 2, tiles: 6 },
+      { world: 3, tiles: 9 },
     ],
     reward: "p-wing",
     airship: true,
@@ -237,7 +258,7 @@ export const MAPS: readonly WorldMap[] = [
       { id: 5, x: 14, y: 1, kind: "stage", level: 3 },
       { id: 6, x: 16, y: 1, kind: "junction" },
       { id: 7, x: 4, y: 3, kind: "fortress", level: 6, opens: 1 },
-      { id: 8, x: 16, y: 3, kind: "stage", level: 8 },
+      { id: 8, x: 16, y: 3, kind: "stage", level: 8, chests: ["cloud"] },
       { id: 9, x: 19, y: 3, kind: "castle", level: 7 },
       { id: 10, x: 1, y: 4, kind: "stage", level: 0 },
       { id: 11, x: 4, y: 5, kind: "junction" },
@@ -311,8 +332,13 @@ export const MAPS: readonly WorldMap[] = [
       { monster: 2, node: 21, treasure: "whistle" },
     ],
     events: [
-      { level: 1, kind: "card-game", coins: 44, at: [9, 5] },
-      { level: 4, kind: "house", coins: 38, item: "p-wing", at: [12, 1] },
+      { level: 1, kind: "card-game", by: "coins", coins: 44, at: [9, 5] },
+      { level: 4, kind: "house", by: "coins", coins: 38, item: "p-wing", at: [12, 1] },
+    ],
+    warps: [
+      { world: 4, tiles: 3 },
+      { world: 5, tiles: 6 },
+      { world: 6, tiles: 9 },
     ],
     reward: "cloud",
     airship: true,
@@ -364,10 +390,10 @@ export const MAPS: readonly WorldMap[] = [
       { id: 18, x: 18, y: 12, kind: "dock" },
       { id: 19, x: 20, y: 12, kind: "house" },
       { id: 20, x: 22, y: 12, kind: "game-house" },
-      { id: 21, x: 2, y: 14, kind: "stage", level: 15 },
+      { id: 21, x: 2, y: 14, kind: "stage", level: 15, chests: ["random", "random", "random"] },
       { id: 22, x: 4, y: 14, kind: "dock" },
       { id: 23, x: 8, y: 14, kind: "castle", level: 7 },
-      { id: 24, x: 12, y: 14, kind: "stage", level: 11 },
+      { id: 24, x: 12, y: 14, kind: "stage", level: 11, chests: ["p-wing", "random", "whistle"] },
       { id: 25, x: 14, y: 14, kind: "pipe" },
       { id: 26, x: 20, y: 14, kind: "game-house" },
       { id: 27, x: 22, y: 14, kind: "house" },
@@ -442,8 +468,13 @@ export const MAPS: readonly WorldMap[] = [
       { monster: 2, node: 7, treasure: "random" },
     ],
     events: [
-      { level: 1, kind: "card-game", coins: 22, at: [5, 1] },
-      { level: 2, kind: "house", coins: 22, item: "cloud", at: [15, 1] },
+      { level: 1, kind: "card-game", by: "coins", coins: 22, at: [5, 1] },
+      { level: 2, kind: "house", by: "coins", coins: 22, item: "cloud", at: [15, 1] },
+    ],
+    warps: [
+      { world: 4, tiles: 3 },
+      { world: 5, tiles: 6 },
+      { world: 6, tiles: 9 },
     ],
     reward: "hammer",
     airship: true,
@@ -511,6 +542,11 @@ export const MAPS: readonly WorldMap[] = [
       { monster: 1, node: 2, treasure: "star" },
     ],
     events: [],
+    warps: [
+      { world: 4, tiles: 3 },
+      { world: 5, tiles: 6 },
+      { world: 6, tiles: 9 },
+    ],
     reward: "anchor",
     airship: false,
   },
@@ -603,8 +639,11 @@ export const MAPS: readonly WorldMap[] = [
       { monster: 1, node: 9, treasure: "cloud" },
     ],
     events: [
-      { level: 0, kind: "card-game", coins: 54, at: [27, 2] },
-      { level: 3, kind: "house", coins: 41, item: "random", at: [5, 6] },
+      { level: 0, kind: "card-game", by: "coins", coins: 54, at: [27, 2] },
+      { level: 3, kind: "house", by: "coins", coins: 41, item: "random", at: [5, 6] },
+    ],
+    warps: [
+      { world: 7, tiles: 3 },
     ],
     reward: "cloud",
     airship: true,
@@ -636,12 +675,12 @@ export const MAPS: readonly WorldMap[] = [
       { id: 4, x: 4, y: 2, kind: "stage", level: 0 },
       { id: 5, x: 6, y: 2, kind: "house" },
       { id: 6, x: 12, y: 2, kind: "dock" },
-      { id: 7, x: 14, y: 2, kind: "stage", level: 15 },
+      { id: 7, x: 14, y: 2, kind: "stage", level: 15, chests: ["p-wing", "random", "random", "random"] },
       { id: 8, x: 30, y: 3, kind: "stage", level: 11 },
       { id: 9, x: 22, y: 4, kind: "pipe" },
-      { id: 10, x: 1, y: 5, kind: "stage", level: 1 },
+      { id: 10, x: 1, y: 5, kind: "stage", level: 1, chests: ["random", "random", "random"] },
       { id: 11, x: 4, y: 5, kind: "junction" },
-      { id: 12, x: 7, y: 5, kind: "stage", level: 2 },
+      { id: 12, x: 7, y: 5, kind: "stage", level: 2, chests: ["random"] },
       { id: 13, x: 30, y: 5, kind: "junction" },
       { id: 14, x: 32, y: 5, kind: "junction" },
       { id: 15, x: 14, y: 6, kind: "junction" },
@@ -754,8 +793,11 @@ export const MAPS: readonly WorldMap[] = [
       { monster: 3, node: 13, treasure: "star" },
     ],
     events: [
-      { level: 3, kind: "card-game", coins: 40, at: [16, 8] },
-      { level: 11, kind: "money-ship", coins: 40, at: [30, 1] },
+      { level: 3, kind: "card-game", by: "coins", coins: 40, at: [16, 8] },
+      { level: 11, kind: "money-ship", by: "coins", coins: 40, at: [30, 1] },
+    ],
+    warps: [
+      { world: 7, tiles: 3 },
     ],
     reward: "anchor",
     airship: true,
@@ -800,7 +842,7 @@ export const MAPS: readonly WorldMap[] = [
       { id: 19, x: 22, y: 8, kind: "castle", level: 7 },
       { id: 20, x: 25, y: 8, kind: "junction" },
       { id: 21, x: 27, y: 8, kind: "stage", level: 11 },
-      { id: 22, x: 30, y: 8, kind: "stage", level: 15 },
+      { id: 22, x: 30, y: 8, kind: "stage", level: 15, chests: ["random", "random", "random"] },
     ],
     edges: [
       { a: 0, b: 1, by: "walk", tiles: 4, path: [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]] },
@@ -859,8 +901,11 @@ export const MAPS: readonly WorldMap[] = [
       { monster: 2, node: 16, treasure: "random" },
     ],
     events: [
-      { level: 2, kind: "card-game", coins: 80, at: [5, 6] },
-      { level: 4, kind: "card-game", coins: 36, at: [29, 1] },
+      { level: 2, kind: "card-game", by: "coins", coins: 80, at: [5, 6] },
+      { level: 4, kind: "card-game", by: "coins", coins: 36, at: [29, 1] },
+    ],
+    warps: [
+      { world: 7, tiles: 3 },
     ],
     reward: "p-wing",
     airship: true,
@@ -935,6 +980,9 @@ export const MAPS: readonly WorldMap[] = [
     rocks: [],
     bros: [],
     events: [],
+    warps: [
+      { world: 7, tiles: 3 },
+    ],
     reward: null,
     airship: false,
   },

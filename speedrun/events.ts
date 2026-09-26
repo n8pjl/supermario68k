@@ -85,6 +85,11 @@ export interface LevelCompleted {
   readonly kind: "level-completed";
   readonly world: number;
   readonly level: number;
+  /**
+   * What the player beat it as and holding, which is what they walk out with.
+   * Missing from history written before the game reported it.
+   */
+  readonly player?: Loadout | undefined;
 }
 
 /**
@@ -108,6 +113,8 @@ export interface MonsterDefeated {
   readonly kind: "monster-defeated";
   readonly world: number;
   readonly monster: number;
+  /** As on LevelCompleted: its treasure is already in the list. */
+  readonly player?: Loadout | undefined;
 }
 
 /**

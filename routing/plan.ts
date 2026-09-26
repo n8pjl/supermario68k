@@ -24,6 +24,7 @@ import {
 
 export interface Alternative {
   readonly kind: Action["kind"];
+  readonly warp: number | null;
   readonly node: number;
   readonly place: string | null;
   readonly use: readonly Slot[];
@@ -31,6 +32,9 @@ export interface Alternative {
   /** How much longer the whole run is expected to take for choosing it. */
   readonly deltaMs: number;
   readonly source: Source | null;
+  /** The way out it goes for, where it is a stage or a fight. */
+  readonly exit: Power | null;
+  readonly gains: readonly string[];
 }
 
 export interface Outcome {
@@ -44,6 +48,8 @@ export interface Outcome {
 export interface Step {
   readonly world: number;
   readonly kind: Action["kind"];
+  /** A warp: the world it goes to. */
+  readonly warp: number | null;
   readonly node: number;
   readonly to: number;
   readonly place: string | null;
@@ -112,8 +118,8 @@ export function plan(stats: Stats, settings: Settings): Plan {
     const best = ranked[0];
     if (best === undefined || best.total === Infinity) {
       throw new Error(
-        `No way through world ${state.world + 1}: a stage on every way through it has ` +
-          "no history, and those are set to be avoided.",
+        `No way through world ${state.world + 1} under these rules: every way through ` +
+          "it goes by a stage with no history, and those are set to be avoided.",
       );
     }
 
@@ -131,6 +137,7 @@ export function plan(stats: Stats, settings: Settings): Plan {
     steps.push({
       world: state.world,
       kind: a.kind,
+      warp: a.warp,
       node: a.node,
       to: a.to,
       place: a.place,
@@ -145,12 +152,15 @@ export function plan(stats: Stats, settings: Settings): Plan {
       then,
       alternatives: ranked.slice(1, 1 + ALTERNATIVES).map(({ action, total }) => ({
         kind: action.kind,
+        warp: action.warp,
         node: action.node,
         place: action.place,
         use: action.use,
         entry: action.entry,
         deltaMs: total - best.total,
         source: action.costing?.source ?? null,
+        exit: action.costing?.exit ?? null,
+        gains: action.costing?.gains ?? [],
       })),
     });
 
@@ -164,9 +174,18 @@ export function plan(stats: Stats, settings: Settings): Plan {
   const bound = exact === null;
 
   const costed: Costed[] = [];
-  for (const [id, c] of found.coster.costed) {
+  for (const [id, list] of found.coster.costed) {
     const [place, entry] = id.split("|") as [string, string];
-    costed.push({ place, entry, ms: c.ms, source: c.source, from: c.from, clears: c.clears });
+    const c = list[0];
+    if (c === undefined) continue;
+    costed.push({
+      place,
+      entry,
+      ms: c.ms,
+      source: c.source,
+      from: c.from,
+      clears: list.reduce((n, v) => n + v.clears, 0),
+    });
   }
 
   return {

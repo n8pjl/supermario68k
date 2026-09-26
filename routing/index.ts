@@ -1,4 +1,6 @@
-// The routing page: the run history read as a plan for Any% warpless.
+// The routing page: the run history read as a plan for a category - World 1,
+// Any%, Any% warpless or 100%, each with its own rules for where the run ends
+// and what it may do (see rulesFor() in search.ts).
 //
 // Three parts, all read from the same history the data page reads (this
 // browser's, and any exported files opened here). The route search runs the
@@ -15,6 +17,7 @@
 // changing for a moment: a search is a second or two of work, and there is
 // no sense starting one per event.
 
+import { CATEGORIES, category, isCategoryId } from "../speedrun/category.ts";
 import { type Power } from "../speedrun/events.ts";
 import { HISTORY_CHANNEL, readHistory } from "../speedrun/history.ts";
 import { levelName, monsterName } from "../speedrun/names.ts";
@@ -138,7 +141,7 @@ function describeSources(): void {
 
 const SETTINGS_KEY = "sm68k.routing.settings";
 /** The fields the form shows in seconds and the search takes in milliseconds. */
-const IN_SECONDS = ["unknownMs", "msPerTile", "overheadMs", "respawnMs", "houseMs", "pipeMs", "chaseMs"] as const;
+const IN_SECONDS = ["unknownMs", "msPerTile", "overheadMs", "respawnMs", "houseMs", "pipeMs", "chaseMs", "warpMs"] as const;
 
 function loadSettings(): Settings {
   try {
@@ -149,6 +152,7 @@ function loadSettings(): Settings {
         const got = (saved as Record<string, unknown>)[key];
         if (typeof got === typeof value) out[key] = got;
       }
+      if (!isCategoryId(out["category"])) out["category"] = DEFAULTS.category;
       return out as unknown as Settings;
     }
   } catch {
@@ -163,7 +167,10 @@ function settingsToForm(): void {
   const form = $<HTMLFormElement>("settings");
   const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement;
 
+  (field("category") as HTMLSelectElement).value = settings.category;
+  (field("luck") as HTMLSelectElement).value = settings.luck;
   (field("objective") as HTMLSelectElement).value = settings.objective;
+  describeCategory();
   (field("unknown") as HTMLSelectElement).value = settings.unknown;
   (field("items") as HTMLInputElement).checked = settings.items;
   (field("detours") as HTMLInputElement).checked = settings.detours;
@@ -177,6 +184,8 @@ function settingsFromForm(): Settings {
   const form = $<HTMLFormElement>("settings");
   const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement;
   const out: Record<string, unknown> = {
+    category: field("category").value,
+    luck: field("luck").value,
     objective: field("objective").value,
     unknown: field("unknown").value,
     items: field("items").checked,
@@ -298,14 +307,21 @@ function weaknesses(place: string, key: string, costed?: Costed): string[] {
   return out;
 }
 
-function dataNote(place: string, key: string, source: string | null, from: string | null): { text: string; cls: string } {
+function dataNote(
+  place: string,
+  key: string,
+  source: string | null,
+  from: string | null,
+  way?: number,
+): { text: string; cls: string } {
   if (source === "assumed") return { text: "no history: assumed", cls: "missing" };
   if (source === "borrowed") return { text: `borrowed from ${entryLabel(parseEntryKey(from!))}`, cls: "weak" };
 
   const s = summary(place, key);
   if (s === undefined) return { text: "–", cls: "dim" };
   const practice = s.practice > 0 ? ` · ${percent(s.practice, s.clears + s.deaths)} practice` : "";
-  return { text: `${s.clears} clear(s)${practice}`, cls: s.clears < 3 ? "weak" : "" };
+  const clears = way === undefined || way === s.clears ? `${s.clears} clear(s)` : `${way} of ${s.clears} clears came out this way`;
+  return { text: `${clears}${practice}`, cls: (way ?? s.clears) < 3 ? "weak" : "" };
 }
 
 // ---------------------------------------------------------------------------
@@ -324,7 +340,16 @@ function stepName(kind: Step["kind"], world: number, node: number, place: string
       const n = MAPS[world]!.nodes[node]!;
       return `Hammer a rock (by ${n.x},${n.y})`;
     }
+    case "warp":
+      return "Whistle";
   }
+}
+
+/** The rules being routed, said above the search. */
+function describeCategory(): void {
+  const c = category(settings.category);
+  $("category-name").textContent = c.name;
+  $("category-rules").textContent = `${c.rules} From a new game.`;
 }
 
 function usesOf(use: readonly string[]): Node[] {
@@ -338,9 +363,18 @@ function spendNote(use: readonly string[], entry: Entry | null): string {
 }
 
 function describeAlt(world: number, alt: Alternative): string {
+  if (alt.warp !== null) return `Whistle to world ${alt.warp + 1}, +${seconds(alt.deltaMs)}`;
+
   const what = stepName(alt.kind, world, alt.node, alt.place);
   const as = alt.entry ? ` as ${entryLabel(alt.entry)}` : "";
-  return `${what}${as}${spendNote(alt.use, alt.entry)}, +${seconds(alt.deltaMs)}`;
+  return `${what}${as}${spendNote(alt.use, alt.entry)}${wayOut(alt.exit, alt.gains)}, +${seconds(alt.deltaMs)}`;
+}
+
+/** ", leaving as raccoon with a cloud": the way out an option goes for. */
+function wayOut(exit: Power | null, gains: readonly string[]): string {
+  if (exit === null) return "";
+  const got = gains.length > 0 ? ` with ${gains.map(itemName).join(", ")}` : "";
+  return `, leaving as ${entryLabel({ power: exit, star: false, pwing: false })}${got}`;
 }
 
 /**
@@ -385,7 +419,12 @@ function drawTiles(p: Plan): void {
     [
       settings.objective === "expected" ? "Expected time" : settings.objective === "median" ? "Sum of medians" : "Sum of bests",
       (p.bound ? "≤ " : "") + clock(p.total),
-      p.bound ? "at most: the route can come in under it" : "map time included",
+      [
+        p.bound ? "at most: the route can come in under it" : "map time included",
+        settings.objective === "expected" ? "" : "no deaths; chests and drops at their odds",
+      ]
+        .filter(Boolean)
+        .join("; "),
     ],
     ["Stages played", String(stages), `${p.steps.filter((s) => s.kind === "cloud").length} skipped by cloud`],
     ["Items spent", String(spent.length), spent.length > 0 ? [...new Set(spent)].map(itemName).join(", ") : "none"],
@@ -423,14 +462,17 @@ function drawRoute(p: Plan): void {
     }
 
     const key = step.entry ? entryKey(step.entry) : "";
-    const note = step.place && step.costing ? dataNote(step.place, key, step.costing.source, step.costing.from) : { text: "", cls: "" };
+    const note =
+      step.place && step.costing
+        ? dataNote(step.place, key, step.costing.source, step.costing.from, step.costing.clears)
+        : { text: "", cls: "" };
     const alt = step.alternatives[0];
     const close = alt !== undefined && alt.deltaMs < Math.max(2000, step.left * 0.01);
 
     const tr = row(
       [
         String(i + 1),
-        stepName(step.kind, step.world, step.node, step.place),
+        step.warp !== null ? `Whistle to world ${step.warp + 1}` : stepName(step.kind, step.world, step.node, step.place),
         step.entry ? entryLabel(step.entry) : "",
         element("span", "", usesOf(step.use)),
         seconds(step.walkMs + step.doMs),
@@ -456,8 +498,8 @@ function renderStatus(): void {
   else if (plan !== null) {
     status.textContent =
       `Searched ${plan.states.toLocaleString()} states in ${seconds(plan.ms)}.` +
-      (settings.detours
-        ? " Detours are weighed one at a time against the best route without further ones, so two that only pay off together can be missed."
+      (settings.detours && settings.luck === "odds"
+        ? " Chance detours - mushroom houses, Bros. with a random drop - are weighed one at a time against the best route without further ones, so two that only pay off together can be missed."
         : "");
   } else status.textContent = "";
 }
@@ -482,6 +524,11 @@ function routeHoles(p: Plan): Hole[] {
     if (step.place !== null && step.entry !== null && step.costing !== null) {
       const key = entryKey(step.entry);
       const issues = weaknesses(step.place, key, costedBy.get(`${step.place}|${key}`));
+      const c = step.costing;
+      const all = summary(step.place, key)?.clears ?? 0;
+      if (c.source === "data" && c.clears < 3 && c.clears < all) {
+        issues.push(`only ${c.clears} clear(s) came out this way${wayOut(c.exit, c.gains)}`);
+      }
       if (issues.length > 0) out.push({ rank: 0, place: step.place, key, issues, why: "on the route" });
     }
 
@@ -548,6 +595,41 @@ function drawHoles(): void {
     });
   }
 
+  // A chest in a stage that the history has never come away with, or a
+  // secret house never opened: something on offer that the search cannot
+  // plan on until it has been done.
+  MAPS.forEach((map, w) => {
+    for (const e of map.events) {
+      if (e.by !== "white-block" || e.kind !== "house" || e.item === undefined) continue;
+      if (e.item === "whistle" && settings.category !== "any") continue;
+      const place = `L${w}.${e.level}`;
+      if ((takenFrom(place).get(e.item) ?? 0) > 0) continue;
+      holes.push({
+        rank: 3,
+        place,
+        key: "",
+        issues: [`its white-block house (${itemName(e.item)}) has never been taken`],
+        why: "on offer, but not planned on until it has been",
+      });
+    }
+    for (const node of map.nodes) {
+      if (node.level === undefined) continue;
+      const place = `L${w}.${node.level}`;
+      const taken = takenFrom(place);
+      for (const item of new Set((node.chests ?? []).filter((c) => c !== "random"))) {
+        if (item === "whistle" && !["any"].includes(settings.category)) continue;
+        if ((taken.get(item) ?? 0) > 0) continue;
+        holes.push({
+          rank: 3,
+          place,
+          key: "",
+          issues: [`its chest (${itemName(item)}) has never been taken`],
+          why: "on offer, but not planned on until it has been",
+        });
+      }
+    }
+  });
+
   holes.sort((a, b) => a.rank - b.rank || worldOf(a.place) - worldOf(b.place));
   note.textContent =
     holes.length === 0
@@ -559,11 +641,11 @@ function drawHoles(): void {
     "tbody",
     "",
     holes.slice(0, holesShown).map((h) => {
-      const keys = h.key.split(",");
+      const keys = h.key === "" ? [] : h.key.split(",");
       const s = keys.length === 1 ? summary(h.place, h.key) : undefined;
       const tr = row([
         nameOf(h.place),
-        keys.map((k) => entryLabel(parseEntryKey(k))).join("; "),
+        keys.length === 0 ? "anything" : keys.map((k) => entryLabel(parseEntryKey(k))).join("; "),
         element("span", h.issues.some((i) => i.startsWith("never")) ? "missing" : "weak", h.issues.join("; ")),
         s === undefined ? "–" : `${s.clears} clear(s), ${s.deaths} death(s)`,
         h.why,
@@ -682,6 +764,17 @@ function drawStagesTable(): void {
   $("stages-table").replaceChildren(element("thead", "", head), body);
 }
 
+/** How many clears of a place came away with each item, over every entry. */
+function takenFrom(place: string): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const s of allSummaries(place)) {
+    for (const v of s.variants) {
+      for (const item of v.gains) out.set(item, (out.get(item) ?? 0) + v.clears);
+    }
+  }
+  return out;
+}
+
 function drawItems(): void {
   const map = MAPS[world]!;
   const given: (string | Node)[] = [];
@@ -697,14 +790,61 @@ function drawItems(): void {
     given.push(`${houses} mushroom house(s): one chest each, a mushroom or fire flower (1 in 4 each) or a leaf (1 in 2).`);
   }
   for (const e of map.events) {
-    const when = e.coins === null ? "Beating" : `Beating with exactly ${e.coins} coins`;
     const what =
       e.kind === "house"
         ? `a hidden mushroom house with ${itemName(e.item!)}`
         : e.kind === "card-game"
           ? "a card game (mushrooms, flowers, stars)"
           : "a money ship (coins)";
-    given.push(`${when} ${levelName(world, e.level)} adds ${what}. Not planned on: nothing reports coins.`);
+    const name = levelName(world, e.level);
+
+    if (e.by === "white-block") {
+      const n = e.item === undefined ? 0 : (takenFrom(`L${world}.${e.level}`).get(e.item) ?? 0);
+      given.push(
+        `Ending ${name} by its white-block secret - down on a white block, then into the dark ` +
+          `past the end - opens ${what}. ` +
+          (e.kind !== "house"
+            ? "Not planned on."
+            : n > 0
+              ? `You have come away with it ${n} time(s), so the search can plan on it.`
+              : "Not in your history yet, so the search cannot plan on it."),
+      );
+    } else {
+      const when = e.by === "always" ? "Beating" : `Beating with exactly ${e.coins} coins`;
+      given.push(`${when} ${name} adds ${what}. Not planned on unless your history shows it: nothing reports coins.`);
+    }
+  }
+
+  // Chests inside the stages, from the level data, against what the history
+  // has come away with; and anything else a stage has been left holding.
+  for (const node of map.nodes) {
+    if (node.level === undefined) continue;
+    const place = `L${world}.${node.level}`;
+    const taken = takenFrom(place);
+    const fixed = (node.chests ?? []).filter((c) => c !== "random");
+    const random = (node.chests ?? []).filter((c) => c === "random").length;
+
+    for (const item of new Set(fixed)) {
+      const n = taken.get(item) ?? 0;
+      given.push(
+        `${nameOf(place)} has a chest with a ${itemName(item)}; opening it ends the stage. ` +
+          (n > 0
+            ? `You have come away with it ${n} time(s), so the search can plan on it.`
+            : "Not in your history yet, so the search cannot plan on it."),
+      );
+    }
+    if (random > 0) {
+      given.push(
+        `${nameOf(place)} has ${random} random chest(s): a mushroom, fire flower or leaf. ` +
+          (settings.luck === "sure" ? "Luck, so not planned on." : "Planned on at their odds."),
+      );
+    }
+    for (const [item, n] of taken) {
+      if (fixed.includes(item as never) || (random > 0 && ["mushroom", "fire-flower", "leaf"].includes(item))) continue;
+      if (node.kind === "castle" && item === map.reward) continue;
+      if (map.events.some((e) => e.level === node.level && e.item === item)) continue;
+      given.push(`In your history, ${nameOf(place)} has been left holding a new ${itemName(item)} ${n} time(s).`);
+    }
   }
 
   $("items-given").replaceChildren(...given.map((g) => element("li", "", g)));
@@ -783,6 +923,27 @@ function drawDetail(): void {
     element("thead", "", head),
     element("tbody", "", rows.length > 0 ? rows : [row(["Never played."])]),
   );
+
+  const ways = [...(byEntry?.values() ?? [])].flatMap((cell) =>
+    summary(selected!, entryKey(cell.entry))!.variants.map((v) =>
+      row(
+        [
+          entryLabel(cell.entry),
+          entryLabel({ power: v.exit, star: false, pwing: false }),
+          v.gains.length > 0 ? v.gains.map(itemName).join(", ") : "–",
+          String(v.clears),
+          clock(v.best),
+          clock(v.median),
+          percent(v.practice, v.clears),
+        ],
+        (i) => i > 2,
+      ),
+    ),
+  );
+  $("ways-table").replaceChildren(
+    ways.length === 0 ? "" : element("thead", "", row(["Walked in as", "Left as", "Came away with", "Clears", "Best", "Median", "Practice"], (i) => i > 2, "th")),
+    element("tbody", "", ways),
+  );
 }
 
 function drawWorldSection(): void {
@@ -848,9 +1009,16 @@ async function reload(): Promise<boolean> {
 }
 
 async function start(): Promise<void> {
-  settingsToForm();
-
   const form = $<HTMLFormElement>("settings");
+  (form.elements.namedItem("category") as HTMLSelectElement).append(
+    ...CATEGORIES.map((c) => {
+      const o = document.createElement("option");
+      o.value = c.id;
+      o.textContent = c.name;
+      return o;
+    }),
+  );
+  settingsToForm();
   form.addEventListener("change", () => {
     settings = settingsFromForm();
     saveSettings();

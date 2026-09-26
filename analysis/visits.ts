@@ -36,6 +36,13 @@ export interface Visit {
   readonly end: number;
   readonly outcome: Outcome;
   readonly hits: number;
+  /** What each hit took: the power just before it, in order. */
+  readonly hitAs: readonly Power[];
+  /**
+   * What a cleared visit was beaten as and holding, where the game said so;
+   * null for anything else, and for history from before it did.
+   */
+  readonly exit: Loadout | null;
 }
 
 export function levelPlace(world: number, level: number): Place {
@@ -96,11 +103,12 @@ export function visitsOf(attempt: Attempt): Visit[] {
     player: Loadout;
     start: number;
     hits: number;
+    hitAs: Power[];
   } | null = null;
 
-  const close = (end: number, outcome: Outcome) => {
+  const close = (end: number, outcome: Outcome, exit: Loadout | null = null) => {
     if (open === null) return;
-    out.push({ attempt, ...open, end, outcome });
+    out.push({ attempt, ...open, end, outcome, exit });
     open = null;
   };
 
@@ -109,18 +117,21 @@ export function visitsOf(attempt: Attempt): Visit[] {
       case "level-entered":
       case "monster-fought":
         close(at, "left");
-        open = { place: placeOf(event)!, player: event.player, start: at, hits: 0 };
+        open = { place: placeOf(event)!, player: event.player, start: at, hits: 0, hitAs: [] };
         break;
 
       case "level-completed":
       case "monster-defeated":
         if (open !== null && open.place.key === placeOf(event)?.key) {
-          close(at, "cleared");
+          close(at, "cleared", event.player ?? null);
         }
         break;
 
       case "player-hit":
-        if (open !== null) open.hits++;
+        if (open !== null) {
+          open.hits++;
+          open.hitAs.push(event.player.power);
+        }
         break;
 
       case "player-died":

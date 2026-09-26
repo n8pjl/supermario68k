@@ -35,14 +35,16 @@ EMSCRIPTEN_BINDINGS(speedrun)
 		.field("player", &LevelEntered::player);
 	emscripten::value_object<LevelCompleted>("LevelCompleted")
 		.field("world", &LevelCompleted::world)
-		.field("level", &LevelCompleted::level);
+		.field("level", &LevelCompleted::level)
+		.field("player", &LevelCompleted::player);
 	emscripten::value_object<MonsterFought>("MonsterFought")
 		.field("world", &MonsterFought::world)
 		.field("monster", &MonsterFought::monster)
 		.field("player", &MonsterFought::player);
 	emscripten::value_object<MonsterDefeated>("MonsterDefeated")
 		.field("world", &MonsterDefeated::world)
-		.field("monster", &MonsterDefeated::monster);
+		.field("monster", &MonsterDefeated::monster)
+		.field("player", &MonsterDefeated::player);
 	// Whichever of the two was not being played crosses as undefined, which
 	// is a field the JSON the history is exported as leaves out altogether.
 	emscripten::register_optional<int>();
@@ -214,12 +216,14 @@ void cleared_level()
 
 	if (playing->monster) {
 		report(MonsterDefeated{ .world = playing->world,
-					.monster = playing->index });
+					.monster = playing->index,
+					.player = loadout() });
 		return;
 	}
 
 	report(LevelCompleted{ .world = playing->world,
-			       .level = playing->index });
+			       .level = playing->index,
+			       .player = loadout() });
 }
 
 namespace

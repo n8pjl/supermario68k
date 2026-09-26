@@ -8,14 +8,19 @@
 // by place and by entry state (power, and a star or P-wing carried in from the
 // map), and each clear is given the power it was left with.
 //
-// That last part is worked out, not reported. The game says what the player
-// walks into a level as, and nothing when they walk out; so the power a clear
-// ended on is read off whatever the player walked into next, where nothing
-// in between can have changed it - no power item spent from the list, and the
-// next thing a different place, so it is not practice mode putting the player
-// back at the start of the same stage with whatever the panel was asked for.
-// Where that cannot be said, it is estimated from the hits taken, which misses
-// anything picked up on the way and says so (`exitSeen`).
+// The game reports what a stage was beaten as and holding. History from before
+// it did has only what the player walked into next, which is read where
+// nothing in between can have changed it - no power item spent from the list,
+// and the next thing a different place, so it is not practice mode putting the
+// player back at the start of the same stage with whatever the panel was asked
+// for. Where neither can be had, it is estimated from the hits: the last one
+// says what the player was just before it, which catches a leaf picked up
+// before being hit, and misses one picked up after (`exitSeen` is false).
+//
+// Clears are then grouped by how they came out - what the player left as, and
+// what they came away with - into variants. A variant the history has seen is
+// one the player can go for: 1-1 left as raccoon, 2-Pyramid left with its
+// cloud. The search chooses between them, each at the time it took.
 //
 // Practice counts the same as a timed run here, and every figure carries how
 // much of it came from practice, so that it can be told apart where it
@@ -90,8 +95,15 @@ export function spent(before: readonly Item[], after: readonly Item[]): Item[] {
 export interface Clear {
   readonly ms: number;
   readonly exit: Power;
-  /** Read off what came next, rather than estimated from the hits. */
+  /** Reported, or read off what came next, rather than estimated from the hits. */
   readonly exitSeen: boolean;
+  /**
+   * Items it was left holding that it was not entered with. All of them where
+   * the game reported it, and any a house on the way out added; where it was
+   * read off the next thing entered, only those the map could not have handed
+   * over in between (see MAP_ITEMS).
+   */
+  readonly gained: readonly Item[];
   readonly hits: number;
   readonly practice: boolean;
   /** Epoch milliseconds the attempt started. */
@@ -119,6 +131,22 @@ export interface Cell {
  * A cell boiled down to what the search reads, and nothing it cannot copy to
  * a worker.
  */
+/** One way a place has been seen to come out, and the clears that did. */
+export interface Variant {
+  readonly exit: Power;
+  /** Sorted, so that two variants alike are keyed alike. */
+  readonly gains: readonly Item[];
+  readonly clears: number;
+  readonly best: number;
+  readonly median: number;
+  readonly mean: number;
+  readonly practice: number;
+}
+
+export function variantKey(v: { exit: Power; gains: readonly Item[] }): string {
+  return [v.exit, ...v.gains].join("+");
+}
+
 export interface Summary {
   readonly clears: number;
   readonly deaths: number;
@@ -136,6 +164,8 @@ export interface Summary {
   readonly spread: number | null;
   /** Epoch milliseconds of the newest sample. */
   readonly newest: number | null;
+  /** The ways it has come out, fastest first. */
+  readonly variants: readonly Variant[];
 }
 
 /** Summaries by place key, then by entry key. */
@@ -175,7 +205,31 @@ export function summarise(cell: Cell): Summary {
         ? null
         : (quartile(0.75) - quartile(0.25)) / mid,
     newest: newest(cell),
+    variants: variantsOf(cell.clears),
   };
+}
+
+function variantsOf(clears: readonly Clear[]): Variant[] {
+  const groups = new Map<string, Clear[]>();
+  for (const c of clears) {
+    const key = variantKey({ exit: c.exit, gains: [...c.gained].sort() });
+    groups.set(key, [...(groups.get(key) ?? []), c]);
+  }
+
+  return [...groups.values()]
+    .map((list) => {
+      const times = list.map((c) => c.ms).sort((a, b) => a - b);
+      return {
+        exit: list[0]!.exit,
+        gains: [...list[0]!.gained].sort(),
+        clears: times.length,
+        best: times[0]!,
+        median: median(times)!,
+        mean: times.reduce((a, b) => a + b, 0) / times.length,
+        practice: list.filter((c) => c.practice).length,
+      };
+    })
+    .sort((a, b) => a.best - b.best);
 }
 
 /** An item spent from the list on the map, and what it was spent before. */
@@ -184,6 +238,14 @@ export interface ItemUse {
   readonly place: string;
   readonly practice: boolean;
 }
+
+/**
+ * Items that can come from the map between one stage and the next: a mushroom
+ * house, a card game. Read off the next thing entered, these could be the
+ * map's rather than the stage's, so only the rest are credited to a stage
+ * there. Reported by the game at the end of the stage, everything is.
+ */
+const MAP_ITEMS: readonly Item[] = ["mushroom", "fire-flower", "leaf", "star"];
 
 export interface Model {
   readonly cells: ReadonlyMap<string, ReadonlyMap<string, Cell>>;
@@ -239,11 +301,35 @@ export function buildModel(
       switch (visit.outcome) {
         case "cleared": {
           const seen = follows && !used.some((item) => POWER_ITEMS.includes(item));
+          let exit: Power;
+          let gained: Item[];
+
+          if (visit.exit !== null) {
+            exit = visit.exit.power;
+            gained = spent(visit.exit.items, visit.player.items);
+            // A house some levels open on the way out - 1-3's white-block
+            // whistle, a hidden house for the right coins - is entered after
+            // the level has been reported beaten, so what it gives turns up
+            // only in what is walked into next.
+            if (follows) {
+              gained.push(
+                ...spent(next!.player.items, visit.exit.items).filter((i) => !MAP_ITEMS.includes(i)),
+              );
+            }
+          } else if (seen) {
+            exit = next!.player.power;
+            gained = spent(next!.player.items, visit.player.items).filter((i) => !MAP_ITEMS.includes(i));
+          } else {
+            const last = visit.hitAs.at(-1);
+            exit = last === undefined ? visit.player.power : afterHits(last, 1);
+            gained = [];
+          }
 
           here.clears.push({
             ms: visit.end - visit.start,
-            exit: seen ? next!.player.power : afterHits(visit.player.power, visit.hits),
-            exitSeen: seen,
+            exit,
+            exitSeen: visit.exit !== null || seen,
+            gained: [...new Set(gained)],
             hits: visit.hits,
             practice,
             when,
