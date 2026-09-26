@@ -11,6 +11,7 @@
 
 import { CATEGORIES } from "./category.ts";
 import { type GameEvent } from "./events.ts";
+import { RunHistory } from "./history.ts";
 import { SpeedrunManager } from "./manage.ts";
 import { emptyRecord } from "./records.ts";
 import { SpeedrunPanel } from "./panel.ts";
@@ -19,6 +20,7 @@ import { SpeedrunStore } from "./store.ts";
 import { SpeedrunTimer } from "./timer.ts";
 
 export { type GameEvent } from "./events.ts";
+export { RunHistory } from "./history.ts";
 export { type Route } from "./route.ts";
 
 /** An entry in the route picker that is not a route: why there is not one. */
@@ -44,6 +46,7 @@ export interface SpeedrunElements {
 
 export class Speedrun {
   readonly #store: SpeedrunStore;
+  readonly #history: RunHistory;
   readonly #panel: SpeedrunPanel;
   readonly #manager: SpeedrunManager;
   readonly #routes: HTMLSelectElement;
@@ -52,15 +55,21 @@ export class Speedrun {
   #timer: SpeedrunTimer;
   #recording = false;
 
-  constructor(elements: SpeedrunElements) {
+  /**
+   * `history` is shared with practice mode rather than made here, so that the
+   * one attempt it holds open is the same attempt whichever of the two is
+   * reporting to it.
+   */
+  constructor(elements: SpeedrunElements, history: RunHistory) {
     this.#store = new SpeedrunStore();
+    this.#history = history;
     this.#panel = new SpeedrunPanel(elements.panel);
     this.#routes = elements.routes;
     this.#worlds = elements.worlds;
 
     this.#timer = this.#build();
 
-    this.#manager = new SpeedrunManager(elements.manage, this.#store, {
+    this.#manager = new SpeedrunManager(elements.manage, this.#store, history, {
       setRecording: (recording) => {
         this.#recording = recording;
         this.#timer.arm(recording);
@@ -132,6 +141,11 @@ export class Speedrun {
 
     if (!this.#timer.settled) return;
 
+    // Read before a recording is taken, which lets go of the splits the run
+    // is written against. A run whose history is already closed - there is
+    // only ever the one stop per run - makes this a no-op.
+    const run = this.#timer.run;
+
     // A run that has stopped has either set times worth keeping or written a
     // route worth saving, and neither is the timer's to store.
     if (this.#timer.recordedRun) {
@@ -142,6 +156,8 @@ export class Speedrun {
         `Recorded ${new Date().toLocaleDateString()}`,
       );
 
+      this.#history.end(run, recorded?.route.id);
+
       if (recorded === null) {
         this.#manager.recordingEmpty();
       } else {
@@ -149,6 +165,8 @@ export class Speedrun {
       }
       return;
     }
+
+    this.#history.end(run);
 
     // Times set with no route selected belong to no route, so there is nowhere
     // to write them down; the run was a clock and nothing more.
@@ -237,7 +255,23 @@ export class Speedrun {
   handle(event: GameEvent): boolean {
     const timer = this.#timer;
 
+    // Into the history before the timer, because the event that finishes a
+    // run is the one that closes its attempt, and it closes it from inside
+    // timer.handle(). The attempt starts with the run, against what the timer
+    // was built for: a game started from a save is not a run and is not kept.
+    if (event.kind === "run-started") {
+      this.#history.begin("run", {
+        category: timer.category.id,
+        route: timer.recording ? null : (timer.route?.id ?? null),
+        recording: timer.recording,
+      });
+    }
+
+    this.#history.note(event);
     timer.handle(event);
+
+    if (timer.running) this.#history.progress(timer.run);
+
     return timer.completedRecording;
   }
 

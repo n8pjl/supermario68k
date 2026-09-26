@@ -5,7 +5,7 @@
 // fetch alongside it. All runtime output goes to the browser console.
 import createMario from "./mario.js";
 import maTexts from "./ma_texts.json" with { type: "json" };
-import { Speedrun } from "./speedrun.js";
+import { RunHistory, Speedrun } from "./speedrun.js";
 import { Practice } from "./practice.js";
 
 // ---------------------------------------------------------------------------
@@ -419,6 +419,12 @@ const speedrunSupported = typeof Temporal !== "undefined";
 
 let speedrun = null;
 
+// Every attempt, timed or practised, kept for reading back later; see
+// speedrun/history.ts. One of it for the page, shared by the timer and by
+// practice mode, and kept on the same terms as the timer: it stamps what it
+// keeps with Temporal, so where the timer is not offered it is not kept.
+const runHistory = speedrunSupported ? new RunHistory() : null;
+
 // Built on first use and kept afterwards, so the times of a run just finished
 // are still on the page when the menu comes back, and so that turning the
 // option off and on again does not lose them. It owns the panel, the route
@@ -426,12 +432,15 @@ let speedrun = null;
 // for one at all.
 function showSpeedrun(wanted) {
   if (wanted && !speedrun) {
-    speedrun = new Speedrun({
-      panel: speedrunPanel,
-      manage: speedrunManage,
-      routes: routeSelect,
-      worlds: worldsCheck,
-    });
+    speedrun = new Speedrun(
+      {
+        panel: speedrunPanel,
+        manage: speedrunManage,
+        routes: routeSelect,
+        worlds: worldsCheck,
+      },
+      runHistory,
+    );
   }
 
   speedrunPanel.hidden = !wanted;
@@ -485,7 +494,10 @@ let practice = null;
 
 function showPractice(wanted) {
   if (wanted && !practice) {
-    practice = new Practice(practicePanel);
+    practice = new Practice(
+      practicePanel,
+      runHistory ? () => runHistory.export() : null,
+    );
   }
 
   practicePanel.hidden = !wanted;
@@ -1544,7 +1556,15 @@ function startGame() {
     // wherever it is when that answer is true. The timer only says so for a
     // recording that has just finished: the run is over, the panel is showing
     // the route it wrote, and there is no reason to keep the keyboard.
-    onSpeedrunEvent: timer ? (event) => timer.handle(event) : undefined,
+    //
+    // Practice mode reports through the same hook, to the run history rather
+    // than to a timer: it is kept, marked as practice, and never timed. Its
+    // answer is never true - practice has no recording to finish.
+    onSpeedrunEvent: timer
+      ? (event) => timer.handle(event)
+      : room && runHistory
+        ? (event) => runHistory.practice(event)
+        : undefined,
     // Polled from the world map, and answered with a warp, a powerup or an item
     // list when the player has asked the panel for one.
     onPracticeRequest: room ? (status) => room.handle(status) : undefined,
@@ -1555,6 +1575,10 @@ function startGame() {
   })
     .catch((e) => console.error("exited with an error:", e))
     .finally(() => {
+      // Whatever the game left open is over now, whether or not it said so:
+      // a practice game from a save never goes back through a new game's
+      // return to the menu.
+      runHistory?.end();
       keys.abort();
       pressedCodes.clear();
       clearTouchActions();

@@ -355,6 +355,15 @@ export class SpeedrunTimer {
     return this.#state === "running";
   }
 
+  /**
+   * This run as it would be written down: as it stands while it is going, and
+   * as it ended once it has. A recording's is only whole until takeRecording()
+   * has taken the splits it is written against.
+   */
+  get run(): RunRecord {
+    return this.#run();
+  }
+
   /** The run is over, so there is something worth writing down. */
   get settled(): boolean {
     return this.#state === "finished" || this.#state === "abandoned";

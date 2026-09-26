@@ -315,7 +315,7 @@ export function parseRouteRecord(value: unknown): RouteRecord | null {
   };
 }
 
-function runToJSON(run: RunRecord): unknown {
+export function runToJSON(run: RunRecord): unknown {
   return {
     finished: run.finished,
     total: run.total.toString(),

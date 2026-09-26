@@ -230,9 +230,17 @@ function powerFromStatus(status: Status): PowerRequest {
   };
 }
 
+/**
+ * Hands the player the run history as a file, and answers with what to say
+ * about it. Owned by the speedrun module, which is what keeps the history; see
+ * speedrun/history.ts.
+ */
+export type ExportHistory = () => Promise<string>;
+
 export class Practice {
   readonly #root: HTMLElement;
   readonly #state = element("p", "practice-state");
+  readonly #exportHistory: ExportHistory | null;
 
   // The controls, built where they are declared: every one of them is read or
   // written after the build, and a field assigned in a helper the constructor
@@ -277,8 +285,13 @@ export class Practice {
   // How many worlds the levelset has, once the game has said.
   #worlds = DEFAULT_WORLDS;
 
-  constructor(root: HTMLElement) {
+  /**
+   * `exportHistory` is null where there is no history being kept - it needs
+   * Temporal, the same as the timer - and the panel then offers no export.
+   */
+  constructor(root: HTMLElement, exportHistory: ExportHistory | null = null) {
     this.#root = root;
+    this.#exportHistory = exportHistory;
     this.#build();
     this.#draw();
 
@@ -333,6 +346,38 @@ export class Practice {
     header.append(element("h2", "", "Practice"), this.#state);
 
     this.#root.append(header, this.#mapSection(), this.#marioSection());
+
+    if (this.#exportHistory !== null) {
+      this.#root.append(this.#historySection(this.#exportHistory));
+    }
+  }
+
+  /**
+   * The way out for what practice is kept for. Every game played in practice
+   * mode goes into the run history marked as practice, level entries and what
+   * was carried into each of them included, and this is where it is read out.
+   */
+  #historySection(exportHistory: ExportHistory): HTMLElement {
+    const box = element("fieldset", "practice-box");
+    const said = element(
+      "p",
+      "practice-note",
+      "Every practice game is kept, marked as practice, beside the timed runs.",
+    );
+
+    said.setAttribute("role", "status");
+
+    box.append(
+      element("legend", "", "History"),
+      said,
+      button("Export history", () => {
+        void exportHistory().then((message) => {
+          said.textContent = message;
+        });
+      }),
+    );
+
+    return box;
   }
 
   #mapSection(): HTMLElement {

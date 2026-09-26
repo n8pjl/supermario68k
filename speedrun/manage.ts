@@ -12,7 +12,9 @@ import {
   category,
   isCategoryId,
 } from "./category.ts";
+import { download } from "./files.ts";
 import { entersMultipleWorlds, groupSplits } from "./groups.ts";
+import { type RunHistory } from "./history.ts";
 import { type RouteRecord } from "./records.ts";
 import { type Route, type RouteSplit, timedSplits } from "./route.ts";
 import { SpeedrunSheet } from "./sheet.ts";
@@ -30,25 +32,6 @@ function button(label: string, className = ""): HTMLButtonElement {
   return el;
 }
 
-/**
- * Hand the browser a file to save.
- *
- * Built here and released again straight away: the blob is only needed for as
- * long as the click that reads it, and an object URL that is never revoked
- * holds its contents for the life of the document.
- */
-function download(name: string, text: string): void {
-  const url = URL.createObjectURL(
-    new Blob([text], { type: "application/json" }),
-  );
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = name;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
 export interface ManageHooks {
   /** Start or stop recording the next run rather than timing it. */
   readonly setRecording: (recording: boolean) => void;
@@ -58,6 +41,7 @@ export interface ManageHooks {
 
 export class SpeedrunManager {
   readonly #store: SpeedrunStore;
+  readonly #history: RunHistory;
   readonly #hooks: ManageHooks;
 
   readonly #root: HTMLElement;
@@ -105,8 +89,14 @@ export class SpeedrunManager {
   /** The fields of that list, held rather than looked up again to write into. */
   #fields: HTMLInputElement[] = [];
 
-  constructor(container: HTMLElement, store: SpeedrunStore, hooks: ManageHooks) {
+  constructor(
+    container: HTMLElement,
+    store: SpeedrunStore,
+    history: RunHistory,
+    hooks: ManageHooks,
+  ) {
     this.#store = store;
+    this.#history = history;
     this.#hooks = hooks;
     this.#root = container;
 
@@ -148,6 +138,10 @@ export class SpeedrunManager {
 
     const exportAll = button("Export everything");
     const importFile = button("Import…");
+    // Every attempt rather than the best of them, practice included; see
+    // history.ts. Beside the other exports, though it is a different file:
+    // this one is for reading elsewhere, and is never imported back.
+    const exportHistory = button("Export history");
 
     this.#file = document.createElement("input");
     this.#file.type = "file";
@@ -197,6 +191,7 @@ export class SpeedrunManager {
       this.#exportOne,
       exportAll,
       importFile,
+      exportHistory,
       this.#clear,
       this.#remove,
     );
@@ -216,6 +211,7 @@ export class SpeedrunManager {
     this.#record.addEventListener("click", () => this.#toggleRecording());
     this.#exportOne.addEventListener("click", () => this.#exportSelected());
     exportAll.addEventListener("click", () => this.#export());
+    exportHistory.addEventListener("click", () => void this.#exportHistory());
     importFile.addEventListener("click", () => this.#file.click());
     this.#file.addEventListener("change", () => void this.#import());
     this.#showTimes.addEventListener("click", () => this.#toggleTimes());
@@ -434,12 +430,16 @@ export class SpeedrunManager {
   #export(only?: Route): void {
     const doc = this.#store.document(only);
 
-    download(FILENAME, documentToJSON(doc));
+    download(FILENAME, documentToJSON(doc), "application/json");
     this.#say(
       only === undefined
         ? `Exported ${doc.routes.length} route(s) and ${doc.records.length} set(s) of times.`
         : `Exported "${only.name}".`,
     );
+  }
+
+  async #exportHistory(): Promise<void> {
+    this.#say(await this.#history.export());
   }
 
   async #import(): Promise<void> {
