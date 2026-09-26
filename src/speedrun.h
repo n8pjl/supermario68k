@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <emscripten/val.h>
+#include <string>
 #include <string_view>
 #include <variant>
 
@@ -62,6 +64,28 @@ struct WarpTaken {
 	int world;
 };
 
+// What the player walked into something with: the powerup, the two effects a
+// map item leaves on for exactly one level, and the item list still in hand.
+// Read off SavePlayer at the moment of entry, after anything used on the map
+// has taken effect, so a P-wing spent on the square in front of a level shows
+// here as `pwing` and is gone from `items`.
+//
+// Named rather than numbered: `power` is "small", "super", "fire" or "racoon",
+// and each item is named after what it is (see item_name() in speedrun.cpp).
+// The game's own numbers are an accident of a switch statement, and these are
+// what a run's history is read back by, long after anyone remembers them.
+struct Loadout {
+	std::string power;
+	// Both switched off again when the level is left, however it is left
+	// (see Enter_enemy_ship() and Fight_monster() in map.cpp), so either
+	// being set here means it was used from the map just before this.
+	bool star;
+	bool pwing;
+	// The item list in slot order, empty slots left out. An array of
+	// strings, which a value_object field can only be as a val.
+	emscripten::val items;
+};
+
 // A level was started from the world map. `level` is its index within the
 // world's file - the map tile it was entered from, less levels_low - so the
 // castle that ends a world is level 7 and Bowser's is level 19. Bonus rooms
@@ -72,6 +96,7 @@ struct LevelEntered {
 
 	int world;
 	int level;
+	Loadout player;
 };
 
 // That level was beaten, rather than left by dying or by quitting out. Raised
@@ -95,6 +120,7 @@ struct MonsterFought {
 
 	int world;
 	int monster;
+	Loadout player;
 };
 
 // That monster was beaten, rather than run from or died to. Raised where the

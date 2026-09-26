@@ -1,5 +1,7 @@
 #include "speedrun.h"
 
+#include "player.h"
+
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 #include <optional>
@@ -22,15 +24,22 @@ EMSCRIPTEN_BINDINGS(speedrun)
 		.field("world", &WorldEntered::world);
 	emscripten::value_object<WarpTaken>("WarpTaken")
 		.field("world", &WarpTaken::world);
+	emscripten::value_object<Loadout>("Loadout")
+		.field("power", &Loadout::power)
+		.field("star", &Loadout::star)
+		.field("pwing", &Loadout::pwing)
+		.field("items", &Loadout::items);
 	emscripten::value_object<LevelEntered>("LevelEntered")
 		.field("world", &LevelEntered::world)
-		.field("level", &LevelEntered::level);
+		.field("level", &LevelEntered::level)
+		.field("player", &LevelEntered::player);
 	emscripten::value_object<LevelCompleted>("LevelCompleted")
 		.field("world", &LevelCompleted::world)
 		.field("level", &LevelCompleted::level);
 	emscripten::value_object<MonsterFought>("MonsterFought")
 		.field("world", &MonsterFought::world)
-		.field("monster", &MonsterFought::monster);
+		.field("monster", &MonsterFought::monster)
+		.field("player", &MonsterFought::player);
 	emscripten::value_object<MonsterDefeated>("MonsterDefeated")
 		.field("world", &MonsterDefeated::world)
 		.field("monster", &MonsterDefeated::monster);
@@ -55,12 +64,81 @@ struct Playing {
 // reports - cannot be taken for the one before it.
 std::optional<Playing> playing;
 
+// SavePlayer.Attribs, by the bit; see struct saveplayer in player.h.
+constexpr uint8_t Attrib_star = 0b10000000;
+constexpr uint8_t Attrib_fire = 0b01000000;
+constexpr uint8_t Attrib_racoon = 0b00100000;
+constexpr uint8_t Attrib_pwing = 0b00001000;
+
+// An item list entry by name, numbered as the switch in Handle_player_map()
+// that spends them numbers them. A number past the end is named rather than
+// dropped: the list is what the player was holding, and leaving a slot out
+// would say they held less than they did.
+std::string item_name(int item)
+{
+	switch (item) {
+	case 1:
+		return "mushroom";
+	case 2:
+		return "fire-flower";
+	case 3:
+		return "leaf";
+	case 4:
+		return "star";
+	case 5:
+		return "whistle";
+	case 6:
+		return "hammer";
+	case 7:
+		return "p-wing";
+	case 8:
+		return "cloud";
+	case 9:
+		return "anchor";
+	default:
+		return "item-" + std::to_string(item);
+	}
+}
+
+// The player as they are now. Life is 1 small, 2 super and 3 either suit, and
+// which suit is the Attribs bit - the same reading practice.ts makes of it.
+Loadout loadout()
+{
+	const uint8_t Attribs = static_cast<uint8_t>(SavePlayer.Attribs);
+
+	std::string power = SavePlayer.Life >= 2 ? "super" : "small";
+
+	if (SavePlayer.Life >= 3 && (Attribs & Attrib_fire)) {
+		power = "fire";
+	}
+	if (SavePlayer.Life >= 3 && (Attribs & Attrib_racoon)) {
+		power = "racoon";
+	}
+
+	emscripten::val items = emscripten::val::array();
+
+	for (int C = 0; C < itemlist_length; C++) {
+		if (SavePlayer.Itemlist[C]) {
+			items.call<void>("push",
+					 item_name(static_cast<uint8_t>(
+						 SavePlayer.Itemlist[C])));
+		}
+	}
+
+	return Loadout{ .power = power,
+			.star = (Attribs & Attrib_star) != 0,
+			.pwing = (Attribs & Attrib_pwing) != 0,
+			.items = items };
+}
+
 }
 
 void report(const Event &event)
 {
-	// The shell only installs the hook when the player asked for the timer,
-	// so on most runs of the game there is nothing listening here at all.
+	// The shell only installs the hook when the player asked for the timer
+	// or for practice mode - the second so that practice is kept in the run
+	// history too - so on most runs of the game there is nothing listening
+	// here at all.
 	emscripten::val hook =
 		emscripten::val::module_property("onSpeedrunEvent");
 
@@ -98,7 +176,8 @@ void entered_level(int world, int level)
 			   .monster = false,
 			   .reported = false };
 
-	report(LevelEntered{ .world = world, .level = level });
+	report(LevelEntered{
+		.world = world, .level = level, .player = loadout() });
 }
 
 void entered_monster(int world, int monster)
@@ -108,7 +187,8 @@ void entered_monster(int world, int monster)
 			   .monster = true,
 			   .reported = false };
 
-	report(MonsterFought{ .world = world, .monster = monster });
+	report(MonsterFought{
+		.world = world, .monster = monster, .player = loadout() });
 }
 
 void cleared_level()

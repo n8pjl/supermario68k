@@ -37,11 +37,48 @@ export interface WarpTaken {
   readonly world: number;
 }
 
+/** What the player can be, as src/speedrun.cpp names it. */
+export type Power = "small" | "super" | "fire" | "racoon";
+
+/**
+ * An item list entry, as src/speedrun.cpp names it. The last is a number the
+ * game has no item for, kept rather than dropped so the list stays whole.
+ */
+export type Item =
+  | "mushroom"
+  | "fire-flower"
+  | "leaf"
+  | "star"
+  | "whistle"
+  | "hammer"
+  | "p-wing"
+  | "cloud"
+  | "anchor"
+  | `item-${number}`;
+
+/**
+ * What the player walked into a level or a fight with.
+ *
+ * Nothing in the timer reads it - a trigger pins world, level and monster and
+ * nothing else, so a route splits the same whatever was carried in - but it is
+ * kept in the run history, which is where a route is worked out from.
+ */
+export interface Loadout {
+  readonly power: Power;
+  /** A star used from the map, which lasts into the next level. */
+  readonly star: boolean;
+  /** A P-wing used from the map, the same. */
+  readonly pwing: boolean;
+  /** The item list in slot order, empty slots left out. */
+  readonly items: readonly Item[];
+}
+
 export interface LevelEntered {
   readonly kind: "level-entered";
   readonly world: number;
   /** The level's index within its world file, counted from zero. */
   readonly level: number;
+  readonly player: Loadout;
 }
 
 export interface LevelCompleted {
@@ -63,6 +100,7 @@ export interface MonsterFought {
   readonly kind: "monster-fought";
   readonly world: number;
   readonly monster: number;
+  readonly player: Loadout;
 }
 
 /** That monster was beaten, rather than run from or died to. */
