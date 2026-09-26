@@ -119,6 +119,38 @@ function openDatabase(): Promise<IDBDatabase | null> {
   });
 }
 
+/** Every attempt as it was stored, or null where they cannot be read. */
+function readRows(db: IDBDatabase | null): Promise<unknown[] | null> {
+  return new Promise((resolve) => {
+    if (db === null) {
+      resolve(null);
+      return;
+    }
+
+    try {
+      const request = db.transaction(STORE).objectStore(STORE).getAll();
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+/**
+ * Every attempt this browser has kept, in the form they are stored and
+ * exported, for reading rather than for adding to: the data page's way in.
+ * Null where the browser is keeping none.
+ */
+export async function readHistory(): Promise<unknown[] | null> {
+  const db = await openDatabase();
+  const rows = await readRows(db);
+
+  db?.close();
+  return rows;
+}
+
 export class RunHistory {
   /** Opened the first time something is written or read, and kept. */
   #db: Promise<IDBDatabase | null> | null = null;
@@ -222,26 +254,15 @@ export class RunHistory {
    *
    * JSON Lines rather than one document: it is meant for reading with other
    * tools, most of which take a line as a row, and it is the one file here that
-   * is never read back in. Answers with what to tell the player about it,
+   * is never imported back into the game - the data page reads it, but only to
+   * show it. Answers with what to tell the player about it,
    * which both of the buttons that ask for it say the same way.
    */
   async export(): Promise<string> {
     const unreadable =
       "The run history could not be read: this browser is not keeping it.";
 
-    const db = await this.#database();
-    if (db === null) return unreadable;
-
-    const rows = await new Promise<unknown[] | null>((resolve) => {
-      try {
-        const request = db.transaction(STORE).objectStore(STORE).getAll();
-
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => resolve(null);
-      } catch {
-        resolve(null);
-      }
-    });
+    const rows = await readRows(await this.#database());
     if (rows === null) return unreadable;
 
     download(

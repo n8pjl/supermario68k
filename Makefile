@@ -54,6 +54,11 @@ SPEEDRUN = $(wildcard speedrun/*.ts)
 # consumer, no state to keep between sessions and nothing to share.
 PRACTICE = practice.ts
 
+# The data page's script: the run history read back and added up. Its own
+# directory, bundled like the timer, whose modules it imports; data/ would be
+# the obvious name and is already the game's converted blobs.
+ANALYSIS = $(wildcard analysis/*.ts)
+
 # Written by that check, which has nothing else to show for itself.
 TYPECHECK = .typecheck-stamp
 
@@ -82,7 +87,7 @@ DEPS = $(OBJS:.o=.d)
 
 .PHONY: all clean data format stages typecheck verify-levels
 
-all: speedrun.js practice.js $(DIST)
+all: speedrun.js practice.js analysis.js $(DIST)
 
 # The level data's source: JSON under levels/, compiled to the blobs the game
 # embeds. See tools/mklevels.py for the format and for why encoding it
@@ -160,6 +165,7 @@ $(BUILDDIR)/mario.wasm: $(TARGET) ;
 # to build incrementally and nothing for a stale hash to survive in.
 $(DIST): $(TARGET) $(BUILDDIR)/mario.wasm \
          index.html shell.js shell.css ma_texts.json $(SPEEDRUN) $(PRACTICE) \
+         data.html data.css $(ANALYSIS) \
          $(TYPECHECK) tools/mkdist.py Makefile | $(ESBUILD)
 	ESBUILD=$(ESBUILD) python3 tools/mkdist.py $(BUILDDIR) $(OUTDIR)
 	@touch $@
@@ -175,7 +181,7 @@ $(TSC): $(ESBUILD) ;
 
 # A type error fails the build rather than riding along into dist/: nothing
 # downstream of here would notice one, least of all esbuild.
-$(TYPECHECK): $(SPEEDRUN) $(PRACTICE) tsconfig.json $(STAGECHECK) | $(TSC)
+$(TYPECHECK): $(SPEEDRUN) $(PRACTICE) $(ANALYSIS) tsconfig.json $(STAGECHECK) | $(TSC)
 	$(TSC) --noEmit
 	@touch $@
 
@@ -192,6 +198,11 @@ speedrun.js: $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
 # serving this directory as it stands needs the types stripped off it first.
 practice.js: $(PRACTICE) $(TYPECHECK) | $(ESBUILD)
 	$(ESBUILD) $(PRACTICE) --format=esm --target=esnext --outfile=$@
+
+# And for the data page, which data.html reaches by this name.
+analysis.js: $(ANALYSIS) $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
+	$(ESBUILD) analysis/index.ts --bundle --format=esm --target=esnext \
+		--outfile=$@
 
 $(BUILDDIR):
 	mkdir -p $@
@@ -215,5 +226,5 @@ verify-levels:
 
 clean:
 	rm -f $(OBJS) $(DEPS) .data-stamp $(LEVELCHECK) $(STAGECHECK) $(DIST) \
-	      $(TYPECHECK) speedrun.js
+	      $(TYPECHECK) speedrun.js practice.js analysis.js
 	rm -rf $(OUTDIR) $(BUILDDIR) data

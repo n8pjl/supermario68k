@@ -3,7 +3,8 @@
 
 The point is cache headers. Everything here can be served immutable with a
 year-long TTL, because a file's name changes whenever its bytes do; only
-index.html is fetched every visit, and it is the one file that carries no hash.
+the two pages - index.html and data/index.html - are fetched every visit, and
+they are the only files that carry no hash.
 That also makes a deploy atomic without any coordination: one revalidated
 document names one consistent set of frozen URLs, so a browser can never pair
 shell.js from one revision with mario.wasm from another - which it otherwise
@@ -17,6 +18,9 @@ bytes of the file holding it, and so changes its hash:
                |          \\-> speedrun.js
                |          \\-> practice.js
                \\-> shell.css
+
+    data/index.html -> analysis.js
+                    \\-> data.css
 
 So the leaves are hashed and renamed, then each referrer has the new names
 substituted into it, and only then is the referrer itself hashed. Doing it the
@@ -150,6 +154,8 @@ def main():
     css = freeze(minify_css("shell.css", dst("shell.css")))
     speedrun = freeze(bundle_js("speedrun/index.ts", dst("speedrun.js")))
     practice = freeze(minify_js("practice.ts", dst("practice.js")))
+    data_css = freeze(minify_css("data.css", dst("data.css")))
+    analysis = freeze(bundle_js("analysis/index.ts", dst("analysis.js")))
 
     # Emscripten's glue.
     glue = minify_js(os.path.join(build, "mario.js"), dst("mario.js"))
@@ -167,10 +173,23 @@ def main():
     # revalidates in order to discover the current set of hashed names.
     html = shutil.copy("index.html", dst("index.html"))
     substitute(html, {'"shell.js"': (f'"{shell}"', 1),
-                      '"shell.css"': (f'"{css}"', 1)})
+                      '"shell.css"': (f'"{css}"', 1),
+                      '"data.html"': ('"data/"', 1)})
+
+    # The data page, the other unhashed entry point. It is served as data/ so
+    # that it is reached as /data, which puts it a directory down from the
+    # files it names; the source tree serves it as data.html beside them,
+    # because data/ there is the game's converted blobs.
+    os.makedirs(dst("data"))
+    page = shutil.copy("data.html", os.path.join(out, "data", "index.html"))
+    substitute(page, {'"analysis.js"': (f'"../{analysis}"', 1),
+                      '"data.css"': (f'"../{data_css}"', 1),
+                      '"index.html"': ('"../"', 1)})
 
     for name in sorted(os.listdir(out)):
-        print(f"  {os.path.getsize(dst(name)):>7}  {name}")
+        if os.path.isfile(dst(name)):
+            print(f"  {os.path.getsize(dst(name)):>7}  {name}")
+    print(f"  {os.path.getsize(page):>7}  data/index.html")
 
 
 if __name__ == "__main__":

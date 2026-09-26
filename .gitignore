@@ -13,6 +13,7 @@ node_modules/
 # Built from their TypeScript by the Makefile, for serving this directory as-is.
 speedrun.js
 practice.js
+analysis.js
 
 # Build target stamps
 .calc-stamp

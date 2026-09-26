@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Run data · Super Mario 68K</title>
+  <link rel="stylesheet" href="data.css" />
+</head>
+<body>
+  <!-- Served as data/ in dist/ (see tools/mkdist.py), and as data.html when this
+       directory is served as it stands, where data/ is the game's own blobs. -->
+  <header>
+    <h1>Super <span>Mario</span> 68K <small>run data</small></h1>
+    <a class="back" href="index.html">Back to the game</a>
+  </header>
+
+  <!-- Everything below is filled in by analysis.js, read from the run history
+       the game keeps in this browser and from any exported history opened here.
+       Nothing on this page writes to it. -->
+  <div class="source">
+    <p id="source" role="status">Reading the run history…</p>
+    <button type="button" id="open">Open exported history…</button>
+    <input type="file" id="file" accept=".jsonl,application/jsonl" multiple hidden />
+  </div>
+
+  <form class="filters" aria-label="Filters">
+    <label>Played
+      <select id="filter-days">
+        <option value="0">All time</option>
+        <option value="7">Last 7 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+    </label>
+    <label>Attempts
+      <select id="filter-mode">
+        <option value="all">Runs and practice</option>
+        <option value="run">Timed runs</option>
+        <option value="practice">Practice</option>
+      </select>
+    </label>
+    <label>Category
+      <select id="filter-category">
+        <option value="">All categories</option>
+      </select>
+    </label>
+    <label>Route
+      <select id="filter-route"></select>
+    </label>
+  </form>
+
+  <p id="empty" class="note" hidden>
+    Nothing here yet. Every timed run and every practice game is kept as it is
+    played; turn on speedrun or practice mode in the game's settings and play.
+  </p>
+
+  <main id="content" hidden>
+    <section class="tiles" id="tiles" aria-label="Summary"></section>
+
+    <div class="pair">
+      <section class="card">
+        <h2>Finished runs</h2>
+        <p class="note" id="progress-note"></p>
+        <div class="chart" id="progress-chart"></div>
+        <ul class="legend" id="progress-legend" hidden>
+          <li><span class="key dot series-1"></span>Finished run</li>
+          <li><span class="key line series-2"></span>Best so far</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Where runs stop</h2>
+        <p class="note" id="stops-note"></p>
+        <div class="chart" id="stops-chart"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>Stages</h2>
+      <p class="note" id="stages-note"></p>
+      <div class="scroll"><table id="stages-table" class="data"></table></div>
+    </section>
+
+    <section class="card" id="detail" hidden>
+      <h2 id="detail-title"></h2>
+      <p class="note" id="detail-note"></p>
+      <div class="chart" id="detail-chart"></div>
+      <ul class="legend">
+        <li><span class="key dot series-1"></span>Cleared, at the time it took</li>
+        <li><span class="key ring series-2"></span>Died, at the time it happened</li>
+      </ul>
+      <div class="scroll"><table id="detail-table" class="data"></table></div>
+    </section>
+
+    <section class="card">
+      <h2>Attempts</h2>
+      <p class="note">Newest first. Select one for everything the game reported during it.</p>
+      <div class="scroll"><table id="attempts-table" class="data"></table></div>
+      <button type="button" id="attempts-more" hidden></button>
+    </section>
+  </main>
+
+  <script type="module" src="analysis.js"></script>
+</body>
+</html>
