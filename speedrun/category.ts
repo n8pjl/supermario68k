@@ -191,8 +191,8 @@ const BOWSER_CASTLE = stage(STAGES.length - 1, BOWSER_LEVEL);
 
 /** Everything a 100% run has to have completed, stages and monsters together. */
 const REQUIRED: readonly string[] = STAGES.flatMap((world) => [
-  ...world.levels.map((level) => stage(world.world, level)),
-  ...world.monsters.map((monster) => fight(world.world, monster)),
+  ...world.levels.map(({ level }) => stage(world.world, level)),
+  ...world.monsters.map(({ monster }) => fight(world.world, monster)),
 ]);
 
 /**

@@ -10,12 +10,11 @@
 
 import {
   BOWSER_LEVEL,
-  CASTLE_LEVEL,
   type GameEvent,
   type Loadout,
   type Power,
-  WARP_ZONE_WORLD,
 } from "../speedrun/events.ts";
+import { levelName, monsterName, placeOrder } from "../speedrun/names.ts";
 import { type Attempt } from "./attempts.ts";
 
 export type Outcome = "cleared" | "died" | "warped" | "left";
@@ -60,30 +59,31 @@ function placeOf(event: GameEvent): Place | null {
   return null;
 }
 
-/**
- * A place as a person would say it.
- *
- * Levels go by their index in the world file, which is what the game reports
- * and what levels/ is keyed by; the map order they are played in is not
- * something the events know. The castle and Bowser's castle are the two
- * indices that mean the same thing everywhere, so they get their names.
- */
+/** A place as the map shows it; see speedrun/names.ts. */
 export function placeName(place: Place): string {
-  const w = place.world;
-
-  if (w === WARP_ZONE_WORLD) {
-    return place.monster === null ? "Warp zone" : `Warp zone Bros. ${place.monster}`;
-  }
-  if (place.monster !== null) return `World ${w + 1} · Bros. #${place.monster}`;
-  if (w === 7 && place.level === BOWSER_LEVEL) return "World 8 · Bowser";
-  if (place.level === CASTLE_LEVEL) return `World ${w + 1} · castle`;
-  return `World ${w + 1} · #${place.level}`;
+  return place.monster !== null
+    ? monsterName(place.world, place.monster)
+    : levelName(place.world, place.level!);
 }
 
-/** Sorted the way a run goes: by world, levels before monsters, then index. */
+function order(place: Place): number {
+  return (
+    placeOrder(
+      place.world,
+      place.monster !== null ? { monster: place.monster } : { level: place.level! },
+    ) ?? Number.MAX_SAFE_INTEGER
+  );
+}
+
+/**
+ * Sorted the way a world reads - its numbered levels, the rest of its stages,
+ * then its monsters - and anything the manifest does not know after the rest
+ * of its world, by index.
+ */
 export function comparePlaces(a: Place, b: Place): number {
   return (
     a.world - b.world ||
+    order(a) - order(b) ||
     Number(a.monster !== null) - Number(b.monster !== null) ||
     (a.level ?? a.monster ?? 0) - (b.level ?? b.monster ?? 0)
   );

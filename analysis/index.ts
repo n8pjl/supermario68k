@@ -307,7 +307,7 @@ function drawStages(stats: readonly PlaceStats[]): void {
   note.textContent =
     stats.length === 0
       ? "Nothing entered yet."
-      : "Levels go by their number in the world file. Select a row to break it down.";
+      : "Select a row to break it down.";
 
   const rows = [...stats];
   if (sort.column !== 0) {
