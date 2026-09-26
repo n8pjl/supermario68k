@@ -127,6 +127,21 @@ export interface PlayerDied {
   readonly player: Loadout;
 }
 
+/**
+ * The player was hurt and lived: a suit knocked off, or super down to small.
+ * Said where the same way as a death, and silent in the same places.
+ *
+ * `player` is what they were just before the hit, which is what the hit took;
+ * what is left follows from it. A hit that kills reports only as player-died.
+ */
+export interface PlayerHit {
+  readonly kind: "player-hit";
+  readonly world: number;
+  readonly level?: number | undefined;
+  readonly monster?: number | undefined;
+  readonly player: Loadout;
+}
+
 export type GameEvent =
   | RunStarted
   | RunAbandoned
@@ -137,7 +152,8 @@ export type GameEvent =
   | LevelCompleted
   | MonsterFought
   | MonsterDefeated
-  | PlayerDied;
+  | PlayerDied
+  | PlayerHit;
 
 export type EventKind = GameEvent["kind"];
 
@@ -153,6 +169,7 @@ export const EVENT_KINDS: readonly EventKind[] = [
   "monster-fought",
   "monster-defeated",
   "player-died",
+  "player-hit",
 ];
 
 export function isEventKind(value: unknown): value is EventKind {

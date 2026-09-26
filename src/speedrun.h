@@ -151,9 +151,24 @@ struct PlayerDied {
 	Loadout player;
 };
 
-using Event = std::variant<RunStarted, RunAbandoned, RunEnded, WorldEntered,
-			   WarpTaken, LevelEntered, LevelCompleted,
-			   MonsterFought, MonsterDefeated, PlayerDied>;
+// The player was hurt and lived: a suit knocked off, or super knocked down to
+// small. Where it happened is said the same way as a death, and so is when it
+// reports nothing. `player` is what they were just before the hit - what the
+// hit took is the whole of what is worth knowing about one, and what is left
+// follows from it. A hit that kills is a death and reports only as one.
+struct PlayerHit {
+	static constexpr std::string_view kind = "player-hit";
+
+	int world;
+	std::optional<int> level;
+	std::optional<int> monster;
+	Loadout player;
+};
+
+using Event =
+	std::variant<RunStarted, RunAbandoned, RunEnded, WorldEntered,
+		     WarpTaken, LevelEntered, LevelCompleted, MonsterFought,
+		     MonsterDefeated, PlayerDied, PlayerHit>;
 
 // Thrown out of report() when the shell says the run it was timing is over
 // while the game is not: a route being recorded reached the end of the category
@@ -201,6 +216,9 @@ void cleared_level();
 // A life has just been lost. Reports PlayerDied, with the level or the monster
 // fight it was lost in; see there for when it reports nothing.
 void died();
+
+// The player is about to be hurt, and will live. Reports PlayerHit.
+void hit();
 
 // It has returned to the map. `completed` is the game's own verdict on it: if
 // that says it was beaten and nothing inside it said so first - a way of

@@ -1347,6 +1347,13 @@ void Handleplayer()
 void Player_die()
 {
 	if (!(Player.Immortal)) {
+		// Before the powerup is taken, so the hit is reported with what
+		// it took. The last life's worth is left to Player_die_hard(),
+		// which reports it as the death it is.
+		if (SavePlayer.Life > 1) {
+			speedrun::hit();
+		}
+
 		SavePlayer.Life--;
 		Player.Immortal = 60; // Nr of frames to be immortal
 

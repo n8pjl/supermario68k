@@ -51,6 +51,11 @@ EMSCRIPTEN_BINDINGS(speedrun)
 		.field("level", &PlayerDied::level)
 		.field("monster", &PlayerDied::monster)
 		.field("player", &PlayerDied::player);
+	emscripten::value_object<PlayerHit>("PlayerHit")
+		.field("world", &PlayerHit::world)
+		.field("level", &PlayerHit::level)
+		.field("monster", &PlayerHit::monster)
+		.field("player", &PlayerHit::player);
 }
 
 namespace
@@ -217,13 +222,19 @@ void cleared_level()
 			       .level = playing->index });
 }
 
-void died()
+namespace
+{
+
+// Something that happened to the player in whatever is being played, said with
+// where it happened: the level, or the monster fight. Nothing where nothing is
+// being played - see PlayerDied.
+template <typename Event> void report_in_play()
 {
 	if (!playing) {
 		return;
 	}
 
-	PlayerDied event{ .world = playing->world, .player = loadout() };
+	Event event{ .world = playing->world, .player = loadout() };
 
 	if (playing->monster) {
 		event.monster = playing->index;
@@ -232,6 +243,18 @@ void died()
 	}
 
 	report(event);
+}
+
+}
+
+void died()
+{
+	report_in_play<PlayerDied>();
+}
+
+void hit()
+{
+	report_in_play<PlayerHit>();
 }
 
 void left_level(bool completed)
