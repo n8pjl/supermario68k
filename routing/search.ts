@@ -317,7 +317,9 @@ export interface Costing {
  * same stage walked in as the nearest thing to it - without the star or the
  * P-wing first, then the other powers, nearest first and the weaker side of a
  * tie first, since a borrowed time is better too slow than too fast. With
- * `up` false, only the weaker ones.
+ * `up` false, only the weaker ones. Figures walked in with a star or a P-wing
+ * are never borrowed, only ever used for that same entry: what either one
+ * buys says nothing about a stage played without it.
  */
 function lookup(
   stats: Stats,
