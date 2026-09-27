@@ -25,6 +25,12 @@
   }
 }
 
+/* The route table has eight columns, two of them prose; the run data page's
+   width leaves it scrolling sideways, so this page takes more of the screen. */
+body {
+  max-width: 1600px;
+}
+
 h3 {
   margin: 1rem 0 0.25rem;
   font-size: 0.95rem;
@@ -122,6 +128,7 @@ input[type="number"] {
 
 .map-host {
   overflow-x: auto;
+  max-width: 1100px;
 }
 
 .world-map {
