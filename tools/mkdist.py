@@ -186,8 +186,7 @@ def main():
     html = shutil.copy("index.html", dst("index.html"))
     substitute(html, {'"shell.js"': (f'"{shell}"', 1),
                       '"shell.css"': (f'"{css}"', 1),
-                      '"data.html"': ('"data/"', 1),
-                      '"routing.html"': ('"routing/"', 1)})
+                      '"data.html"': ('"data/"', 1)})
 
     # The data page, the other unhashed entry point. It is served as data/ so
     # that it is reached as /data, which puts it a directory down from the
