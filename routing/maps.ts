@@ -26,8 +26,13 @@ export interface MapNode {
   readonly x: number;
   readonly y: number;
   readonly kind: NodeKind;
-  /** The level it enters: stages, fortresses, the castle and Bowser's. */
+  /** The level it enters: stages, fortresses, the castle, Bowser's, 7-Pipe. */
   readonly level?: number;
+  /**
+   * A pipe stage: where beating it comes out. Its square is walked past like
+   * any other pipe's - the level is the way through the pipe, not the square.
+   */
+  readonly exit?: number;
   /** A fortress: which of the two kinds of locked door beating it opens. */
   readonly opens?: 1 | 2;
   /** What the chests inside the level hold, one item a clear at most. */
@@ -834,7 +839,7 @@ export const MAPS: readonly WorldMap[] = [
       { id: 11, x: 26, y: 4, kind: "junction" },
       { id: 12, x: 29, y: 4, kind: "fortress", level: 6, opens: 1 },
       { id: 13, x: 5, y: 6, kind: "junction" },
-      { id: 14, x: 8, y: 6, kind: "pipe" },
+      { id: 14, x: 8, y: 6, kind: "pipe", level: 19, exit: 9 },
       { id: 15, x: 25, y: 6, kind: "stage", level: 5 },
       { id: 16, x: 27, y: 6, kind: "junction" },
       { id: 17, x: 29, y: 6, kind: "junction" },

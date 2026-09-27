@@ -251,6 +251,8 @@ function coversEverything(splits: readonly RouteSplit[]): boolean {
  * What SMB3 leaves out is left out here as well: mushroom houses, the card and
  * roulette games and the overworld pipes are allowed and not required, and
  * nothing asks about them because none of them reports (see src/speedrun.h).
+ * The one pipe that plays a whole level, 7-Pipe, is a stage, and is asked for
+ * like one.
  */
 const HUNDRED = {
   id: "100",

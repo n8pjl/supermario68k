@@ -33,6 +33,13 @@ do it:
     passage and comes out at NewX, NewY. A pipe to another world is a warp,
     and there are none on the world maps: warping is the whistle's.
 
+  - A pipe that plays a whole level rather than a passage - 7-Pipe, picked out
+    by the rule in mkstages.py - is a stage entered from the pipe's square.
+    Unlike one on a level tile it blocks nothing: the square is walked past
+    like any pipe, and it is the way through the pipe that is the level, to
+    be played every time it is taken. The square is given the level and the
+    square beating it comes out on.
+
   - A boat (map object mode 30) is stepped onto from beside it and carried
     over water to any dock on that water. The boat goes where the player
     does, so every dock on its water is reachable from every other.
@@ -84,7 +91,7 @@ import os
 import sys
 
 from mklevels import SRC, enum_names, read_json, strip_comments, tile_ranges
-from mkstages import CASTLE_LEVEL, MONSTER_MODES, WORLDS
+from mkstages import CASTLE_LEVEL, MONSTER_MODES, WORLDS, pipe_stages
 
 # The item list's numbering, as the switch in Handle_player_map() spends it,
 # named the way src/speedrun.cpp reports it.
@@ -140,8 +147,13 @@ export interface MapNode {
   readonly x: number;
   readonly y: number;
   readonly kind: NodeKind;
-  /** The level it enters: stages, fortresses, the castle and Bowser's. */
+  /** The level it enters: stages, fortresses, the castle, Bowser's, 7-Pipe. */
   readonly level?: number;
+  /**
+   * A pipe stage: where beating it comes out. Its square is walked past like
+   * any other pipe's - the level is the way through the pipe, not the square.
+   */
+  readonly exit?: number;
   /** A fortress: which of the two kinds of locked door beating it opens. */
   readonly opens?: 1 | 2;
   /** What the chests inside the level hold, one item a clear at most. */
@@ -349,6 +361,7 @@ def read_world(doc, world, ranges, tiles, treasure, magic):
                 corners.add(end)
                 queue.append(end)
 
+    stages = pipe_stages(doc)
     ids = {}
     nodes = []
     for y in range(height):
@@ -374,6 +387,9 @@ def read_world(doc, world, ranges, tiles, treasure, magic):
                 node["kind"] = "game-house"
             elif t == tiles["pipe"]:
                 node["kind"] = "pipe"
+                for level, trig in stages.items():
+                    if (trig["x"] // 16, trig["y"] // 16) == (x, y):
+                        node["level"] = level
             elif t == dock:
                 node["kind"] = "dock"
             else:
@@ -445,6 +461,8 @@ def read_world(doc, world, ranges, tiles, treasure, magic):
         add({"a": a, "b": b, "by": "pipe", "tiles": 0,
              "path": [(nodes[a]["x"], nodes[a]["y"]),
                       (nodes[b]["x"], nodes[b]["y"])]})
+        if nodes[a]["kind"] == "pipe" and "level" in nodes[a]:
+            nodes[a]["exit"] = b
 
     # Boats: every dock on the boat's water, to every other, by the shortest
     # way over the water.

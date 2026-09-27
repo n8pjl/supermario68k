@@ -123,8 +123,8 @@ export interface MonsterDefeated {
  * happens, before the death animation.
  *
  * Only ever inside something being played, so a death in the title screen's
- * demo or in a pipe passage off the map reports nothing. `player` is what the
- * player died as - see src/speedrun.h.
+ * demo or in a pipe passage off the map reports nothing - 7-Pipe aside, which
+ * is a level. `player` is what the player died as - see src/speedrun.h.
  */
 export interface PlayerDied {
   readonly kind: "player-died";

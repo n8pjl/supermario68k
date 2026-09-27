@@ -705,7 +705,7 @@ function placesOf(w: number): string[] {
   const order = (p: string) => {
     const name = nameOf(p).replace(/^\d+-/, "");
     const n = Number(name);
-    return Number.isNaN(n) ? 100 + ["Fortress", "Fortress 1", "Fortress 2", "Pyramid", "Quicksand", "Bonus", "Castle", "Bowser"].indexOf(name) : n;
+    return Number.isNaN(n) ? 100 + ["Fortress", "Fortress 1", "Fortress 2", "Pyramid", "Quicksand", "Bonus", "Pipe", "Castle", "Bowser"].indexOf(name) : n;
   };
   return [
     ...[...new Set(stages)].sort((a, b) => order(a) - order(b)),

@@ -16,7 +16,7 @@
 export interface Stage {
   /** The level index the events report. */
   readonly level: number;
-  /** As the map shows it: "1-3", "2-Pyramid", "8-Bowser". */
+  /** As the map shows it: "1-3", "2-Pyramid", "7-Pipe", "8-Bowser". */
   readonly name: string;
 }
 
@@ -157,6 +157,7 @@ export const STAGES: readonly WorldStages[] = [
       { level: 11, name: "7-7" },
       { level: 6, name: "7-Fortress" },
       { level: 15, name: "7-Bonus" },
+      { level: 19, name: "7-Pipe" },
       { level: 7, name: "7-Castle" },
     ],
     monsters: [

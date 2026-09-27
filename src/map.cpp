@@ -686,6 +686,28 @@ void Handle_player_map()
 											20);
 								}
 
+								// Most pipes play a room of one
+								// screen, 15 tiles, with nothing in
+								// it but the way out. One that plays
+								// a level of the world's own file
+								// wider than that - 7-Pipe - is a
+								// stage like any other, and reports
+								// as one. tools/mkstages.py names
+								// it by the same rule.
+								bool Stage =
+									Map_triggers[C].LevelNr >=
+										20 &&
+									Leveldata.Width >
+										15;
+
+								if (Stage) {
+									speedrun::entered_level(
+										Levelsetdata
+											.CurrentWorld,
+										Map_triggers[C].LevelNr -
+											20);
+								}
+
 								Player.X =
 									Map_triggers[C]
 										.LX;
@@ -713,6 +735,14 @@ void Handle_player_map()
                 FgY=OldFgY;
                 */
 								Play_level();
+
+								// Coming out the far end is
+								// beating it.
+								if (Stage) {
+									speedrun::left_level(
+										Exit ==
+										2);
+								}
 
 								Map_plane.p
 									.force_update =

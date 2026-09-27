@@ -89,9 +89,10 @@ struct Loadout {
 
 // A level was started from the world map. `level` is its index within the
 // world's file - the map tile it was entered from, less levels_low - so the
-// castle that ends a world is level 7 and Bowser's is level 19. Bonus rooms
-// reached from the map (the mushroom and game houses) and the passages behind
-// the pipes are not levels and do not report.
+// castle that ends a world is level 7 and Bowser's is level 19. 7-Pipe is the
+// one level entered from a map pipe, and is its index in the file the same.
+// Bonus rooms reached from the map (the mushroom and game houses) and the
+// one-screen passages behind the other pipes are not levels and do not report.
 struct LevelEntered {
 	static constexpr std::string_view kind = "level-entered";
 
@@ -148,7 +149,8 @@ struct MonsterDefeated {
 //
 // Only while something is being played, so a death is always a death in
 // something a route can name. The title screen's demo and the passages behind
-// map pipes are neither, and a death in either reports nothing.
+// map pipes are neither, and a death in either reports nothing - 7-Pipe aside,
+// which is a level.
 struct PlayerDied {
 	static constexpr std::string_view kind = "player-died";
 

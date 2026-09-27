@@ -8,7 +8,7 @@ unless it is told what there was to miss. That list is here, generated, rather
 than written by hand in the timer - a stage added to a map would otherwise
 leave a category quietly asking for less than it says.
 
-Two things are counted, and both come out of the world maps:
+Three things are counted, and all of them come out of the world maps:
 
   - Stages. Every map tile in the levels range is one, the level it enters
     being the tile less levels_low; a small_castle and Bowser's castle are
@@ -16,6 +16,13 @@ Two things are counted, and both come out of the world maps:
     world is not - it is the big_castle the map walks onto, entered by
     Enter_enemy_ship(), which loads level 7 - so a world with one of those
     gets level 7 added.
+
+  - Pipe stages. A pipe on a world's map plays whatever level its trigger
+    names, from the common file under 20 and from the world's own file from
+    20. Nearly all of them are a room of one screen - 15 tiles, the 92+'s 240
+    pixels - with nothing in it but the way out, and are passages. One plays a
+    level of the world's own file wider than that, and it is a stage: 7-Pipe.
+    src/map.cpp decides it by the same rule, which is what makes it report.
 
   - Overworld monsters. The map objects the game fights rather than walks
     past: Handle_map_objects() sends modes 2 to 8 to Fight_monster(), and
@@ -33,7 +40,7 @@ player works it out, from what the map shows:
     as 7 and 8 (so 1-3 is the tile drawn with a 3, whatever its index), and
     the rest by what they are - Fortress, Pyramid, Quicksand, Bonus. A world
     with both fortress tiles has a Fortress 1 and a Fortress 2. Bowser's
-    castle is Bowser.
+    castle is Bowser, and a pipe stage is Pipe.
 
   - The world's end is the Castle, whether or not an airship flies off from
     it: the map shows the one castle tile either way.
@@ -74,6 +81,14 @@ CASTLE_LEVEL = 7
 # The map object modes Handle_map_objects() answers with Fight_monster().
 MONSTER_MODES = range(2, 9)
 
+# A map pipe's LevelNr from which it names a level of the world's own file.
+OWN_FILE_LEVELS = 20
+
+# The width of a pipe room, in tiles: one screen. A pipe that plays a level of
+# the world's own file wider than this is a stage; see the pipe branch of
+# Handle_player_map() in src/map.cpp.
+PASSAGE_WIDTH = 15
+
 # The level tiles src/map.h has no name for, by what they are drawn as on the
 # map; see original-docs/map_tiles_newer.txt. The fortresses and Bowser's
 # castle are named from the enum instead.
@@ -86,7 +101,7 @@ LEVEL_TILES = {
 # map counts them, then the rest, ending with whatever ends the world.
 LEVEL_ORDER = ["1", "2", "3", "4", "5", "6", "7", "8", "Fortress",
                "Fortress 1", "Fortress 2", "Pyramid", "Quicksand", "Bonus",
-               "Castle", "Bowser"]
+               "Pipe", "Castle", "Bowser"]
 
 # What an arena's enemies say about which Bros. it is, by the model name's
 # prefix. The suffixes are how one behaves, not what it is.
@@ -112,7 +127,7 @@ HEADER = '''\
 export interface Stage {
   /** The level index the events report. */
   readonly level: number;
-  /** As the map shows it: "1-3", "2-Pyramid", "8-Bowser". */
+  /** As the map shows it: "1-3", "2-Pyramid", "7-Pipe", "8-Bowser". */
   readonly name: string;
 }
 
@@ -155,6 +170,23 @@ def map_constants():
     return ranges["levels"], tiles
 
 
+def pipe_stages(doc):
+    """The map pipes that play a stage: their triggers, by the level they
+    play."""
+    found = {}
+    for trig in doc["map"]["triggers"]:
+        if trig["new_map"] >= 0 or trig["level_nr"] < OWN_FILE_LEVELS:
+            continue
+        level = trig["level_nr"] - OWN_FILE_LEVELS
+        inside = doc["levels"].get(str(level))
+        if inside is None:
+            raise ValueError("%s: a pipe enters level %d, which the file does "
+                             "not have" % (doc["name"], level))
+        if inside["width"] > PASSAGE_WIDTH:
+            found[level] = trig
+    return found
+
+
 def bros_of(common, mode):
     """Which Bros. a monster of this mode fights: whatever its arena holds."""
     arena = common["levels"].get(str(mode - 1))
@@ -189,6 +221,12 @@ def stages_of(doc, common, world, levels_range, tiles):
             raise ValueError("%s: level %d is entered as both %s and %s"
                              % (doc["name"], tile - low, named[tile - low], name))
         named[tile - low] = name
+
+    for level in pipe_stages(doc):
+        if named.get(level, "Pipe") != "Pipe":
+            raise ValueError("%s: level %d is entered as both %s and Pipe"
+                             % (doc["name"], level, named[level]))
+        named[level] = "Pipe"
 
     if tiles["big_castle"] in cells:
         named[CASTLE_LEVEL] = "Castle"

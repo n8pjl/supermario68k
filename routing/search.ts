@@ -258,8 +258,13 @@ function prepare(map: WorldMap, settings: Settings): World {
     if (n.opens !== undefined) opens[n.opens] |= stage[n.id]!.bit;
   }
 
+  // The way through a pipe that plays a stage - 7-Pipe - is the stage, and
+  // is taken as one (see actions()), so it is no walk. That makes it once
+  // only: a route that went back through the other way would have no way on,
+  // which no route has a reason to do.
   const links: Link[][] = map.nodes.map(() => []);
   for (const e of map.edges) {
+    if (e.by === "pipe" && map.nodes[e.a]!.exit !== undefined) continue;
     links[e.a]!.push({
       to: e.b,
       ms: e.by === "pipe" ? settings.pipeMs : e.tiles * settings.msPerTile,
@@ -466,7 +471,10 @@ export interface Action {
   /** A warp: the world it goes to. */
   readonly warp: number | null;
   readonly node: number;
-  /** Where the player ends up: the thing itself, or past a clouded stage. */
+  /**
+   * Where the player ends up: the thing itself, past a clouded stage, or out
+   * the far end of a pipe stage.
+   */
   readonly to: number;
   readonly place: string | null;
   readonly use: readonly Slot[];
@@ -635,9 +643,10 @@ export function search(
 
       // A stage not yet beaten is walked onto and no further - the player's
       // own square included, which is one only when a cloud has just set
-      // them down on it, and from there it is that stage or nothing.
-      const st = world.stage[u];
-      if (st && !(s.done & st.bit)) continue;
+      // them down on it, and from there it is that stage or nothing. A pipe
+      // stage is not on its square but through it, so the square is walked
+      // past like any pipe's.
+      if (!open(world, s, u)) continue;
 
       for (const link of world.links[u]!) {
         if (link.door !== 0 && !(s.done & world.opens[link.door])) continue;
@@ -652,7 +661,7 @@ export function search(
   /** Walkable to and past, as opposed to walkable onto. */
   function open(world: World, s: State, node: number): boolean {
     const st = world.stage[node];
-    return !st || (s.done & st.bit) !== 0;
+    return !st || (s.done & st.bit) !== 0 || world.map.nodes[node]!.exit !== undefined;
   }
 
   /**
@@ -819,6 +828,9 @@ export function search(
 
       const final = node.kind === "castle" || node.kind === "bowser";
       const airship = node.kind === "castle" && world.map.airship;
+      // Where beating it leaves the player: on its square, or out the far
+      // end of a pipe stage.
+      const lands = node.exit ?? node.id;
       const walkMs = dist[node.id]!;
       const needed = required[s.world]!;
       const allowed = !final || (s.done & needed) === needed;
@@ -829,7 +841,7 @@ export function search(
           const outcomes = costing.exits.flatMap(([power, p, gains]) =>
             handed(world, st, gains, l.inv).map(([q, inv]) => [
               p * q,
-              final ? nextWorld(world, power, inv) : after(s, done, node.id, power, inv),
+              final ? nextWorld(world, power, inv) : after(s, done, lands, power, inv),
             ] as const),
           );
 
@@ -837,7 +849,7 @@ export function search(
             kind: "stage",
             warp: null,
             node: node.id,
-            to: node.id,
+            to: lands,
             place: st.place,
             use: l.use,
             entry: l.entry,
@@ -853,8 +865,9 @@ export function search(
       // whatever is beyond; the stage is still there to block the way back.
       // Beyond can be another stage not yet beaten - 8-6 is crossed onto
       // Bowser's castle - and the player is then standing at it, to play it
-      // and nothing else, as if they had walked up to it.
-      if (settings.items && !final && node.id !== s.pos && count(s.inv, S.cloud) > 0) {
+      // and nothing else, as if they had walked up to it. A pipe stage is no
+      // level tile, and a cloud does nothing for it.
+      if (settings.items && !final && node.exit === undefined && node.id !== s.pos && count(s.inv, S.cloud) > 0) {
         for (const link of world.links[node.id]!) {
           if (dist[link.to] !== Infinity) continue;
           if (link.door !== 0 && !(s.done & world.opens[link.door])) continue;

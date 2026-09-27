@@ -51,6 +51,7 @@ function shortName(world: number, node: MapNode): string {
     Pyramid: "Py",
     Quicksand: "Qs",
     Bonus: "Bo",
+    Pipe: "P",
   };
   return short[name] ?? name;
 }
@@ -83,11 +84,14 @@ function route(
     if (u === -1 || u === to) break;
     settled[u] = true;
 
+    // A pipe stage's square is walked past; its pipe is the stage, and is
+    // drawn as its step rather than as a way to walk.
     const node = map.nodes[u]!;
-    if (node.level !== undefined && !done.has(u) && u !== from) continue;
+    if (node.level !== undefined && node.exit === undefined && !done.has(u) && u !== from) continue;
 
     map.edges.forEach((e, i) => {
       if (e.a !== u) return;
+      if (e.by === "pipe" && node.exit !== undefined) return;
       if (e.door !== undefined && !opened.has(e.door)) return;
       if (e.rock !== undefined && !broken.has(e.rock)) return;
       const d = dist[u]! + (e.by === "pipe" ? 60 : e.tiles);
@@ -215,6 +219,14 @@ export function drawWorld(
       const a = map.nodes[step.node]!;
       const b = map.nodes[step.to]!;
       svg("line", { x1: mid(a.x), y1: mid(a.y), x2: mid(b.x), y2: mid(b.y), class: "route-line cloud" }, overlay);
+    }
+    if (step.kind === "stage" && step.to !== step.node) {
+      const a = map.nodes[step.node]!;
+      const b = map.nodes[step.to]!;
+      svg("path", {
+        d: `M${mid(a.x)},${mid(a.y)} Q${(mid(a.x) + mid(b.x)) / 2},${Math.min(mid(a.y), mid(b.y)) - 3 * CELL} ${mid(b.x)},${mid(b.y)}`,
+        class: "route-line pipe",
+      }, overlay);
     }
 
     const node = map.nodes[step.node]!;
