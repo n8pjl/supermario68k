@@ -28,8 +28,10 @@
 // A state is: the world, what has been done in it (stages beaten, houses
 // visited, Bros. fought, rocks broken), where the player stands, their power,
 // and the item list. Everything a state can do next either does something new
-// or spends an item, so nothing leads back to where it started, and each state
-// is worked out once and remembered.
+// or spends an item, so nothing leads back to where it started, and what is
+// worked out for a state is remembered. Where nothing is left to chance, the
+// run is a shortest path, and A* finds it without looking at the states only
+// a slow route goes through; see shortest() and floor().
 //
 // Where the history has nothing for a stage walked into as something, the
 // figure is borrowed - from the same stage entered as something close, or,
@@ -515,21 +517,77 @@ const MASK_SPAN = 2 ** 24;
  * integer, and a map keyed by any other kind of number is several times
  * slower to look things up in, which is most of what the search does.
  */
-class Memo {
-  readonly #outer = new Map<number, Map<number, number>>();
+class Memo<T = number> {
+  readonly #outer = new Map<number, Map<number, T>>();
   size = 0;
 
-  get(s: State): number | undefined {
+  get(s: State): T | undefined {
     return this.#outer.get(outerKey(s))?.get(innerKey(s));
   }
 
-  set(s: State, value: number): void {
+  set(s: State, value: T): void {
     const key = outerKey(s);
     let inner = this.#outer.get(key);
     if (inner === undefined) this.#outer.set(key, (inner = new Map()));
     const before = inner.size;
     inner.set(innerKey(s), value);
     this.size += inner.size - before;
+  }
+}
+
+/** The states A* has yet to take, least first: by f, then carrying g. */
+class Heap {
+  readonly #f: number[] = [];
+  readonly #g: number[] = [];
+  readonly #s: State[] = [];
+
+  get size(): number {
+    return this.#f.length;
+  }
+
+  push(f: number, g: number, s: State): void {
+    let i = this.#f.length;
+    this.#f.push(f);
+    this.#g.push(g);
+    this.#s.push(s);
+    while (i > 0) {
+      const up = (i - 1) >> 1;
+      if (this.#f[up]! <= f) break;
+      this.#move(up, i);
+      i = up;
+    }
+    this.#put(i, f, g, s);
+  }
+
+  pop(): [number, number, State] {
+    const top: [number, number, State] = [this.#f[0]!, this.#g[0]!, this.#s[0]!];
+    const f = this.#f.pop()!;
+    const g = this.#g.pop()!;
+    const s = this.#s.pop()!;
+    const n = this.#f.length;
+    if (n > 0) {
+      let i = 0;
+      for (;;) {
+        let down = 2 * i + 1;
+        if (down >= n) break;
+        if (down + 1 < n && this.#f[down + 1]! < this.#f[down]!) down++;
+        if (this.#f[down]! >= f) break;
+        this.#move(down, i);
+        i = down;
+      }
+      this.#put(i, f, g, s);
+    }
+    return top;
+  }
+
+  #move(from: number, to: number): void {
+    this.#put(to, this.#f[from]!, this.#g[from]!, this.#s[from]!);
+  }
+
+  #put(i: number, f: number, g: number, s: State): void {
+    this.#f[i] = f;
+    this.#g[i] = g;
+    this.#s[i] = s;
   }
 }
 
@@ -553,8 +611,8 @@ export interface Search {
    * more than have been worked out already.
    */
   readonly total: (budget: number) => number | null;
-  /** What to do at a state, best first, with the time each leaves. */
-  readonly choices: (s: State) => { action: Action; total: number }[];
+  /** What to do at a state, best first, with the time each leaves: the best `keep`. */
+  readonly choices: (s: State, keep?: number) => { action: Action; total: number }[];
   readonly start: State;
   readonly worlds: readonly World[];
   readonly coster: Coster;
@@ -708,41 +766,77 @@ export function search(
   ];
 
   /**
-   * Whether an item could be worth spending anywhere from world `w` on. One
-   * that could not is dropped from every state there (see tidy()).
+   * The longest string of warps the whistle can still make from world `w` on,
+   * walking ahead between them: a whistle more than that has nowhere to go.
    */
-  const useful: boolean[][] = worlds.map((_, w) =>
+  const warpsLeft: number[] = [];
+  for (let w = MAPS.length - 1; w >= 0; w--) {
+    let most = w < rules.lastWorld ? warpsLeft[w + 1]! : 0;
+    if (rules.warps) {
+      for (const warp of worlds[w]!.map.warps) {
+        if (warp.world > w && warp.world <= rules.lastWorld) most = Math.max(most, 1 + warpsLeft[warp.world]!);
+      }
+    }
+    warpsLeft[w] = most;
+  }
+
+  /**
+   * How many of an item could be worth spending from world `w` on: one for
+   * each place left that it could make faster, each rock left for a hammer,
+   * and so on. More are dropped from every state there (see tidy()) - none,
+   * where there is nothing left to spend it on. A star that only Bowser's
+   * castle has ever been played faster with is one star to carry through
+   * seven worlds, not two, and every one carried is another item list for
+   * every stage order in every world it is carried through.
+   */
+  const useful: number[][] = worlds.map((_, w) =>
     SLOTS.map((slot) => {
-      const later = worlds.slice(w);
+      const later = worlds.slice(w, rules.lastWorld + 1);
       const places = later.flatMap((world) => [...world.stage.filter((t): t is Thing => t !== null), ...world.bros]);
       const plain = (power: Power): Entry => ({ power, star: false, pwing: false });
+      const where = (ok: (t: Thing) => boolean) => places.filter(ok).length;
 
-      switch (slot) {
-        case "star":
-          return places.some((t) => POWERS.some((p) => helps(t, plain(p), { power: p, star: true, pwing: false })));
-        case "cloud":
-          // Not planned on where every stage has to be beaten. One crossed
-          // early can still save a walk around it, to be come back for - a
-          // few seconds, measured - but every cloud held is another item
-          // list for every stage order in every world after, and the search
-          // took twenty times as long to find them.
-          return !rules.everything;
-        case "hammer":
-          return later.some((world) => world.rocks.length > 0);
-        case "anchor":
-          return settings.objective === "expected" && later.some((world) => world.map.airship);
-        case "whistle":
-          return rules.warps && w < rules.lastWorld;
-        default: {
-          const spend = SPENDS.find((x) => x.slot === slot)!;
-          return places.some((t) =>
-            POWERS.some((p) => {
-              const to = spend.to(p);
-              return to !== null && helps(t, plain(p), { power: to, star: false, pwing: spend.pwing });
-            }),
-          );
+      const most = ((): number => {
+        switch (slot) {
+          case "star":
+            return where((t) => POWERS.some((p) => helps(t, plain(p), { power: p, star: true, pwing: false })));
+          case "cloud":
+            // Not planned on where every stage has to be beaten. One crossed
+            // early can still save a walk around it, to be come back for - a
+            // few seconds, measured - but every cloud held is another item
+            // list for every stage order in every world after, and the search
+            // took twenty times as long to find them.
+            if (rules.everything) return 0;
+            return later.reduce(
+              (n, world) =>
+                n +
+                world.map.nodes.filter(
+                  (node) =>
+                    world.stage[node.id] !== null &&
+                    node.kind !== "castle" &&
+                    node.kind !== "bowser" &&
+                    node.exit === undefined,
+                ).length,
+              0,
+            );
+          case "hammer":
+            return later.reduce((n, world) => n + world.rocks.length, 0);
+          case "anchor":
+            return settings.objective === "expected" ? later.filter((world) => world.map.airship).length : 0;
+          case "whistle":
+            return warpsLeft[w]!;
+          default: {
+            const spend = SPENDS.find((x) => x.slot === slot)!;
+            return where((t) =>
+              POWERS.some((p) => {
+                const to = spend.to(p);
+                return to !== null && helps(t, plain(p), { power: to, star: false, pwing: spend.pwing });
+              }),
+            );
+          }
         }
-      }
+      })();
+      return Math.min(most, CAP);
     }),
   );
 
@@ -795,14 +889,16 @@ export function search(
 
   // An item nothing further on can be spent to any purpose is dropped from
   // the state: a hammer after the last rock, a star where no stage left has
-  // ever been played faster with one. Holding it changes nothing, and two
-  // states that differ only by it are one.
+  // ever been played faster with one - and so is one more than there is
+  // anything left to spend it on. Holding it changes nothing, and two states
+  // that differ only by it are one.
   function tidy(world: number, inv: number): number {
     let out = inv;
     const keep = useful[world];
     if (keep === undefined) return out;
     for (let slot = 0; slot < SLOTS.length; slot++) {
-      if (!keep[slot]) out -= count(out, slot) * WEIGHT[slot]!;
+      const extra = count(out, slot) - keep[slot]!;
+      if (extra > 0) out -= extra * WEIGHT[slot]!;
     }
     return out;
   }
@@ -1011,27 +1107,324 @@ export function search(
     return out;
   }
 
+  // ---------------------------------------------------------------------------
+  // A floor under the time left
+  //
+  // Most of the states a run could pass through are ones no good route does:
+  // every order of every stage in world 6, with every item list that could be
+  // carried there. A floor under the time left from a state - never more than
+  // the best that can be done from it, and cheap to have - is what lets the
+  // search pass those by: once a way through is known, anything whose time so
+  // far and floor after come to more is no better, and is never worked out.
+  //
+  // The floor is the map with everything the player holds or is left as
+  // taken out of it: every path open, every stage in the way at the fastest
+  // it has ever been played as anything, a cloud over one wherever the player
+  // holds one or the world could hand one out, and the fastest of every
+  // world after, or a warp there, where a whistle could be had for one.
+
+  /**
+   * Whether world `w` could hand the item over on the way through: a Bros.'
+   * treasure, a house's chest, or a stage the history has seen give it.
+   */
+  function finds(w: number, slot: number): boolean {
+    const world = worlds[w]!;
+    const gives = (loot: readonly [number, number][]) => loot.some(([got]) => got === slot);
+    return (
+      world.bros.some((b) => gives(b.treasure)) ||
+      world.houses.some((h) => gives(h.treasure)) ||
+      world.stage.some(
+        (t) =>
+          t !== null &&
+          Object.values(stats[t.place!] ?? {}).some((sum) => sum.variants.some((v) => slotsOf(v.gains).includes(slot))),
+      )
+    );
+  }
+
+  /**
+   * The clouds and whistles the floor lets the player spend in each world:
+   * what they could be holding - no more than there is any use for (see
+   * useful) - and, where the world itself could hand one out, as many as
+   * they like, since one spent could be had again.
+   */
+  const most = (w: number, slot: number) => (settings.items && w < MAPS.length ? useful[w]![slot]! : 0);
+  const cloudy = worlds.map((_, w) => settings.items && finds(w, S.cloud));
+  const whistly = worlds.map((_, w) => settings.items && finds(w, S.whistle));
+
+  /** What each world's end hands on to the next: its castle's reward. */
+  const rewards = worlds.map((world) => treasure(world.map.reward).map(([slot]) => slot));
+
+  // Costed apart from the search, so that the entries asked about here and
+  // nowhere else do not turn up in coster.costed as ones a route could use.
+  const floors = new Coster(stats, settings);
+  const fastestMemo = new Map<number, number>();
+
+  /** A stage at the fastest it has been played as anything at all. */
+  function fastest(thing: Thing, airship: boolean): number {
+    const id = thing.index * 2 + (airship ? 1 : 0);
+    let best = fastestMemo.get(id);
+    if (best === undefined) {
+      best = Infinity;
+      for (const power of POWERS) {
+        for (const star of [false, true]) {
+          for (const pwing of [false, true]) {
+            for (const flying of airship ? [true, false] : [false]) {
+              best = Math.min(best, floors.costOf(thing, { power, star, pwing }, flying)[0]?.ms ?? Infinity);
+            }
+          }
+        }
+      }
+      fastestMemo.set(id, best);
+    }
+    return best + settings.overheadMs;
+  }
+
+  /** Floors are kept by clouds, then whistles, held: one layer each. */
+  const LAYERS = (CAP + 1) * (CAP + 1);
+  const layer = (clouds: number, whistles: number) => whistles * (CAP + 1) + clouds;
+
+  /** The floor from the start of each world, by what is held going in. */
+  const fromStart = Array.from({ length: MAPS.length + 1 }, () => new Float64Array(LAYERS));
+
+  /** The floor from the start of world `w`, held what is held, as much as can be. */
+  function started(w: number, clouds: number, whistles: number): number {
+    if (w > rules.lastWorld || w >= MAPS.length) return 0;
+    return fromStart[w]![layer(Math.min(clouds, most(w, S.cloud)), Math.min(whistles, most(w, S.whistle)))]!;
+  }
+
+  const toEnd = new Map<number, Float64Array[]>();
+
+  /**
+   * The floor from each square of a world, with this much done in it, by
+   * clouds and whistles held: walked back from its end, over and over until
+   * nothing changes, as the maps are a few dozen squares.
+   */
+  function ends(w: number, done: number): Float64Array[] {
+    const key = w * MASK_SPAN + done;
+    let found = toEnd.get(key);
+    if (found !== undefined) return found;
+
+    const world = worlds[w]!;
+    const nodes = world.map.nodes;
+    const undone = (i: number) => world.stage[i] !== null && !(done & world.stage[i]!.bit);
+    const cloudable = (i: number) =>
+      undone(i) && nodes[i]!.kind !== "castle" && nodes[i]!.kind !== "bowser" && nodes[i]!.exit === undefined;
+    const reward = (slot: number) => rewards[w]!.filter((got) => got === slot).length;
+    found = Array.from({ length: LAYERS }, () => new Float64Array(nodes.length).fill(Infinity));
+
+    for (let whistles = 0; whistles <= most(w, S.whistle); whistles++) {
+      for (let changed = true; changed; ) {
+        changed = false;
+        for (let clouds = 0; clouds <= most(w, S.cloud); clouds++) {
+          const floor = found[layer(clouds, whistles)]!;
+          // A cloud spent: gone, unless the world could hand another over.
+          const after = found[layer(cloudy[w] ? clouds : Math.max(clouds - 1, 0), whistles)]!;
+
+          // The whistle, from anywhere: to whichever world it reaches is
+          // soonest done with.
+          let warp = Infinity;
+          if (whistles > 0) {
+            for (const to of world.map.warps) {
+              if (to.world <= w || to.world > rules.lastWorld) continue;
+              const ms = to.tiles * settings.msPerTile + settings.warpMs + started(to.world, clouds, whistles - 1);
+              warp = Math.min(warp, ms);
+            }
+          }
+
+          for (const node of nodes) {
+            const x = node.id;
+            let d = warp;
+            if (node.kind === "castle" || node.kind === "bowser") {
+              const beyond =
+                w >= rules.lastWorld
+                  ? 0
+                  : started(w + 1, clouds + reward(S.cloud), whistles + reward(S.whistle));
+              d = Math.min(d, fastest(world.stage[x]!, node.kind === "castle" && world.map.airship) + beyond);
+            } else {
+              // Moving on from here: a walk, through a pipe stage and out its
+              // far end, or over a stage by cloud.
+              let on = Infinity;
+              for (const link of world.links[x]!) on = Math.min(on, link.ms + floor[link.to]!);
+              if (node.exit !== undefined) {
+                on = Math.min(on, (undone(x) ? fastest(world.stage[x]!, false) : 0) + floor[node.exit]!);
+              }
+              if (clouds > 0) {
+                for (const link of world.links[x]!) {
+                  if (!cloudable(link.to)) continue;
+                  for (const over of world.links[link.to]!) {
+                    on = Math.min(on, link.ms + over.ms + after[over.to]!);
+                  }
+                }
+              }
+              // A stage stood on and not yet beaten - set down on by a cloud -
+              // is played before anything else.
+              d = Math.min(d, undone(x) && node.exit === undefined ? fastest(world.stage[x]!, false) + on : on);
+            }
+            if (d < floor[x]!) {
+              floor[x] = d;
+              changed = true;
+            }
+          }
+        }
+      }
+    }
+    toEnd.set(key, found);
+    return found;
+  }
+
+  for (let w = rules.lastWorld; w >= 0; w--) {
+    const start = worlds[w]!.start;
+    for (let whistles = 0; whistles <= most(w, S.whistle); whistles++) {
+      for (let clouds = 0; clouds <= most(w, S.cloud); clouds++) {
+        const held = layer(cloudy[w] ? most(w, S.cloud) : clouds, whistly[w] ? most(w, S.whistle) : whistles);
+        fromStart[w]![layer(clouds, whistles)] = ends(w, 0)[held]![start]!;
+      }
+    }
+  }
+
+  function floor(s: State): number {
+    if (s.world >= MAPS.length) return 0;
+    const clouds = cloudy[s.world] ? most(s.world, S.cloud) : Math.min(count(s.inv, S.cloud), most(s.world, S.cloud));
+    const whistles = whistly[s.world]
+      ? most(s.world, S.whistle)
+      : Math.min(count(s.inv, S.whistle), most(s.world, S.whistle));
+    return ends(s.world, s.done)[layer(clouds, whistles)]![s.pos]!;
+  }
+
+  // What memo holds for a state: its best, or where the search has only
+  // shown that its best is no less than some figure, that figure less one,
+  // negated.
+  const bound = (lo: number) => -1 - lo;
+
+  /** The most that is known about the best from here without working it out. */
+  function least(s: State): number {
+    if (s.world >= MAPS.length) return 0;
+    const known = memo.get(s);
+    if (known === undefined) return floor(s);
+    return known >= 0 ? known : Math.max(floor(s), bound(known));
+  }
+
+  /** The least an action can come to: its own time, and the least after. */
+  function leastOf(a: Action): number {
+    let total = a.walkMs + a.doMs;
+    for (const [p, next] of a.outcomes) total += p * least(next);
+    return total;
+  }
+
+  /**
+   * Options best first by the least each could come to, so that the first
+   * worked out is likely the best there is, and the rest can be passed by on
+   * that alone.
+   */
+  function byLeast(list: readonly Action[]): { action: Action; least: number }[] {
+    return list.map((action) => ({ action, least: leastOf(action) })).sort((x, y) => x.least - y.least);
+  }
+
+  /**
+   * Whether every option leads to one state only. Then a run is a shortest
+   * path, from here to the end, and shortest() finds it; otherwise it is an
+   * expectimax, and best() works it out.
+   */
+  const certain = settings.objective !== "expected" && settings.luck === "sure";
+
   /** The best one could do from here, keeping out of every house and Bros. */
   function value(s: State): number {
     if (s.world >= MAPS.length) return 0;
-
     const known = memo.get(s);
-    if (known !== undefined) return known;
+    if (known !== undefined && known >= 0) return known;
+    return certain ? shortest(s) : best(s);
+  }
 
+  /** value(), where outcomes are left to chance: every option looked into. */
+  function best(s: State): number {
     if (memo.size >= budget) throw new TooBig();
     // Marked before it is worked out, as a guard: nothing should lead back
     // here, and if something did it would read as a dead end, not loop.
     memo.set(s, Infinity);
 
-    let best = Infinity;
-    for (const a of actions(s, false)) {
-      const v = lookahead(a);
-      if (v < best) best = v;
+    let out = Infinity;
+    for (const { action, least } of byLeast(actions(s, false))) {
+      if (least >= out) break;
+      const v = lookahead(action);
+      if (v < out) out = v;
     }
 
+    memo.set(s, out);
+    return out;
+  }
 
-    memo.set(s, best);
-    return best;
+  /**
+   * value(), where nothing is left to chance: the fastest way from here to
+   * the end, found by A*. States are taken from the least time so far plus
+   * the least that could follow, so none is looked at that could only come to
+   * more than the route found; one whose best is already known is as good as
+   * the end, at that much more.
+   *
+   * What it finds is kept. Along the route, the best from each state is the
+   * route's time less the time to get there. Off it, the best from a state is
+   * no less than that same difference - were it less, the route through it
+   * would be the faster one - which is a floor that the next search from
+   * nearby, for an option set against this route, can start from.
+   */
+  function shortest(from: State): number {
+    const heap = new Heap();
+    const reached = new Memo<{ g: number; from: State | null }>();
+    const seen: State[] = [from];
+    reached.set(from, { g: 0, from: null });
+    heap.push(least(from), 0, from);
+
+    let found = Infinity;
+    let last: State | null = null;
+
+    while (heap.size > 0) {
+      const [f, g, s] = heap.pop();
+      if (f >= found) break;
+      if (g > reached.get(s)!.g) continue;
+
+      const known = s.world >= MAPS.length ? 0 : memo.get(s);
+      if (known !== undefined && known >= 0) {
+        if (g + known < found) {
+          found = g + known;
+          last = s;
+        }
+        continue;
+      }
+
+      for (const a of actions(s, false)) {
+        const to = g + a.walkMs + a.doMs;
+        if (!(to < Infinity)) continue;
+        const next = a.outcomes[0]![1];
+        const had = reached.get(next);
+        if (had !== undefined && had.g <= to) continue;
+        if (had === undefined) {
+          if (memo.size + seen.length >= budget) throw new TooBig();
+          seen.push(next);
+        }
+        reached.set(next, { g: to, from: s });
+        heap.push(to + least(next), to, next);
+      }
+    }
+
+    for (let s = last; s !== null; s = reached.get(s)!.from) {
+      if (s.world < MAPS.length) memo.set(s, found - reached.get(s)!.g);
+    }
+    for (const s of seen) {
+      if (s.world >= MAPS.length) continue;
+      const known = memo.get(s);
+      if (known !== undefined && known >= 0) continue;
+      // Where there is no way to the end from here, there is none from
+      // anywhere that was reached from here either.
+      if (found === Infinity) {
+        memo.set(s, Infinity);
+        continue;
+      }
+      // Reached late, a state can be further along than the whole route
+      // took, and the difference below nothing: which says nothing, and
+      // kept, would read back as a best (see bound).
+      const lo = found - reached.get(s)!.g;
+      if (lo > 0 && (known === undefined || lo > bound(known))) memo.set(s, bound(lo));
+    }
+    return found;
   }
 
   /** An action's time, and the best that can be done after it. */
@@ -1057,12 +1450,29 @@ export function search(
    * in front of another. Where only the certain counts, chance detours hand
    * out nothing and there are none to weigh, so the search is exact.
    */
-  function choices(s: State): { action: Action; total: number }[] {
+  function choices(s: State, keep = Infinity): { action: Action; total: number }[] {
     // Between two that come out the same, the one that spends less: an item
     // kept costs nothing, and may yet be wanted.
-    return actions(s, settings.detours)
-      .map((action) => ({ action, total: lookahead(action) }))
-      .sort((x, y) => x.total - y.total || x.action.use.length - y.action.use.length);
+    // Past that, in the order they were found in, whichever order they were
+    // worked out in. The same is the same to a microsecond: two ways to one
+    // time can add up to it in a different order, and come out a hair apart.
+    type Ranked = { action: Action; total: number; order: number };
+    const rank = (x: Ranked, y: Ranked) =>
+      (Math.abs(x.total - y.total) < 1e-3 ? 0 : x.total - y.total) ||
+      x.action.use.length - y.action.use.length ||
+      x.order - y.order;
+
+    // Only the best `keep` are worked out: one whose floor is more than the
+    // last of those is no rival for any of them.
+    const all = actions(s, settings.detours);
+    const order = new Map(all.map((a, i) => [a, i]));
+    const out: Ranked[] = [];
+    for (const { action, least } of byLeast(all)) {
+      if (out.length >= keep && least > out[keep - 1]!.total + 1e-3) break;
+      out.push({ action, total: lookahead(action), order: order.get(action)! });
+      out.sort(rank);
+    }
+    return out.slice(0, keep).map(({ action, total }) => ({ action, total }));
   }
 
   const policyMemo = new Memo();
@@ -1092,7 +1502,7 @@ export function search(
     if (memo.size + policyMemo.size >= limit) throw new TooBig();
 
     policyMemo.set(s, Infinity);
-    const best = choices(s)[0];
+    const best = choices(s, 1)[0];
     let total = Infinity;
     if (best !== undefined && best.total < Infinity) {
       total = best.action.walkMs + best.action.doMs;

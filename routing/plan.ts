@@ -114,7 +114,7 @@ export function plan(stats: Stats, settings: Settings): Plan {
 
   let state: State = found.start;
   while (state.world < MAPS.length) {
-    const ranked = found.choices(state);
+    const ranked = found.choices(state, 1 + ALTERNATIVES);
     const best = ranked[0];
     if (best === undefined || best.total === Infinity) {
       throw new Error(
@@ -157,7 +157,8 @@ export function plan(stats: Stats, settings: Settings): Plan {
         place: action.place,
         use: action.use,
         entry: action.entry,
-        deltaMs: total - best.total,
+        // Never below nothing: a tie can add up a hair either way.
+        deltaMs: Math.max(0, total - best.total),
         source: action.costing?.source ?? null,
         exit: action.costing?.exit ?? null,
         gains: action.costing?.gains ?? [],
