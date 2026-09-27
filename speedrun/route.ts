@@ -52,11 +52,22 @@ export interface Route {
  * it happens during, so its time falls into the split that closes after it. The
  * timer, the panel, the sum of best and the world grouping all work from this
  * list; only rule checking and the saved file ever see the warps.
+ *
+ * An overworld monster beaten is kept the same way. 100% asks for every one of
+ * them, so a route has to say they were beaten, but the Hammer Bros. and their
+ * kind wander the map: whether a run walks into one, and where in the run, is
+ * down to chance, so a split for one would be missed on one run and land
+ * somewhere else on the next. Its time falls into the split after it too.
  */
 export function timedSplits(
   splits: readonly RouteSplit[],
 ): readonly RouteSplit[] {
-  return splits.filter((split) => split.on.kind !== "warp-taken");
+  return splits.filter((split) => isTimed(split.on));
+}
+
+/** Whether a split with this trigger carries a time: not a warp or a monster. */
+export function isTimed(on: Trigger): boolean {
+  return on.kind !== "warp-taken" && on.kind !== "monster-defeated";
 }
 
 export function triggered(on: Trigger, event: GameEvent): boolean {

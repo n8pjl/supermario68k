@@ -13,20 +13,20 @@
 // panel and the names editor both ask it before drawing headers.
 
 import { WARP_ZONE_WORLD } from "./events.ts";
-import { type RouteSplit } from "./route.ts";
+import { isTimed, type RouteSplit } from "./route.ts";
 
 /**
  * Whether a split is one a world group is built from.
  *
- * Warp markers are not - they carry no time of their own (see route.ts) - and
- * neither is the warp zone: it is a world number only as a quirk of the level
- * set's layout, a room the whistle drops the player into to choose a pipe, not
- * a world the run is timed through. Callers that pass timed splits have already
- * dropped the warps; the check is kept here so the grouping is right whatever
- * it is handed.
+ * Warp and monster markers are not - they carry no time of their own (see
+ * route.ts) - and neither is the warp zone: it is a world number only as a
+ * quirk of the level set's layout, a room the whistle drops the player into to
+ * choose a pipe, not a world the run is timed through. Callers that pass timed
+ * splits have already dropped the markers; the check is kept here so the
+ * grouping is right whatever it is handed.
  */
 function grouped(split: RouteSplit): boolean {
-  return split.on.kind !== "warp-taken" && split.on.world !== WARP_ZONE_WORLD;
+  return isTimed(split.on) && split.on.world !== WARP_ZONE_WORLD;
 }
 
 export interface SplitGroup {

@@ -18,6 +18,7 @@ import {
   type Route,
   type RouteSplit,
   type Trigger,
+  isTimed,
   timedSplits,
   triggered,
 } from "./route.ts";
@@ -167,12 +168,13 @@ interface Remaining {
  * The split one event closes on a route being written, or null for an event
  * that closes none.
  *
- * Two events do: a stage beaten, and an overworld monster beaten. Both are
- * something the player went into and came back from, and both are named by
- * what they were rather than by when they happened - the id is what a saved
- * time is tied to, so it has to come out the same on the next run of the
- * route. The monster is named by its map object rather than by the arena it
- * loaded, which is shared between every monster of its kind (see events.ts).
+ * Two events are written down: a stage beaten, and an overworld monster
+ * beaten. Both are named by what they were rather than by when they happened -
+ * the id is what a saved time is tied to, so it has to come out the same on the
+ * next run of the route. The monster is named by its map object rather than by
+ * the arena it loaded, which is shared between every monster of its kind (see
+ * events.ts). Only the stage closes a split: a monster is written down for the
+ * rules to see and timed as part of the split after it (see route.ts).
  *
  * The name is the one the map shows (see names.ts), which is what a split for
  * that stage is called unless the player says otherwise.
@@ -640,6 +642,14 @@ export class SpeedrunTimer {
 
     const closed = closes(event);
     if (closed === null) return;
+
+    // A monster goes the way of a warp above: onto the route for 100% to see,
+    // but no split of its own, since whether and when a wandering Bros. is met
+    // is down to chance.
+    if (!isTimed(closed.on)) {
+      this.#recorded.push({ ...closed });
+      return;
+    }
 
     // Named for the stage it closes on, as the map shows it. The routes
     // section is where a name can be changed - to say what the split is for
