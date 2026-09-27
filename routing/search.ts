@@ -66,6 +66,12 @@ export interface Settings {
   /** A stage with no history at all: assume `unknownMs` for it, or avoid it. */
   readonly unknown: "assume" | "avoid";
   readonly unknownMs: number;
+  /**
+   * Where the history has nothing for a stage walked in as something: borrow
+   * from a stronger power too, or only ever from a weaker one, so that no
+   * figure is faster than what was walked in with has earned.
+   */
+  readonly borrowUp: boolean;
   /** One square of map, walked or sailed. */
   readonly msPerTile: number;
   /** Going into anything and coming back out to the map. */
@@ -95,6 +101,7 @@ export const DEFAULTS: Settings = {
   detours: true,
   unknown: "assume",
   unknownMs: 60_000,
+  borrowUp: true,
   msPerTile: (4 / 30) * 1000,
   overheadMs: 1500,
   respawnMs: 4000,
@@ -309,12 +316,14 @@ export interface Costing {
  * The figures a stage walked in as `entry` is costed from: its own, else the
  * same stage walked in as the nearest thing to it - without the star or the
  * P-wing first, then the other powers, nearest first and the weaker side of a
- * tie first, since a borrowed time is better too slow than too fast.
+ * tie first, since a borrowed time is better too slow than too fast. With
+ * `up` false, only the weaker ones.
  */
 function lookup(
   stats: Stats,
   place: string,
   entry: Entry,
+  up: boolean,
 ): { summary: Summary; key: string; exact: boolean; samePower: boolean } | null {
   const here = stats[place];
   if (here === undefined) return null;
@@ -328,7 +337,7 @@ function lookup(
 
   const rank = POWERS.indexOf(entry.power);
   const order = POWERS.map((p, i) => ({ p, d: Math.abs(i - rank), weaker: i < rank }))
-    .filter(({ d }) => d > 0)
+    .filter(({ d, weaker }) => d > 0 && (up || weaker))
     .sort((a, b) => a.d - b.d || Number(b.weaker) - Number(a.weaker));
 
   for (const { p } of order) {
@@ -394,7 +403,7 @@ class Coster {
 
   #work(place: string, entry: Entry, airship: boolean): Costing[] {
     const { settings } = this;
-    const found = lookup(this.stats, place, entry);
+    const found = lookup(this.stats, place, entry, settings.borrowUp);
     const expected = settings.objective === "expected";
     const isSmall = entryKey(entry) === entryKey(SMALL);
 

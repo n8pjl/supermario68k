@@ -108,6 +108,7 @@ function worldOf(place: string): number {
 const local = new Map<string, Attempt>();
 const opened = new Map<string, Attempt>();
 let days = 0;
+let withPractice = true;
 
 const visitCache = new WeakMap<Attempt, Visit[]>();
 
@@ -126,8 +127,19 @@ function attempts(): Attempt[] {
 
   const since = days === 0 ? -Infinity : Date.now() - days * 86_400_000;
   return [...all.values()]
-    .filter((a) => a.started.epochMilliseconds >= since)
+    .filter((a) => a.started.epochMilliseconds >= since && (withPractice || a.mode !== "practice"))
     .sort((a, b) => a.started.epochMilliseconds - b.started.epochMilliseconds);
+}
+
+/** Left out, practice has no column of its own to fill. */
+function practiceColumn<T>(cell: T): T[] {
+  return withPractice ? [cell] : [];
+}
+
+function describePractice(): void {
+  $("practice-rule").textContent = withPractice
+    ? "Timed runs and practice count the same; where a figure leans on practice, it says so."
+    : "Practice is left out: only timed runs count.";
 }
 
 function describeSources(): void {
@@ -175,6 +187,7 @@ function settingsToForm(): void {
   (field("items") as HTMLInputElement).checked = settings.items;
   (field("detours") as HTMLInputElement).checked = settings.detours;
   (field("detours") as HTMLInputElement).disabled = !settings.items;
+  (field("borrowUp") as HTMLInputElement).checked = settings.borrowUp;
   for (const name of IN_SECONDS) {
     field(name).value = String(Math.round(settings[name]) / 1000);
   }
@@ -190,6 +203,7 @@ function settingsFromForm(): Settings {
     unknown: field("unknown").value,
     items: field("items").checked,
     detours: field("detours").checked,
+    borrowUp: field("borrowUp").checked,
   };
   for (const name of IN_SECONDS) {
     const n = Number(field(name).value);
@@ -719,7 +733,7 @@ function medianCell(place: string, power: Power): string {
 }
 
 function drawStagesTable(): void {
-  const head = row(["Stage", "Clears", "Deaths", "Practice", "Small", "Super", "Fire", "Raccoon", "Star or P-wing"], (i) => i > 0, "th");
+  const head = row(["Stage", "Clears", "Deaths", ...practiceColumn("Practice"), "Small", "Super", "Fire", "Raccoon", "Star or P-wing"], (i) => i > 0, "th");
   const body = element(
     "tbody",
     "",
@@ -737,7 +751,7 @@ function drawStagesTable(): void {
           nameOf(place),
           String(clears),
           String(deaths),
-          percent(practice, clears + deaths),
+          ...practiceColumn(percent(practice, clears + deaths)),
           ...POWERS.map((p) => medianCell(place, p)),
           extras === 0 ? "–" : `${extras} clear(s)`,
         ],
@@ -863,13 +877,13 @@ function drawItems(): void {
     counts.size === 0
       ? "Nothing spent from the item list before a stage in this world yet."
       : "Items spent from the list on the map, and what was entered next.";
-  const head = row(["Item", "Before", "Times", "Practice"], (i) => i > 1, "th");
+  const head = row(["Item", "Before", "Times", ...practiceColumn("Practice")], (i) => i > 1, "th");
   const body = element(
     "tbody",
     "",
     [...counts.values()]
       .sort((a, b) => b.n - a.n)
-      .map((c) => row([itemName(c.item), nameOf(c.place), String(c.n), percent(c.practice, c.n)], (i) => i > 1)),
+      .map((c) => row([itemName(c.item), nameOf(c.place), String(c.n), ...practiceColumn(percent(c.practice, c.n))], (i) => i > 1)),
   );
   $("items-used").replaceChildren(counts.size === 0 ? "" : element("thead", "", head), body);
 }
@@ -893,7 +907,7 @@ function drawDetail(): void {
       : `The search could walk in here as ${[...reachable].map((k) => entryLabel(parseEntryKey(k))).join(", ")}, which the history has no clears for.`;
 
   const head = row(
-    ["Walked in as", "Clears", "Deaths", "Death rate", "Best", "Median", "Mean", "Spread", "Leaves you", "Seen", "Practice"],
+    ["Walked in as", "Clears", "Deaths", "Death rate", "Best", "Median", "Mean", "Spread", "Leaves you", "Seen", ...practiceColumn("Practice")],
     (i) => i > 0 && i < 8,
     "th",
   );
@@ -914,7 +928,7 @@ function drawDetail(): void {
         s.spread === null ? "–" : `${Math.round(s.spread * 100)}%`,
         exits || "–",
         percent(s.exitsSeen, s.clears),
-        percent(s.practice, s.clears + s.deaths),
+        ...practiceColumn(percent(s.practice, s.clears + s.deaths)),
       ],
       (i) => i > 0 && i < 8,
     );
@@ -934,14 +948,14 @@ function drawDetail(): void {
           String(v.clears),
           clock(v.best),
           clock(v.median),
-          percent(v.practice, v.clears),
+          ...practiceColumn(percent(v.practice, v.clears)),
         ],
         (i) => i > 2,
       ),
     ),
   );
   $("ways-table").replaceChildren(
-    ways.length === 0 ? "" : element("thead", "", row(["Walked in as", "Left as", "Came away with", "Clears", "Best", "Median", "Practice"], (i) => i > 2, "th")),
+    ways.length === 0 ? "" : element("thead", "", row(["Walked in as", "Left as", "Came away with", "Clears", "Best", "Median", ...practiceColumn("Practice")], (i) => i > 2, "th")),
     element("tbody", "", ways),
   );
 }
@@ -1019,6 +1033,7 @@ async function start(): Promise<void> {
     }),
   );
   settingsToForm();
+  describePractice();
   form.addEventListener("change", () => {
     settings = settingsFromForm();
     saveSettings();
@@ -1035,6 +1050,11 @@ async function start(): Promise<void> {
 
   $<HTMLSelectElement>("filter-days").addEventListener("change", (e) => {
     days = Number((e.target as HTMLSelectElement).value);
+    changed();
+  });
+  $<HTMLSelectElement>("filter-practice").addEventListener("change", (e) => {
+    withPractice = (e.target as HTMLSelectElement).value === "1";
+    describePractice();
     changed();
   });
 

@@ -33,14 +33,19 @@
         <option value="90">Last 90 days</option>
       </select>
     </label>
+    <label>Practice
+      <select id="filter-practice">
+        <option value="1">Counted</option>
+        <option value="0">Left out</option>
+      </select>
+    </label>
   </div>
 
   <main>
     <section class="card" aria-labelledby="search-title">
       <h2 id="search-title">Route search</h2>
       <p class="note">
-        <span id="category-rules"></span> Timed runs and practice count the
-        same; where a figure leans on practice, it says so.
+        <span id="category-rules"></span> <span id="practice-rule"></span>
       </p>
 
       <form id="settings" class="filters">
@@ -62,6 +67,7 @@
         </label>
         <label class="check"><input type="checkbox" name="items" /> Spend items from the list</label>
         <label class="check"><input type="checkbox" name="detours" /> Detour to houses and Bros.</label>
+        <label class="check"><input type="checkbox" name="borrowUp" /> Borrow times from a stronger entry</label>
         <label>Stages never played
           <select name="unknown">
             <option value="assume">Assume a time for them</option>
