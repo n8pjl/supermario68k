@@ -246,8 +246,19 @@ function reply(e: MessageEvent<Reply>): void {
   render();
 }
 
+// The search is built for the browsers the game runs in - JSPI and Temporal -
+// and uses wasm features all of those have (see SEARCH_FEATURES in the
+// Makefile). Anywhere else it is not loaded at all, rather than left to fail
+// to compile. TypeScript's lib does not know Suspending yet, hence `in`.
+const canSearch = typeof Temporal !== "undefined" && "Suspending" in WebAssembly;
+
 function runSearch(): void {
   clearTimeout(pending);
+  if (!canSearch) {
+    planError = "This browser cannot run the search: it needs JSPI and Temporal, as the game does.";
+    render();
+    return;
+  }
 
   // A search still going is answering an old question, and a worker does one
   // thing at a time: rather than wait for it, start again on a new one.
@@ -1045,7 +1056,7 @@ async function start(): Promise<void> {
 
   if (typeof Temporal === "undefined") {
     $("source").textContent =
-      "This browser has no Temporal, which the history is kept with, so there is none to read here. The route below assumes every stage.";
+      "This browser has no Temporal, which the history is kept with, so there is none to read here.";
   } else {
     try {
       new BroadcastChannel(HISTORY_CHANNEL).addEventListener("message", (e) => {

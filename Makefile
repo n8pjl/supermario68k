@@ -74,6 +74,16 @@ SEARCH = $(SEARCH_CRATE)/Cargo.toml $(SEARCH_CRATE)/Cargo.lock \
          $(wildcard $(SEARCH_CRATE)/src/*.rs)
 SEARCH_WASM = $(SEARCH_CRATE)/target/wasm32-unknown-unknown/release/routing_search.wasm
 
+# Wasm features past rustc's defaults. The routing page loads the search only
+# where the game itself would run - JSPI and Temporal - and every browser with
+# both has these. Left out: relaxed-simd, whose results may differ between
+# machines, which a route search has no business doing; and wide-arithmetic
+# and fp16, which no browser ships. exception-handling and gc change nothing
+# for a crate that aborts on panic and has no GC types, so they are left out
+# too. Given to cargo for the wasm target alone, so the native golden check
+# is built as it was.
+SEARCH_FEATURES = +simd128,+tail-call,+extended-const
+
 # Written by that check, which has nothing else to show for itself.
 TYPECHECK = .typecheck-stamp
 
@@ -249,8 +259,11 @@ routing-worker.js: $(ROUTING) $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
 
 # And the search the worker loads, which it reaches as ./routing-search.wasm
 # beside itself. Cargo keeps its own build under the crate, and decides for
-# itself what to rebuild; this copy is only where the page looks.
-routing-search.wasm: $(SEARCH)
+# itself what to rebuild; this copy is only where the page looks. The Makefile
+# is a prerequisite because SEARCH_FEATURES lives in it: cargo notices a change
+# to them, but only once make runs it.
+routing-search.wasm: $(SEARCH) Makefile
+	CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUSTFLAGS=-Ctarget-feature=$(SEARCH_FEATURES) \
 	cargo build --release --locked --lib --target wasm32-unknown-unknown \
 		--manifest-path $(SEARCH_CRATE)/Cargo.toml
 	cp $(SEARCH_WASM) $@
