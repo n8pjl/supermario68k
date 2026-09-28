@@ -353,6 +353,11 @@ function lookup(
 
 const SMALL: Entry = { power: "small", star: false, pwing: false };
 
+/** How many hits a power is from small: fire and raccoon alike. */
+function rank(power: Power): number {
+  return Math.min(POWERS.indexOf(power), 2);
+}
+
 function slotsOf(items: readonly Item[]): number[] {
   return items.map((i) => SLOTS.indexOf(i as Slot)).filter((i) => i !== -1);
 }
@@ -411,31 +416,69 @@ class Coster {
     const expected = settings.objective === "expected";
     const isSmall = entryKey(entry) === entryKey(SMALL);
 
-    const source: Source = found === null ? "assumed" : found.exact ? "data" : "borrowed";
-    const from = found === null || found.exact ? null : found.key;
-
-    // The ways to take it, each with its clear time. Borrowed from another
-    // power, the way it came out there says nothing about this one, so it is
-    // taken to leave the player as they came.
-    let aims: { exit: Power; gains: readonly Item[]; ms: number; clears: number }[];
+    // The ways to take it, each with its clear time and whose figures it is.
+    type Aim = {
+      exit: Power;
+      gains: readonly Item[];
+      ms: number;
+      clears: number;
+      source: Source;
+      from: string | null;
+    };
+    const aims: Aim[] = [];
     let deathMs: number;
     let death: number;
 
     const pick = (v: { best: number; median: number; mean: number }) =>
       settings.objective === "best" ? v.best : settings.objective === "median" ? v.median : v.mean;
 
+    // Two ways out that come to the same one here are one: the faster, and
+    // on a tie the one first found, which is the entry's own.
+    const add = (aim: Aim) => {
+      const i = aims.findIndex((a) => a.exit === aim.exit && a.gains.join() === aim.gains.join());
+      if (i === -1) aims.push(aim);
+      else if (aim.ms < aims[i]!.ms) aims[i] = aim;
+    };
+
+    // Another power's clears, as ways out walked in as this one: the player
+    // comes out as well as those clears did, and no better than they went in
+    // - a leaf is not kept through a stage no clear walked into with one has
+    // shown it kept through. What those clears came away with is theirs, and
+    // not counted on here.
+    const borrow = (key: string) => {
+      for (const v of this.stats[place]![key]!.variants) {
+        const exit = rank(v.exit) < rank(entry.power) ? v.exit : entry.power;
+        add({ exit, gains: [], ms: pick(v), clears: v.clears, source: "borrowed", from: key });
+      }
+    };
+
     if (found === null) {
       if (settings.unknown === "avoid") {
-        return [{ ms: Infinity, exits: [], exit: entry.power, gains: [], source, from, clears: 0, death: 0 }];
+        return [{ ms: Infinity, exits: [], exit: entry.power, gains: [], source: "assumed", from: null, clears: 0, death: 0 }];
       }
-      aims = [{ exit: entry.power, gains: [], ms: settings.unknownMs, clears: 0 }];
+      // Never cleared as anything, there is nothing to say the player keeps
+      // any of what they went in as.
+      add({ exit: "small", gains: [], ms: settings.unknownMs, clears: 0, source: "assumed", from: null });
       deathMs = settings.unknownMs / 2;
       death = 0.1;
     } else {
       const s = found.summary;
-      aims = found.samePower
-        ? s.variants.map((v) => ({ exit: v.exit, gains: v.gains, ms: pick(v), clears: v.clears }))
-        : [{ exit: entry.power, gains: [], ms: pick({ best: s.best!, median: s.median!, mean: s.mean! }), clears: s.clears }];
+      if (found.samePower) {
+        const from = found.exact ? null : found.key;
+        for (const v of s.variants) {
+          add({ exit: v.exit, gains: v.gains, ms: pick(v), clears: v.clears, source: from === null ? "data" : "borrowed", from });
+        }
+      } else {
+        borrow(found.key);
+      }
+
+      // Whatever a weaker power has been seen to do, a stronger one can do
+      // too, and come out as well: so every way out of a plain weaker entry is
+      // one out of this, even where this entry has clears of its own.
+      for (const p of POWERS) {
+        const key = entryKey({ power: p, star: false, pwing: false });
+        if (rank(p) < rank(entry.power) && key !== found.key && (this.stats[place]![key]?.clears ?? 0) > 0) borrow(key);
+      }
       deathMs = s.deathMs ?? aims[0]!.ms / 2;
       // A little prior weight toward "rarely dies", so one death in one go is
       // not read as a stage that kills every time, nor none in two as never.
@@ -445,7 +488,7 @@ class Coster {
     return aims.map((aim) => {
       const exit = POWERS.indexOf(aim.exit);
       const gains = slotsOf(aim.gains);
-      const base = { exit: aim.exit, gains: aim.gains, source, from, clears: aim.clears };
+      const base = { exit: aim.exit, gains: aim.gains, source: aim.source, from: aim.from, clears: aim.clears };
 
       if (!expected) return { ...base, ms: aim.ms, exits: [[exit, 1, gains]], death: 0 };
 
