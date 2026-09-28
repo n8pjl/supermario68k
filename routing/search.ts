@@ -321,7 +321,9 @@ export interface Costing {
  * tie first, since a borrowed time is better too slow than too fast. With
  * `up` false, only the weaker ones. Figures walked in with a star or a P-wing
  * are never borrowed, only ever used for that same entry: what either one
- * buys says nothing about a stage played without it.
+ * buys says nothing about a stage played without it. Nor do fire and raccoon
+ * borrow from each other: they are as many hits from small, but a flower and
+ * a leaf take a stage differently, so neither is near the other.
  */
 function lookup(
   stats: Stats,
@@ -339,8 +341,8 @@ function lookup(
   const plain = entryKey({ power: entry.power, star: false, pwing: false });
   if (usable(plain)) return { summary: here[plain]!, key: plain, exact: false, samePower: true };
 
-  const rank = POWERS.indexOf(entry.power);
-  const order = POWERS.map((p, i) => ({ p, d: Math.abs(i - rank), weaker: i < rank }))
+  const own = rank(entry.power);
+  const order = POWERS.map((p) => ({ p, d: Math.abs(rank(p) - own), weaker: rank(p) < own }))
     .filter(({ d, weaker }) => d > 0 && (up || weaker))
     .sort((a, b) => a.d - b.d || Number(b.weaker) - Number(a.weaker));
 
