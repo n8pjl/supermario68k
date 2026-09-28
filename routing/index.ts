@@ -1,10 +1,10 @@
 // The routing page: the run history read as a plan for a category - World 1,
 // Any%, Any% warpless or 100%, each with its own rules for where the run ends
-// and what it may do (see rulesFor() in search.ts).
+// and what it may do (see rules_for() in search/src/search.rs).
 //
 // Three parts, all read from the same history the data page reads (this
 // browser's, and any exported files opened here). The route search runs the
-// search in search.ts on a worker and lays out what it chose and what it
+// search in search/ on a worker and lays out what it chose and what it
 // beat. Weak data lists what that route rests on that the history does not
 // hold well: stages never played walked in as what the route walks in as,
 // thin or practice-only figures, and close calls the next few attempts could
@@ -14,8 +14,8 @@
 // It follows a game played in another tab the way the data page does - see
 // the notes at the top of analysis/index.ts - though with less care for
 // cost, since everything here is worked out again once the history stops
-// changing for a moment: a search is a second or two of work, and there is
-// no sense starting one per event.
+// changing for a moment: a search can still be half a second of work, and
+// there is no sense starting one per event.
 
 import { CATEGORIES, category, isCategoryId } from "../speedrun/category.ts";
 import { type Power } from "../speedrun/events.ts";
@@ -35,8 +35,7 @@ import {
   entryLabel,
   parseEntryKey,
 } from "./model.ts";
-import { type Alternative, type Costed, type Plan, type Step } from "./plan.ts";
-import { DEFAULTS, OBJECTIVES, type Settings } from "./search.ts";
+import { type Alternative, type Costed, DEFAULTS, OBJECTIVES, type Plan, type Settings, type Step } from "./route.ts";
 import { type PlaceInfo, type Strength, drawWorld } from "./view.ts";
 import { type Reply, type Request } from "./worker.ts";
 

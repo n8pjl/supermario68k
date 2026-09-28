@@ -22,7 +22,7 @@ bytes of the file holding it, and so changes its hash:
     data/index.html -> analysis.js
                     \\-> data.css
 
-    routing/index.html -> routing.js -> routing-worker.js
+    routing/index.html -> routing.js -> routing-worker.js -> routing-search.wasm
                        \\-> data.css
                        \\-> routing.css
 
@@ -161,7 +161,13 @@ def main():
     data_css = freeze(minify_css("data.css", dst("data.css")))
     analysis = freeze(bundle_js("analysis/index.ts", dst("analysis.js")))
     routing_css = freeze(minify_css("routing.css", dst("routing.css")))
-    worker = freeze(bundle_js("routing/worker.ts", dst("routing-worker.js")))
+    # The route search, built by cargo beside the sources (see the Makefile).
+    search = freeze(shutil.copy("routing-search.wasm", dst("routing-search.wasm")))
+
+    # The worker names the search, which it fetches from beside itself.
+    worker = bundle_js("routing/worker.ts", dst("routing-worker.js"))
+    substitute(worker, {'"./routing-search.wasm"': (f'"./{search}"', 1)})
+    worker = freeze(worker)
 
     # The routing page's script names its worker, which it loads by URL from
     # beside itself rather than importing.

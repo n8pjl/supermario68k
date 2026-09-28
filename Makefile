@@ -59,11 +59,20 @@ PRACTICE = practice.ts
 # the obvious name and is already the game's converted blobs.
 ANALYSIS = $(wildcard analysis/*.ts)
 
-# The routing page's script, and the route search it runs on a worker - a
+# The routing page's script, and the worker it runs the route search on - a
 # second entry point, bundled on its own, because a worker is loaded by URL
 # rather than imported. It reads the run history the way the data page does,
 # and imports from there.
 ROUTING = $(wildcard routing/*.ts)
+
+# The route search itself, which is Rust: a crate of its own under
+# routing/search, built to wasm for the worker to load. --locked holds it to
+# the versions in Cargo.lock, as npm ci holds esbuild to package-lock.json.
+# The target is `rustup target add wasm32-unknown-unknown`.
+SEARCH_CRATE = routing/search
+SEARCH = $(SEARCH_CRATE)/Cargo.toml $(SEARCH_CRATE)/Cargo.lock \
+         $(wildcard $(SEARCH_CRATE)/src/*.rs)
+SEARCH_WASM = $(SEARCH_CRATE)/target/wasm32-unknown-unknown/release/routing_search.wasm
 
 # Written by that check, which has nothing else to show for itself.
 TYPECHECK = .typecheck-stamp
@@ -93,7 +102,8 @@ DEPS = $(OBJS:.o=.d)
 
 .PHONY: all clean data format maps stages typecheck verify-levels
 
-all: speedrun.js practice.js analysis.js routing.js routing-worker.js $(DIST)
+all: speedrun.js practice.js analysis.js routing.js routing-worker.js \
+     routing-search.wasm $(DIST)
 
 # The level data's source: JSON under levels/, compiled to the blobs the game
 # embeds. See tools/mklevels.py for the format and for why encoding it
@@ -187,7 +197,7 @@ $(BUILDDIR)/mario.wasm: $(TARGET) ;
 $(DIST): $(TARGET) $(BUILDDIR)/mario.wasm \
          index.html shell.js shell.css ma_texts.json $(SPEEDRUN) $(PRACTICE) \
          data.html data.css $(ANALYSIS) \
-         routing.html routing.css $(ROUTING) \
+         routing.html routing.css $(ROUTING) routing-search.wasm \
          $(TYPECHECK) tools/mkdist.py Makefile | $(ESBUILD)
 	ESBUILD=$(ESBUILD) python3 tools/mkdist.py $(BUILDDIR) $(OUTDIR)
 	@touch $@
@@ -237,6 +247,14 @@ routing-worker.js: $(ROUTING) $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
 	$(ESBUILD) routing/worker.ts --bundle --format=esm --target=esnext \
 		--outfile=$@
 
+# And the search the worker loads, which it reaches as ./routing-search.wasm
+# beside itself. Cargo keeps its own build under the crate, and decides for
+# itself what to rebuild; this copy is only where the page looks.
+routing-search.wasm: $(SEARCH)
+	cargo build --release --locked --lib --target wasm32-unknown-unknown \
+		--manifest-path $(SEARCH_CRATE)/Cargo.toml
+	cp $(SEARCH_WASM) $@
+
 $(BUILDDIR):
 	mkdir -p $@
 
@@ -260,5 +278,5 @@ verify-levels:
 clean:
 	rm -f $(OBJS) $(DEPS) .data-stamp $(LEVELCHECK) $(STAGECHECK) $(DIST) \
 	      $(MAPCHECK) $(TYPECHECK) speedrun.js practice.js analysis.js \
-	      routing.js routing-worker.js
-	rm -rf $(OUTDIR) $(BUILDDIR) data
+	      routing.js routing-worker.js routing-search.wasm
+	rm -rf $(OUTDIR) $(BUILDDIR) data $(SEARCH_CRATE)/target

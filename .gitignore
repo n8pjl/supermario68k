@@ -16,6 +16,10 @@ practice.js
 analysis.js
 routing.js
 routing-worker.js
+routing-search.wasm
+
+# Cargo's build of the route search.
+routing/search/target/
 
 # Build target stamps
 .calc-stamp

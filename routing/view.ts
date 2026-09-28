@@ -9,7 +9,7 @@
 
 import { levelName, monsterName } from "../speedrun/names.ts";
 import { type MapNode, MAPS, type WorldMap } from "./maps.ts";
-import { type Step } from "./plan.ts";
+import { type Step } from "./route.ts";
 
 const SVG = "http://www.w3.org/2000/svg";
 const CELL = 20;
