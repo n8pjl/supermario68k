@@ -1568,6 +1568,9 @@ function startGame() {
     // Polled from the world map, and answered with a warp, a powerup or an item
     // list when the player has asked the panel for one.
     onPracticeRequest: room ? (status) => room.handle(status) : undefined,
+    // Asked only when the last life is gone, and answered with whether the
+    // game should carry on anyway.
+    onPracticeGameOver: room ? () => room.spareLife() : undefined,
     // gray.c only resizes the canvas if the game asks for a screen other than
     // the one the menu sized it to, but if it ever does, the fitted display
     // size has to be recomputed for the new aspect.

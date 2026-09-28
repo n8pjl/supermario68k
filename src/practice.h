@@ -40,4 +40,18 @@ namespace practice
 // property lookup on the first frame while it is off.
 void poll();
 
+// Asks the shell whether a game that has just run out of lives should go on,
+// and if so gives the player one back. Called from the map loop's own test for
+// whether to keep going, and only once the lives are gone: the player has come
+// out of the level they died in and is between levels, the same place poll()
+// works, but the loop is about to end before poll() would be called again.
+//
+// Asked for there rather than kept topped up from poll(), because the panel's
+// box can be ticked while a level is being played: a player on their last life
+// who ticks it then is exactly the one it is for, and the map would not have
+// polled since.
+//
+// False, and nothing given, whenever the shell is not listening.
+bool spare_life();
+
 }

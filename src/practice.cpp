@@ -548,4 +548,25 @@ void poll()
 	}
 }
 
+bool spare_life()
+{
+	if (!hooked()) {
+		return false;
+	}
+
+	emscripten::val Hook =
+		emscripten::val::module_property("onPracticeGameOver");
+
+	if (Hook.typeOf().as<std::string>() != "function" || !Hook().isTrue()) {
+		return false;
+	}
+
+	// One, as though the death that took the last of them had not counted:
+	// the game goes on exactly as it would have with a life in hand, and the
+	// counter on the map says what it has always said about the next one.
+	SavePlayer.Lives = 1;
+
+	return true;
+}
+
 }

@@ -13,6 +13,10 @@
 // Roaming is the exception to the queue: it is a state rather than an errand,
 // so it is sent on every frame it is on, and the game reads it fresh each time
 // rather than remembering an answer this panel could then disagree with.
+//
+// Never game over is the other: the game asks it separately, through
+// Module.onPracticeGameOver, and only at the moment the last life has gone -
+// see spareLife() below.
 
 // ---------------------------------------------------------------------------
 // The protocol
@@ -265,6 +269,12 @@ export class Practice {
 
   readonly #power = document.createElement("select");
   readonly #star = checkbox("Star");
+
+  // A mode like roaming, and like it read at the moment it matters rather than
+  // queued: ticking it inside a level on the last life is what it is for.
+  readonly #neverGameOver = checkbox(
+    "Never game over - losing the last life leaves one",
+  );
   readonly #pwing = checkbox("P-wing");
   readonly #chips = element("div", "practice-chips");
   readonly #itemPick = document.createElement("select");
@@ -334,6 +344,14 @@ export class Practice {
     if (this.#roam.input.checked) return { ...(request ?? {}), roam: true };
 
     return request;
+  }
+
+  /**
+   * Called by the game when the last life has just been lost, and answered with
+   * whether to carry on regardless. The game gives the life back itself.
+   */
+  spareLife(): boolean {
+    return this.#neverGameOver.input.checked;
   }
 
   // -------------------------------------------------------------------------
@@ -434,6 +452,8 @@ export class Practice {
       element("p", "practice-note", "Items"),
       this.#chips,
       adder,
+      element("hr", "practice-rule"),
+      this.#neverGameOver.root,
     );
 
     return box;
