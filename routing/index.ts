@@ -36,7 +36,7 @@ import {
   parseEntryKey,
 } from "./model.ts";
 import { type Alternative, type Costed, type Plan, type Step } from "./plan.ts";
-import { DEFAULTS, type Settings } from "./search.ts";
+import { DEFAULTS, OBJECTIVES, type Settings } from "./search.ts";
 import { type PlaceInfo, type Strength, drawWorld } from "./view.ts";
 import { type Reply, type Request } from "./worker.ts";
 
@@ -153,7 +153,7 @@ function describeSources(): void {
 
 const SETTINGS_KEY = "sm68k.routing.settings";
 /** The fields the form shows in seconds and the search takes in milliseconds. */
-const IN_SECONDS = ["unknownMs", "msPerTile", "overheadMs", "respawnMs", "houseMs", "pipeMs", "chaseMs", "warpMs"] as const;
+const IN_SECONDS = ["unknownMs", "msPerTile", "overheadMs", "pipeMs", "warpMs"] as const;
 
 function loadSettings(): Settings {
   try {
@@ -165,6 +165,7 @@ function loadSettings(): Settings {
         if (typeof got === typeof value) out[key] = got;
       }
       if (!isCategoryId(out["category"])) out["category"] = DEFAULTS.category;
+      if (!OBJECTIVES.includes(out["objective"] as never)) out["objective"] = DEFAULTS.objective;
       return out as unknown as Settings;
     }
   } catch {
@@ -180,7 +181,6 @@ function settingsToForm(): void {
   const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement;
 
   (field("category") as HTMLSelectElement).value = settings.category;
-  (field("luck") as HTMLSelectElement).value = settings.luck;
   (field("objective") as HTMLSelectElement).value = settings.objective;
   describeCategory();
   (field("unknown") as HTMLSelectElement).value = settings.unknown;
@@ -198,7 +198,6 @@ function settingsFromForm(): Settings {
   const field = (name: string) => form.elements.namedItem(name) as HTMLInputElement;
   const out: Record<string, unknown> = {
     category: field("category").value,
-    luck: field("luck").value,
     objective: field("objective").value,
     unknown: field("unknown").value,
     items: field("items").checked,
@@ -348,8 +347,6 @@ function stepName(kind: Step["kind"], world: number, node: number, place: string
       return nameOf(place!);
     case "cloud":
       return `Cloud over ${nameOf(place!)}`;
-    case "house":
-      return "Mushroom house";
     case "rock": {
       const n = MAPS[world]!.nodes[node]!;
       return `Hammer a rock (by ${n.x},${n.y})`;
@@ -391,37 +388,18 @@ function wayOut(exit: Power | null, gains: readonly string[]): string {
   return `, leaving as ${entryLabel({ power: exit, star: false, pwing: false })}${got}`;
 }
 
-/**
- * What a step leaves the player as and with: the powers by how likely they
- * are, and what was handed over, said once where every outcome gets it.
- */
-function outcomesText(step: Step): string {
+/** What a step leaves the player as and with. */
+function leavesText(step: Step): string {
   const final = step.place !== null && MAPS[step.world]!.nodes[step.node]!.kind === "bowser";
   if (final) return "";
 
-  const got = (o: Step["outcomes"][number]) => o.got.map(itemName).join(", ");
-  const shared = step.outcomes.every((o) => got(o) === got(step.outcomes[0]!)) ? got(step.outcomes[0]!) : null;
   const fights = step.kind === "stage" || step.kind === "bros";
-
-  const parts = new Map<string, number>();
-  for (const o of step.outcomes) {
-    const label = [
-      fights ? entryLabel({ power: o.power, star: false, pwing: false }) : "",
-      shared === null && got(o) !== "" ? got(o) : "",
-    ]
-      .filter(Boolean)
-      .join(", ");
-    if (label !== "") parts.set(label, (parts.get(label) ?? 0) + o.p);
-  }
-
-  const odds =
-    parts.size === 1
-      ? [...parts.keys()][0]!
-      : [...parts]
-          .sort((a, b) => b[1] - a[1])
-          .map(([label, p]) => `${label} ${Math.round(p * 100)}%`)
-          .join(" · ");
-  return [odds, shared ? `gets ${shared}` : ""].filter(Boolean).join("; ");
+  return [
+    fights ? entryLabel({ power: step.power, star: false, pwing: false }) : "",
+    step.got.length > 0 ? `gets ${step.got.map(itemName).join(", ")}` : "",
+  ]
+    .filter(Boolean)
+    .join("; ");
 }
 
 function drawTiles(p: Plan): void {
@@ -431,14 +409,9 @@ function drawTiles(p: Plan): void {
 
   const tiles: [string, string, string][] = [
     [
-      settings.objective === "expected" ? "Expected time" : settings.objective === "median" ? "Sum of medians" : "Sum of bests",
-      (p.bound ? "≤ " : "") + clock(p.total),
-      [
-        p.bound ? "at most: the route can come in under it" : "map time included",
-        settings.objective === "expected" ? "" : "no deaths; chests and drops at their odds",
-      ]
-        .filter(Boolean)
-        .join("; "),
+      settings.objective === "median" ? "Sum of medians" : "Sum of bests",
+      clock(p.total),
+      "map time included; no deaths, and nothing left to chance",
     ],
     ["Stages played", String(stages), `${p.steps.filter((s) => s.kind === "cloud").length} skipped by cloud`],
     ["Items spent", String(spent.length), spent.length > 0 ? [...new Set(spent)].map(itemName).join(", ") : "none"],
@@ -490,7 +463,7 @@ function drawRoute(p: Plan): void {
         step.entry ? entryLabel(step.entry) : "",
         element("span", "", usesOf(step.use)),
         seconds(step.walkMs + step.doMs),
-        outcomesText(step),
+        leavesText(step),
         element("span", note.cls, note.text),
         element("span", close ? "weak" : "dim", alt ? describeAlt(step.world, alt) : "–"),
       ],
@@ -509,13 +482,8 @@ function renderStatus(): void {
   const status = $("search-status");
   if (searching) status.textContent = "Searching…";
   else if (planError !== null) status.textContent = planError;
-  else if (plan !== null) {
-    status.textContent =
-      `Searched ${plan.states.toLocaleString()} states in ${seconds(plan.ms)}.` +
-      (settings.detours && settings.luck === "odds"
-        ? " Chance detours - mushroom houses, Bros. with a random drop - are weighed one at a time against the best route without further ones, so two that only pay off together can be missed."
-        : "");
-  } else status.textContent = "";
+  else if (plan !== null) status.textContent = `Searched ${plan.states.toLocaleString()} states in ${seconds(plan.ms)}.`;
+  else status.textContent = "";
 }
 
 // ---------------------------------------------------------------------------
@@ -794,14 +762,14 @@ function drawItems(): void {
   const given: (string | Node)[] = [];
 
   if (map.reward !== null) {
-    given.push(`Beating the castle: ${itemName(map.reward)}${map.airship ? ". The castle is an airship, which flies off on a death unless anchored" : ""}.`);
+    given.push(`Beating the castle: ${itemName(map.reward)}.`);
   }
   for (const b of map.bros) {
-    given.push(`${monsterName(world, b.monster)}: ${itemName(b.treasure)}.`);
+    given.push(`${monsterName(world, b.monster)}: ${itemName(b.treasure)}${b.treasure === "random" ? ", which is luck, so not planned on" : ""}.`);
   }
   const houses = map.nodes.filter((n) => n.kind === "house").length;
   if (houses > 0) {
-    given.push(`${houses} mushroom house(s): one chest each, a mushroom or fire flower (1 in 4 each) or a leaf (1 in 2).`);
+    given.push(`${houses} mushroom house(s): one chest each, a mushroom or fire flower (1 in 4 each) or a leaf (1 in 2). Luck, so not planned on.`);
   }
   for (const e of map.events) {
     const what =
@@ -850,7 +818,7 @@ function drawItems(): void {
     if (random > 0) {
       given.push(
         `${nameOf(place)} has ${random} random chest(s): a mushroom, fire flower or leaf. ` +
-          (settings.luck === "sure" ? "Luck, so not planned on." : "Planned on at their odds."),
+          "Luck, so not planned on.",
       );
     }
     for (const [item, n] of taken) {

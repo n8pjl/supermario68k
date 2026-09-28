@@ -2,8 +2,8 @@
 // the player plays it.
 //
 // A run is a walk across eight maps, choosing as it goes: which stage to play
-// next, which to leave, whether to walk to a mushroom house or a Bros. for an
-// item, and what to spend from the item list before going in. What each
+// next, which to leave, whether to walk to a Bros. for an item, and what to
+// spend from the item list before going in. What each
 // choice costs comes from the history (see model.ts), by stage and by what
 // the stage is walked into as; what the map allows comes from maps.ts.
 //
@@ -12,12 +12,9 @@
 // out the history holds is an option, at the time the clears that came out
 // that way took (see Variant in model.ts).
 //
-// What is left to chance is chance: a chest's pick of three, in a mushroom
-// house, a Bros.' random drop or a bonus room. The settings say whether those
-// are planned on at their odds - an expectimax, where the time left after a
-// chance is the average over its outcomes - or not planned on at all, so that
-// no route waits on one. With the objective set to expected time, a death is
-// chance too: it sends the player back in small, at the history's death rate.
+// What is left to chance is never planned on, so that no route waits on it:
+// a chest's pick of three, in a mushroom house or a stage, and a Bros.'
+// random drop. Nor is a death; a route is the clears it strings together.
 //
 // The category is what says where the run ends and what it may do on the
 // way: World 1 is over at world 1's castle; Any% may spend a whistle to warp
@@ -25,13 +22,13 @@
 // Bros. in a world before its castle, which makes the Bros. part of the route
 // rather than detours from it. See rulesFor().
 //
-// A state is: the world, what has been done in it (stages beaten, houses
-// visited, Bros. fought, rocks broken), where the player stands, their power,
+// A state is: the world, what has been done in it (stages beaten, Bros.
+// fought, rocks broken), where the player stands, their power,
 // and the item list. Everything a state can do next either does something new
 // or spends an item, so nothing leads back to where it started, and what is
-// worked out for a state is remembered. Where nothing is left to chance, the
-// run is a shortest path, and A* finds it without looking at the states only
-// a slow route goes through; see shortest() and floor().
+// worked out for a state is remembered. Every choice leads to one state, so
+// the run is a shortest path, and A* finds it without looking at the states
+// only a slow route goes through; see shortest() and floor().
 //
 // Where the history has nothing for a stage walked into as something, the
 // figure is borrowed - from the same stage entered as something close, or,
@@ -49,21 +46,16 @@ import {
   entryKey,
 } from "./model.ts";
 
-export type Objective = "expected" | "median" | "best";
+export type Objective = "median" | "best";
+
+export const OBJECTIVES: readonly Objective[] = ["best", "median"];
 
 export interface Settings {
   readonly category: CategoryId;
   readonly objective: Objective;
-  /**
-   * Items that come by chance: planned on at their odds ("odds"), or not at
-   * all ("sure"), so that a route never waits on a chest to be kind. Only
-   * what is certain counts then - a castle's reward, a Bros.' set drop, a
-   * find the history has never once come away from a stage without.
-   */
-  readonly luck: "sure" | "odds";
   /** Spend items from the list: power-ups, stars, P-wings, clouds, hammers. */
   readonly items: boolean;
-  /** Walk out of the way for items: mushroom houses and Bros. */
+  /** Walk out of the way for a Bros.' item. */
   readonly detours: boolean;
   /** A stage with no history at all: assume `unknownMs` for it, or avoid it. */
   readonly unknown: "assume" | "avoid";
@@ -78,14 +70,8 @@ export interface Settings {
   readonly msPerTile: number;
   /** Going into anything and coming back out to the map. */
   readonly overheadMs: number;
-  /** A death: the animation, the map, and walking back in. */
-  readonly respawnMs: number;
-  /** A mushroom house, chest and all. */
-  readonly houseMs: number;
   /** A pipe's passage from one side of a map to the other. */
   readonly pipeMs: number;
-  /** An airship that flew off on a death, walked after. */
-  readonly chaseMs: number;
   /** A whistle, from the item list to the warp zone and down a pipe. */
   readonly warpMs: number;
 }
@@ -98,7 +84,6 @@ export interface Settings {
 export const DEFAULTS: Settings = {
   category: "any-warpless",
   objective: "best",
-  luck: "sure",
   items: true,
   detours: true,
   unknown: "assume",
@@ -106,10 +91,7 @@ export const DEFAULTS: Settings = {
   borrowUp: true,
   msPerTile: (4 / 30) * 1000,
   overheadMs: 1500,
-  respawnMs: 4000,
-  houseMs: 6000,
   pipeMs: 8000,
-  chaseMs: 8000,
   warpMs: 6000,
 };
 
@@ -154,7 +136,6 @@ export const SLOTS = [
   "p-wing",
   "cloud",
   "hammer",
-  "anchor",
   "whistle",
 ] as const satisfies readonly Item[];
 
@@ -187,17 +168,13 @@ export function inventory(inv: number): Slot[] {
 
 const S = Object.fromEntries(SLOTS.map((slot, i) => [slot, i])) as Record<Slot, number>;
 
-/** A chest in a mushroom house: Handle_treasure_all() on Fg_plane.step. */
-const RANDOM_CHEST: readonly [number, number][] = [
-  [S.mushroom, 0.25],
-  [S["fire-flower"], 0.25],
-  [S.leaf, 0.5],
-];
-
-function treasure(item: TreasureItem | string | null): readonly [number, number][] {
-  if (item === "random") return RANDOM_CHEST;
+/**
+ * The slot a treasure fills, if it is one a route can spend - and none for a
+ * random pick, which is luck.
+ */
+function treasure(item: TreasureItem | string | null): readonly number[] {
   const slot = SLOTS.indexOf(item as Slot);
-  return slot === -1 ? [] : [[slot, 1]];
+  return slot === -1 ? [] : [slot];
 }
 
 // ---------------------------------------------------------------------------
@@ -211,7 +188,7 @@ interface Link {
   readonly rock: number;
 }
 
-type ThingKind = "stage" | "house" | "bros" | "rock";
+type ThingKind = "stage" | "bros" | "rock";
 
 interface Thing {
   readonly kind: ThingKind;
@@ -221,7 +198,8 @@ interface Thing {
   readonly node: number;
   /** The place key visits are grouped by: stages and Bros. */
   readonly place: string | null;
-  readonly treasure: readonly [number, number][];
+  /** The slots it hands over, as treasure() gives them. */
+  readonly treasure: readonly number[];
 }
 
 interface World {
@@ -229,7 +207,6 @@ interface World {
   readonly links: readonly (readonly Link[])[];
   /** Each node's stage, if it is one - the castle and Bowser's included. */
   readonly stage: readonly (Thing | null)[];
-  readonly houses: readonly Thing[];
   readonly bros: readonly Thing[];
   readonly rocks: readonly Thing[];
   /** The fortresses that open each kind of door, as a mask. */
@@ -245,21 +222,15 @@ function prepare(map: WorldMap, settings: Settings): World {
     kind: ThingKind,
     node: number,
     place: string | null,
-    loot: readonly [number, number][] = [],
+    loot: readonly number[] = [],
   ): Thing => ({ kind, index: things++, bit: 1 << bits++, node, place, treasure: loot });
 
   const stage = map.nodes.map((n: MapNode) =>
     n.level !== undefined ? thing("stage", n.id, `L${map.world}.${n.level}`) : null,
   );
-  // A chest's pick of three is no item to plan on where only the certain
-  // counts: the houses go, and a Bros. that drops one drops nothing.
-  const sure = settings.luck === "sure";
-  const houses = sure
-    ? []
-    : map.nodes.filter((n) => n.kind === "house").map((n) => thing("house", n.id, null, RANDOM_CHEST));
-  const bros = map.bros.map((b) =>
-    thing("bros", b.node, `M${map.world}.${b.monster}`, sure && b.treasure === "random" ? [] : treasure(b.treasure)),
-  );
+  // A mushroom house's chest is a pick of three, so no house is anywhere a
+  // route has reason to go, and a Bros. that drops one drops nothing.
+  const bros = map.bros.map((b) => thing("bros", b.node, `M${map.world}.${b.monster}`, treasure(b.treasure)));
   const rocks = map.rocks.map((r) => thing("rock", r.from, null));
 
   const opens: [number, number, number] = [0, 0, 0];
@@ -282,7 +253,7 @@ function prepare(map: WorldMap, settings: Settings): World {
     });
   }
 
-  return { map, links, stage, houses, bros, rocks, opens, start: map.start };
+  return { map, links, stage, bros, rocks, opens, start: map.start };
 }
 
 // ---------------------------------------------------------------------------
@@ -296,22 +267,17 @@ export type Source = "data" | "borrowed" | "assumed";
  */
 export interface Costing {
   readonly ms: number;
-  /**
-   * What it leaves the player as and with: power, how likely, the items it
-   * hands over (as SLOTS indices). One outcome, the one aimed for, except in
-   * the expected objective, where a death sends the player back in small.
-   */
-  readonly exits: readonly (readonly [number, number, readonly number[]])[];
   /** What is aimed for: leaving as this, holding these. */
   readonly exit: Power;
   readonly gains: readonly Item[];
+  /** The same, as the search keeps them: POWERS and SLOTS indices. */
+  readonly power: number;
+  readonly slots: readonly number[];
   readonly source: Source;
   /** Whose figures were used, where they were borrowed. */
   readonly from: string | null;
   /** Clears of the variant aimed for. */
   readonly clears: number;
-  /** The chance of a death on any one go, in the expected objective. */
-  readonly death: number;
 }
 
 /**
@@ -353,8 +319,6 @@ function lookup(
   return null;
 }
 
-const SMALL: Entry = { power: "small", star: false, pwing: false };
-
 /** How many hits a power is from small: fire and raccoon alike. */
 function rank(power: Power): number {
   return Math.min(POWERS.indexOf(power), 2);
@@ -375,12 +339,12 @@ class Coster {
   }
 
   /** Every way the place can be taken walked in as `entry`, fastest first. */
-  cost(place: string, entry: Entry, airship: boolean): Costing[] {
-    const id = `${place}|${entryKey(entry)}|${airship ? 1 : 0}`;
+  cost(place: string, entry: Entry): Costing[] {
+    const id = `${place}|${entryKey(entry)}`;
     let found = this.#cache.get(id);
 
     if (found === undefined) {
-      found = this.#work(place, entry, airship).sort((a, b) => a.ms - b.ms);
+      found = this.#work(place, entry).sort((a, b) => a.ms - b.ms);
       this.#cache.set(id, found);
     }
     return found;
@@ -392,16 +356,11 @@ class Coster {
    * The same, looked up by a thing's index rather than by name: the search
    * asks this for every option at every state.
    */
-  costOf(thing: Thing, entry: Entry, airship: boolean): Costing[] {
-    const slot =
-      thing.index * 32 +
-      POWERS.indexOf(entry.power) * 8 +
-      (entry.star ? 4 : 0) +
-      (entry.pwing ? 2 : 0) +
-      (airship ? 1 : 0);
+  costOf(thing: Thing, entry: Entry): Costing[] {
+    const slot = thing.index * 16 + POWERS.indexOf(entry.power) * 4 + (entry.star ? 2 : 0) + (entry.pwing ? 1 : 0);
     let found = this.#byThing[slot];
     if (found === undefined) {
-      found = this.cost(thing.place!, entry, airship);
+      found = this.cost(thing.place!, entry);
       this.#byThing[slot] = found;
     }
     return found;
@@ -412,27 +371,14 @@ class Coster {
     return this.#cache.entries();
   }
 
-  #work(place: string, entry: Entry, airship: boolean): Costing[] {
+  #work(place: string, entry: Entry): Costing[] {
     const { settings } = this;
     const found = lookup(this.stats, place, entry, settings.borrowUp);
-    const expected = settings.objective === "expected";
-    const isSmall = entryKey(entry) === entryKey(SMALL);
 
     // The ways to take it, each with its clear time and whose figures it is.
-    type Aim = {
-      exit: Power;
-      gains: readonly Item[];
-      ms: number;
-      clears: number;
-      source: Source;
-      from: string | null;
-    };
+    type Aim = Omit<Costing, "power" | "slots">;
     const aims: Aim[] = [];
-    let deathMs: number;
-    let death: number;
-
-    const pick = (v: { best: number; median: number; mean: number }) =>
-      settings.objective === "best" ? v.best : settings.objective === "median" ? v.median : v.mean;
+    const pick = (v: { best: number; median: number }) => (settings.objective === "best" ? v.best : v.median);
 
     // Two ways out that come to the same one here are one: the faster, and
     // on a tie the one first found, which is the entry's own.
@@ -455,19 +401,20 @@ class Coster {
     };
 
     if (found === null) {
-      if (settings.unknown === "avoid") {
-        return [{ ms: Infinity, exits: [], exit: entry.power, gains: [], source: "assumed", from: null, clears: 0, death: 0 }];
-      }
       // Never cleared as anything, there is nothing to say the player keeps
       // any of what they went in as.
-      add({ exit: "small", gains: [], ms: settings.unknownMs, clears: 0, source: "assumed", from: null });
-      deathMs = settings.unknownMs / 2;
-      death = 0.1;
+      add({
+        exit: "small",
+        gains: [],
+        ms: settings.unknown === "avoid" ? Infinity : settings.unknownMs,
+        clears: 0,
+        source: "assumed",
+        from: null,
+      });
     } else {
-      const s = found.summary;
       if (found.samePower) {
         const from = found.exact ? null : found.key;
-        for (const v of s.variants) {
+        for (const v of found.summary.variants) {
           add({ exit: v.exit, gains: v.gains, ms: pick(v), clears: v.clears, source: from === null ? "data" : "borrowed", from });
         }
       } else {
@@ -481,42 +428,9 @@ class Coster {
         const key = entryKey({ power: p, star: false, pwing: false });
         if (rank(p) < rank(entry.power) && key !== found.key && (this.stats[place]![key]?.clears ?? 0) > 0) borrow(key);
       }
-      deathMs = s.deathMs ?? aims[0]!.ms / 2;
-      // A little prior weight toward "rarely dies", so one death in one go is
-      // not read as a stage that kills every time, nor none in two as never.
-      death = (s.deaths + 0.25) / (s.clears + s.deaths + 2);
     }
 
-    return aims.map((aim) => {
-      const exit = POWERS.indexOf(aim.exit);
-      const gains = slotsOf(aim.gains);
-      const base = { exit: aim.exit, gains: aim.gains, source: aim.source, from: aim.from, clears: aim.clears };
-
-      if (!expected) return { ...base, ms: aim.ms, exits: [[exit, 1, gains]], death: 0 };
-
-      const lost = deathMs + settings.respawnMs + (airship ? settings.chaseMs : 0);
-
-      if (isSmall) {
-        // Every retry is as small again, so the tries are alike: the expected
-        // number of deaths before a clear is death / (1 - death).
-        return { ...base, ms: aim.ms + (death / (1 - death)) * lost, exits: [[exit, 1, gains]], death };
-      }
-
-      // A death sends the player back in small, for the same again if small
-      // has been seen to get it, and for small's fastest if not.
-      const retries = this.cost(place, SMALL, airship);
-      const retry =
-        retries.find((r) => r.exit === aim.exit && r.gains.join() === aim.gains.join()) ?? retries[0]!;
-      return {
-        ...base,
-        ms: (1 - death) * aim.ms + death * (lost + retry.ms),
-        exits: [
-          [exit, 1 - death, gains] as const,
-          ...retry.exits.map(([p, q, g]) => [p, q * death, g] as const),
-        ],
-        death,
-      };
-    });
+    return aims.map((aim) => ({ ...aim, power: POWERS.indexOf(aim.exit), slots: slotsOf(aim.gains) }));
   }
 }
 
@@ -525,7 +439,7 @@ class Coster {
 
 /** Something to do next, and what it leads to. */
 export interface Action {
-  readonly kind: "stage" | "cloud" | "house" | "bros" | "rock" | "warp";
+  readonly kind: "stage" | "cloud" | "bros" | "rock" | "warp";
   /** A warp: the world it goes to. */
   readonly warp: number | null;
   readonly node: number;
@@ -538,11 +452,11 @@ export interface Action {
   readonly use: readonly Slot[];
   readonly entry: Entry | null;
   readonly walkMs: number;
-  /** Everything else it takes: the stage, the house, the fight. */
+  /** Everything else it takes: the stage, the fight. */
   readonly doMs: number;
   readonly costing: Costing | null;
-  /** Chance outcomes: probability, then the state it leaves. */
-  readonly outcomes: readonly (readonly [number, State])[];
+  /** The state it leaves. */
+  readonly next: State;
 }
 
 export interface State {
@@ -648,14 +562,6 @@ function innerKey(s: State): number {
 }
 
 export interface Search {
-  /** The expected time left from a state, following the route found. */
-  readonly value: (s: State) => number;
-  /**
-   * The expected time for the whole run, following the route through every
-   * chance outcome, or null where that would take more than `budget` states
-   * more than have been worked out already.
-   */
-  readonly total: (budget: number) => number | null;
   /** What to do at a state, best first, with the time each leaves: the best `keep`. */
   readonly choices: (s: State, keep?: number) => { action: Action; total: number }[];
   readonly start: State;
@@ -695,29 +601,23 @@ export function search(
   const POWER_UPS = [S.mushroom, S["fire-flower"], S.leaf];
 
   /**
-   * The item lists a clear leaves, with how likely each is, given what it was
-   * seen to hand over: the items themselves, less what the maps already give
-   * on their own - a castle's reward, which comes on the way out of the world
-   * (see nextWorld()), and a Bros.' treasure, which its fight gives. A power-up
-   * out of a stage with a random chest in it is that chest, which is luck: at
-   * its odds, or nothing where only the certain counts.
+   * The item list a clear leaves, given what it was seen to hand over: the
+   * items themselves, less what the maps already give on their own - a
+   * castle's reward, which comes on the way out of the world (see
+   * nextWorld()), and a Bros.' treasure, which its fight gives. A power-up out
+   * of a stage with a random chest in it is that chest, which is luck.
    */
-  function handed(world: World, thing: Thing, gains: readonly number[], inv: number): [number, number][] {
-    if (thing.kind === "bros") return [[1, inv]];
+  function handed(world: World, thing: Thing, gains: readonly number[], inv: number): number {
+    if (thing.kind === "bros") return inv;
 
     const node = world.map.nodes[thing.node]!;
-    const reward = node.kind === "castle" ? treasure(world.map.reward).map(([slot]) => slot) : [];
+    const reward = node.kind === "castle" ? treasure(world.map.reward) : [];
     const chest = node.chests?.includes("random") ?? false;
-    let out: [number, number][] = [[1, inv]];
+    let out = inv;
 
     for (const slot of gains) {
-      if (reward.includes(slot)) continue;
-      if (chest && POWER_UPS.includes(slot)) {
-        if (settings.luck === "sure") continue;
-        out = out.flatMap(([p, i]) => RANDOM_CHEST.map(([got, q]) => [p * q, give(i, got)] as [number, number]));
-        continue;
-      }
-      out = out.map(([p, i]) => [p, give(i, slot)]);
+      if (reward.includes(slot) || (chest && POWER_UPS.includes(slot))) continue;
+      out = give(out, slot);
     }
     return out;
   }
@@ -795,8 +695,8 @@ export function search(
       // Better if it opens a way out the other does not have, or takes one
       // they share faster.
       const aim = (c: Costing) => `${c.exit}|${c.gains.join()}`;
-      const before = new Map(coster.costOf(thing, from, false).map((c) => [aim(c), c.ms]));
-      found = coster.costOf(thing, to, false).some((c) => c.ms < (before.get(aim(c)) ?? Infinity));
+      const before = new Map(coster.costOf(thing, from).map((c) => [aim(c), c.ms]));
+      found = coster.costOf(thing, to).some((c) => c.ms < (before.get(aim(c)) ?? Infinity));
       helpsMemo.set(id, found);
     }
     return found;
@@ -866,8 +766,6 @@ export function search(
             );
           case "hammer":
             return later.reduce((n, world) => n + world.rocks.length, 0);
-          case "anchor":
-            return settings.objective === "expected" ? later.filter((world) => world.map.airship).length : 0;
           case "whistle":
             return warpsLeft[w]!;
           default: {
@@ -886,11 +784,7 @@ export function search(
   );
 
   /** What can be walked into a place as, and what it spends. */
-  function loadouts(
-    s: State,
-    thing: Thing,
-    airship: boolean,
-  ): { entry: Entry; use: Slot[]; inv: number; anchored: boolean }[] {
+  function loadouts(s: State, thing: Thing): { entry: Entry; use: Slot[]; inv: number }[] {
     const power = POWERS[s.power]!;
     const plain: Entry = { power, star: false, pwing: false };
     const base = [{ power, pwing: false, use: [] as Slot[], inv: s.inv }];
@@ -904,29 +798,12 @@ export function search(
       }
     }
 
-    const out: { entry: Entry; use: Slot[]; inv: number; anchored: boolean }[] = [];
+    const out: { entry: Entry; use: Slot[]; inv: number }[] = [];
     for (const b of base) {
       const without: Entry = { power: b.power, star: false, pwing: b.pwing };
-      const withStar =
-        settings.items && count(b.inv, S.star) > 0 && helps(thing, without, { ...without, star: true })
-          ? [false, true]
-          : [false];
-      for (const star of withStar) {
-        const inv = star ? take(b.inv, S.star) : b.inv;
-        const use: Slot[] = star ? [...b.use, "star"] : b.use;
-        const anchors =
-          airship && settings.items && count(inv, S.anchor) > 0 && settings.objective === "expected"
-            ? [false, true]
-            : [false];
-
-        for (const anchored of anchors) {
-          out.push({
-            entry: { power: b.power, star, pwing: b.pwing },
-            use: anchored ? [...use, "anchor"] : use,
-            inv: anchored ? take(inv, S.anchor) : inv,
-            anchored,
-          });
-        }
+      out.push({ entry: without, use: b.use, inv: b.inv });
+      if (settings.items && count(b.inv, S.star) > 0 && helps(thing, without, { ...without, star: true })) {
+        out.push({ entry: { ...without, star: true }, use: [...b.use, "star"], inv: take(b.inv, S.star) });
       }
     }
     return out;
@@ -960,7 +837,7 @@ export function search(
     if (world.map.world >= rules.lastWorld) return END;
     const next = s0(world.map.world + 1);
     let withReward = inv;
-    for (const [slot] of treasure(world.map.reward)) withReward = give(withReward, slot);
+    for (const slot of treasure(world.map.reward)) withReward = give(withReward, slot);
     return { ...next, power, inv: tidy(next.world, withReward) };
   }
 
@@ -968,7 +845,7 @@ export function search(
     return { world: w, done: 0, pos: worlds[w]?.start ?? 0, power: 0, inv: 0 };
   }
 
-  function actions(s: State, detours: boolean): Action[] {
+  function actions(s: State): Action[] {
     const world = worlds[s.world]!;
     const dist = walks(world, s);
     const out: Action[] = [];
@@ -979,7 +856,6 @@ export function search(
       if (!st || s.done & st.bit || dist[node.id] === Infinity) continue;
 
       const final = node.kind === "castle" || node.kind === "bowser";
-      const airship = node.kind === "castle" && world.map.airship;
       // Where beating it leaves the player: on its square, or out the far
       // end of a pipe stage.
       const lands = node.exit ?? node.id;
@@ -987,15 +863,9 @@ export function search(
       const needed = required[s.world]!;
       const allowed = !final || (s.done & needed) === needed;
 
-      for (const l of allowed ? loadouts(s, st, airship) : []) {
-        for (const costing of coster.costOf(st, l.entry, airship && !l.anchored)) {
-          const done = s.done | st.bit;
-          const outcomes = costing.exits.flatMap(([power, p, gains]) =>
-            handed(world, st, gains, l.inv).map(([q, inv]) => [
-              p * q,
-              final ? nextWorld(world, power, inv) : after(s, done, lands, power, inv),
-            ] as const),
-          );
+      for (const l of allowed ? loadouts(s, st) : []) {
+        for (const costing of coster.costOf(st, l.entry)) {
+          const inv = handed(world, st, costing.slots, l.inv);
 
           out.push({
             kind: "stage",
@@ -1008,7 +878,7 @@ export function search(
             walkMs,
             doMs: costing.ms + settings.overheadMs,
             costing,
-            outcomes,
+            next: final ? nextWorld(world, costing.power, inv) : after(s, s.done | st.bit, lands, costing.power, inv),
           });
         }
       }
@@ -1036,31 +906,9 @@ export function search(
             walkMs: walkMs + link.ms,
             doMs: 0,
             costing: null,
-            outcomes: [[1, after(s, s.done, link.to, s.power, take(s.inv, S.cloud))]],
+            next: after(s, s.done, link.to, s.power, take(s.inv, S.cloud)),
           });
         }
-      }
-    }
-
-    if (settings.items && detours) {
-      for (const house of world.houses) {
-        if (s.done & house.bit || dist[house.node] === Infinity) continue;
-        out.push({
-          kind: "house",
-          warp: null,
-          node: house.node,
-          to: house.node,
-          place: null,
-          use: [],
-          entry: null,
-          walkMs: dist[house.node]!,
-          doMs: settings.houseMs,
-          costing: null,
-          outcomes: house.treasure.map(([slot, p]) => [
-            p,
-            after(s, s.done | house.bit, house.node, s.power, give(s.inv, slot)),
-          ]),
-        });
       }
     }
 
@@ -1069,16 +917,14 @@ export function search(
     if (rules.everything || (settings.items && settings.detours)) {
       for (const bros of world.bros) {
         if (s.done & bros.bit || dist[bros.node] === Infinity || !open(world, s, bros.node)) continue;
-        if (!rules.everything) {
-          // Fought for its drop alone, so one that drops nothing that could
-          // be of use from here on is only time lost. A random drop is
-          // weighed one detour at a time, like a house (see choices()).
-          if (!bros.treasure.some(([slot]) => useful[s.world]![slot])) continue;
-          if (!detours && bros.treasure.length > 1) continue;
-        }
+        // Fought for its drop alone, so one that drops nothing that could be
+        // of use from here on is only time lost.
+        if (!rules.everything && !bros.treasure.some((slot) => useful[s.world]![slot])) continue;
 
-        for (const l of loadouts(s, bros, false)) {
-          for (const costing of coster.costOf(bros, l.entry, false)) {
+        for (const l of loadouts(s, bros)) {
+          let inv = l.inv;
+          for (const slot of bros.treasure) inv = give(inv, slot);
+          for (const costing of coster.costOf(bros, l.entry)) {
             out.push({
               kind: "bros",
               warp: null,
@@ -1090,14 +936,7 @@ export function search(
               walkMs: dist[bros.node]!,
               doMs: costing.ms + settings.overheadMs,
               costing,
-              // Nothing, where the drop is left to chance and only the
-              // certain counts: the fight is still won.
-              outcomes: costing.exits.flatMap(([power, p]) =>
-                (bros.treasure.length > 0 ? bros.treasure : [[-1, 1] as const]).map(([slot, q]) => [
-                  p * q,
-                  after(s, s.done | bros.bit, bros.node, power, slot === -1 ? l.inv : give(l.inv, slot)),
-                ] as const),
-              ),
+              next: after(s, s.done | bros.bit, bros.node, costing.power, inv),
             });
           }
         }
@@ -1121,7 +960,7 @@ export function search(
           walkMs: dist[rock.node]!,
           doMs: 0,
           costing: null,
-          outcomes: [[1, after(s, s.done | rock.bit, rock.node, s.power, take(s.inv, S.hammer))]],
+          next: after(s, s.done | rock.bit, rock.node, s.power, take(s.inv, S.hammer)),
         });
       }
     }
@@ -1144,7 +983,7 @@ export function search(
           walkMs: warp.tiles * settings.msPerTile,
           doMs: settings.warpMs,
           costing: null,
-          outcomes: [[1, { ...next, power: s.power, inv: tidy(warp.world, take(s.inv, S.whistle)) }]],
+          next: { ...next, power: s.power, inv: tidy(warp.world, take(s.inv, S.whistle)) },
         });
       }
     }
@@ -1170,14 +1009,12 @@ export function search(
 
   /**
    * Whether world `w` could hand the item over on the way through: a Bros.'
-   * treasure, a house's chest, or a stage the history has seen give it.
+   * treasure, or a stage the history has seen give it.
    */
   function finds(w: number, slot: number): boolean {
     const world = worlds[w]!;
-    const gives = (loot: readonly [number, number][]) => loot.some(([got]) => got === slot);
     return (
-      world.bros.some((b) => gives(b.treasure)) ||
-      world.houses.some((h) => gives(h.treasure)) ||
+      world.bros.some((b) => b.treasure.includes(slot)) ||
       world.stage.some(
         (t) =>
           t !== null &&
@@ -1197,7 +1034,7 @@ export function search(
   const whistly = worlds.map((_, w) => settings.items && finds(w, S.whistle));
 
   /** What each world's end hands on to the next: its castle's reward. */
-  const rewards = worlds.map((world) => treasure(world.map.reward).map(([slot]) => slot));
+  const rewards = worlds.map((world) => treasure(world.map.reward));
 
   // Costed apart from the search, so that the entries asked about here and
   // nowhere else do not turn up in coster.costed as ones a route could use.
@@ -1205,21 +1042,18 @@ export function search(
   const fastestMemo = new Map<number, number>();
 
   /** A stage at the fastest it has been played as anything at all. */
-  function fastest(thing: Thing, airship: boolean): number {
-    const id = thing.index * 2 + (airship ? 1 : 0);
-    let best = fastestMemo.get(id);
+  function fastest(thing: Thing): number {
+    let best = fastestMemo.get(thing.index);
     if (best === undefined) {
       best = Infinity;
       for (const power of POWERS) {
         for (const star of [false, true]) {
           for (const pwing of [false, true]) {
-            for (const flying of airship ? [true, false] : [false]) {
-              best = Math.min(best, floors.costOf(thing, { power, star, pwing }, flying)[0]?.ms ?? Infinity);
-            }
+            best = Math.min(best, floors.costOf(thing, { power, star, pwing })[0]?.ms ?? Infinity);
           }
         }
       }
-      fastestMemo.set(id, best);
+      fastestMemo.set(thing.index, best);
     }
     return best + settings.overheadMs;
   }
@@ -1284,14 +1118,14 @@ export function search(
                 w >= rules.lastWorld
                   ? 0
                   : started(w + 1, clouds + reward(S.cloud), whistles + reward(S.whistle));
-              d = Math.min(d, fastest(world.stage[x]!, node.kind === "castle" && world.map.airship) + beyond);
+              d = Math.min(d, fastest(world.stage[x]!) + beyond);
             } else {
               // Moving on from here: a walk, through a pipe stage and out its
               // far end, or over a stage by cloud.
               let on = Infinity;
               for (const link of world.links[x]!) on = Math.min(on, link.ms + floor[link.to]!);
               if (node.exit !== undefined) {
-                on = Math.min(on, (undone(x) ? fastest(world.stage[x]!, false) : 0) + floor[node.exit]!);
+                on = Math.min(on, (undone(x) ? fastest(world.stage[x]!) : 0) + floor[node.exit]!);
               }
               if (clouds > 0) {
                 for (const link of world.links[x]!) {
@@ -1303,7 +1137,7 @@ export function search(
               }
               // A stage stood on and not yet beaten - set down on by a cloud -
               // is played before anything else.
-              d = Math.min(d, undone(x) && node.exit === undefined ? fastest(world.stage[x]!, false) + on : on);
+              d = Math.min(d, undone(x) && node.exit === undefined ? fastest(world.stage[x]!) + on : on);
             }
             if (d < floor[x]!) {
               floor[x] = d;
@@ -1349,58 +1183,27 @@ export function search(
     return known >= 0 ? known : Math.max(floor(s), bound(known));
   }
 
-  /** The least an action can come to: its own time, and the least after. */
-  function leastOf(a: Action): number {
-    let total = a.walkMs + a.doMs;
-    for (const [p, next] of a.outcomes) total += p * least(next);
-    return total;
-  }
-
   /**
    * Options best first by the least each could come to, so that the first
    * worked out is likely the best there is, and the rest can be passed by on
    * that alone.
    */
   function byLeast(list: readonly Action[]): { action: Action; least: number }[] {
-    return list.map((action) => ({ action, least: leastOf(action) })).sort((x, y) => x.least - y.least);
+    return list
+      .map((action) => ({ action, least: action.walkMs + action.doMs + least(action.next) }))
+      .sort((x, y) => x.least - y.least);
   }
 
-  /**
-   * Whether every option leads to one state only. Then a run is a shortest
-   * path, from here to the end, and shortest() finds it; otherwise it is an
-   * expectimax, and best() works it out.
-   */
-  const certain = settings.objective !== "expected" && settings.luck === "sure";
-
-  /** The best one could do from here, keeping out of every house and Bros. */
+  /** The best one could do from here. */
   function value(s: State): number {
     if (s.world >= MAPS.length) return 0;
     const known = memo.get(s);
     if (known !== undefined && known >= 0) return known;
-    return certain ? shortest(s) : best(s);
-  }
-
-  /** value(), where outcomes are left to chance: every option looked into. */
-  function best(s: State): number {
-    if (memo.size >= budget) throw new TooBig();
-    // Marked before it is worked out, as a guard: nothing should lead back
-    // here, and if something did it would read as a dead end, not loop.
-    memo.set(s, Infinity);
-
-    let out = Infinity;
-    for (const { action, least } of byLeast(actions(s, false))) {
-      if (least >= out) break;
-      const v = lookahead(action);
-      if (v < out) out = v;
-    }
-
-    memo.set(s, out);
-    return out;
+    return shortest(s);
   }
 
   /**
-   * value(), where nothing is left to chance: the fastest way from here to
-   * the end, found by A*. States are taken from the least time so far plus
+   * The fastest way from here to the end, found by A*. States are taken from the least time so far plus
    * the least that could follow, so none is looked at that could only come to
    * more than the route found; one whose best is already known is as good as
    * the end, at that much more.
@@ -1435,10 +1238,10 @@ export function search(
         continue;
       }
 
-      for (const a of actions(s, false)) {
+      for (const a of actions(s)) {
         const to = g + a.walkMs + a.doMs;
         if (!(to < Infinity)) continue;
-        const next = a.outcomes[0]![1];
+        const next = a.next;
         const had = reached.get(next);
         if (had !== undefined && had.g <= to) continue;
         if (had === undefined) {
@@ -1474,26 +1277,13 @@ export function search(
 
   /** An action's time, and the best that can be done after it. */
   function lookahead(a: Action): number {
-    let total = a.walkMs + a.doMs;
-    if (total === Infinity) return Infinity;
-    for (const [p, next] of a.outcomes) total += p * value(next);
-    return total;
+    const total = a.walkMs + a.doMs;
+    return total === Infinity ? Infinity : total + value(a.next);
   }
 
   /**
    * What to do here, every option ranked by the time it leaves to go: its
    * own, and then the best that can be done after it.
-   *
-   * The detours that hand out a chance - a mushroom house, a Bros. with a
-   * random drop - come in here and only here. Searched exactly, they make the
-   * search too big to finish, since every chest's outcome is another item
-   * list to work every later world out for; so each is weighed one at a time
-   * against the best route that takes none after it. That is never worse than
-   * taking none, and finds every one that pays for itself on its own; what it
-   * can miss is two that only pay together. A Bros. with a set drop is part of
-   * the search proper, chains and all - a hammer from one to break the rock
-   * in front of another. Where only the certain counts, chance detours hand
-   * out nothing and there are none to weigh, so the search is exact.
    */
   function choices(s: State, keep = Infinity): { action: Action; total: number }[] {
     // Between two that come out the same, the one that spends less: an item
@@ -1509,7 +1299,7 @@ export function search(
 
     // Only the best `keep` are worked out: one whose floor is more than the
     // last of those is no rival for any of them.
-    const all = actions(s, settings.detours);
+    const all = actions(s);
     const order = new Map(all.map((a, i) => [a, i]));
     const out: Ranked[] = [];
     for (const { action, least } of byLeast(all)) {
@@ -1520,50 +1310,11 @@ export function search(
     return out.slice(0, keep).map(({ action, total }) => ({ action, total }));
   }
 
-  const policyMemo = new Memo();
-
-  /** The expected time left following choices() from here on. */
-  let limit = budget;
-
-  function total(extra: number): number | null {
-    limit = Math.min(budget, memo.size + policyMemo.size + extra);
-    try {
-      return follow(s0(0));
-    } catch (e) {
-      if (!(e instanceof TooBig)) throw e;
-      return null;
-    } finally {
-      limit = budget;
-    }
-  }
-
-  function follow(s: State): number {
-    if (s.world >= MAPS.length) return 0;
-    if (!settings.detours) return value(s);
-
-    const known = policyMemo.get(s);
-    if (known !== undefined) return known;
-
-    if (memo.size + policyMemo.size >= limit) throw new TooBig();
-
-    policyMemo.set(s, Infinity);
-    const best = choices(s, 1)[0];
-    let total = Infinity;
-    if (best !== undefined && best.total < Infinity) {
-      total = best.action.walkMs + best.action.doMs;
-      for (const [p, next] of best.action.outcomes) total += p * follow(next);
-    }
-    policyMemo.set(s, total);
-    return total;
-  }
-
   return {
-    value: follow,
-    total,
     choices,
     start: s0(0),
     worlds,
     coster,
-    states: () => memo.size + policyMemo.size,
+    states: () => memo.size,
   };
 }

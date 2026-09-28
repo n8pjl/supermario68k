@@ -1,10 +1,9 @@
 // A search, read out as a route: what the page shows.
 //
 // The search answers "what is best from here" for any state; a route is the
-// answers strung together from a new game, following at each chance - a chest,
-// a hit taken or not - the outcome most likely to happen. Each step keeps the
-// options it beat and by how much, which is what says whether a choice is a
-// clear one or a coin toss the data could turn either way.
+// answers strung together from a new game. Each step keeps the options it
+// beat and by how much, which is what says whether a choice is a clear one or
+// a coin toss the data could turn either way.
 //
 // Everything here crosses from the worker to the page, so it is plain data.
 
@@ -29,20 +28,12 @@ export interface Alternative {
   readonly place: string | null;
   readonly use: readonly Slot[];
   readonly entry: Entry | null;
-  /** How much longer the whole run is expected to take for choosing it. */
+  /** How much longer the whole run takes for choosing it. */
   readonly deltaMs: number;
   readonly source: Source | null;
   /** The way out it goes for, where it is a stage or a fight. */
   readonly exit: Power | null;
   readonly gains: readonly string[];
-}
-
-export interface Outcome {
-  readonly p: number;
-  /** What the player is after it. */
-  readonly power: Power;
-  /** What it put in the item list: a chest, a Bros.' treasure, a castle's. */
-  readonly got: readonly string[];
 }
 
 export interface Step {
@@ -60,11 +51,12 @@ export interface Step {
   readonly costing: Costing | null;
   /** The item list on the way in, before anything is spent. */
   readonly holding: readonly Slot[];
-  /** The expected time left for the run as this step begins. */
+  /** The time left for the run as this step begins. */
   readonly left: number;
-  readonly outcomes: readonly Outcome[];
-  /** Which of those the route goes on from: the likeliest. */
-  readonly then: number;
+  /** What the player is after it. */
+  readonly power: Power;
+  /** What it put in the item list: a chest, a Bros.' treasure, a castle's. */
+  readonly got: readonly string[];
   /** The next best things to have done instead, best first. */
   readonly alternatives: readonly Alternative[];
 }
@@ -80,29 +72,14 @@ export interface Costed {
 }
 
 export interface Plan {
-  /** Expected time for the whole run. */
+  /** Time for the whole run. */
   readonly total: number;
-  /**
-   * Whether `total` is only an upper bound. With detours it is worked out by
-   * following the route through every chance outcome, and where that is too
-   * much it is the first step's figure instead, which the route can only
-   * better.
-   */
-  readonly bound: boolean;
   readonly steps: readonly Step[];
   /** Every stage and entry the search found a use for, and what it made of it. */
   readonly costed: readonly Costed[];
   readonly states: number;
   readonly ms: number;
 }
-
-/**
- * How many states more than the route took the whole run's expected time may
- * cost. With detours, following every chance outcome to the end can take
- * several times the route itself, for a figure the route's first step already
- * bounds.
- */
-const FOLLOW_BUDGET = 100_000;
 
 /** How many options each step keeps besides the one taken. */
 const ALTERNATIVES = 3;
@@ -127,12 +104,6 @@ export function plan(stats: Stats, settings: Settings): Plan {
     const kept = inventory(state.inv).slice();
     for (const item of a.use) kept.splice(kept.indexOf(item), 1);
 
-    const outcomes = a.outcomes.map(([p, next]) => ({
-      p,
-      power: POWERS[next.power]!,
-      got: spent(inventory(next.inv), kept),
-    }));
-    const then = outcomes.reduce((most, o, i) => (o.p > outcomes[most]!.p ? i : most), 0);
 
     steps.push({
       world: state.world,
@@ -148,8 +119,8 @@ export function plan(stats: Stats, settings: Settings): Plan {
       costing: a.costing,
       holding: inventory(state.inv),
       left: best.total,
-      outcomes,
-      then,
+      power: POWERS[a.next.power]!,
+      got: spent(inventory(a.next.inv), kept),
       alternatives: ranked.slice(1, 1 + ALTERNATIVES).map(({ action, total }) => ({
         kind: action.kind,
         warp: action.warp,
@@ -165,14 +136,8 @@ export function plan(stats: Stats, settings: Settings): Plan {
       })),
     });
 
-    state = a.outcomes[then]![1];
+    state = a.next;
   }
-
-  // The exact figure, if it can be had for a little more work than the route
-  // took; otherwise the first step's, which the route can only better.
-  const exact = found.total(FOLLOW_BUDGET);
-  const total = exact ?? steps[0]?.left ?? 0;
-  const bound = exact === null;
 
   const costed: Costed[] = [];
   for (const [id, list] of found.coster.costed) {
@@ -190,8 +155,7 @@ export function plan(stats: Stats, settings: Settings): Plan {
   }
 
   return {
-    total,
-    bound,
+    total: steps[0]?.left ?? 0,
     steps,
     costed,
     states: found.states(),

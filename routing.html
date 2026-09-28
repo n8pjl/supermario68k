@@ -56,17 +56,10 @@
           <select name="objective">
             <option value="best">Best clears</option>
             <option value="median">Median clears</option>
-            <option value="expected">Expected time, deaths included</option>
-          </select>
-        </label>
-        <label>Items by chance
-          <select name="luck">
-            <option value="sure">Only plan on what is certain</option>
-            <option value="odds">Plan on them at their odds</option>
           </select>
         </label>
         <label class="check"><input type="checkbox" name="items" /> Spend items from the list</label>
-        <label class="check"><input type="checkbox" name="detours" /> Detour to houses and Bros.</label>
+        <label class="check"><input type="checkbox" name="detours" /> Detour to Bros. for their items</label>
         <label class="check"><input type="checkbox" name="borrowUp" /> Borrow times from a stronger entry</label>
         <label>Stages never played
           <select name="unknown">
@@ -86,10 +79,7 @@
           <div class="filters">
             <label>One map square (s) <input type="number" name="msPerTile" min="0" step="0.01" /></label>
             <label>Into and out of a stage (s) <input type="number" name="overheadMs" min="0" step="0.1" /></label>
-            <label>A death, back to the map (s) <input type="number" name="respawnMs" min="0" step="0.1" /></label>
-            <label>A mushroom house (s) <input type="number" name="houseMs" min="0" step="0.1" /></label>
             <label>A pipe's passage (s) <input type="number" name="pipeMs" min="0" step="0.1" /></label>
-            <label>Chasing a fled airship (s) <input type="number" name="chaseMs" min="0" step="0.1" /></label>
             <label>A whistle to the warp zone and down a pipe (s) <input type="number" name="warpMs" min="0" step="0.1" /></label>
           </div>
           <button type="button" id="reset-settings">Back to the defaults</button>

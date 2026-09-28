@@ -111,7 +111,6 @@ export interface Clear {
 }
 
 export interface Death {
-  readonly ms: number;
   readonly practice: boolean;
   readonly when: number;
 }
@@ -139,7 +138,6 @@ export interface Variant {
   readonly clears: number;
   readonly best: number;
   readonly median: number;
-  readonly mean: number;
   readonly practice: number;
 }
 
@@ -153,8 +151,6 @@ export interface Summary {
   readonly best: number | null;
   readonly median: number | null;
   readonly mean: number | null;
-  /** Mean time into a visit that ended in a death. */
-  readonly deathMs: number | null;
   /** How the clears ended, by power, counted. */
   readonly exits: Readonly<Partial<Record<Power, number>>>;
   readonly exitsSeen: number;
@@ -191,10 +187,6 @@ export function summarise(cell: Cell): Summary {
     best: times[0] ?? null,
     median: mid,
     mean: times.length === 0 ? null : times.reduce((a, b) => a + b, 0) / times.length,
-    deathMs:
-      cell.deaths.length === 0
-        ? null
-        : cell.deaths.reduce((a, d) => a + d.ms, 0) / cell.deaths.length,
     exits,
     exitsSeen: cell.clears.filter((c) => c.exitSeen).length,
     practice:
@@ -225,7 +217,6 @@ function variantsOf(clears: readonly Clear[]): Variant[] {
         clears: times.length,
         best: times[0]!,
         median: median(times)!,
-        mean: times.reduce((a, b) => a + b, 0) / times.length,
         practice: list.filter((c) => c.practice).length,
       };
     })
@@ -337,7 +328,7 @@ export function buildModel(
           break;
         }
         case "died":
-          here.deaths.push({ ms: visit.end - visit.start, practice, when });
+          here.deaths.push({ practice, when });
           break;
         default:
           here.left++;
