@@ -37,7 +37,10 @@ import {
 } from "./model.ts";
 import { type Alternative, type Costed, DEFAULTS, OBJECTIVES, type Plan, type Settings, type Step } from "./route.ts";
 import { type PlaceInfo, type Strength, drawWorld } from "./view.ts";
-import { type Reply, type Request } from "./worker.ts";
+// `import type`, not `import { type ... }`: under verbatimModuleSyntax the
+// latter still imports the module, and would run the worker's body - its fetch
+// of the search, its message listener - on the page.
+import type { Reply, Request } from "./worker.ts";
 
 function $<T extends HTMLElement>(id: string): T {
   return document.getElementById(id) as T;
