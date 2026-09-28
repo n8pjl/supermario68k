@@ -30,12 +30,11 @@ interface Exports {
   reply_len(): number;
 }
 
-// Read whole rather than streamed: streaming asks the server to say the file
-// is wasm, and a plain static host may not.
-const search = fetch(new URL("./routing-search.wasm", import.meta.url))
-  .then((response) => response.arrayBuffer())
-  .then((bytes) => WebAssembly.instantiate(bytes))
-  .then(({ instance }) => instance.exports as unknown as Exports);
+// Streamed, so it compiles as it downloads. That needs the server to send it as
+// application/wasm; one that does not fails here, and the page says why.
+const search = WebAssembly.instantiateStreaming(fetch(new URL("./routing-search.wasm", import.meta.url))).then(
+  ({ instance }) => instance.exports as unknown as Exports,
+);
 
 /**
  * JSON has no Infinity, so the search writes a time that cannot be made - a
