@@ -57,7 +57,7 @@ export interface WarpRequest {
   readonly reload: boolean;
 }
 
-/** `level` is the enum Power in src/practice.cpp: small, large, fire, racoon. */
+/** `level` is the enum Power in src/practice.cpp: small, large, fire, raccoon. */
 export interface PowerRequest {
   readonly level: number;
   readonly star: boolean;
@@ -96,14 +96,14 @@ const POWERS: readonly { readonly value: number; readonly label: string }[] = [
   { value: 0, label: "Small" },
   { value: 1, label: "Super" },
   { value: 2, label: "Fire" },
-  { value: 3, label: "Racoon" },
+  { value: 3, label: "Raccoon" },
 ];
 
 // Attribs bits, from struct saveplayer in src/player.h. Only the three the
 // panel shows or sets; the rest are the game's business.
 const ATTRIB_STAR = 0b10000000;
 const ATTRIB_FIRE = 0b01000000;
-const ATTRIB_RACOON = 0b00100000;
+const ATTRIB_RACCOON = 0b00100000;
 const ATTRIB_PWING = 0b00001000;
 
 // The level tiles, from map.h. A map square holding one of these is a level
@@ -225,7 +225,7 @@ function powerFromStatus(status: Status): PowerRequest {
   let level = status.life >= 2 ? 1 : 0;
 
   if (status.life >= 3 && attribs & ATTRIB_FIRE) level = 2;
-  if (status.life >= 3 && attribs & ATTRIB_RACOON) level = 3;
+  if (status.life >= 3 && attribs & ATTRIB_RACCOON) level = 3;
 
   return {
     level,
