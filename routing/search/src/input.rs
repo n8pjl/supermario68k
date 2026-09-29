@@ -32,6 +32,10 @@ pub struct Start {
     /// The stage or fight being played right now, and what it was walked
     /// into as: the route begins by finishing it.
     pub inside: Option<Inside>,
+    /// Places walked into with a hammer fewer than before, once per hammer:
+    /// a rock was broken on the way to each.
+    #[serde(default)]
+    pub rocks: Vec<String>,
 }
 
 #[derive(Deserialize)]

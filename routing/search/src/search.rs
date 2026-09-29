@@ -824,7 +824,7 @@ impl<'a> Search<'a> {
         });
         // The thing being played was walked to as well.
         let been = inside.map(|(t, _)| self.things[t].node);
-        done |= self.broken_rocks(w, done, pos, been);
+        done |= self.broken_rocks(w, done, pos, been, &from.rocks);
 
         let state = State {
             world: w as u8,
@@ -836,12 +836,24 @@ impl<'a> Search<'a> {
         (state, inside)
     }
 
-    /// The rocks that must have been broken for the player to have got to
-    /// `pos`, to `been` if given, and to everything they have beaten: one at
-    /// a time, each one on the edge of where they could otherwise reach, and
-    /// one that opens the way to somewhere they have been before any that
-    /// does not.
-    fn broken_rocks(&self, w: usize, done: u32, pos: usize, been: Option<usize>) -> u32 {
+    /// The rocks broken so far: first one on the way to each of `hinted`,
+    /// the nearest to it of those the player could have got to; then any
+    /// more the player must have broken to have got to `pos`, to `been` if
+    /// given, and to everything they have beaten - one at a time, each one on
+    /// the edge of where they could otherwise reach, and one that opens the
+    /// way to somewhere they have been before any that does not.
+    ///
+    /// A stage not beaten is taken as no obstacle here: a cloud may have
+    /// carried the player over it, and it is no reason to think a rock was
+    /// broken to get round it.
+    fn broken_rocks(
+        &self,
+        w: usize,
+        done: u32,
+        pos: usize,
+        been: Option<usize>,
+        hinted: &[String],
+    ) -> u32 {
         let world = &self.worlds[w];
         let mut needed: Vec<usize> = [pos].into_iter().chain(been).collect();
         for &t in world.stage.iter().flatten().chain(&world.bros) {
@@ -850,35 +862,87 @@ impl<'a> Search<'a> {
             }
         }
 
-        // What can be reached with these open, and the rocks at its edge.
-        let reach = |open: u32| -> (Vec<bool>, Vec<u32>) {
+        // The ways on from a node with these open, and the rocks in the way:
+        // the roads, and out the far end of a pipe stage that has been beaten.
+        let ways = |u: usize, open: u32, out: &mut Vec<(usize, f64)>, rocks: &mut Vec<(u32, usize)>| {
+            out.clear();
+            for link in &world.links[u] {
+                if link.door != 0 && open & world.opens[link.door] == 0 {
+                    continue;
+                }
+                if link.rock != 0 && open & link.rock == 0 {
+                    rocks.push((link.rock, u));
+                    continue;
+                }
+                out.push((link.to, link.ms));
+            }
+            if let (Some(exit), Some(t)) = (world.exit[u], world.stage[u])
+                && open & self.things[t].bit != 0
+            {
+                out.push((exit, 0.0));
+            }
+        };
+
+        // What can be reached from the start with these open, and the rocks
+        // at its edge, each with the square it is broken from.
+        let reach = |open: u32| -> (Vec<bool>, Vec<(u32, usize)>) {
             let mut reached = vec![false; world.links.len()];
             let mut edge = Vec::new();
+            let mut next = Vec::new();
             let mut stack = vec![world.start];
             reached[world.start] = true;
             while let Some(u) = stack.pop() {
-                if !self.open(w, open, u) {
-                    continue;
-                }
-                for link in &world.links[u] {
-                    if link.door != 0 && open & world.opens[link.door] == 0 {
-                        continue;
-                    }
-                    if link.rock != 0 && open & link.rock == 0 {
-                        edge.push(link.rock);
-                        continue;
-                    }
-                    if !reached[link.to] {
-                        reached[link.to] = true;
-                        stack.push(link.to);
+                ways(u, open, &mut next, &mut edge);
+                for &(to, _) in &next {
+                    if !reached[to] {
+                        reached[to] = true;
+                        stack.push(to);
                     }
                 }
             }
             (reached, edge)
         };
+        // How far each square is from `from`, with these open.
+        let far = |open: u32, from: usize| -> Vec<f64> {
+            let n = world.links.len();
+            let mut dist = vec![f64::INFINITY; n];
+            let mut settled = vec![false; n];
+            let mut next = Vec::new();
+            let mut ignored = Vec::new();
+            dist[from] = 0.0;
+            loop {
+                let Some(u) = (0..n)
+                    .filter(|&i| !settled[i] && dist[i] < f64::INFINITY)
+                    .min_by(|&x, &y| dist[x].total_cmp(&dist[y]))
+                else {
+                    return dist;
+                };
+                settled[u] = true;
+                ways(u, open, &mut next, &mut ignored);
+                for &(to, ms) in &next {
+                    dist[to] = dist[to].min(dist[u] + ms);
+                }
+            }
+        };
         let missing = |reached: &[bool]| needed.iter().filter(|&&n| !reached[n]).count();
 
         let mut broken = 0;
+        for place in hinted {
+            let Some(t) = self.things_at(w, place).next() else {
+                continue;
+            };
+            let target = self.things[t].node;
+            let (_, edge) = reach(done | broken);
+            let best = edge
+                .iter()
+                .map(|&(rock, from)| (rock, far(done | broken | rock, target)[from]))
+                .filter(|&(_, d)| d < f64::INFINITY)
+                .min_by(|x, y| x.1.total_cmp(&y.1));
+            if let Some((rock, _)) = best {
+                broken |= rock;
+            }
+        }
+
         loop {
             let (reached, edge) = reach(done | broken);
             let left = missing(&reached);
@@ -887,9 +951,9 @@ impl<'a> Search<'a> {
             }
             let rock = edge
                 .iter()
-                .copied()
+                .map(|&(rock, _)| rock)
                 .find(|&r| missing(&reach(done | broken | r).0) < left)
-                .unwrap_or(edge[0]);
+                .unwrap_or(edge[0].0);
             broken |= rock;
         }
     }

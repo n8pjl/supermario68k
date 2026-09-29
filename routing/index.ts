@@ -352,9 +352,12 @@ function describeLive(): void {
 
   const { attempt, start } = live;
   const when = attempt.started.toPlainTime().toString({ smallestUnit: "minute" });
+  const back = start.at !== null ? `back at ${nameOf(start.at)}` : "back at the start of the map";
   const where = start.inside
     ? `playing ${nameOf(start.inside.place)}, walked in as ${entryLabel(start.inside.entry)}`
-    : start.at !== null
+    : live.died
+      ? `${back} after a death, ${entryLabel({ power: start.power, star: false, pwing: false })}`
+      : start.at !== null
       ? `after ${nameOf(start.at)}, ${entryLabel({ power: start.power, star: false, pwing: false })}`
       : `at the start of the map, ${entryLabel({ power: start.power, star: false, pwing: false })}`;
   const parts = [
