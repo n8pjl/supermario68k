@@ -123,10 +123,18 @@ function route(
   return { walks, pipes };
 }
 
+/** Where a run in progress stands on the map it is on. */
+export interface Here {
+  readonly node: number;
+  /** The squares of what it has beaten. */
+  readonly beaten: readonly number[];
+}
+
 /**
  * Draw world `w` into `host`, with the plan's steps in it overlaid if given.
  * `info` colours and labels the stages; `select` is called with a place key
- * when one is chosen.
+ * when one is chosen. `here`, where a run in progress stands on this map:
+ * the route is walked from there rather than from the start.
  */
 export function drawWorld(
   host: HTMLElement,
@@ -135,6 +143,7 @@ export function drawWorld(
   steps: readonly Step[],
   selected: string | null,
   select: (place: string) => void,
+  here: Here | null = null,
 ): void {
   const map = MAPS[w]!;
   const root = svg("svg", {
@@ -196,14 +205,23 @@ export function drawWorld(
   // The route.
   const worldSteps = steps.filter((s) => s.world === w);
   const overlay = svg("g", { class: "route" }, root);
-  const done = new Set<number>();
+  const done = new Set<number>(here?.beaten ?? []);
   const opened = new Set<number>();
+  for (const node of done) {
+    const opens = map.nodes[node]!.opens;
+    if (opens !== undefined) opened.add(opens);
+  }
   const broken = new Set<number>();
-  let pos = map.start;
+  // Nothing says which rocks a run has broken: where the way on is only open
+  // past one, the run must have broken it, and it is drawn as if all were.
+  const everyRock = new Set(map.rocks.map((_, i) => i));
+  let pos = here?.node ?? map.start;
   const order = new Map<number, number[]>();
 
   worldSteps.forEach((step, i) => {
-    const there = route(map, pos, step.node, done, opened, broken);
+    const there =
+      route(map, pos, step.node, done, opened, broken) ??
+      (here === null ? null : route(map, pos, step.node, done, opened, everyRock));
     for (const walk of there?.walks ?? []) {
       if (walk.length < 2) continue;
       svg("polyline", { points: walk.map(([x, y]) => `${mid(x)},${mid(y)}`).join(" "), class: "route-line" }, overlay);
@@ -255,6 +273,7 @@ export function drawWorld(
       const about = info.get(place);
       g.classList.add(`data-${about?.strength ?? "none"}`);
       if (place === selected) g.classList.add("selected");
+      if (here?.beaten.includes(node.id)) g.classList.add("beaten");
       svg("rect", { x: cx - 9, y: cy - 9, width: 18, height: 18, rx: 4 }, g);
       svg("text", { x: cx, y: cy + 4 }, g).textContent = shortName(w, node);
       title.textContent = [levelName(w, node.level!), ...(about?.lines ?? ["No history yet"])].join("\n");
@@ -309,6 +328,13 @@ export function drawWorld(
     ].join("\n");
     g.setAttribute("tabindex", "0");
     g.addEventListener("click", () => select(place));
+  }
+
+  if (here !== null) {
+    const n = map.nodes[here.node]!;
+    const g = svg("g", { class: "here" }, root);
+    svg("circle", { cx: mid(n.x), cy: mid(n.y), r: 13 }, g);
+    svg("title", {}, g).textContent = "Where the run in progress stands";
   }
 
   // Step numbers, on top of everything.

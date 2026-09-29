@@ -6,9 +6,11 @@
 // search/ and the Makefile). It is handed the maps, the history's figures and
 // the settings as one JSON document, and hands back the plan as another.
 //
-// One message in, the history's figures and the settings; one message out,
-// the plan or why there is none.
+// One message in, the history's figures and the settings, and where a run in
+// progress stands if the route is to follow one; one message out, the plan or
+// why there is none.
 
+import type { Start } from "./live.ts";
 import { MAPS } from "./maps.ts";
 import { type Stats } from "./model.ts";
 import { type Plan, type Settings } from "./route.ts";
@@ -17,6 +19,8 @@ export interface Request {
   readonly id: number;
   readonly stats: Stats;
   readonly settings: Settings;
+  /** The run in progress to route the rest of; null, a new game. */
+  readonly from: Start | null;
 }
 
 export type Reply =
@@ -44,8 +48,8 @@ const search = WebAssembly.instantiateStreaming(fetch(new URL("./routing-search.
 const TIMES = new Set(["ms", "deltaMs", "left", "walkMs", "doMs", "total"]);
 
 /** The plan, less how long it took, which is timed out here; or why there is none. */
-function run(wasm: Exports, stats: Stats, settings: Settings): Omit<Plan, "ms"> | string {
-  const request = new TextEncoder().encode(JSON.stringify({ maps: MAPS, stats, settings }));
+function run(wasm: Exports, stats: Stats, settings: Settings, from: Start | null): Omit<Plan, "ms"> | string {
+  const request = new TextEncoder().encode(JSON.stringify({ maps: MAPS, stats, settings, from }));
   const ptr = wasm.alloc(request.length);
   new Uint8Array(wasm.memory.buffer, ptr, request.length).set(request);
 
@@ -59,13 +63,13 @@ function run(wasm: Exports, stats: Stats, settings: Settings): Omit<Plan, "ms"> 
 }
 
 addEventListener("message", async (e: MessageEvent<Request>) => {
-  const { id, stats, settings } = e.data;
+  const { id, stats, settings, from } = e.data;
   let reply: Reply;
 
   try {
     const wasm = await search;
     const began = performance.now();
-    const out = run(wasm, stats, settings);
+    const out = run(wasm, stats, settings, from);
     reply = typeof out === "string" ? { id, error: out } : { id, plan: { ...out, ms: performance.now() - began } };
   } catch (error) {
     reply = { id, error: error instanceof Error ? error.message : String(error) };

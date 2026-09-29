@@ -99,7 +99,7 @@ fn main() {
         let mut problems = Vec::new();
         {
             let mut search = routing_search::search::Search::new(&input, routing_search::BUDGET);
-            let _ = routing_search::plan::plan(&mut search);
+            let _ = routing_search::plan::plan(&mut search, None);
             for (s, v) in search.known() {
                 let f = search.floor(s);
                 if f > v + 1e-6 {

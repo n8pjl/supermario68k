@@ -58,7 +58,7 @@ pub enum Reply {
 
 pub fn route(input: &Input) -> Reply {
     let mut search = Search::new(input, BUDGET);
-    match plan::plan(&mut search) {
+    match plan::plan(&mut search, input.from.as_ref()) {
         Ok(plan) => Reply::Plan { plan },
         Err(Failure::TooBig) => Reply::Error {
             error:

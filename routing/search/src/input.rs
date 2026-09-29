@@ -11,6 +11,40 @@ pub struct Input {
     pub maps: Vec<WorldMap>,
     pub stats: Stats,
     pub settings: Settings,
+    /// Where a run in progress stands, to route the rest of it from; absent,
+    /// the route is from a new game.
+    #[serde(default)]
+    pub from: Option<Start>,
+}
+
+/// A run in progress, as the page read it off the history's events (see
+/// routing/live.ts).
+#[derive(Deserialize)]
+pub struct Start {
+    pub world: usize,
+    /// What was beaten in this world, as place keys: "L1.3", "M1.0".
+    pub done: Vec<String>,
+    /// The last of them, which is where the player stands; none, the start
+    /// of the map.
+    pub at: Option<String>,
+    pub power: String,
+    pub items: Vec<String>,
+    /// The stage or fight being played right now, and what it was walked
+    /// into as: the route begins by finishing it.
+    pub inside: Option<Inside>,
+}
+
+#[derive(Deserialize)]
+pub struct Inside {
+    pub place: String,
+    pub entry: EntryIn,
+}
+
+#[derive(Deserialize)]
+pub struct EntryIn {
+    pub power: String,
+    pub star: bool,
+    pub pwing: bool,
 }
 
 #[derive(Deserialize)]

@@ -8,6 +8,7 @@
 use serde::Serialize;
 
 use crate::cost::Costing;
+use crate::input::Start;
 use crate::items::{Entry, POWERS, SLOTS, inventory, spent};
 use crate::search::{Action, Search, State};
 
@@ -145,15 +146,23 @@ fn names(slots: impl Iterator<Item = usize>) -> Vec<&'static str> {
     slots.map(|s| SLOTS[s]).collect()
 }
 
-pub fn plan(search: &mut Search) -> Result<Plan, Failure> {
+/// The route from a new game, or from a run in progress where one is given.
+pub fn plan(search: &mut Search, from: Option<&Start>) -> Result<Plan, Failure> {
     let mut steps = Vec::new();
-    let mut state: State = search.s0(0);
+    let (mut state, mut inside): (State, _) = match from {
+        Some(from) => search.start(from),
+        None => (search.s0(0), None),
+    };
     let end = search.worlds.len() as u8;
 
     while state.world < end {
-        let ranked = search
-            .choices(state, 1 + ALTERNATIVES)
-            .map_err(|_| Failure::TooBig)?;
+        // Inside a stage, the first step is finishing it: the only choice
+        // left there is how it comes out.
+        let ranked = match inside.take() {
+            Some((thing, entry)) => search.played(state, thing, entry, 1 + ALTERNATIVES),
+            None => search.choices(state, 1 + ALTERNATIVES),
+        }
+        .map_err(|_| Failure::TooBig)?;
         let Some(&(a, best)) = ranked.first().filter(|(_, total)| *total < f64::INFINITY) else {
             return Err(Failure::NoWay(state.world as usize));
         };

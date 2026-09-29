@@ -48,6 +48,13 @@
         <span id="category-rules"></span> <span id="practice-rule"></span>
       </p>
 
+      <!-- Off, the route is from a new game. On, it is from wherever the run
+           being played in another tab has got to, and moves as it does. -->
+      <div class="follow">
+        <label class="check"><input type="checkbox" id="follow" /> Follow the run in progress</label>
+        <p id="live" class="note" role="status"></p>
+      </div>
+
       <form id="settings" class="filters">
         <label>Category
           <select name="category"></select>
@@ -110,6 +117,7 @@
         <li><span class="key swatch data-none"></span>No clears</li>
         <li><span class="key tri"></span>Bros., where it starts</li>
         <li><span class="key route-key"></span>The route; numbers are its steps</li>
+        <li><span class="key here-key"></span>Where the run in progress stands</li>
         <li><span class="key dashed"></span>Road behind a locked door or a rock</li>
         <li><span class="key rock-key"></span>A rock the hammer breaks</li>
       </ul>

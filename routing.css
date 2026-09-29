@@ -112,6 +112,34 @@ input[type="number"] {
   font-size: 0.85rem;
 }
 
+/* The run in progress: the step being played, and the rows already behind
+   it on the map. */
+.follow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  align-items: baseline;
+  margin: 0.5rem 0;
+}
+
+.follow label.check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.follow .note {
+  margin: 0;
+}
+
+.route tr.now td {
+  background: var(--select);
+}
+
+.route tr.now td:first-child {
+  box-shadow: inset 3px 0 0 var(--route);
+}
+
 /* --- Worlds -------------------------------------------------------------- */
 
 .tabs {
@@ -307,6 +335,23 @@ input[type="number"] {
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
   border-bottom: 10px solid var(--ink-dim);
+}
+
+.key.here-key {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 3px solid var(--route);
+}
+
+.world-map .here circle {
+  fill: none;
+  stroke: var(--route);
+  stroke-width: 3;
+}
+
+.world-map .node.beaten rect {
+  opacity: 0.45;
 }
 
 .key.route-key {

@@ -7,7 +7,7 @@ use std::collections::BinaryHeap;
 use rustc_hash::FxHashMap;
 
 use crate::cost::{Coster, Costing};
-use crate::input::{Input, Settings, Stats, WorldMap};
+use crate::input::{Input, Settings, Start, Stats, WorldMap};
 use crate::items::*;
 
 // ---------------------------------------------------------------------------
@@ -748,6 +748,216 @@ impl<'a> Search<'a> {
             power: 0,
             inv: 0,
         }
+    }
+
+    /// The things of world `w` that go by a place key: a stage has one per
+    /// square it is entered from.
+    fn things_at<'s>(&'s self, w: usize, place: &'s str) -> impl Iterator<Item = usize> + 's {
+        let world = &self.worlds[w];
+        world
+            .stage
+            .iter()
+            .flatten()
+            .chain(&world.bros)
+            .copied()
+            .filter(move |&t| self.things[t].place == place)
+    }
+
+    /// Where a run in progress stands, as a state; and the thing being played
+    /// now, if one is, with what it was walked into as.
+    ///
+    /// Nothing reports a rock being broken, so one is taken as broken where
+    /// the player has been somewhere that nothing else would have let them
+    /// reach: see broken_rocks().
+    pub fn start(&self, from: &Start) -> (State, Option<(usize, Entry)>) {
+        let w = from.world;
+        if w >= self.worlds.len() || w > self.rules.last_world {
+            return (self.end(), None);
+        }
+        let power = power_index(&from.power);
+        let mut inv = 0;
+        for slot in from.items.iter().filter_map(|item| slot_of(item)) {
+            inv = give(inv, slot);
+        }
+
+        let mut done = 0;
+        for place in &from.done {
+            for t in self.things_at(w, place) {
+                done |= self.things[t].bit;
+            }
+        }
+
+        let world = &self.worlds[w];
+        let mut pos = world.start;
+        if let Some(t) = from.at.as_deref().and_then(|at| self.things_at(w, at).next()) {
+            let node = self.things[t].node;
+            pos = node;
+            if self.things[t].kind == ThingKind::Stage {
+                // The castle beaten, and the next world not yet said to be
+                // entered: its reward is in the list already, as the game
+                // reports the list.
+                if world.last[node] {
+                    if w >= self.rules.last_world {
+                        return (self.end(), None);
+                    }
+                    let next = self.s0(w + 1);
+                    return (
+                        State {
+                            power,
+                            inv: self.tidy(w + 1, inv),
+                            ..next
+                        },
+                        None,
+                    );
+                }
+                pos = world.exit[node].unwrap_or(node);
+            }
+        }
+        let inside = from.inside.as_ref().and_then(|i| {
+            let t = self.things_at(w, &i.place).next()?;
+            let entry = Entry {
+                power: power_index(&i.entry.power),
+                star: i.entry.star,
+                pwing: i.entry.pwing,
+            };
+            Some((t, entry))
+        });
+        // The thing being played was walked to as well.
+        let been = inside.map(|(t, _)| self.things[t].node);
+        done |= self.broken_rocks(w, done, pos, been);
+
+        let state = State {
+            world: w as u8,
+            done,
+            pos: pos as u8,
+            power,
+            inv: self.tidy(w, inv),
+        };
+        (state, inside)
+    }
+
+    /// The rocks that must have been broken for the player to have got to
+    /// `pos`, to `been` if given, and to everything they have beaten: one at
+    /// a time, each one on the edge of where they could otherwise reach, and
+    /// one that opens the way to somewhere they have been before any that
+    /// does not.
+    fn broken_rocks(&self, w: usize, done: u32, pos: usize, been: Option<usize>) -> u32 {
+        let world = &self.worlds[w];
+        let mut needed: Vec<usize> = [pos].into_iter().chain(been).collect();
+        for &t in world.stage.iter().flatten().chain(&world.bros) {
+            if done & self.things[t].bit != 0 {
+                needed.push(self.things[t].node);
+            }
+        }
+
+        // What can be reached with these open, and the rocks at its edge.
+        let reach = |open: u32| -> (Vec<bool>, Vec<u32>) {
+            let mut reached = vec![false; world.links.len()];
+            let mut edge = Vec::new();
+            let mut stack = vec![world.start];
+            reached[world.start] = true;
+            while let Some(u) = stack.pop() {
+                if !self.open(w, open, u) {
+                    continue;
+                }
+                for link in &world.links[u] {
+                    if link.door != 0 && open & world.opens[link.door] == 0 {
+                        continue;
+                    }
+                    if link.rock != 0 && open & link.rock == 0 {
+                        edge.push(link.rock);
+                        continue;
+                    }
+                    if !reached[link.to] {
+                        reached[link.to] = true;
+                        stack.push(link.to);
+                    }
+                }
+            }
+            (reached, edge)
+        };
+        let missing = |reached: &[bool]| needed.iter().filter(|&&n| !reached[n]).count();
+
+        let mut broken = 0;
+        loop {
+            let (reached, edge) = reach(done | broken);
+            let left = missing(&reached);
+            if left == 0 || edge.is_empty() {
+                return broken;
+            }
+            let rock = edge
+                .iter()
+                .copied()
+                .find(|&r| missing(&reach(done | broken | r).0) < left)
+                .unwrap_or(edge[0]);
+            broken |= rock;
+        }
+    }
+
+    /// Finishing the thing being played now, walked into as `entry`: every
+    /// way out the history has for it, the best `keep` of them ranked as
+    /// choices() ranks, by the time each leaves to go.
+    pub fn played(
+        &mut self,
+        s: State,
+        thing: usize,
+        entry: Entry,
+        keep: usize,
+    ) -> Result<Vec<(Action, f64)>, TooBig> {
+        let w = s.world as usize;
+        let (kind, node, bit) = {
+            let t = &self.things[thing];
+            (t.kind, t.node, t.bit)
+        };
+        let overhead = self.settings.overhead_ms;
+        let mut with_treasure = s.inv;
+        for &slot in &self.things[thing].treasure {
+            with_treasure = give(with_treasure, slot);
+        }
+
+        self.costs(thing, entry);
+        let list = self.coster.known(thing, entry).unwrap().to_vec();
+        let actions: Vec<Action> = list
+            .iter()
+            .enumerate()
+            .map(|(i, c)| {
+                let (kind, to, next) = if kind == ThingKind::Bros {
+                    let next = self.after(s, s.done | bit, node, c.power, with_treasure);
+                    (Kind::Bros, node, next)
+                } else {
+                    let lands = self.worlds[w].exit[node].unwrap_or(node);
+                    let inv = self.handed(w, thing, &c.slots, s.inv);
+                    let next = if self.worlds[w].last[node] {
+                        self.next_world(w, c.power, inv)
+                    } else {
+                        self.after(s, s.done | bit, lands, c.power, inv)
+                    };
+                    (Kind::Stage, lands, next)
+                };
+                Action {
+                    kind,
+                    warp: None,
+                    node,
+                    to,
+                    thing: Some(thing),
+                    spends: Use::default(),
+                    entry: Some(entry),
+                    walk_ms: 0.0,
+                    do_ms: c.ms + overhead,
+                    costing: Some(i),
+                    next,
+                }
+            })
+            .collect();
+
+        let mut out = Vec::with_capacity(actions.len());
+        for a in actions {
+            let total = self.lookahead(&a, f64::INFINITY)?;
+            out.push((a, total));
+        }
+        out.sort_by(|x, y| x.1.total_cmp(&y.1));
+        out.truncate(keep);
+        Ok(out)
     }
 
     /// The start of the next world, with the castle's reward in hand - or the

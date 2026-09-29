@@ -16,6 +16,10 @@
 // cost, since everything here is worked out again once the history stops
 // changing for a moment: a search can still be half a second of work, and
 // there is no sense starting one per event.
+//
+// It can also follow the run itself: with "Follow the run in progress" on, the
+// route is searched from wherever the newest open attempt has got to (see
+// live.ts) rather than from a new game, and is searched again as it moves.
 
 import { CATEGORIES, category, isCategoryId } from "../speedrun/category.ts";
 import { type Power } from "../speedrun/events.ts";
@@ -24,6 +28,7 @@ import { levelName, monsterName } from "../speedrun/names.ts";
 import { type Attempt, parseAttempt, parseLines } from "../analysis/attempts.ts";
 import { clock } from "../analysis/charts.ts";
 import { type Visit, visitsOf as cutIntoVisits } from "../analysis/visits.ts";
+import { type Live, inProgress } from "./live.ts";
 import { MAPS } from "./maps.ts";
 import {
   type Entry,
@@ -36,7 +41,7 @@ import {
   parseEntryKey,
 } from "./model.ts";
 import { type Alternative, type Costed, DEFAULTS, OBJECTIVES, type Plan, type Settings, type Step } from "./route.ts";
-import { type PlaceInfo, type Strength, drawWorld } from "./view.ts";
+import { type Here, type PlaceInfo, type Strength, drawWorld } from "./view.ts";
 // `import type`, not `import { type ... }`: under verbatimModuleSyntax the
 // latter still imports the module, and would run the worker's body - its fetch
 // of the search, its message listener - on the page.
@@ -229,6 +234,9 @@ let asked = 0;
 let plan: Plan | null = null;
 let planError: string | null = null;
 let searching = false;
+/** The run in progress the latest question was asked from, and the plan's. */
+let askedLive: Live | null = null;
+let planLive: Live | null = null;
 
 function reply(e: MessageEvent<Reply>): void {
   // Only the answer to the latest question: the history or the settings have
@@ -236,6 +244,7 @@ function reply(e: MessageEvent<Reply>): void {
   if (e.data.id !== asked) return;
 
   searching = false;
+  planLive = askedLive;
   if ("plan" in e.data) {
     plan = e.data.plan;
     planError = null;
@@ -277,16 +286,102 @@ function runSearch(): void {
   }
 
   searching = true;
-  const request: Request = { id: ++asked, stats: model.stats, settings };
+  askedLive = live;
+  const request: Request = { id: ++asked, stats: model.stats, settings, from: live?.start ?? null };
   worker.postMessage(request);
   renderStatus();
 }
 
-/** Search again once the history has been still for a moment. */
+/**
+ * Search again once the history has been still for a moment - a shorter one
+ * where the run being followed has moved, which is worth seeing at once.
+ */
 let pending = 0;
-function searchSoon(): void {
+function searchSoon(ms = 1500): void {
   clearTimeout(pending);
-  pending = setTimeout(runSearch, 1500);
+  pending = setTimeout(runSearch, ms);
+}
+
+// ---------------------------------------------------------------------------
+// Following a run in progress
+
+const FOLLOW_KEY = "sm68k.routing.follow";
+
+function loadFollow(): boolean {
+  try {
+    return localStorage.getItem(FOLLOW_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+let follow = loadFollow();
+let live: Live | null = null;
+
+/**
+ * Read where the run in progress stands, and say whether that has moved. A
+ * move into another world takes the map there with it.
+ */
+function updateLive(): boolean {
+  const next = follow ? inProgress(local.values()) : null;
+  const moved = JSON.stringify(next && [next.attempt.id, next.start]) !== JSON.stringify(live && [live.attempt.id, live.start]);
+
+  if (next !== null && next.start.world !== live?.start.world && next.start.world < MAPS.length) {
+    world = next.start.world;
+    selected = null;
+  }
+  live = next;
+  return moved;
+}
+
+function holdingText(items: readonly string[]): string {
+  return items.length > 0 ? `holding ${items.map(itemName).join(", ")}` : "holding nothing";
+}
+
+function describeLive(): void {
+  const out = $("live");
+  if (!follow) {
+    out.textContent = "";
+    return;
+  }
+  if (live === null) {
+    out.textContent =
+      "No run in progress in this browser, so the route is from a new game. Start one in the game's tab, timed or in practice mode, and it is followed from there.";
+    return;
+  }
+
+  const { attempt, start } = live;
+  const when = attempt.started.toPlainTime().toString({ smallestUnit: "minute" });
+  const where = start.inside
+    ? `playing ${nameOf(start.inside.place)}, walked in as ${entryLabel(start.inside.entry)}`
+    : start.at !== null
+      ? `after ${nameOf(start.at)}, ${entryLabel({ power: start.power, star: false, pwing: false })}`
+      : `at the start of the map, ${entryLabel({ power: start.power, star: false, pwing: false })}`;
+  const parts = [
+    `Following the ${attempt.mode === "run" ? "timed run" : "practice game"} started at ${when}: world ${start.world + 1}, ${where}, ${holdingText(start.items)}.`,
+  ];
+  if (attempt.category !== null && attempt.category !== settings.category) {
+    parts.push(`It is timed as ${category(attempt.category).name}; the route is for ${category(settings.category).name}.`);
+  }
+  if (planLive !== null && plan !== null && plan.steps.length === 0) {
+    parts.push("Nothing left to route: the run is at the end of the category.");
+  }
+  out.textContent = parts.join(" ");
+}
+
+/** Where the run the plan was searched from stands, if it is on world `w`. */
+function hereOn(w: number): Here | null {
+  if (planLive === null || planLive.start.world !== w) return null;
+
+  const map = MAPS[w]!;
+  const { done, at } = planLive.start;
+  const nodeOf = (place: string): number | undefined => {
+    if (place.startsWith("M")) return map.bros.find((b) => `M${w}.${b.monster}` === place)?.node;
+    const node = map.nodes.find((n) => n.level !== undefined && `L${w}.${n.level}` === place);
+    return node && (node.exit ?? node.id);
+  };
+  const beaten = map.nodes.filter((n) => n.level !== undefined && done.includes(`L${w}.${n.level}`)).map((n) => n.id);
+  return { node: (at === null ? undefined : nodeOf(at)) ?? map.start, beaten };
 }
 
 // ---------------------------------------------------------------------------
@@ -420,9 +515,10 @@ function drawTiles(p: Plan): void {
   const spent = p.steps.flatMap((s) => s.use);
   const weak = routeHoles(p).length;
 
+  const sum = settings.objective === "median" ? "medians" : "bests";
   const tiles: [string, string, string][] = [
     [
-      settings.objective === "median" ? "Sum of medians" : "Sum of bests",
+      planLive === null ? `Sum of ${sum}` : `Left: sum of ${sum}`,
       clock(p.total),
       "map time included; no deaths, and nothing left to chance",
     ],
@@ -430,6 +526,11 @@ function drawTiles(p: Plan): void {
     ["Items spent", String(spent.length), spent.length > 0 ? [...new Set(spent)].map(itemName).join(", ") : "none"],
     ["Weak spots", String(weak), "on the route, or deciding it"],
   ];
+  // A timed run's clock, carried on: where it was at the last thing the game
+  // reported, and the rest of the route after it.
+  if (planLive !== null && planLive.attempt.mode === "run") {
+    tiles.splice(1, 0, ["Finish", clock(planLive.since + p.total), `about, from ${clock(planLive.since)} on the clock`]);
+  }
 
   $("result-tiles").replaceChildren(
     ...tiles.map(([label, value, note]) =>
@@ -485,6 +586,10 @@ function drawRoute(p: Plan): void {
     tr.cells[5]!.className = "wrap";
     tr.cells[7]!.className = "wrap";
     tr.title = step.holding.length > 0 ? `Holding: ${step.holding.map(itemName).join(", ")}` : "Holding nothing";
+    if (i === 0 && planLive?.start.inside?.place === step.place && step.place !== null) {
+      tr.classList.add("now");
+      tr.cells[1]!.append(element("span", "dim", " · playing now"));
+    }
     body.append(tr);
   });
 
@@ -953,6 +1058,7 @@ function drawWorldSection(): void {
       selected = selected === place ? null : place;
       render();
     },
+    hereOn(world),
   );
   drawStagesTable();
   drawItems();
@@ -961,6 +1067,7 @@ function drawWorldSection(): void {
 
 function render(): void {
   renderStatus();
+  describeLive();
   $("result").hidden = plan === null;
   if (plan !== null) {
     drawTiles(plan);
@@ -974,8 +1081,9 @@ function render(): void {
 function changed(): void {
   describeSources();
   rebuild();
+  const moved = updateLive();
   render();
-  searchSoon();
+  searchSoon(moved ? 300 : 1500);
 }
 
 // ---------------------------------------------------------------------------
@@ -1039,6 +1147,20 @@ async function start(): Promise<void> {
     changed();
   });
 
+  const followBox = $<HTMLInputElement>("follow");
+  followBox.checked = follow;
+  followBox.addEventListener("change", () => {
+    follow = followBox.checked;
+    try {
+      localStorage.setItem(FOLLOW_KEY, String(follow));
+    } catch {
+      /* Only this visit keeps it. */
+    }
+    updateLive();
+    render();
+    runSearch();
+  });
+
   $("holes-more").addEventListener("click", () => {
     holesShown += 25;
     drawHoles();
@@ -1076,6 +1198,7 @@ async function start(): Promise<void> {
 
   describeSourcesIfEmpty();
   rebuild();
+  updateLive();
   render();
   runSearch();
 }
