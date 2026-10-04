@@ -1,6 +1,9 @@
 #include "gray.h"
 #include "../render.h"
 #include "graph.h"
+#ifdef SM68K_TAS
+#include "../tas.h"
+#endif
 
 #include <emscripten.h>
 
@@ -78,9 +81,15 @@ void SetFrameRate(int16_t fps)
 	frame_rate = fps;
 }
 
+// In the TAS build a frame is the page's to release rather than the display's:
+// see tas.h.
 static void pageflip_wait(void)
 {
+#ifdef SM68K_TAS
+	tas::frame(1000.0 / frame_rate);
+#else
 	wait_for_frame(1000.0 / frame_rate);
+#endif
 }
 
 void DelayNFrames(uint16_t frames)
@@ -158,6 +167,10 @@ void GrayDBufToggleSync(void)
 // otherwise not appear at all until the next flip overwrote them.
 void GrayDBufRefresh(void)
 {
+#ifdef SM68K_TAS
+	if (!tas::drawing())
+		return;
+#endif
 	render((uint8_t *)GrayDBufGetActivePlane(LIGHT_PLANE),
 	       (uint8_t *)GrayDBufGetActivePlane(DARK_PLANE));
 	pageflip(renderbuf, screen_width, screen_height);

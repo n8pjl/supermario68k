@@ -31,6 +31,9 @@
 #include "shells.h"
 #include "smallgames.h"
 #include "speedrun.h"
+#ifdef SM68K_TAS
+#include "tas.h"
+#endif
 #include "text.h"
 #include "version.h"
 #include <emscripten/em_asm.h>
@@ -75,6 +78,10 @@ bool ti89_mode = false;
 // Main Function
 int main(void)
 {
+#ifdef SM68K_TAS
+	tas::power_on();
+#endif
+
 	ErrorCode = 0;
 	Skip_anim = 1;
 

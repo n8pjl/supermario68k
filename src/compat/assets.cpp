@@ -164,6 +164,12 @@ static void load_saves(void)
 		return;
 	done = true;
 
+	// A movie starts from power-on with nothing saved, whatever this
+	// browser has: the same inputs have to play out the same everywhere.
+#ifdef SM68K_TAS
+	return;
+#endif
+
 	for (size_t i = 0; i < ASSET_COUNT; i++)
 		load_save(&Assets[i]);
 }
@@ -201,7 +207,10 @@ bool Asset_save(struct asset *a, const void *data, size_t size)
 
 	// A record that cannot be written is not a failed save: the copy above
 	// still shadows the file for the rest of the session, which is what the
-	// game shows the player. Only the next session loses it.
+	// game shows the player. Only the next session loses it. The TAS build
+	// never writes one: a save made by a movie is the movie's, and lives in
+	// the memory its snapshots copy, not in the player's own saves.
+#ifndef SM68K_TAS
 	EM_ASM(
 		{
 			// clang-format off
@@ -220,6 +229,7 @@ bool Asset_save(struct asset *a, const void *data, size_t size)
 			// clang-format on
 		},
 		a->name, save, size, SAVE_VERSION);
+#endif
 
 	if (a->saved)
 		free((void *)a->data); // ours: the save it is replacing

@@ -3,7 +3,8 @@
 
 The point is cache headers. Everything here can be served immutable with a
 year-long TTL, because a file's name changes whenever its bytes do; only
-the three pages - index.html, data/index.html and routing/index.html - are
+the four pages - index.html, data/index.html, routing/index.html and
+tas/index.html - are
 fetched every visit, and they are the only files that carry no hash.
 That also makes a deploy atomic without any coordination: one revalidated
 document names one consistent set of frozen URLs, so a browser can never pair
@@ -25,6 +26,12 @@ bytes of the file holding it, and so changes its hash:
     routing/index.html -> routing.js -> routing-worker.js -> routing-search.wasm
                        \\-> data.css
                        \\-> routing.css
+
+    tas/index.html -> tas.js -> mario-tas.js -> mario-tas.wasm
+                   |        \\-> mario-tas.wasm
+                   |        \\-> ma_texts.json
+                   \\-> data.css
+                   \\-> tas.css
 
 So the leaves are hashed and renamed, then each referrer has the new names
 substituted into it, and only then is the referrer itself hashed. Doing it the
@@ -180,6 +187,22 @@ def main():
     substitute(glue, {"mario.wasm": (wasm, 2)})
     mario = freeze(glue)
 
+    # The TAS build of the game, and the page script that loads it. The script
+    # fetches the wasm itself, to name the build a movie was made on by its
+    # bytes, and hands it to the glue - which still names it, and is rewritten
+    # to match all the same.
+    tas_wasm = freeze(shutil.copy(os.path.join(build, "mario-tas.wasm"),
+                                  dst("mario-tas.wasm")))
+    tas_glue = minify_js(os.path.join(build, "mario-tas.js"), dst("mario-tas.js"))
+    substitute(tas_glue, {"mario-tas.wasm": (tas_wasm, 2)})
+    tas_glue = freeze(tas_glue)
+    tas_css = freeze(minify_css("tas.css", dst("tas.css")))
+    tas = bundle_js("tas/index.ts", dst("tas.js"))
+    substitute(tas, {'"./mario-tas.js"': (f'"./{tas_glue}"', 1),
+                     '"./mario-tas.wasm"': (f'"./{tas_wasm}"', 1),
+                     '"./ma_texts.json"': (f'"./{texts}"', 1)})
+    tas = freeze(tas)
+
     shell = minify_js("shell.js", dst("shell.js"))
     substitute(shell, {'"./mario.js"': (f'"./{mario}"', 1),
                        '"./ma_texts.json"': (f'"./{texts}"', 1),
@@ -214,11 +237,20 @@ def main():
                             '"index.html"': ('"../"', 1),
                             '"data.html"': ('"../data/"', 1)})
 
+    # The TAS page, served as tas/ for the same reason.
+    os.makedirs(dst("tas"))
+    tas_page = shutil.copy("tas.html", os.path.join(out, "tas", "index.html"))
+    substitute(tas_page, {'"tas.js"': (f'"../{tas}"', 1),
+                          '"data.css"': (f'"../{data_css}"', 1),
+                          '"tas.css"': (f'"../{tas_css}"', 1),
+                          '"index.html"': ('"../"', 1)})
+
     for name in sorted(os.listdir(out)):
         if os.path.isfile(dst(name)):
             print(f"  {os.path.getsize(dst(name)):>7}  {name}")
     print(f"  {os.path.getsize(page):>7}  data/index.html")
     print(f"  {os.path.getsize(route_page):>7}  routing/index.html")
+    print(f"  {os.path.getsize(tas_page):>7}  tas/index.html")
 
 
 if __name__ == "__main__":

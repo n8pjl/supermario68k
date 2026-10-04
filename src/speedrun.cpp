@@ -150,6 +150,15 @@ Loadout loadout()
 
 void report(const Event &event)
 {
+	// The TAS build has no timer to report to, and asking whether it does is
+	// not free there: Embind hands out ids from its JS side that the C side
+	// caches in statics, so a restored snapshot would ask again and cache a
+	// different one - harmless to the game, but no longer the same memory
+	// the movie made the first time. See src/tas.h.
+#ifdef SM68K_TAS
+	return;
+#endif
+
 	// The shell only installs the hook when the player asked for the timer
 	// or for practice mode - the second so that practice is kept in the run
 	// history too - so on most runs of the game there is nothing listening

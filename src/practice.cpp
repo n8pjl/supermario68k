@@ -63,6 +63,12 @@ static bool present(const emscripten::val &Value)
 // of the first map is the answer for the whole session.
 static bool hooked()
 {
+	// Never listening in the TAS build, for the reason speedrun::report()
+	// gives.
+#ifdef SM68K_TAS
+	return false;
+#endif
+
 	static const bool answer = [] {
 		emscripten::val hook =
 			emscripten::val::module_property("onPracticeRequest");

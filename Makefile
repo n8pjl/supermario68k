@@ -25,6 +25,22 @@ LDFLAGS = -sJSPI -Os -flto -fwasm-exceptions -sWASM_LEGACY_EXCEPTIONS=0 \
           -sENVIRONMENT=web -sEXPORT_ES6=1 -lembind \
           -sEXPORTED_FUNCTIONS=_main,_malloc
 
+# The TAS build: the same game, linked with Asyncify instead of JSPI so that a
+# suspended game is nothing but linear memory and can be snapshotted - see
+# src/tas.h. Emscripten does not support Asyncify alongside the wasm exception
+# proposal, and main()'s try wraps every suspension, so these objects are
+# compiled without exceptions: the one throw (speedrun::Stopped) is only ever
+# raised for a recording the timer finishes, and the TAS build has no timer.
+# --js-library: src/tas-runtime.js, which is how the page reaches the few
+# registers a snapshot needs alongside the memory.
+TAS_CFLAGS = $(filter-out -fwasm-exceptions -sWASM_LEGACY_EXCEPTIONS=0,$(CFLAGS)) \
+             -DSM68K_TAS
+TAS_LDFLAGS = -sASYNCIFY -Os -flto \
+              -sENVIRONMENT=web -sEXPORT_ES6=1 -lembind \
+              -sEXPORTED_FUNCTIONS=_main,_malloc \
+              --js-library $(SRCDIR)/tas-runtime.js \
+              '-sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$$tasRuntime'
+
 SRCDIR = src
 
 OUTDIR = dist
@@ -34,6 +50,7 @@ OUTDIR = dist
 BUILDDIR = build
 
 TARGET = $(BUILDDIR)/mario.js
+TAS_TARGET = $(BUILDDIR)/mario-tas.js
 
 # esbuild is pinned in package.json, so the shipped bytes do not change under us
 # when a new version lands. --ignore-scripts on the install because the binary
@@ -64,6 +81,11 @@ ANALYSIS = $(wildcard analysis/*.ts)
 # rather than imported. It reads the run history the way the data page does,
 # and imports from there.
 ROUTING = $(wildcard routing/*.ts)
+
+# The TAS page's script: a movie, the game it plays on and the editor for it.
+# It loads the TAS build of the game by URL rather than importing it, the way
+# the routing page loads its worker, so esbuild leaves the build alone.
+TAS = $(wildcard tas/*.ts)
 
 # The route search itself, which is Rust: a crate of its own under
 # routing/search, built to wasm for the worker to load. --locked holds it to
@@ -110,10 +132,17 @@ HDRS = $(wildcard $(SRCDIR)/*.h $(SRCDIR)/compat/*.h)
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(OBJS:.o=.d)
 
+# The TAS build's objects, compiled from the same sources with TAS_CFLAGS, plus
+# the one file only it has. Kept under $(BUILDDIR) rather than beside their
+# sources, where the shipped build's objects already are.
+TAS_OBJDIR = $(BUILDDIR)/tas
+TAS_OBJS = $(addprefix $(TAS_OBJDIR)/,$(NAMES:.cpp=.o) tas.o)
+DEPS += $(TAS_OBJS:.o=.d)
+
 .PHONY: all clean data format maps stages typecheck verify-levels
 
 all: speedrun.js practice.js analysis.js routing.js routing-worker.js \
-     routing-search.wasm $(DIST)
+     routing-search.wasm tas.js $(DIST)
 
 # The level data's source: JSON under levels/, compiled to the blobs the game
 # embeds. See tools/mklevels.py for the format and for why encoding it
@@ -202,12 +231,25 @@ $(TARGET): $(OBJS) Makefile | $(BUILDDIR)
 # is already up to date once $(TARGET) is, rather than having no rule.
 $(BUILDDIR)/mario.wasm: $(TARGET) ;
 
+$(TAS_OBJS): Makefile
+$(TAS_OBJDIR)/compat/assets.o: .data-stamp
+
+$(TAS_TARGET): $(TAS_OBJS) $(SRCDIR)/tas-runtime.js Makefile
+	$(CC) $(TAS_OBJS) $(TAS_LDFLAGS) -o $@
+
+$(BUILDDIR)/mario-tas.wasm: $(TAS_TARGET) ;
+
+$(TAS_OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	@mkdir -p $(dir $@)
+	$(CC) $(TAS_CFLAGS) -c $< -o $@
+
 # mkdist.py empties $(OUTDIR) and refills it, so there is nothing here for make
 # to build incrementally and nothing for a stale hash to survive in.
 $(DIST): $(TARGET) $(BUILDDIR)/mario.wasm \
          index.html shell.js shell.css ma_texts.json $(SPEEDRUN) $(PRACTICE) \
          data.html data.css $(ANALYSIS) \
          routing.html routing.css $(ROUTING) routing-search.wasm \
+         $(TAS_TARGET) $(BUILDDIR)/mario-tas.wasm tas.html tas.css $(TAS) \
          $(TYPECHECK) tools/mkdist.py Makefile | $(ESBUILD)
 	ESBUILD=$(ESBUILD) python3 tools/mkdist.py $(BUILDDIR) $(OUTDIR)
 	@touch $@
@@ -223,7 +265,7 @@ $(TSC): $(ESBUILD) ;
 
 # A type error fails the build rather than riding along into dist/: nothing
 # downstream of here would notice one, least of all esbuild.
-$(TYPECHECK): $(SPEEDRUN) $(PRACTICE) $(ANALYSIS) $(ROUTING) tsconfig.json \
+$(TYPECHECK): $(SPEEDRUN) $(PRACTICE) $(ANALYSIS) $(ROUTING) $(TAS) tsconfig.json \
               $(STAGECHECK) $(MAPCHECK) | $(TSC)
 	$(TSC) --noEmit
 	@touch $@
@@ -255,6 +297,12 @@ routing.js: $(ROUTING) $(ANALYSIS) $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
 
 routing-worker.js: $(ROUTING) $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
 	$(ESBUILD) routing/worker.ts --bundle --format=esm --target=esnext \
+		--outfile=$@
+
+# And the TAS page, which tas.html reaches by this name. It fetches the TAS
+# build of the game from beside itself, as mario-tas.js and mario-tas.wasm.
+tas.js: $(TAS) $(TYPECHECK) | $(ESBUILD)
+	$(ESBUILD) tas/index.ts --bundle --format=esm --target=esnext \
 		--outfile=$@
 
 # And the search the worker loads, which it reaches as ./routing-search.wasm
@@ -291,5 +339,5 @@ verify-levels:
 clean:
 	rm -f $(OBJS) $(DEPS) .data-stamp $(LEVELCHECK) $(STAGECHECK) $(DIST) \
 	      $(MAPCHECK) $(TYPECHECK) speedrun.js practice.js analysis.js \
-	      routing.js routing-worker.js routing-search.wasm
+	      routing.js routing-worker.js routing-search.wasm tas.js
 	rm -rf $(OUTDIR) $(BUILDDIR) data $(SEARCH_CRATE)/target

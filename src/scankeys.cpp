@@ -1,4 +1,7 @@
 #include "scankeys.h"
+#ifdef SM68K_TAS
+#include "tas.h"
+#endif
 #include <emscripten/em_asm.h>
 #include <emscripten/em_js.h>
 #include <stddef.h>
@@ -56,6 +59,25 @@ EM_ASYNC_JS(void, browser_action_pressed, (void), {
 	// clang-format on
 })
 
+// The TAS build polls a frame at a time instead, so that every wait is made of
+// whole movie frames and nothing is left suspended in JS across a restore (see
+// tas.h). A keyboard event has no frame to belong to, so a press is only seen
+// by the poll, the way the controller's already is. The display refresh is the
+// pace the browser polled at, so it is the pace these frames ask for.
+#ifdef SM68K_TAS
+void WaitKeyReleased()
+{
+	while (tas::any_action())
+		tas::frame(1000.0 / 60);
+}
+
+void WaitKeyPress()
+{
+	WaitKeyReleased();
+	while (!tas::any_action())
+		tas::frame(1000.0 / 60);
+}
+#else
 void WaitKeyReleased()
 {
 	browser_wait_no_actions_held();
@@ -66,6 +88,7 @@ void WaitKeyPress()
 	browser_wait_no_actions_held();
 	browser_action_pressed();
 }
+#endif
 
 void ScanKeys(void)
 {

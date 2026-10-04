@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TAS · Super Mario 68K</title>
+  <link rel="stylesheet" href="data.css" />
+  <link rel="stylesheet" href="tas.css" />
+</head>
+<body>
+  <!-- Served as tas/ in dist/ (see tools/mkdist.py), and as tas.html when this
+       directory is served as it stands. -->
+  <header>
+    <h1>Super <span>Mario</span> 68K <small>TAS</small></h1>
+    <nav class="back"><a href="index.html">Back to the game</a></nav>
+  </header>
+
+  <main class="tas">
+    <section class="screen">
+      <div class="console"><canvas id="canvas"></canvas></div>
+      <p id="status" class="note" role="status">Loading the game…</p>
+
+      <!-- A movie is made for one calculator and one language, and plays from
+           power-on with nothing saved: changing either is a new movie. -->
+      <form id="movie" class="filters">
+        <label>Calculator <select name="calc"></select></label>
+        <label>Language <select name="lang"></select></label>
+        <button type="submit">New movie</button>
+        <button type="button" id="import">Import…</button>
+        <button type="button" id="export">Export</button>
+        <input type="file" id="file" accept=".txt,text/plain" hidden />
+      </form>
+
+      <details class="help">
+        <summary>Keys</summary>
+        <dl>
+          <dt>P</dt><dd>Play / pause</dd>
+          <dt>F</dt><dd>Advance a frame</dd>
+          <dt>R</dt><dd>Back a frame</dd>
+          <dt>T</dt><dd>Record on / off</dd>
+          <dt>Home</dt><dd>Back to power-on</dd>
+          <dt>1–9, 0</dt><dd>Go to a bookmark; with Shift, set it here</dd>
+          <dt>Insert / Delete</dt><dd>Insert a blank frame, or delete one, at the selected row</dd>
+        </dl>
+        <p class="note">
+          The game's own keys are the ones the game is bound to. They are
+          only read while recording: each frame played then takes what is
+          held as its input.
+        </p>
+        <p class="note" id="conflicts"></p>
+      </details>
+    </section>
+
+    <aside class="panel" aria-label="Movie">
+      <div class="transport">
+        <button type="button" id="start" title="Back to power-on (Home)">⏮</button>
+        <button type="button" id="back" title="Back a frame (R)">◀︎</button>
+        <button type="button" id="play" title="Play / pause (P)">▶︎</button>
+        <button type="button" id="advance" title="Advance a frame (F)">▶︎|</button>
+        <button type="button" id="record" title="Record (T)" aria-pressed="false">● Rec</button>
+        <label>Speed
+          <select id="speed">
+            <option value="0.25">25%</option>
+            <option value="0.5">50%</option>
+            <option value="1" selected>100%</option>
+            <option value="2">200%</option>
+            <option value="4">400%</option>
+          </select>
+        </label>
+      </div>
+
+      <dl class="counters">
+        <div><dt>Frame</dt><dd id="frame">0</dd></div>
+        <div><dt>Movie</dt><dd id="length">0</dd></div>
+        <div><dt>Lag</dt><dd id="lag">0</dd></div>
+        <div><dt>Rerecords</dt><dd id="rerecords">0</dd></div>
+        <div><dt>Snapshots</dt><dd id="snapshots">0</dd></div>
+      </dl>
+
+      <div class="bookmarks" id="bookmarks" aria-label="Bookmarks"></div>
+
+      <div class="edit">
+        <button type="button" id="insert" title="Insert a blank frame at the selected row (Insert)">Insert</button>
+        <button type="button" id="delete" title="Delete the selected row (Delete)">Delete</button>
+        <button type="button" id="truncate" title="Cut the movie off at the current frame">Truncate here</button>
+      </div>
+
+      <div class="roll" id="roll"></div>
+    </aside>
+  </main>
+
+  <script type="module" src="tas.js"></script>
+</body>
+</html>
