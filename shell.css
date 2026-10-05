@@ -1295,8 +1295,9 @@ body.immersive .inputs {
 }
 
 /* The best segment a split or a world has ever had, which is the same claim the
-   panel paints gold mid-run. */
-.sr-sheet-table tbody td:last-child {
+   panel paints gold mid-run, and a world's sum of best after it, which is made
+   of those golds. */
+.sr-sheet-table tbody td:nth-child(n + 4) {
   color: var(--gold);
 }
 

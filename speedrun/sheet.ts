@@ -20,6 +20,7 @@ import {
   segments,
   sumOfBest,
   sumOfGroupBest,
+  sumOfSplitBest,
   timeAt,
 } from "./records.ts";
 import { type Route, timedSplits } from "./route.ts";
@@ -63,9 +64,10 @@ function row(
  * The same four columns whichever of the two tables it is, because they are the
  * same four questions one level apart - what the best run had on the clock
  * there, how long that stretch took it, and the best that stretch has ever
- * been, whoever's run it was.
+ * been, whoever's run it was. `more` are headings for columns after those,
+ * which only one of the tables has a question for.
  */
-function table(caption: string, first: string): {
+function table(caption: string, first: string, more: readonly string[] = []): {
   root: HTMLElement;
   body: HTMLTableSectionElement;
 } {
@@ -84,7 +86,8 @@ function table(caption: string, first: string): {
     "Best run",
     "Segment",
     "Best segment",
-  ] as const) {
+    ...more,
+  ]) {
     const th = element("th", "", label);
 
     th.scope = "col";
@@ -125,7 +128,11 @@ export class SpeedrunSheet {
     );
 
     const splits = table("Splits", "Split");
-    const worlds = table("Worlds", "World");
+    // A world has one figure a split does not: its levels each at their best,
+    // added up. Not the same as its best segment, which is one run of the world
+    // start to end, and the gap between the two is the time still to be found
+    // in it - so the two are set side by side.
+    const worlds = table("Worlds", "World", ["Sum of best"]);
 
     this.#splits = splits.root;
     this.#splitRows = splits.body;
@@ -232,6 +239,7 @@ export class SpeedrunSheet {
           pb === null || last === undefined ? null : timeAt(pb, last.id),
           pbGroups?.get(group.id) ?? null,
           record.bestGroups.get(group.id) ?? null,
+          sumOfSplitBest(shown.slice(group.from, group.to + 1), record.best),
         ]);
       }),
     );

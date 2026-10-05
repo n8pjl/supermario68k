@@ -10,7 +10,7 @@
 // where they were.
 
 import { type SplitGroup } from "./groups.ts";
-import { type Route, timedSplits } from "./route.ts";
+import { type Route, type RouteSplit, timedSplits } from "./route.ts";
 import {
   duration,
   epoch,
@@ -192,9 +192,23 @@ export function sumOfBest(
   route: Route,
   best: ReadonlyMap<string, Temporal.Duration>,
 ): Temporal.Duration | null {
+  return sumOfSplitBest(timedSplits(route.splits), best);
+}
+
+/**
+ * Some of a route's splits, each at its best, or null if one has never closed.
+ *
+ * The sum of best over part of a route rather than the whole of it: one world's
+ * levels, for the world row that heads them. Handed timed splits, warps already
+ * dropped, for the reason sumOfBest() gives.
+ */
+export function sumOfSplitBest(
+  splits: readonly RouteSplit[],
+  best: ReadonlyMap<string, Temporal.Duration>,
+): Temporal.Duration | null {
   let total = duration(0);
 
-  for (const split of timedSplits(route.splits)) {
+  for (const split of splits) {
     const segment = best.get(split.id);
     if (segment === undefined) return null;
 
