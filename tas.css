@@ -10,6 +10,7 @@
   --lag: #e7e7e7;
   --held: #2a78d6;
   --record: #c62828;
+  --slow: #c25a1f;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,6 +20,7 @@
     --lag: #2c2c2c;
     --held: #5aa2f0;
     --record: #ef6b6b;
+    --slow: #e07a3e;
   }
 }
 
@@ -56,6 +58,127 @@ body {
 #canvas {
   image-rendering: pixelated;
   display: block;
+}
+
+/* The player, under the screen. */
+
+.player {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.player .tile {
+  padding: 0.5rem 0.8rem;
+}
+
+.player .speed {
+  border-color: var(--held);
+}
+
+.player .speed .tile-value {
+  color: var(--held);
+}
+
+.player small {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--ink-dim);
+}
+
+/* The level's speed frame by frame, and the levels of the movie under it. */
+
+.strip {
+  margin-top: 0.75rem;
+}
+
+.strip p {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin: 0 0 0.3rem;
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+}
+
+#strip {
+  display: block;
+  width: 100%;
+  height: 32px;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.segments {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  margin-top: 0.5rem;
+  padding-bottom: 0.25rem;
+}
+
+.segments button {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.25rem 0.6rem;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+}
+
+.segments button strong {
+  font-size: 13px;
+}
+
+.segments button.current {
+  border-color: var(--held);
+  box-shadow: inset 0 -3px 0 var(--held);
+}
+
+.segments button[data-state="waiting"] {
+  color: var(--ink-dim);
+}
+
+.segments button[data-state="changed"] strong::after {
+  content: " ✗";
+  color: var(--record);
+}
+
+.delta {
+  color: var(--held);
+}
+
+.delta.more {
+  color: var(--slow);
+}
+
+.level {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.level select {
+  flex: 1;
+  min-width: 0;
+}
+
+.check {
+  margin: 0;
+  color: var(--accent);
+}
+
+.check[data-state="waiting"] {
+  color: var(--ink-dim);
+}
+
+.check[data-state="changed"] {
+  color: var(--record);
 }
 
 .help dl {
@@ -188,7 +311,7 @@ body {
 
 .roll-row {
   display: grid;
-  grid-template-columns: 5.5rem repeat(8, 1fr);
+  grid-template-columns: 5.5rem repeat(8, 1fr) 2.5rem;
   height: var(--row);
 }
 
@@ -254,6 +377,23 @@ body {
 .roll-row.selected .roll-frame {
   outline: 2px solid var(--held);
   outline-offset: -2px;
+}
+
+/* How far the player moved on the frame: full speed, less, or not at all. */
+.roll-speed {
+  font-weight: 600;
+}
+
+.roll-speed[data-speed="full"] {
+  color: var(--held);
+}
+
+.roll-speed[data-speed="slow"] {
+  color: var(--slow);
+}
+
+.roll-speed[data-speed="stopped"] {
+  color: var(--record);
 }
 
 /* A snapshot is a dot beside the frame number, a bookmark its slot number. */

@@ -4,6 +4,9 @@
 // frame's number puts the game at that frame - before its input is played -
 // and selects the row, which is what inserting and deleting act on.
 //
+// Frames are numbered from the start of the level they are in, and the last
+// column is how far the player moved right on each: see Session.moved().
+//
 // Only the rows in view exist: a movie is tens of thousands of frames, and
 // the editor is redrawn on every one played.
 
@@ -25,7 +28,13 @@ export interface RollState {
   /** The bookmark slot of each bookmarked frame. */
   readonly bookmarks: ReadonlyMap<number, number>;
   readonly selected: number;
+  /** A frame's number as it is shown, and as a title. */
+  label(frame: number): { text: string; title: string };
+  speed(frame: number): number | null;
 }
+
+/** The player's speed running with room to: PLAYER_RUNSPEED in src/player.h. */
+export const FULL_SPEED = 4;
 
 export interface RollActions {
   setInput(frame: number, input: Input): void;
@@ -52,6 +61,9 @@ export class Roll {
       c.title = BUTTON_LABELS[button];
       head.append(c);
     });
+    const speed = cell("roll-speed", "ΔX");
+    speed.title = "How far the player's X moved on the frame, in pixels";
+    head.append(speed);
 
     // The head scrolls with the rows, stuck to the top, so that the rows'
     // scrollbar narrows both alike and the columns stay lined up.
@@ -106,6 +118,7 @@ export class Roll {
       row.className = "roll-row";
       row.append(cell("roll-frame", ""));
       for (let i = 0; i < BUTTONS.length; i++) row.append(cell("roll-button", ""));
+      row.append(cell("roll-speed", ""));
       this.#sizer.append(row);
       this.#rows.push(row);
     }
@@ -130,7 +143,9 @@ export class Roll {
 
       const label = row.children[0] as HTMLElement;
       const slot = state.bookmarks.get(frame);
-      label.textContent = String(frame);
+      const { text, title } = state.label(frame);
+      label.textContent = text;
+      label.title = title;
       label.classList.toggle("keyframe", state.keyframes.has(frame));
       if (slot === undefined) delete label.dataset["bookmark"];
       else label.dataset["bookmark"] = String((slot + 1) % 10);
@@ -141,6 +156,12 @@ export class Roll {
         c.classList.toggle("on", on);
         c.textContent = on ? BUTTON_LETTERS[b]! : "";
       }
+
+      const speed = row.children[BUTTONS.length + 1] as HTMLElement;
+      const moved = state.speed(frame);
+      speed.textContent = moved === null ? "" : String(moved);
+      speed.dataset["speed"] =
+        moved === null ? "" : moved >= FULL_SPEED ? "full" : moved > 0 ? "slow" : "stopped";
     });
   }
 
@@ -158,7 +179,7 @@ export class Roll {
   #down(e: PointerEvent): void {
     const at = this.#at(e);
     const state = this.#state;
-    if (!at || !state || e.button !== 0) return;
+    if (!at || !state || e.button !== 0 || at.button >= BUTTONS.length) return;
 
     this.actions.select(at.frame);
     if (at.button < 0) {

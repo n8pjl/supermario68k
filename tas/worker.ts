@@ -4,7 +4,7 @@
 //
 // Requests are answered one at a time, in the order they came.
 
-import { Game, type Factory, type Snapshot } from "./game.ts";
+import { Game, type Factory, type Player, type Snapshot, type TasEvent } from "./game.ts";
 import type { Calc, Input } from "./movie.ts";
 
 /** How long one play request runs before it answers with what it has. */
@@ -35,10 +35,12 @@ export type Request =
 export interface Frame {
   /** Whether the game read its input: a frame that did not is a lag frame. */
   readonly polled: boolean;
-  /** The kinds of speedrun event the game raised, in order. */
-  readonly events: readonly string[];
+  /** The speedrun events the game raised, in order. */
+  readonly events: readonly TasEvent[];
   /** The period the game asked for while waiting to play this frame. */
   readonly period: number;
+  /** The player's X once the frame was played, or null outside a level. */
+  readonly x: number | null;
 }
 
 /** Where the game is after any request. */
@@ -46,6 +48,8 @@ export interface State {
   readonly frame: number;
   readonly period: number;
   readonly ended: string | null;
+  /** The player as the game has it now, or null outside a level. */
+  readonly player: Player | null;
 }
 
 export interface Played extends State {
@@ -65,7 +69,8 @@ let inputs: Input[] = [];
 let first = 0;
 
 function state(): State {
-  return { frame: game!.frame, period: game!.period, ended: game!.ended };
+  const g = game!;
+  return { frame: g.frame, period: g.period, ended: g.ended, player: g.ended ? null : g.player() };
 }
 
 function transfer(snapshot: Snapshot): ArrayBuffer[] {
@@ -105,7 +110,7 @@ async function play(request: Extract<Request, { op: "play" }>): Promise<Played> 
     while (frames.length < inputs.length) {
       const period = g.period;
       const played = await g.step();
-      frames.push({ polled: played.polled, events: played.events, period });
+      frames.push({ polled: played.polled, events: played.events, period, x: played.x });
       if (capture.has(g.frame)) snapshots.push(g.capture());
       if (performance.now() - start > PLAY_SLICE_MS) break;
     }

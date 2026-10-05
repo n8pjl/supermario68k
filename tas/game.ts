@@ -25,6 +25,8 @@ interface Runtime {
   registers(): Registers;
   setRegisters(registers: Registers): void;
   refresh(): void;
+  /** src/tas.cpp's tas_player(): whether a level is being played, then the player's fields. */
+  player(): number[];
 }
 
 /** Emscripten's factory: the default export of mario-tas.js. */
@@ -35,12 +37,47 @@ interface Module {
   tas: { drawing: boolean };
 }
 
+/**
+ * One of src/speedrun.h's events, as the TAS build reports it: its kind, and
+ * for a level or a monster fight entered or beaten, the world (from zero) and
+ * the level or monster index. Both are -1 for every other kind.
+ */
+export interface TasEvent {
+  readonly kind: string;
+  readonly world: number;
+  readonly index: number;
+}
+
+/**
+ * The player between two frames, as struct player in src/player.h holds it.
+ * Speeds and positions are whole pixels: X moves by Walkspeed on a frame
+ * there is room for it, else by Walkspeed2, else not at all.
+ */
+export interface Player {
+  readonly x: number;
+  readonly y: number;
+  readonly walkspeed: number;
+  readonly walkspeed2: number;
+  readonly jumpspeed: number;
+  readonly fallspeed: number;
+  readonly jumping: boolean;
+  readonly falling: boolean;
+  /** Counts up while running at full speed; flight is had at flycondition, 16. */
+  readonly runcount: number;
+  readonly flycount: number;
+  readonly xoffset: number;
+  /** 1 facing right, -1 facing left. */
+  readonly face: number;
+}
+
 /** What playing one frame did, besides moving the game on. */
 export interface Played {
   /** Whether the game read its input: a frame that did not is a lag frame. */
   readonly polled: boolean;
-  /** The kinds of speedrun event the game raised, in order (see src/speedrun.h). */
-  readonly events: readonly string[];
+  /** The speedrun events the game raised, in order (see src/speedrun.h). */
+  readonly events: readonly TasEvent[];
+  /** The player's X once the frame was played, or null outside a level. */
+  readonly x: number | null;
 }
 
 /**
@@ -97,7 +134,7 @@ export class Game {
   #resume: (() => void) | null = null;
   #arrived: { resolve(): void; reject(e: Error): void } | null = null;
   #polled = false;
-  #events: string[] = [];
+  #events: TasEvent[] = [];
 
   private constructor(
     module: Module,
@@ -150,8 +187,8 @@ export class Game {
       },
       tas: {
         drawing: false,
-        event: (kind: string) => {
-          if (machine) machine.#events.push(kind);
+        event: (kind: string, world: number, index: number) => {
+          if (machine) machine.#events.push({ kind, world, index });
         },
         suspend: (boot: boolean, period: number) =>
           new Promise<void>((resolve) => {
@@ -205,7 +242,27 @@ export class Game {
     });
     resume();
     await arrived;
-    return { polled: this.#polled, events: this.#events };
+    return { polled: this.#polled, events: this.#events, x: this.player()?.x ?? null };
+  }
+
+  /** The player as the game has it now, or null outside a level. */
+  player(): Player | null {
+    const v = this.#runtime.player();
+    if (!v[0]) return null;
+    return {
+      x: v[1]!,
+      y: v[2]!,
+      walkspeed: v[3]!,
+      walkspeed2: v[4]!,
+      jumpspeed: v[5]!,
+      fallspeed: v[6]!,
+      jumping: v[7] !== 0,
+      falling: v[8] !== 0,
+      runcount: v[9]!,
+      flycount: v[10]!,
+      xoffset: v[11]!,
+      face: v[12]!,
+    };
   }
 
   capture(): Snapshot {

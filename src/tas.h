@@ -37,11 +37,13 @@ void power_on();
 // scankeys.cpp, which poll a frame at a time here rather than in JS.
 bool any_action();
 
-// One of speedrun.h's events, by its kind alone, for the page's clock: the
-// frame a run starts and ends on is what its real time is read from. A plain
-// call rather than Embind's, for the reason speedrun::report() gives, and with
+// One of speedrun.h's events, by its kind and, for a level or a monster fight
+// entered or beaten, its world and its level or monster index (-1 for any
+// other): the page's clock reads a run's real time off the frames a run starts
+// and ends on, and its segments are cut where levels are beaten. A plain call
+// rather than Embind's, for the reason speedrun::report() gives, and with
 // nothing after it - see above.
-void event(std::string_view kind);
+void event(std::string_view kind, int world, int index);
 
 // Whether this frame is being drawn. A seek replays frames as fast as they
 // run, and only the one it lands on needs to reach the canvas.

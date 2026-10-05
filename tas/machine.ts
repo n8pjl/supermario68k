@@ -9,11 +9,11 @@
 // next thing asked of the machine starts a new one. A new game is the same
 // game at power-on, so the snapshots taken of the old one restore into it.
 
-import type { Snapshot } from "./game.ts";
+import type { Player, Snapshot } from "./game.ts";
 import type { Calc, Input } from "./movie.ts";
 import type { Frame, Message, Played, Request, State } from "./worker.ts";
 
-export type { Snapshot } from "./game.ts";
+export type { Player, Snapshot, TasEvent } from "./game.ts";
 export type { Frame } from "./worker.ts";
 
 /** Beside this script, here and in dist/, where tools/mkdist.py renames it. */
@@ -63,6 +63,9 @@ export class Machine {
   /** Set once the game has stopped for good: main() returned or aborted. */
   ended: string | null = null;
 
+  /** The player as the game has it now, or null outside a level. */
+  player: Player | null = null;
+
   /** The game at power-on, frame 0. */
   powerOn!: Snapshot;
 
@@ -79,6 +82,16 @@ export class Machine {
     const machine = new Machine(options);
     machine.powerOn = await machine.#start();
     return machine;
+  }
+
+  /**
+   * Throws the game away, as for one that hung: the next thing asked of the
+   * machine starts a new one, which any snapshot restores into. How a game
+   * that has ended - which nothing puts back - is had again.
+   */
+  restart(): void {
+    this.#stop(new Error("the game was restarted"));
+    this.ended = null;
   }
 
   /** Stops the game for good. */
@@ -159,6 +172,7 @@ export class Machine {
     this.frame = state.frame;
     this.period = state.period;
     this.ended = state.ended;
+    this.player = state.player;
   }
 
   /**

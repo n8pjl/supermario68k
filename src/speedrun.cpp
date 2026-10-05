@@ -9,6 +9,7 @@
 #include <emscripten/val.h>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <variant>
 
 namespace speedrun
@@ -158,9 +159,24 @@ void report(const Event &event)
 	// caches in statics, so a restored snapshot would ask again and cache a
 	// different one - harmless to the game, but no longer the same memory
 	// the movie made the first time. See src/tas.h. The page is told the
-	// kind alone, which is all its clock needs and crosses without Embind.
+	// kind, and where for the events that start and end what is played,
+	// which is all its clock and its segments need and crosses without
+	// Embind.
 #ifdef SM68K_TAS
-	std::visit([](const auto &e) { tas::event(e.kind); }, event);
+	std::visit(
+		[](const auto &e) {
+			using E = std::decay_t<decltype(e)>;
+			if constexpr (std::is_same_v<E, LevelEntered> ||
+				      std::is_same_v<E, LevelCompleted>) {
+				tas::event(e.kind, e.world, e.level);
+			} else if constexpr (std::is_same_v<E, MonsterFought> ||
+					     std::is_same_v<E, MonsterDefeated>) {
+				tas::event(e.kind, e.world, e.monster);
+			} else {
+				tas::event(e.kind, -1, -1);
+			}
+		},
+		event);
 	return;
 #endif
 
@@ -282,6 +298,11 @@ void left_level(bool completed)
 	}
 
 	playing.reset();
+}
+
+bool in_play()
+{
+	return playing.has_value();
 }
 
 }

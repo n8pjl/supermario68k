@@ -18,6 +18,31 @@
   <main class="tas">
     <section class="screen">
       <div class="console"><canvas id="canvas"></canvas></div>
+
+      <!-- The player at the current frame, as struct player in src/player.h
+           has it: empty outside a level. -->
+      <div class="player" aria-label="The player">
+        <div class="tile speed">
+          <span class="tile-label">Horizontal speed</span>
+          <span class="tile-value"><span id="speed">–</span> <small>px/f</small></span>
+          <span class="tile-note" id="walkspeed"></span>
+        </div>
+        <div class="tile"><span class="tile-label">X</span><span class="tile-value" id="player-x">–</span></div>
+        <div class="tile"><span class="tile-label">Y</span><span class="tile-value" id="player-y">–</span></div>
+        <div class="tile" title="Player.Runcount: counts up running at full speed, and flight is had at 16">
+          <span class="tile-label">Run meter</span><span class="tile-value" id="runcount">–</span><span class="tile-note">flight at 16</span>
+        </div>
+        <div class="tile"><span class="tile-label">Jumpspeed</span><span class="tile-value" id="jumpspeed">–</span></div>
+        <div class="tile"><span class="tile-label">Fallspeed</span><span class="tile-value" id="fallspeed">–</span></div>
+      </div>
+
+      <div class="strip">
+        <p><span id="strip-level">Speed</span><span id="strip-stats"></span></p>
+        <canvas id="strip" title="Click to go to that frame"></canvas>
+      </div>
+
+      <div class="segments" id="segments" aria-label="Levels"></div>
+
       <p id="status" class="note" role="status">Loading the game…</p>
 
       <!-- A movie is made for one calculator and one language, and plays from
@@ -39,6 +64,7 @@
           <dt>R</dt><dd>Back a frame</dd>
           <dt>T</dt><dd>Record on / off</dd>
           <dt>Home</dt><dd>Back to power-on</dd>
+          <dt>Page Up / Down</dt><dd>The previous or next level's start</dd>
           <dt>1–9, 0</dt><dd>Go to a bookmark; with Shift, set it here</dd>
           <dt>Insert / Delete</dt><dd>Insert a blank frame, or delete one, at the selected row</dd>
         </dl>
@@ -52,8 +78,18 @@
     </section>
 
     <aside class="panel" aria-label="Movie">
+      <!-- A level here is a segment of the movie: the walk over the map to
+           a level and the level itself, up to the frame it is beaten on. See
+           tas/segments.ts. -->
+      <div class="level">
+        <button type="button" id="prev-level" title="The previous level's start (Page Up)">◀︎</button>
+        <select id="level" aria-label="Level"></select>
+        <button type="button" id="next-level" title="The next level's start (Page Down)">▶︎</button>
+      </div>
+      <p class="check" id="check"></p>
+
       <div class="transport">
-        <button type="button" id="start" title="Back to power-on (Home)">⏮</button>
+        <button type="button" id="start" title="Back to the start of the level">⏮</button>
         <button type="button" id="back" title="Back a frame (R)">◀︎</button>
         <button type="button" id="play" title="Play / pause (P)">▶︎</button>
         <button type="button" id="advance" title="Advance a frame (F)">▶︎|</button>
@@ -75,6 +111,7 @@
              played these frames at: see Session.clock. -->
         <div title="Real time of the run the movie is in, from New game to Bowser, as a run played with these inputs would be timed"><dt>RTA</dt><dd id="time">–</dd></div>
         <div><dt>Frame</dt><dd id="frame">0</dd></div>
+        <div title="The frame within the level, of how many it takes, and how many fewer or more than when the movie was opened"><dt>Level</dt><dd id="level-frame">–</dd></div>
         <div><dt>Movie</dt><dd id="length">0</dd></div>
         <div><dt>Lag</dt><dd id="lag">0</dd></div>
         <div><dt>Rerecords</dt><dd id="rerecords">0</dd></div>

@@ -37,5 +37,11 @@ addToLibrary({
     refresh() {
       _tas_refresh();
     },
+
+    // src/tas.cpp's tas_player(), copied out of memory.
+    player() {
+      const at = _tas_player() >> 2;
+      return Array.from(HEAP32.subarray(at, at + 13));
+    },
   },
 });

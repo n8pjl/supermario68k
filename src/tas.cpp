@@ -1,5 +1,7 @@
 #include "tas.h"
 #include "compat/gray.h"
+#include "player.h"
+#include "speedrun.h"
 
 #include <emscripten/em_asm.h>
 #include <emscripten/em_js.h>
@@ -19,9 +21,9 @@ EM_JS(bool, tas_any_action, (void), {
 	// clang-format on
 })
 
-EM_JS(void, tas_event, (const char *kind, size_t length), {
+EM_JS(void, tas_event, (const char *kind, size_t length, int world, int index), {
 	// clang-format off
-	Module.tas.event(UTF8ToString(kind, length));
+	Module.tas.event(UTF8ToString(kind, length), world, index);
 	// clang-format on
 })
 
@@ -49,9 +51,9 @@ bool any_action()
 	return tas_any_action();
 }
 
-void event(std::string_view kind)
+void event(std::string_view kind, int world, int index)
 {
-	tas_event(kind.data(), kind.size());
+	tas_event(kind.data(), kind.size(), world, index);
 }
 
 bool drawing()
@@ -74,4 +76,32 @@ extern "C" EMSCRIPTEN_KEEPALIVE uintptr_t tas_heap_end(void)
 extern "C" EMSCRIPTEN_KEEPALIVE void tas_refresh(void)
 {
 	GrayDBufRefresh();
+}
+
+// For tas-runtime.js: the player as the page shows it, read between frames.
+// Written into a buffer of its own rather than read from struct player's
+// fields in place, whose offsets are the compiler's to choose. The first
+// value says whether the rest mean anything: outside a level or a monster
+// fight, the player is a map sprite and these are left over from the last.
+//
+// The buffer is part of the memory a snapshot copies, which does no harm:
+// nothing in the game reads it, so the game plays the same whatever is in it.
+extern "C" EMSCRIPTEN_KEEPALIVE const int32_t *tas_player(void)
+{
+	static int32_t values[13];
+
+	values[0] = speedrun::in_play();
+	values[1] = Player.X;
+	values[2] = Player.Y;
+	values[3] = Player.Walkspeed;
+	values[4] = Player.Walkspeed2;
+	values[5] = Player.Jumpspeed;
+	values[6] = Player.Fallspeed;
+	values[7] = Player.IsJumping;
+	values[8] = Player.IsFalling;
+	values[9] = Player.Runcount;
+	values[10] = Player.Flycount;
+	values[11] = Player.Xoffset;
+	values[12] = Player.Face;
+	return values;
 }

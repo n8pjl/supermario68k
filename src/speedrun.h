@@ -235,4 +235,9 @@ void hit();
 // lost.
 void left_level(bool completed);
 
+// Whether a level or a monster fight is being played right now: from
+// entered_level() or entered_monster() until left_level(). The TAS page reads
+// the player's position only then, as everywhere else it means nothing.
+bool in_play();
+
 }
