@@ -7,13 +7,13 @@
 // back on the next visit. Exporting is the only way it leaves.
 
 import { BOOKMARKS, BUTTONS, buildId, CALCS, emptyMovie, parse, serialize, type Calc, type Input, type Movie } from "./movie.ts";
-import { Machine, type Factory } from "./machine.ts";
+import { Machine } from "./machine.ts";
 import { Roll } from "./roll.ts";
 import { Session } from "./session.ts";
 import { duration, formatDuration } from "../speedrun/times.ts";
 
 // Beside this script, here and in dist/ - where tools/mkdist.py rewrites each
-// to its hashed name.
+// to its hashed name. The glue is loaded by the game's worker, not here.
 const GLUE_URL = new URL("./mario-tas.js", import.meta.url).href;
 const WASM_URL = new URL("./mario-tas.wasm", import.meta.url).href;
 const TEXTS_URL = new URL("./ma_texts.json", import.meta.url).href;
@@ -33,7 +33,7 @@ function element<T extends HTMLElement>(id: string): T {
   return document.getElementById(id) as T;
 }
 
-const canvas = element<HTMLCanvasElement>("canvas");
+let canvas = element<HTMLCanvasElement>("canvas");
 const status = element("status");
 const form = element<HTMLFormElement>("movie");
 const calcSelect = form.elements.namedItem("calc") as HTMLSelectElement;
@@ -95,8 +95,7 @@ function live(): Input {
 // The session
 // ---------------------------------------------------------------------------
 
-const [factory, wasm, texts] = await Promise.all([
-  import(GLUE_URL).then((m: { default: Factory }) => m.default),
+const [wasm, texts] = await Promise.all([
   fetch(WASM_URL).then((r) => {
     if (!r.ok) throw new Error(`${WASM_URL}: ${r.status}`);
     return r.arrayBuffer();
@@ -123,17 +122,37 @@ const roll = new Roll(element("roll"), {
   },
 });
 
+// The size of the game's screen. The canvas is drawn on from the game's
+// worker, so the element's own width and height no longer say.
+let screenSize = { width: 0, height: 0 };
+
 function fitCanvas(): void {
-  const room = (canvas.parentElement!.clientWidth - 24) / canvas.width;
+  const room = (canvas.parentElement!.clientWidth - 24) / screenSize.width;
   const scale = Math.max(1, Math.min(MAX_SCALE, room));
-  canvas.style.width = `${Math.floor(canvas.width * scale)}px`;
-  canvas.style.height = `${Math.floor(canvas.height * scale)}px`;
+  canvas.style.width = `${Math.floor(screenSize.width * scale)}px`;
+  canvas.style.height = `${Math.floor(screenSize.height * scale)}px`;
 }
 
 addEventListener("resize", fitCanvas);
 
+/**
+ * A new canvas in place of the old, handed over to be drawn on from a worker.
+ * A canvas can be handed over only once, and each game the page starts -
+ * including one started again after the last hung - takes one for good.
+ */
+function freshCanvas(): OffscreenCanvas {
+  const fresh = canvas.cloneNode(false) as HTMLCanvasElement;
+  fresh.width = screenSize.width;
+  fresh.height = screenSize.height;
+  canvas.replaceWith(fresh);
+  canvas = fresh;
+  fitCanvas();
+  return canvas.transferControlToOffscreen();
+}
+
 async function open(movie: Movie, why: string): Promise<void> {
   session?.pause();
+  session?.machine.close();
   session = null;
 
   const lang = Object.hasOwn(texts, movie.lang) ? movie.lang : "en";
@@ -147,18 +166,18 @@ async function open(movie: Movie, why: string): Promise<void> {
 
   calcSelect.value = movie.calc;
   langSelect.value = lang;
-  canvas.width = CALCS[movie.calc].width;
-  canvas.height = CALCS[movie.calc].height;
-  fitCanvas();
+  screenSize = { width: CALCS[movie.calc].width, height: CALCS[movie.calc].height };
 
   const machine = await Machine.boot({
-    factory,
+    glue: GLUE_URL,
     wasm,
-    canvas,
     calc: movie.calc,
     texts: texts[lang]!.texts,
-    input: (frame) => movie.inputs[frame] ?? 0,
-    onCanvasResize: fitCanvas,
+    canvas: freshCanvas,
+    onCanvasResize: (width, height) => {
+      screenSize = { width, height };
+      fitCanvas();
+    },
   });
 
   const opened = new Session(machine, movie, live);

@@ -142,7 +142,7 @@ DEPS += $(TAS_OBJS:.o=.d)
 .PHONY: all clean data format maps stages typecheck verify-levels
 
 all: speedrun.js practice.js analysis.js routing.js routing-worker.js \
-     routing-search.wasm tas.js $(DIST)
+     routing-search.wasm tas.js tas-worker.js $(DIST)
 
 # The level data's source: JSON under levels/, compiled to the blobs the game
 # embeds. See tools/mklevels.py for the format and for why encoding it
@@ -300,9 +300,14 @@ routing-worker.js: $(ROUTING) $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
 		--outfile=$@
 
 # And the TAS page, which tas.html reaches by this name. It fetches the TAS
-# build of the game from beside itself, as mario-tas.js and mario-tas.wasm.
+# build of the game from beside itself, as mario-tas.js and mario-tas.wasm, and
+# runs it in its worker, which it reaches as ./tas-worker.js beside itself.
 tas.js: $(TAS) $(TYPECHECK) | $(ESBUILD)
 	$(ESBUILD) tas/index.ts --bundle --format=esm --target=esnext \
+		--outfile=$@
+
+tas-worker.js: $(TAS) $(TYPECHECK) | $(ESBUILD)
+	$(ESBUILD) tas/worker.ts --bundle --format=esm --target=esnext \
 		--outfile=$@
 
 # And the search the worker loads, which it reaches as ./routing-search.wasm
@@ -339,5 +344,5 @@ verify-levels:
 clean:
 	rm -f $(OBJS) $(DEPS) .data-stamp $(LEVELCHECK) $(STAGECHECK) $(DIST) \
 	      $(MAPCHECK) $(TYPECHECK) speedrun.js practice.js analysis.js \
-	      routing.js routing-worker.js routing-search.wasm tas.js
+	      routing.js routing-worker.js routing-search.wasm tas.js tas-worker.js
 	rm -rf $(OUTDIR) $(BUILDDIR) data $(SEARCH_CRATE)/target

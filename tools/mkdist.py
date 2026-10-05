@@ -29,6 +29,7 @@ bytes of the file holding it, and so changes its hash:
 
     tas/index.html -> tas.js -> mario-tas.js -> mario-tas.wasm
                    |        \\-> mario-tas.wasm
+                   |        \\-> tas-worker.js
                    |        \\-> ma_texts.json
                    \\-> data.css
                    \\-> tas.css
@@ -197,8 +198,11 @@ def main():
     substitute(tas_glue, {"mario-tas.wasm": (tas_wasm, 2)})
     tas_glue = freeze(tas_glue)
     tas_css = freeze(minify_css("tas.css", dst("tas.css")))
+    # The worker loads the glue from whatever URL the page hands it.
+    tas_worker = freeze(bundle_js("tas/worker.ts", dst("tas-worker.js")))
     tas = bundle_js("tas/index.ts", dst("tas.js"))
     substitute(tas, {'"./mario-tas.js"': (f'"./{tas_glue}"', 1),
+                     '"./tas-worker.js"': (f'"./{tas_worker}"', 1),
                      '"./mario-tas.wasm"': (f'"./{tas_wasm}"', 1),
                      '"./ma_texts.json"': (f'"./{texts}"', 1)})
     tas = freeze(tas)

@@ -10,13 +10,23 @@
 // Recording is the one way the game writes to the movie: while it is on, each
 // frame played takes what is held on the keyboard as its input, over whatever
 // the movie had there, and the frames after it are left as they were.
+//
+// The game runs in a worker (see machine.ts), so the movie can be edited while
+// the game is busy playing frames: whatever it played past an edit made in the
+// meantime is not kept, and the game is put back as for any other edit.
+//
+// A game that hangs is restarted at the latest snapshot before where it hung.
 
 import { Greenzone, KEYFRAME_INTERVAL } from "./greenzone.ts";
-import type { Machine } from "./machine.ts";
+import { Hung, type Machine, type Snapshot } from "./machine.ts";
 import type { Input, Movie } from "./movie.ts";
 
-/** How long a seek runs before it lets the page paint. */
-const SEEK_SLICE_MS = 30;
+/**
+ * At most this many frames are handed to the game at once while seeking. It
+ * answers sooner than that if they take a while, so this only bounds what is
+ * sent over.
+ */
+const SEEK_BATCH = 2048;
 
 /** At most this many frames are played per display refresh, however behind. */
 const MAX_FRAMES_PER_REFRESH = 4;
@@ -34,10 +44,6 @@ export interface RunTime {
 
 function nextRefresh(): Promise<number> {
   return new Promise((resolve) => requestAnimationFrame(resolve));
-}
-
-function yieldToPage(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve));
 }
 
 /**
@@ -79,6 +85,8 @@ export class Session extends EventTarget {
   error: string | null = null;
 
   #stale = false;
+  /** The earliest frame edited since the game was last asked to do something. */
+  #editedFrom = Infinity;
   #resyncQueued = false;
   #queue: Promise<void> = Promise.resolve();
 
@@ -89,7 +97,7 @@ export class Session extends EventTarget {
   ) {
     super();
     this.greenzone.pin(this.#bookmarkFrames());
-    this.greenzone.add(machine.capture());
+    this.greenzone.add(machine.powerOn);
   }
 
   get frame(): number {
@@ -114,6 +122,7 @@ export class Session extends EventTarget {
       } catch (e) {
         this.error = e instanceof Error ? e.message : String(e);
         this.playing = false;
+        if (e instanceof Hung) await this.#recover(e);
       }
       this.#changed();
     });
@@ -176,23 +185,71 @@ export class Session extends EventTarget {
 
     const frame = this.frame;
     if (record) this.#write(frame, this.live());
+    await this.#play(1, draw);
+  }
 
-    this.machine.drawing = draw;
-    const period = this.machine.period;
-    const played = await this.machine.step();
-    this.lag[frame] = !played.polled;
-    this.clock[frame + 1] = (this.clock[frame] ?? NaN) + period;
-    if (played.events.length > 0) this.events.set(frame, played.events);
-    else this.events.delete(frame);
+  /**
+   * Plays up to `count` frames of the movie from the current one - fewer if
+   * the game answers before it gets through them all - and keeps what they
+   * did, up to any edit made while they played.
+   */
+  async #play(count: number, draw: boolean): Promise<void> {
+    const from = this.frame;
+    const inputs = Array.from({ length: count }, (_, i) => this.movie.inputs[from + i] ?? 0);
 
     // A bookmark's snapshot goes when an edit before it does, and comes
     // back the next time the game passes through it.
-    const now = this.frame;
-    const wanted =
-      now % KEYFRAME_INTERVAL === 0 || this.movie.bookmarks.includes(now);
-    if (wanted && !this.greenzone.has(now)) {
-      this.greenzone.add(this.machine.capture());
+    const capture: number[] = [];
+    for (let at = from + 1; at <= from + count; at++) {
+      const wanted = at % KEYFRAME_INTERVAL === 0 || this.movie.bookmarks.includes(at);
+      if (wanted && !this.greenzone.has(at)) capture.push(at);
     }
+
+    this.#editedFrom = Infinity;
+    const { frames, snapshots } = await this.machine.play(inputs, draw, capture);
+    const edited = this.#editedFrom;
+
+    frames.forEach((played, i) => {
+      const frame = from + i;
+      if (frame >= edited) return;
+      this.lag[frame] = !played.polled;
+      this.clock[frame + 1] = (this.clock[frame] ?? NaN) + played.period;
+      if (played.events.length > 0) this.events.set(frame, played.events);
+      else this.events.delete(frame);
+    });
+    for (const snapshot of snapshots) {
+      if (snapshot.frame <= edited) this.greenzone.add(snapshot);
+    }
+    if (edited < this.frame) this.#stale = true;
+
+    if (this.machine.ended) throw new Error(this.machine.ended);
+  }
+
+  /**
+   * Starts a game that hung again, at the latest snapshot before where it
+   * hung. Played on from there as the movie stands, it is likely to hang the
+   * same way: the movie wants changing somewhere before then.
+   */
+  async #recover(hung: Hung): Promise<void> {
+    const snapshot = this.greenzone.latest(hung.frame)!;
+    try {
+      await this.#restore(snapshot);
+      await this.machine.refresh();
+      this.error += ` It was restarted at frame ${snapshot.frame}.`;
+    } catch (e) {
+      this.error += ` It could not be restarted: ${e instanceof Error ? e.message : String(e)}`;
+    }
+  }
+
+  /**
+   * Puts the game back at a snapshot. If an edit while that was going on
+   * left the snapshot behind, the game is stale again.
+   */
+  async #restore(snapshot: Snapshot): Promise<void> {
+    this.#stale = false;
+    this.#editedFrom = Infinity;
+    await this.machine.restore(snapshot);
+    if (this.#editedFrom < snapshot.frame) this.#stale = true;
   }
 
   /**
@@ -250,28 +307,26 @@ export class Session extends EventTarget {
   async #seek(target: number, show: boolean): Promise<void> {
     const to = Math.max(0, target);
     const from = this.frame;
-    const snapshot = this.greenzone.latest(to)!;
 
-    if (this.#stale || from > to || snapshot.frame > from) {
-      this.machine.restore(snapshot);
-      this.#stale = false;
-    }
-
-    let slice = performance.now();
-    while (this.frame < to) {
-      await this.#step(false, false);
-      if (performance.now() - slice > SEEK_SLICE_MS) {
-        this.#changed();
-        await yieldToPage();
-        slice = performance.now();
+    // An edit while the game is playing forward can leave it stale again,
+    // and sends it back.
+    for (;;) {
+      const snapshot = this.greenzone.latest(to)!;
+      if (this.#stale || this.frame > to || snapshot.frame > this.frame) {
+        await this.#restore(snapshot);
+        continue;
       }
+      if (this.frame >= to) break;
+
+      await this.#play(Math.min(to - this.frame, SEEK_BATCH), false);
+      this.#changed();
     }
 
     if (this.recording && to < from) {
       this.movie.rerecords++;
       this.#movieChanged();
     }
-    if (show) this.machine.refresh();
+    if (show) await this.machine.refresh();
   }
 
   // -------------------------------------------------------------------------
@@ -286,6 +341,7 @@ export class Session extends EventTarget {
     this.lag.length = Math.min(this.lag.length, frame + 1);
     this.clock.length = Math.min(this.clock.length, frame + 1);
     for (const at of this.events.keys()) if (at >= frame) this.events.delete(at);
+    this.#editedFrom = Math.min(this.#editedFrom, frame);
     if (frame < this.frame) this.#stale = true;
     this.#movieChanged();
   }
@@ -354,7 +410,9 @@ export class Session extends EventTarget {
       this.movie.bookmarks[slot] = this.frame;
       this.greenzone.pin(this.#bookmarkFrames());
       if (!this.greenzone.has(this.frame)) {
-        this.greenzone.add(this.machine.capture());
+        this.#editedFrom = Infinity;
+        const snapshot = await this.machine.capture();
+        if (this.#editedFrom >= snapshot.frame) this.greenzone.add(snapshot);
       }
       this.#movieChanged();
     });

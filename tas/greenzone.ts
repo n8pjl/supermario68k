@@ -12,7 +12,7 @@
 // take up more than the budget, the ones that leave the smallest hole behind
 // them go first, which keeps whatever is left evenly spread over the movie.
 
-import type { Snapshot } from "./machine.ts";
+import type { Snapshot } from "./game.ts";
 
 export const KEYFRAME_INTERVAL = 60;
 

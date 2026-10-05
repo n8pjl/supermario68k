@@ -18,6 +18,7 @@ routing.js
 routing-worker.js
 routing-search.wasm
 tas.js
+tas-worker.js
 
 # Cargo's build of the route search.
 routing/search/target/

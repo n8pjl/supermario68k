@@ -1,279 +1,195 @@
-// One running copy of the TAS build of the game, held between frames.
+// The game as the page holds it: a copy of tas/game.ts running in a worker,
+// reached by messages.
 //
-// The game runs until it reaches its next frame boundary and suspends there,
-// in src/tas.cpp's tas_suspend(), until step() lets it go on. While it is
-// suspended it is nothing but linear memory and two registers (see src/tas.h),
-// which is what capture() copies and restore() writes back.
-//
-// Frames are counted the way the movie counts them. The game is "at frame n"
-// when it has played n frames and is waiting to play frame n, whose input is
-// the movie's line n. Frame 0 is power-on: main() suspends once before doing
-// anything at all, so the very start is a snapshot like any other.
+// The game runs in a worker so that it can never take the page down with it.
+// A frame that never comes back - the game looping somewhere other than its
+// frame boundary - would otherwise hang the whole tab. Here it only stops
+// answering: once it has kept the page waiting longer than any frame could
+// take, the worker is thrown away and the request fails with Hung, and the
+// next thing asked of the machine starts a new one. A new game is the same
+// game at power-on, so the snapshots taken of the old one restore into it.
 
-import { actions, type Calc, type Input } from "./movie.ts";
+import type { Snapshot } from "./game.ts";
+import type { Calc, Input } from "./movie.ts";
+import type { Frame, Message, Played, Request, State } from "./worker.ts";
 
-interface Registers {
-  readonly sp: number;
-  readonly data: number;
-}
+export type { Snapshot } from "./game.ts";
+export type { Frame } from "./worker.ts";
 
-/** What src/tas-runtime.js puts on the module as Module.tasRuntime. */
-interface Runtime {
-  memory(): Uint8Array;
-  heapEnd(): number;
-  registers(): Registers;
-  setRegisters(registers: Registers): void;
-  refresh(): void;
-}
+/** Beside this script, here and in dist/, where tools/mkdist.py renames it. */
+const WORKER_URL = new URL("./tas-worker.js", import.meta.url);
 
-/** Emscripten's factory: the default export of mario-tas.js. */
-export type Factory = (module: object) => Promise<unknown>;
+/** How long a request may take before the game is taken to have hung. */
+const TIMEOUT_MS = 5000;
 
-/** The part of the module object this keeps a hold of. */
-interface Module {
-  tas: { drawing: boolean };
-}
+/** Starting the game includes compiling it, which takes rather longer. */
+const BOOT_TIMEOUT_MS = 60000;
 
-/** What playing one frame did, besides moving the game on. */
-export interface Played {
-  /** Whether the game read its input: a frame that did not is a lag frame. */
-  readonly polled: boolean;
-  /** The kinds of speedrun event the game raised, in order (see src/speedrun.h). */
-  readonly events: readonly string[];
-}
-
-/**
- * The game at one frame boundary. Memory is kept as the pages that differ
- * from power-on, which is most of what a snapshot would otherwise be: the game
- * data compiled into the wasm is the larger part of the heap and never changes.
- */
-export interface Snapshot {
-  readonly frame: number;
-  readonly period: number;
-  readonly registers: Registers;
-  /** Where the snapshot's memory ends, rounded up to a page. */
-  readonly end: number;
-  /** The index of each page that differs from power-on, ascending. */
-  readonly pages: Uint32Array;
-  /** Those pages' bytes, back to back. */
-  readonly bytes: Uint8Array;
-}
-
-const PAGE = 4096;
-
-function pageEnd(address: number): number {
-  return Math.ceil(address / PAGE) * PAGE;
+/** The game took longer than it ever should over a request, and was stopped. */
+export class Hung extends Error {
+  constructor(readonly frame: number) {
+    super(`The game stopped responding while playing on from frame ${frame}.`);
+  }
 }
 
 export interface MachineOptions {
-  factory: Factory;
+  /** The URL of the TAS build's glue, mario-tas.js. */
+  glue: string;
   wasm: ArrayBuffer;
-  canvas: HTMLCanvasElement;
   calc: Calc;
   /** ma_texts.json's `texts` for the movie's language. */
   texts: unknown;
-  /** The input for a frame, asked for whenever the game reads its keys. */
-  input(frame: number): Input;
-  onCanvasResize(): void;
+  /**
+   * A canvas for a new game to draw on. Each game takes one over for good,
+   * so this is asked for again each time the game is restarted.
+   */
+  canvas(): OffscreenCanvas;
+  /** The game resized its screen. */
+  onCanvasResize(width: number, height: number): void;
+}
+
+interface Pending {
+  resolve(message: Message): void;
+  reject(e: Error): void;
 }
 
 export class Machine {
   /** The frame the game is waiting to play. */
   frame = 0;
 
-  /**
-   * The time the scene asked this frame to take, in milliseconds: what the
-   * game would have waited, which playback at speed paces itself by.
-   */
+  /** The time the scene asked this frame to take, in milliseconds. */
   period = 0;
 
   /** Set once the game has stopped for good: main() returned or aborted. */
   ended: string | null = null;
 
-  readonly #module: Module;
-  readonly #runtime: Runtime;
-  readonly #base: Uint8Array;
-  #resume: (() => void) | null = null;
-  #arrived: { resolve(): void; reject(e: Error): void } | null = null;
-  #polled = false;
-  #events: string[] = [];
+  /** The game at power-on, frame 0. */
+  powerOn!: Snapshot;
 
-  private constructor(
-    module: Module,
-    runtime: Runtime,
-    resume: () => void,
-  ) {
-    this.#module = module;
-    this.#runtime = runtime;
-    this.#resume = resume;
-    this.#base = runtime.memory().slice(0, pageEnd(runtime.heapEnd()));
+  readonly #options: MachineOptions;
+  #worker: Worker | null = null;
+  #pending: Pending | null = null;
+
+  private constructor(options: MachineOptions) {
+    this.#options = options;
   }
 
   /** Starts the game and returns it at power-on, frame 0. */
   static async boot(options: MachineOptions): Promise<Machine> {
-    let machine: Machine | null = null;
-    let resume: (() => void) | null = null;
-    let poweredOn!: () => void;
-    let failed!: (e: Error) => void;
-    const ready = new Promise<void>((resolve, reject) => {
-      poweredOn = resolve;
-      failed = reject;
-    });
-
-    const stop = (why: string) => {
-      if (machine) {
-        machine.ended = why;
-        machine.#arrived?.reject(new Error(why));
-        machine.#arrived = null;
-      } else {
-        failed(new Error(why));
-      }
-    };
-
-    const module = {
-      canvas: options.canvas,
-      ti89Mode: options.calc === "ti89",
-      maTexts: options.texts,
-      wasmBinary: options.wasm,
-      print: (t: string) => console.log(t),
-      printErr: (t: string) => console.error(t),
-      onAbort: (what: unknown) => stop(`the game aborted: ${String(what)}`),
-      onExit: (status: number) => stop(`the game exited (status ${status})`),
-      onCanvasResize: options.onCanvasResize,
-      // Nothing reads the keys before power-on, which is the first thing
-      // main() does: until then there is no frame for them to belong to.
-      gameActions: () => {
-        if (!machine) return actions(0);
-        machine.#polled = true;
-        return actions(options.input(machine.frame));
-      },
-      tas: {
-        drawing: false,
-        event: (kind: string) => {
-          if (machine) machine.#events.push(kind);
-        },
-        suspend: (boot: boolean, period: number) =>
-          new Promise<void>((resolve) => {
-            if (!machine) {
-              resume = resolve;
-              poweredOn();
-              return;
-            }
-            if (!boot) machine.frame++;
-            machine.period = period;
-            machine.#resume = resolve;
-            machine.#arrived?.resolve();
-            machine.#arrived = null;
-          }),
-      },
-    };
-
-    // The factory's own promise only matters if it fails: the game is
-    // running from inside it, and power-on is reached long before main()
-    // could return.
-    options.factory(module).catch((e: unknown) => stop(String(e)));
-    await ready;
-
-    const runtime = (module as { tasRuntime?: Runtime }).tasRuntime;
-    if (!runtime || !resume) {
-      throw new Error("the game build has no TAS runtime in it");
-    }
-    machine = new Machine(module, runtime, resume);
+    const machine = new Machine(options);
+    machine.powerOn = await machine.#start();
     return machine;
   }
 
-  /** Whether the frames played from here on reach the canvas. */
-  set drawing(on: boolean) {
-    this.#module.tas.drawing = on;
+  /** Stops the game for good. */
+  close(): void {
+    this.#stop(new Error("the game was closed"));
+  }
+
+  #stop(why: Error): void {
+    this.#worker?.terminate();
+    this.#worker = null;
+    this.#pending?.reject(why);
+    this.#pending = null;
   }
 
   /**
-   * Plays the current frame, and resolves once the game is waiting at the
-   * next one - with what it did on the way.
+   * A new worker with a new game in it, at power-on. Every game starts out
+   * the same, so this is how a hung one is replaced as well as how the first
+   * one is started.
    */
-  async step(): Promise<Played> {
-    if (this.ended) throw new Error(this.ended);
-
-    const resume = this.#resume!;
-    this.#resume = null;
-    this.#polled = false;
-    this.#events = [];
-
-    const arrived = new Promise<void>((resolve, reject) => {
-      this.#arrived = { resolve, reject };
-    });
-    resume();
-    await arrived;
-    return { polled: this.#polled, events: this.#events };
-  }
-
-  capture(): Snapshot {
-    const memory = this.#runtime.memory();
-    const end = Math.min(pageEnd(this.#runtime.heapEnd()), memory.length);
-    const base = this.#base;
-    const dirty: number[] = [];
-
-    for (let at = 0; at < end; at += PAGE) {
-      const page = new Uint32Array(memory.buffer, memory.byteOffset + at, PAGE / 4);
-
-      if (at >= base.length) {
-        if (page.some((word) => word !== 0)) dirty.push(at / PAGE);
-        continue;
+  async #start(): Promise<Snapshot> {
+    const worker = new Worker(WORKER_URL, { type: "module" });
+    worker.addEventListener("message", (e: MessageEvent<Message>) => {
+      if (e.data.type === "resize") {
+        this.#options.onCanvasResize(e.data.width, e.data.height);
+        return;
       }
-
-      const was = new Uint32Array(base.buffer, base.byteOffset + at, PAGE / 4);
-      for (let i = 0; i < page.length; i++) {
-        if (page[i] !== was[i]) {
-          dirty.push(at / PAGE);
-          break;
-        }
-      }
-    }
-
-    const bytes = new Uint8Array(dirty.length * PAGE);
-    dirty.forEach((page, i) => {
-      bytes.set(memory.subarray(page * PAGE, (page + 1) * PAGE), i * PAGE);
+      const pending = this.#pending;
+      this.#pending = null;
+      pending?.resolve(e.data);
     });
+    worker.addEventListener("error", (e) => {
+      this.#stop(new Error(`the game's worker failed: ${e.message}`));
+    });
+    this.#worker = worker;
+    this.ended = null;
 
-    return {
-      frame: this.frame,
-      period: this.period,
-      registers: this.#runtime.registers(),
-      end,
-      pages: Uint32Array.from(dirty),
-      bytes,
+    const canvas = this.#options.canvas();
+    const request: Request = {
+      op: "boot",
+      glue: this.#options.glue,
+      wasm: this.#options.wasm.slice(0),
+      canvas,
+      calc: this.#options.calc,
+      texts: this.#options.texts,
     };
+    return (await this.#ask(request, BOOT_TIMEOUT_MS, [canvas])) as Snapshot;
+  }
+
+  async #ask(request: Request, timeout: number, transfer: Transferable[] = []): Promise<unknown> {
+    if (!this.#worker) await this.#start();
+
+    const at = this.frame;
+    const reply = new Promise<Message>((resolve, reject) => {
+      this.#pending = { resolve, reject };
+    });
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timedOut = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        const hung = new Hung(at);
+        this.#stop(hung);
+        reject(hung);
+      }, timeout);
+    });
+
+    this.#worker!.postMessage(request, transfer);
+    try {
+      const message = await Promise.race([reply, timedOut]);
+      if (message.type === "resize") throw new Error("unexpected resize");
+      if (message.state) this.#update(message.state);
+      if (message.type === "error") throw new Error(message.message);
+      return message.result;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  #update(state: State): void {
+    this.frame = state.frame;
+    this.period = state.period;
+    this.ended = state.ended;
   }
 
   /**
-   * Puts the game back as it was at a snapshot. Only meaningful while it is
-   * suspended, which is always, outside step(): the game resumes from the
-   * snapshot's frame boundary the next time it is stepped, through whichever
-   * suspension happens to be pending now.
-   *
-   * Everything above the break is zero in a game that has never been there,
-   * and the game never writes above its break, so clearing up to whichever is
-   * higher - the break now or the snapshot's - is all the memory the snapshot
-   * does not hold.
+   * Plays frames from the current one with these inputs, drawing them or not,
+   * and taking a snapshot at each of the frames in `capture` it reaches. The
+   * game answers after a short while whether or not it got through them all,
+   * so the page can show progress: what it did play is in the answer.
    */
-  restore(snapshot: Snapshot): void {
-    const memory = this.#runtime.memory();
-    const top = Math.max(pageEnd(this.#runtime.heapEnd()), snapshot.end);
+  async play(
+    inputs: Input[],
+    draw: boolean,
+    capture: number[],
+  ): Promise<{ frames: Frame[]; snapshots: Snapshot[] }> {
+    if (this.ended) throw new Error(this.ended);
+    return (await this.#ask({ op: "play", inputs, draw, capture }, TIMEOUT_MS)) as Played;
+  }
 
-    memory.set(this.#base, 0);
-    if (top > this.#base.length) memory.fill(0, this.#base.length, top);
-    snapshot.pages.forEach((page, i) => {
-      memory.set(snapshot.bytes.subarray(i * PAGE, (i + 1) * PAGE), page * PAGE);
-    });
+  async capture(): Promise<Snapshot> {
+    return (await this.#ask({ op: "capture" }, TIMEOUT_MS)) as Snapshot;
+  }
 
-    this.#runtime.setRegisters(snapshot.registers);
-    this.frame = snapshot.frame;
-    this.period = snapshot.period;
+  /**
+   * Puts the game back as it was at a snapshot - into a new game, if the old
+   * one hung.
+   */
+  async restore(snapshot: Snapshot): Promise<void> {
+    await this.#ask({ op: "restore", snapshot }, TIMEOUT_MS);
   }
 
   /** Repaints the canvas from what the game has on its screen right now. */
-  refresh(): void {
-    this.drawing = true;
-    this.#runtime.refresh();
+  async refresh(): Promise<void> {
+    await this.#ask({ op: "refresh" }, TIMEOUT_MS);
   }
 }
