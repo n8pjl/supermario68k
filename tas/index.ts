@@ -315,9 +315,17 @@ function checkLevel(s: Session, segments: readonly Segment[], i: number): { text
 
 let levelOptions = "";
 
-/** The real time a level takes, as the game page would let its frames go; null until played whole. */
+/**
+ * The real time a level takes, as the game page would let its frames go; null
+ * until played whole. One a run starts in - the first, after the menus - is
+ * timed from its "New game", as the run's own time is.
+ */
 function levelTime(s: Session, segment: Segment): string | null {
-  const from = s.clock[segment.start];
+  let start = segment.start;
+  for (const [frame, events] of s.events) {
+    if (frame >= start && frame < segment.end && events.some((e) => e.kind === "run-started")) start = frame;
+  }
+  const from = s.clock[start];
   const to = s.clock[segment.end];
   return from === undefined || to === undefined ? null : formatDuration(duration(to - from));
 }
@@ -353,7 +361,7 @@ function drawLevels(s: Session, segments: readonly Segment[], current: number): 
         const time = document.createElement("span");
         time.textContent = times[i] ?? "–";
         button.append(name, frames, time);
-        button.title = `Frames ${t.start}–${t.end - 1}, in real time as a run with these inputs would take them. Click to go to its start.`;
+        button.title = `Frames ${t.start}–${t.end - 1}, in real time as a run with these inputs would take them, from New game if it is in them. Click to go to its start.`;
         return button;
       }),
     );
