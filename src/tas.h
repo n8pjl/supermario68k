@@ -17,6 +17,8 @@
 // game at whichever suspend() the snapshot was taken in, through whichever
 // one happens to be pending now, so a continuation in JS would run on behalf
 // of the wrong one.
+#include <string_view>
+
 namespace tas
 {
 
@@ -34,6 +36,12 @@ void power_on();
 // Whether any of the eight actions is held this frame, for the waits in
 // scankeys.cpp, which poll a frame at a time here rather than in JS.
 bool any_action();
+
+// One of speedrun.h's events, by its kind alone, for the page's clock: the
+// frame a run starts and ends on is what its real time is read from. A plain
+// call rather than Embind's, for the reason speedrun::report() gives, and with
+// nothing after it - see above.
+void event(std::string_view kind);
 
 // Whether this frame is being drawn. A seek replays frames as fast as they
 // run, and only the one it lands on needs to reach the canvas.

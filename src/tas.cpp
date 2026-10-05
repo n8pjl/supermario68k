@@ -19,6 +19,12 @@ EM_JS(bool, tas_any_action, (void), {
 	// clang-format on
 })
 
+EM_JS(void, tas_event, (const char *kind, size_t length), {
+	// clang-format off
+	Module.tas.event(UTF8ToString(kind, length));
+	// clang-format on
+})
+
 EM_JS(bool, tas_drawing, (void), {
 	// clang-format off
 	return Module.tas.drawing;
@@ -41,6 +47,11 @@ void power_on()
 bool any_action()
 {
 	return tas_any_action();
+}
+
+void event(std::string_view kind)
+{
+	tas_event(kind.data(), kind.size());
 }
 
 bool drawing()

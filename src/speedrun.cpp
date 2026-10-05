@@ -1,6 +1,9 @@
 #include "speedrun.h"
 
 #include "player.h"
+#ifdef SM68K_TAS
+#include "tas.h"
+#endif
 
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
@@ -154,8 +157,10 @@ void report(const Event &event)
 	// not free there: Embind hands out ids from its JS side that the C side
 	// caches in statics, so a restored snapshot would ask again and cache a
 	// different one - harmless to the game, but no longer the same memory
-	// the movie made the first time. See src/tas.h.
+	// the movie made the first time. See src/tas.h. The page is told the
+	// kind alone, which is all its clock needs and crosses without Embind.
 #ifdef SM68K_TAS
+	std::visit([](const auto &e) { tas::event(e.kind); }, event);
 	return;
 #endif
 

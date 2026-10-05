@@ -34,6 +34,14 @@ interface Module {
   tas: { drawing: boolean };
 }
 
+/** What playing one frame did, besides moving the game on. */
+export interface Played {
+  /** Whether the game read its input: a frame that did not is a lag frame. */
+  readonly polled: boolean;
+  /** The kinds of speedrun event the game raised, in order (see src/speedrun.h). */
+  readonly events: readonly string[];
+}
+
 /**
  * The game at one frame boundary. Memory is kept as the pages that differ
  * from power-on, which is most of what a snapshot would otherwise be: the game
@@ -88,6 +96,7 @@ export class Machine {
   #resume: (() => void) | null = null;
   #arrived: { resolve(): void; reject(e: Error): void } | null = null;
   #polled = false;
+  #events: string[] = [];
 
   private constructor(
     module: Module,
@@ -140,6 +149,9 @@ export class Machine {
       },
       tas: {
         drawing: false,
+        event: (kind: string) => {
+          if (machine) machine.#events.push(kind);
+        },
         suspend: (boot: boolean, period: number) =>
           new Promise<void>((resolve) => {
             if (!machine) {
@@ -177,22 +189,22 @@ export class Machine {
 
   /**
    * Plays the current frame, and resolves once the game is waiting at the
-   * next one - with whether the game read its input on the way, which a frame
-   * that did not (a lag frame) shows in the editor.
+   * next one - with what it did on the way.
    */
-  async step(): Promise<boolean> {
+  async step(): Promise<Played> {
     if (this.ended) throw new Error(this.ended);
 
     const resume = this.#resume!;
     this.#resume = null;
     this.#polled = false;
+    this.#events = [];
 
     const arrived = new Promise<void>((resolve, reject) => {
       this.#arrived = { resolve, reject };
     });
     resume();
     await arrived;
-    return this.#polled;
+    return { polled: this.#polled, events: this.#events };
   }
 
   capture(): Snapshot {

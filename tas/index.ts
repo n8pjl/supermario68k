@@ -10,6 +10,7 @@ import { BOOKMARKS, BUTTONS, buildId, CALCS, emptyMovie, parse, serialize, type 
 import { Machine, type Factory } from "./machine.ts";
 import { Roll } from "./roll.ts";
 import { Session } from "./session.ts";
+import { duration, formatDuration } from "../speedrun/times.ts";
 
 // Beside this script, here and in dist/ - where tools/mkdist.py rewrites each
 // to its hashed name.
@@ -238,6 +239,10 @@ function draw(): void {
   element("length").textContent = `${movie.inputs.length} frames`;
   element("lag").textContent = String(s.lag.filter(Boolean).length);
   element("rerecords").textContent = String(movie.rerecords);
+  const run = s.runTime();
+  const time = element("time");
+  time.textContent = run ? formatDuration(duration(run.ms)) : "–";
+  time.classList.toggle("finished", run?.finished ?? false);
   const snapshots = s.greenzone.frames();
   element("snapshots").textContent =
     `${snapshots.length} (${(s.greenzone.bytes / 1048576).toFixed(1)} MB)`;

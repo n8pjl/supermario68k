@@ -21,6 +21,17 @@ const SEEK_SLICE_MS = 30;
 /** At most this many frames are played per display refresh, however behind. */
 const MAX_FRAMES_PER_REFRESH = 4;
 
+/**
+ * A run in the movie, timed the way the game page's speedrun timer times one:
+ * from "New game" to the last frame Bowser is fought on.
+ */
+export interface RunTime {
+  /** Real time, in milliseconds, from the run's start to the current frame or its end. */
+  readonly ms: number;
+  /** The run ended at or before the current frame, so `ms` is its final time. */
+  readonly finished: boolean;
+}
+
 function nextRefresh(): Promise<number> {
   return new Promise((resolve) => requestAnimationFrame(resolve));
 }
@@ -43,6 +54,22 @@ export class Session extends EventTarget {
    * there does nothing. Unknown for frames not played since.
    */
   readonly lag: boolean[] = [];
+
+  /**
+   * When each frame since the last edit before it was let go, in milliseconds
+   * from power-on, as the game page would have let it go: frame n + 1 follows
+   * frame n by the period the game asked for while waiting at n. That is the
+   * grid src/compat/gray.cpp's wait_for_frame() keeps, whose average holds on
+   * any display, so the difference between two of these is the real time a
+   * player pressing these inputs would see pass between those frames.
+   */
+  readonly clock: number[] = [0];
+
+  /**
+   * The speedrun events raised while playing each frame since the last edit
+   * before it, by the frame they were raised in.
+   */
+  readonly events = new Map<number, readonly string[]>();
 
   playing = false;
   recording = false;
@@ -151,7 +178,12 @@ export class Session extends EventTarget {
     if (record) this.#write(frame, this.live());
 
     this.machine.drawing = draw;
-    this.lag[frame] = !(await this.machine.step());
+    const period = this.machine.period;
+    const played = await this.machine.step();
+    this.lag[frame] = !played.polled;
+    this.clock[frame + 1] = (this.clock[frame] ?? NaN) + period;
+    if (played.events.length > 0) this.events.set(frame, played.events);
+    else this.events.delete(frame);
 
     // A bookmark's snapshot goes when an edit before it does, and comes
     // back the next time the game passes through it.
@@ -161,6 +193,36 @@ export class Session extends EventTarget {
     if (wanted && !this.greenzone.has(now)) {
       this.greenzone.add(this.machine.capture());
     }
+  }
+
+  /**
+   * The run the game is in at the current frame, if it is in one: the latest
+   * "New game" before it that the game has not since gone back to the main
+   * menu from. A run that ended keeps its time even once it has, as on the
+   * game page.
+   */
+  runTime(): RunTime | null {
+    const now = this.frame;
+    let start: number | null = null;
+    let end: number | null = null;
+
+    const frames = [...this.events.keys()].filter((f) => f < now).sort((a, b) => a - b);
+    for (const frame of frames) {
+      for (const kind of this.events.get(frame)!) {
+        if (kind === "run-started") {
+          start = frame;
+          end = null;
+        } else if (kind === "run-abandoned" && end === null) {
+          start = null;
+        } else if (kind === "run-ended" && start !== null && end === null) {
+          end = frame;
+        }
+      }
+    }
+
+    if (start === null) return null;
+    const ms = (this.clock[end ?? now] ?? NaN) - this.clock[start]!;
+    return Number.isNaN(ms) ? null : { ms, finished: end !== null };
   }
 
   // -------------------------------------------------------------------------
@@ -222,6 +284,8 @@ export class Session extends EventTarget {
   #changedFrom(frame: number): void {
     this.greenzone.invalidateAfter(frame);
     this.lag.length = Math.min(this.lag.length, frame + 1);
+    this.clock.length = Math.min(this.clock.length, frame + 1);
+    for (const at of this.events.keys()) if (at >= frame) this.events.delete(at);
     if (frame < this.frame) this.#stale = true;
     this.#movieChanged();
   }

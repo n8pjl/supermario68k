@@ -147,6 +147,10 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.counters dd.finished {
+  font-weight: bold;
+}
+
 .bookmarks button {
   padding: 0.15rem 0.3rem;
   font-size: 12px;
