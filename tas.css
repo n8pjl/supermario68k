@@ -170,6 +170,9 @@ body {
 
 .check {
   margin: 0;
+  /* Room for the longest message but a stopped one, so the panel does not
+     jump as the levels after are played again one by one. */
+  min-height: 2lh;
   color: var(--accent);
 }
 
