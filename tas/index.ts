@@ -317,16 +317,22 @@ let levelOptions = "";
 
 /**
  * The real time a level takes, as the game page would let its frames go; null
- * until played whole. One a run starts in - the first, after the menus - is
- * timed from its "New game", as the run's own time is.
+ * until played whole. It is cut where the run's own time is, so that the
+ * levels of a run add up to it: one a run starts in - the first, after the
+ * menus - is timed from its "New game", and one it ends in - Bowser's - to the
+ * frame he is beaten on, before the game lets the player leave.
  */
 function levelTime(s: Session, segment: Segment): string | null {
   let start = segment.start;
   for (const [frame, events] of s.events) {
     if (frame >= start && frame < segment.end && events.some((e) => e.kind === "run-started")) start = frame;
   }
+  let end = segment.end;
+  for (const [frame, events] of s.events) {
+    if (frame >= start && frame < end && events.some((e) => e.kind === "run-ended")) end = frame;
+  }
   const from = s.clock[start];
-  const to = s.clock[segment.end];
+  const to = s.clock[end];
   return from === undefined || to === undefined ? null : formatDuration(duration(to - from));
 }
 
@@ -361,7 +367,7 @@ function drawLevels(s: Session, segments: readonly Segment[], current: number): 
         const time = document.createElement("span");
         time.textContent = times[i] ?? "–";
         button.append(name, frames, time);
-        button.title = `Frames ${t.start}–${t.end - 1}, in real time as a run with these inputs would take them, from New game if it is in them. Click to go to its start.`;
+        button.title = `Frames ${t.start}–${t.end - 1}, in real time as a run with these inputs would take them, from New game and to Bowser's defeat if they are in them. Click to go to its start.`;
         return button;
       }),
     );
