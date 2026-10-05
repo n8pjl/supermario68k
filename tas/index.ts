@@ -315,8 +315,18 @@ function checkLevel(s: Session, segments: readonly Segment[], i: number): { text
 
 let levelOptions = "";
 
+/** The real time a level takes, as the game page would let its frames go; null until played whole. */
+function levelTime(s: Session, segment: Segment): string | null {
+  const from = s.clock[segment.start];
+  const to = s.clock[segment.end];
+  return from === undefined || to === undefined ? null : formatDuration(duration(to - from));
+}
+
 function drawLevels(s: Session, segments: readonly Segment[], current: number): void {
-  const key = segments.map((t) => `${t.name}:${length(t)}:${delta(t)}:${t.checked}:${changed(t)}`).join(",");
+  const times = segments.map((t) => levelTime(s, t));
+  const key = segments
+    .map((t, i) => `${t.name}:${length(t)}:${delta(t)}:${t.checked}:${changed(t)}:${times[i]}`)
+    .join(",");
   if (key !== levelOptions) {
     levelOptions = key;
     levelSelect.replaceChildren(
@@ -340,8 +350,10 @@ function drawLevels(s: Session, segments: readonly Segment[], current: number): 
         moved.className = d > 0 ? "delta more" : "delta";
         moved.textContent = signed(d);
         frames.append(moved);
-        button.append(name, frames);
-        button.title = `Frames ${t.start}–${t.end - 1}. Click to go to its start.`;
+        const time = document.createElement("span");
+        time.textContent = times[i] ?? "–";
+        button.append(name, frames, time);
+        button.title = `Frames ${t.start}–${t.end - 1}, in real time as a run with these inputs would take them. Click to go to its start.`;
         return button;
       }),
     );
