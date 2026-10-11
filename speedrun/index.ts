@@ -250,7 +250,9 @@ export class Speedrun {
   }
 
   #draw(): void {
-    this.#panel.draw((this.#exhibit ?? this.#timer).view());
+    const exhibit = this.#exhibit;
+    if (exhibit === null) this.#panel.draw(this.#timer.view());
+    else this.#panel.draw(exhibit.view(), true);
   }
 
   /**

@@ -265,16 +265,19 @@ export class SpeedrunPanel {
     sign(row.delta, group.delta);
   }
 
-  draw(view: TimerView): void {
+  /**
+   * `tas` is set while the run on the panel is a TAS movie playing back rather
+   * than a player's, which the title says: a recording of the screen is all
+   * anyone watching it has to tell the two apart by.
+   */
+  draw(view: TimerView, tas = false): void {
     // Guarded like every other write below: these two sit on the panel root, so
     // setting them restyles everything under it.
     mark(this.#root, "state", view.state);
     mark(this.#root, "recording", String(view.recording));
 
-    text(
-      this.#title,
-      view.recording ? `Recording ${view.category.name}` : view.category.name,
-    );
+    const name = tas ? `${view.category.name} (TAS)` : view.category.name;
+    text(this.#title, view.recording ? `Recording ${name}` : name);
 
     // Only worth saying before anything has been recorded in this category:
     // once a recording is running its splits are what the panel is showing.
