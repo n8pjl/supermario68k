@@ -12,7 +12,7 @@
 import { CATEGORIES } from "./category.ts";
 import { type GameEvent } from "./events.ts";
 import { RunHistory } from "./history.ts";
-import { SpeedrunManager } from "./manage.ts";
+import { type MovieHooks, SpeedrunManager } from "./manage.ts";
 import { emptyRecord } from "./records.ts";
 import { SpeedrunPanel } from "./panel.ts";
 import { type Route } from "./route.ts";
@@ -20,6 +20,7 @@ import { SpeedrunStore } from "./store.ts";
 import { SpeedrunTimer } from "./timer.ts";
 
 export { type GameEvent } from "./events.ts";
+export { type MovieHooks } from "./manage.ts";
 export { RunHistory } from "./history.ts";
 export { type Route } from "./route.ts";
 
@@ -65,9 +66,14 @@ export class Speedrun {
   /**
    * `history` is shared with practice mode rather than made here, so that the
    * one attempt it holds open is the same attempt whichever of the two is
-   * reporting to it.
+   * reporting to it. `movies` puts the TAS movie picker in the routes section,
+   * for the page to play what is chosen there.
    */
-  constructor(elements: SpeedrunElements, history: RunHistory) {
+  constructor(
+    elements: SpeedrunElements,
+    history: RunHistory,
+    movies: MovieHooks | null = null,
+  ) {
     this.#store = new SpeedrunStore();
     this.#history = history;
     this.#panel = new SpeedrunPanel(elements.panel);
@@ -92,6 +98,7 @@ export class Speedrun {
         this.#manager.draw();
         this.#draw();
       },
+      movies,
     });
 
     // How the run is read, which the timer is told rather than the panel: the
@@ -280,6 +287,11 @@ export class Speedrun {
       timer.handle(event);
       return false;
     };
+  }
+
+  /** Lets go of the movie chosen in the routes section, if there is one. */
+  forgetMovie(): void {
+    this.#manager.forgetMovie();
   }
 
   /** The panel goes back to the player's own timer. */

@@ -223,9 +223,6 @@ const worldsCheck = settings.elements.worlds;
 const speedrunManage = document.getElementById("speedrun-manage");
 const practicePanel = document.getElementById("practice");
 const practiceOption = settings.elements.practice;
-const movieInput = settings.elements.movie;
-const movieClear = document.getElementById("movie-clear");
-const movieNote = document.getElementById("movie-note");
 const startButton = document.getElementById("start");
 
 // The screens the two builds draw to, from init_calc_screen_constants() in
@@ -445,8 +442,13 @@ function showSpeedrun(wanted) {
         worlds: worldsCheck,
       },
       runHistory,
+      { choose: readMovieFile, forget: () => chooseMovie(null) },
     );
   }
+
+  // The movie picker is in the routes section, so a movie chosen there goes
+  // with it rather than staying behind Start with nothing to say it is there.
+  if (!wanted) speedrun?.forgetMovie();
 
   speedrunPanel.hidden = !wanted;
   routeOption.hidden = !wanted;
@@ -535,24 +537,20 @@ select.addEventListener("change", () => sizeCanvas(select.value));
 // A movie exported from the TAS page, played back on this build rather than
 // the TAS one: the same game at this page's own pace, so a recording of it
 // looks and times the way a player pressing those buttons would. See
-// playback.ts for how the game is kept on the movie's frames.
+// playback.ts for how the game is kept on the movie's frames. It is chosen in
+// the speedrun routes section, whose timer its run is shown on, and held here
+// for Start to play.
 //
 // A movie says which calculator and language it was made for, and plays out
 // differently on any other, so while one is chosen those two menus show its
 // answer and cannot be changed. What the player had picked comes back when
-// the movie is cleared, and is never overwritten by a movie's: startGame()
+// the movie is let go of, and is never overwritten by a movie's: startGame()
 // leaves both unsaved for one.
 // ---------------------------------------------------------------------------
 
 let movie = null;
 let pickedCalc = select.value;
 let pickedLang = langSelect.value;
-
-function showMovieNote(text, error) {
-  movieNote.textContent = text;
-  movieNote.classList.toggle("error", error);
-  movieNote.hidden = text === "";
-}
 
 function chooseMovie(next) {
   if (next && !movie) {
@@ -565,47 +563,24 @@ function chooseMovie(next) {
   langSelect.value = movie ? movie.lang : pickedLang;
   select.disabled = movie !== null;
   langSelect.disabled = movie !== null;
-  movieClear.hidden = movie === null;
   startButton.textContent = movie ? "Play movie" : "Start game";
   sizeCanvas(select.value);
 }
 
-movieInput.addEventListener("change", async () => {
-  const file = movieInput.files[0];
+// The routes section's picker hands its file here, and says what this answers.
+async function readMovieFile(file) {
+  const read = readMovie(await file.text());
 
-  // A picker cancelled in Chrome empties the input, which is a choice of no
-  // movie as much as Clear is.
-  if (!file) {
-    chooseMovie(null);
-    showMovieNote("", false);
-    return;
+  if (!Object.hasOwn(maTexts, read.lang)) {
+    throw new Error(`the language ${read.lang} is not one this game has`);
   }
 
-  try {
-    const read = readMovie(await file.text());
-
-    if (!Object.hasOwn(maTexts, read.lang)) {
-      throw new Error(`the language ${read.lang} is not one this game has`);
-    }
-
-    chooseMovie(read);
-    showMovieNote(
-      `${read.inputs.length.toLocaleString()} frames. Plays fullscreen;` +
-        " the run is not kept, and nothing is saved.",
-      false,
-    );
-  } catch (e) {
-    movieInput.value = "";
-    chooseMovie(null);
-    showMovieNote(`${file.name} could not be read: ${e.message}`, true);
-  }
-});
-
-movieClear.addEventListener("click", () => {
-  movieInput.value = "";
-  chooseMovie(null);
-  showMovieNote("", false);
-});
+  chooseMovie(read);
+  return (
+    `"${file.name}": ${read.inputs.length.toLocaleString()} frames. Start ` +
+    "plays it fullscreen; the run is not kept, and nothing is saved."
+  );
+}
 
 // ---------------------------------------------------------------------------
 // The bindings editor

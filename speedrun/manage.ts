@@ -37,6 +37,23 @@ export interface ManageHooks {
   readonly setRecording: (recording: boolean) => void;
   /** Routes or times changed underneath: redraw everything that lists them. */
   readonly changed: () => void;
+  /** The TAS movie picker's, where the page plays movies back. */
+  readonly movies: MovieHooks | null;
+}
+
+/**
+ * Playing a TAS movie back, which the page does: the movie is read and played
+ * there, and this box only offers the file picker it is chosen with. Its run is
+ * timed on the panel, which is why it is offered here.
+ */
+export interface MovieHooks {
+  /**
+   * Reads a movie and holds it for the Start button. Resolves to what the
+   * player is told about it, or rejects with why it could not be read.
+   */
+  readonly choose: (file: File) => Promise<string>;
+  /** Lets go of the movie held, so Start starts a game again. */
+  readonly forget: () => void;
 }
 
 export class SpeedrunManager {
@@ -59,6 +76,12 @@ export class SpeedrunManager {
   readonly #showTimes: HTMLButtonElement;
   readonly #exportOne: HTMLButtonElement;
   readonly #file: HTMLInputElement;
+  readonly #movies: MovieHooks | null;
+  readonly #movieButton: HTMLButtonElement;
+  readonly #movieFile: HTMLInputElement;
+
+  /** Whether the page is holding a movie for Start, chosen here. */
+  #movieChosen = false;
 
   #recording = false;
   /**
@@ -98,6 +121,7 @@ export class SpeedrunManager {
     this.#store = store;
     this.#history = history;
     this.#hooks = hooks;
+    this.#movies = hooks.movies;
     this.#root = container;
 
     const heading = document.createElement("h2");
@@ -148,6 +172,14 @@ export class SpeedrunManager {
     this.#file.accept = "application/json,.json";
     this.#file.hidden = true;
 
+    // A movie exported from the TAS page, to play back as a run and record.
+    this.#movieButton = button("Play a TAS movie…");
+    this.#movieButton.hidden = hooks.movies === null;
+    this.#movieFile = document.createElement("input");
+    this.#movieFile.type = "file";
+    this.#movieFile.accept = ".txt,text/plain";
+    this.#movieFile.hidden = true;
+
     this.#status = document.createElement("p");
     this.#status.className = "sr-status";
     this.#status.setAttribute("role", "status");
@@ -192,6 +224,7 @@ export class SpeedrunManager {
       exportAll,
       importFile,
       exportHistory,
+      this.#movieButton,
       this.#clear,
       this.#remove,
     );
@@ -203,6 +236,7 @@ export class SpeedrunManager {
       this.#routeName,
       row,
       this.#file,
+      this.#movieFile,
       this.#status,
       sheet,
       this.#editor,
@@ -214,6 +248,11 @@ export class SpeedrunManager {
     exportHistory.addEventListener("click", () => void this.#exportHistory());
     importFile.addEventListener("click", () => this.#file.click());
     this.#file.addEventListener("change", () => void this.#import());
+    this.#movieButton.addEventListener("click", () => {
+      if (this.#movieChosen) this.forgetMovie();
+      else this.#movieFile.click();
+    });
+    this.#movieFile.addEventListener("change", () => this.#chooseMovie());
     this.#showTimes.addEventListener("click", () => this.#toggleTimes());
     this.#clear.addEventListener("click", () => this.#clearTimes());
     this.#remove.addEventListener("click", () => this.#removeRoute());
@@ -470,6 +509,32 @@ export class SpeedrunManager {
     this.draw();
   }
 
+  async #chooseMovie(): Promise<void> {
+    const file = this.#movieFile.files?.[0];
+    if (file === undefined || this.#movies === null) return;
+
+    // As with importing: the same file chosen again is a change event.
+    this.#movieFile.value = "";
+
+    try {
+      this.#say(await this.#movies.choose(file));
+      this.#movieChosen = true;
+    } catch (e) {
+      this.#say(`"${file.name}" could not be read: ${(e as Error).message}`);
+    }
+    this.draw();
+  }
+
+  /** Lets go of the movie chosen here, if there is one. */
+  forgetMovie(): void {
+    if (!this.#movieChosen) return;
+
+    this.#movieChosen = false;
+    this.#movies?.forget();
+    this.#say("");
+    this.draw();
+  }
+
   #clearTimes(): void {
     const route = this.#store.selected;
     if (route === null) return;
@@ -519,6 +584,10 @@ export class SpeedrunManager {
     this.#exportOne.disabled = route === null;
     this.#showTimes.disabled = route === null;
     this.#root.dataset["recording"] = String(this.#recording);
+
+    this.#movieButton.textContent = this.#movieChosen
+      ? "Forget movie"
+      : "Play a TAS movie…";
 
     // Drawn whether or not it is on screen only when it is on screen: the rows
     // are rebuilt from the record each time, and a folded-away sheet is not
