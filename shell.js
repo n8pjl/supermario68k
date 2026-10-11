@@ -7,6 +7,7 @@ import createMario from "./mario.js";
 import maTexts from "./ma_texts.json" with { type: "json" };
 import { RunHistory, Speedrun } from "./speedrun.js";
 import { Practice } from "./practice.js";
+import { Playback, readMovie } from "./playback.js";
 
 // ---------------------------------------------------------------------------
 // Actions and bindings
@@ -222,6 +223,10 @@ const worldsCheck = settings.elements.worlds;
 const speedrunManage = document.getElementById("speedrun-manage");
 const practicePanel = document.getElementById("practice");
 const practiceOption = settings.elements.practice;
+const movieInput = settings.elements.movie;
+const movieClear = document.getElementById("movie-clear");
+const movieNote = document.getElementById("movie-note");
+const startButton = document.getElementById("start");
 
 // The screens the two builds draw to, from init_calc_screen_constants() in
 // render.c, and the largest scale they are displayed at. Sizing the canvas from
@@ -523,6 +528,84 @@ showPractice(practiceOption.checked);
 
 sizeCanvas(select.value);
 select.addEventListener("change", () => sizeCanvas(select.value));
+
+// ---------------------------------------------------------------------------
+// TAS movie playback
+//
+// A movie exported from the TAS page, played back on this build rather than
+// the TAS one: the same game at this page's own pace, so a recording of it
+// looks and times the way a player pressing those buttons would. See
+// playback.ts for how the game is kept on the movie's frames.
+//
+// A movie says which calculator and language it was made for, and plays out
+// differently on any other, so while one is chosen those two menus show its
+// answer and cannot be changed. What the player had picked comes back when
+// the movie is cleared, and is never overwritten by a movie's: startGame()
+// leaves both unsaved for one.
+// ---------------------------------------------------------------------------
+
+let movie = null;
+let pickedCalc = select.value;
+let pickedLang = langSelect.value;
+
+function showMovieNote(text, error) {
+  movieNote.textContent = text;
+  movieNote.classList.toggle("error", error);
+  movieNote.hidden = text === "";
+}
+
+function chooseMovie(next) {
+  if (next && !movie) {
+    pickedCalc = select.value;
+    pickedLang = langSelect.value;
+  }
+
+  movie = next;
+  select.value = movie ? movie.calc : pickedCalc;
+  langSelect.value = movie ? movie.lang : pickedLang;
+  select.disabled = movie !== null;
+  langSelect.disabled = movie !== null;
+  movieClear.hidden = movie === null;
+  startButton.textContent = movie ? "Play movie" : "Start game";
+  sizeCanvas(select.value);
+}
+
+movieInput.addEventListener("change", async () => {
+  const file = movieInput.files[0];
+
+  // A picker cancelled in Chrome empties the input, which is a choice of no
+  // movie as much as Clear is.
+  if (!file) {
+    chooseMovie(null);
+    showMovieNote("", false);
+    return;
+  }
+
+  try {
+    const read = readMovie(await file.text());
+
+    if (!Object.hasOwn(maTexts, read.lang)) {
+      throw new Error(`the language ${read.lang} is not one this game has`);
+    }
+
+    chooseMovie(read);
+    showMovieNote(
+      `${read.inputs.length.toLocaleString()} frames. Plays fullscreen;` +
+        " the run is not kept, and nothing is saved.",
+      false,
+    );
+  } catch (e) {
+    movieInput.value = "";
+    chooseMovie(null);
+    showMovieNote(`${file.name} could not be read: ${e.message}`, true);
+  }
+});
+
+movieClear.addEventListener("click", () => {
+  movieInput.value = "";
+  chooseMovie(null);
+  showMovieNote("", false);
+});
 
 // ---------------------------------------------------------------------------
 // The bindings editor
@@ -1294,6 +1377,15 @@ fullscreenToggle.addEventListener("click", async () => {
     return;
   }
 
+  await enterFullscreen();
+});
+
+// Also how a movie starts, which is played fullscreen from its first frame so
+// that a recording of it has nothing to cut. Resolves once the page is
+// fullscreen, or refused.
+async function enterFullscreen() {
+  if (isFullscreen()) return;
+
   try {
     await document.documentElement.requestFullscreen({ navigationUI: "hide" });
   } catch {
@@ -1310,7 +1402,7 @@ fullscreenToggle.addEventListener("click", async () => {
   } catch {
     /* No lock available; the hint in shell.css asks instead. */
   }
-});
+}
 
 // Leaving fullscreen with Esc or the browser's own control never reaches the
 // handler above, so the icon follows the event rather than the click.
@@ -1493,14 +1585,20 @@ function showSettings() {
   watchGamepadStart();
 }
 
-function startGame() {
+// `playback` is a movie to play rather than a game for the player: see the
+// movie section above.
+function startGame(playback = null) {
   gamepadStart?.abort();
 
   const calc = select.value;
   const lang = langSelect.value;
   try {
-    localStorage.setItem(CALC_KEY, calc);
-    localStorage.setItem(LANG_KEY, lang);
+    // A movie's calculator and language are on the menu while it is chosen,
+    // and are the movie's rather than the player's choice.
+    if (!playback) {
+      localStorage.setItem(CALC_KEY, calc);
+      localStorage.setItem(LANG_KEY, lang);
+    }
     localStorage.setItem(LATCH_KEY, String(latchOption.checked));
     localStorage.setItem(SPEEDRUN_KEY, String(speedrunOption.checked));
     localStorage.setItem(PRACTICE_KEY, String(practiceOption.checked));
@@ -1535,9 +1633,16 @@ function startGame() {
   // checks for before building an event at all.
   const timer = speedrunOption.checked ? speedrun : null;
 
+  // A movie's run is timed on the panel like any other and kept nowhere: not
+  // in the run history, and not as a time on the route. A game the player
+  // plays takes the panel back from the last movie's.
+  const watched = playback ? timer?.exhibit() : undefined;
+  if (!playback) speedrun?.endExhibit();
+
   // The same, for the practice panel: absent unless it was asked for, which is
-  // what src/practice.cpp checks for once and then never asks about again.
-  const room = practiceOption.checked ? practice : null;
+  // what src/practice.cpp checks for once and then never asks about again. A
+  // movie is played as it was made, which was without it.
+  const room = practiceOption.checked && !playback ? practice : null;
 
   // run() awaits main(), which JSPI makes asynchronous, so this promise
   // settling means the game itself has exited.
@@ -1550,8 +1655,19 @@ function startGame() {
     onRuntimeInitialized: () =>
       console.log("runtime ready, data mounted at /data"),
     onAbort: (w) => console.error("ABORT: " + w),
-    gameActions,
+    // A movie answers for the player until it runs out, and then hands the
+    // game back to them.
+    gameActions: playback
+      ? () => playback.actions ?? gameActions()
+      : gameActions,
     keyPressPromises,
+    // Told each frame as the game lets it go, which is how a movie keeps up
+    // with the game - and, by being there, has every wait for a key made of
+    // whole frames; see src/scankeys.cpp.
+    onFrame: playback ? () => playback.advance() : undefined,
+    // A movie starts from power-on with nothing saved, as it was made, and
+    // what it saves is not the player's: see src/compat/assets.cpp.
+    noSaves: playback !== null,
     // Its answer goes back to src/speedrun.cpp, which throws the game out of
     // wherever it is when that answer is true. The timer only says so for a
     // recording that has just finished: the run is over, the panel is showing
@@ -1560,11 +1676,15 @@ function startGame() {
     // Practice mode reports through the same hook, to the run history rather
     // than to a timer: it is kept, marked as practice, and never timed. Its
     // answer is never true - practice has no recording to finish.
-    onSpeedrunEvent: timer
-      ? (event) => timer.handle(event)
-      : room && runHistory
-        ? (event) => runHistory.practice(event)
-        : undefined,
+    //
+    // A movie reports to its own timer, if there is one, and to nothing else.
+    onSpeedrunEvent: playback
+      ? watched
+      : timer
+        ? (event) => timer.handle(event)
+        : room && runHistory
+          ? (event) => runHistory.practice(event)
+          : undefined,
     // Polled from the world map, and answered with a warp, a powerup or an item
     // list when the player has asked the panel for one.
     onPracticeRequest: room ? (status) => room.handle(status) : undefined,
@@ -1590,7 +1710,17 @@ function startGame() {
     });
 }
 
-settings.addEventListener("submit", (e) => {
+settings.addEventListener("submit", async (e) => {
   e.preventDefault();
-  startGame();
+
+  if (!movie) {
+    startGame();
+    return;
+  }
+
+  // The fullscreen request is made while the Start press still counts as the
+  // player's, and the game waits for it, so the movie's first frame is
+  // already on the screen it is recorded from.
+  await enterFullscreen();
+  startGame(new Playback(movie));
 });

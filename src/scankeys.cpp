@@ -14,10 +14,19 @@ struct keystate Keystate, Previous_keystate;
 // hands over the eight actions this game knows about, already resolved from
 // whatever they are bound to - a key, a pad button, a stick, an on-screen pad -
 // so nothing below has to know a key name.
+//
+// Each display refresh these waits poll on is a frame, as it is in the TAS
+// build's waits below, so it is told to Module.onFrame the way gray.cpp tells
+// it the frames it lets go - see wait_for_frame().
+//
+// Neither of these is in the TAS build, which has its own waits below, for the
+// reason gray.cpp gives for leaving out wait_for_frame().
+#ifndef SM68K_TAS
 EM_ASYNC_JS(void, browser_wait_no_actions_held, (void), {
 	// clang-format off
   while (Object.values(Module.gameActions()).some(Boolean)) {
     await new Promise((resolve) => { requestAnimationFrame(resolve) });
+    Module.onFrame?.();
   }
 	// clang-format on
 })
@@ -26,8 +35,20 @@ EM_ASYNC_JS(void, browser_wait_no_actions_held, (void), {
 // the shell's promise when they press one; a controller has nothing to fire an
 // event, so it is polled - but only once there is one connected, rather than
 // burning a callback every frame when there is not.
+//
+// A shell that counts frames is polled a frame at a time and nothing else: a
+// keypress event lands between frames, where a count has nothing to file it
+// under, and a movie's buttons only change from one frame to the next anyway.
 EM_ASYNC_JS(void, browser_action_pressed, (void), {
 	// clang-format off
+  if (Module.onFrame) {
+    while (!Object.values(Module.gameActions()).some(Boolean)) {
+      await new Promise((resolve) => { requestAnimationFrame(resolve) });
+      Module.onFrame();
+    }
+    return;
+  }
+
   const abortController = new AbortController();
   const signal = abortController.signal;
 
@@ -58,6 +79,7 @@ EM_ASYNC_JS(void, browser_action_pressed, (void), {
   abortController.abort();
 	// clang-format on
 })
+#endif
 
 // The TAS build polls a frame at a time instead, so that every wait is made of
 // whole movie frames and nothing is left suspended in JS across a restore (see

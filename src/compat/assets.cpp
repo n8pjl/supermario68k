@@ -154,6 +154,20 @@ static void load_save(struct asset *a)
 	a->saved = true;
 }
 
+// Whether this game is the player's own, with their saves read from this
+// browser and written back to it. A TAS movie played back on the shipped build
+// is not: the shell says so with Module.noSaves, and the game then starts with
+// nothing saved and keeps whatever it saves in memory alone, as the TAS build
+// always does. Asset_save() reads the same flag from its own JS. Left out of
+// the TAS build, which has the answer already and is named by its bytes.
+#ifndef SM68K_TAS
+EM_JS(bool, saves_kept, (void), {
+	// clang-format off
+	return !Module.noSaves;
+	// clang-format on
+})
+#endif
+
 // localStorage is read once per file, on the first lookup of any of them. Only
 // the levelset is ever written, but nothing here needs to know that.
 static void load_saves(void)
@@ -168,6 +182,9 @@ static void load_saves(void)
 	// browser has: the same inputs have to play out the same everywhere.
 #ifdef SM68K_TAS
 	return;
+#else
+	if (!saves_kept())
+		return;
 #endif
 
 	for (size_t i = 0; i < ASSET_COUNT; i++)
@@ -209,11 +226,14 @@ bool Asset_save(struct asset *a, const void *data, size_t size)
 	// still shadows the file for the rest of the session, which is what the
 	// game shows the player. Only the next session loses it. The TAS build
 	// never writes one: a save made by a movie is the movie's, and lives in
-	// the memory its snapshots copy, not in the player's own saves.
+	// the memory its snapshots copy, not in the player's own saves; and
+	// neither does a movie played back here, for the same reason.
 #ifndef SM68K_TAS
 	EM_ASM(
 		{
 			// clang-format off
+		if (Module.noSaves)
+			return;
 		try {
 			// slice() copies the range out of the wasm heap;
 			// toBase64() then encodes that copy.

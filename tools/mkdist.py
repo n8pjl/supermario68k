@@ -18,6 +18,7 @@ bytes of the file holding it, and so changes its hash:
                |          \\-> ma_texts.json
                |          \\-> speedrun.js
                |          \\-> practice.js
+               |          \\-> playback.js
                \\-> shell.css
 
     data/index.html -> analysis.js
@@ -166,6 +167,7 @@ def main():
     css = freeze(minify_css("shell.css", dst("shell.css")))
     speedrun = freeze(bundle_js("speedrun/index.ts", dst("speedrun.js")))
     practice = freeze(minify_js("practice.ts", dst("practice.js")))
+    playback = freeze(bundle_js("playback.ts", dst("playback.js")))
     data_css = freeze(minify_css("data.css", dst("data.css")))
     analysis = freeze(bundle_js("analysis/index.ts", dst("analysis.js")))
     routing_css = freeze(minify_css("routing.css", dst("routing.css")))
@@ -211,7 +213,8 @@ def main():
     substitute(shell, {'"./mario.js"': (f'"./{mario}"', 1),
                        '"./ma_texts.json"': (f'"./{texts}"', 1),
                        '"./speedrun.js"': (f'"./{speedrun}"', 1),
-                       '"./practice.js"': (f'"./{practice}"', 1)})
+                       '"./practice.js"': (f'"./{practice}"', 1),
+                       '"./playback.js"': (f'"./{playback}"', 1)})
     shell = freeze(shell)
 
     # The entry point, and the only file without a hash: it is what a browser

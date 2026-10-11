@@ -43,6 +43,16 @@ EM_JS(void, pageflip, (const void *rgba, int16_t w, int16_t h), {
 // grid rather than from the moment the last one was released, so a period that
 // is not a whole number of refresh intervals - 33.3ms on the map - keeps its
 // average instead of rounding up to the next tick every time.
+//
+// Module.onFrame, where the shell has given one, is told each frame as it is
+// let go. That is how a TAS movie is played back on this build: the shell
+// counts frames the way the TAS build's tas::frame() does, and hands the game
+// the movie's buttons for whichever frame it is on.
+//
+// Not in the TAS build, which waits on the page instead (see pageflip_wait()):
+// left in, its text would be part of that build's bytes, which name the build
+// a movie was made on, and an edit here would change the name for nothing.
+#ifndef SM68K_TAS
 EM_ASYNC_JS(void, wait_for_frame, (double period), {
 	// clang-format off
 	if (!Module.frameClock)
@@ -68,11 +78,13 @@ EM_ASYNC_JS(void, wait_for_frame, (double period), {
 		// it - on any steady display that is the refresh interval.
 		if (now + (now - prev) / 2 >= clock.due) {
 			clock.due += period;
+			Module.onFrame?.();
 			return;
 		}
 	}
 	// clang-format on
 })
+#endif
 
 static int16_t frame_rate = FPS;
 

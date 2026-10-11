@@ -56,6 +56,13 @@ export class Speedrun {
   #recording = false;
 
   /**
+   * The timer of a run that is being watched rather than played - a TAS movie
+   * playing back - which the panel shows in place of #timer while there is
+   * one; see exhibit().
+   */
+  #exhibit: SpeedrunTimer | null = null;
+
+  /**
    * `history` is shared with practice mode rather than made here, so that the
    * one attempt it holds open is the same attempt whichever of the two is
    * reporting to it.
@@ -99,6 +106,7 @@ export class Speedrun {
     this.#worlds.addEventListener("change", () => {
       this.#store.worldsOnly = this.#worlds.checked;
       this.#timer.worldsOnly = this.#worlds.checked;
+      if (this.#exhibit) this.#exhibit.worldsOnly = this.#worlds.checked;
       this.#draw();
     });
 
@@ -235,7 +243,55 @@ export class Speedrun {
   }
 
   #draw(): void {
-    this.#panel.draw(this.#timer.view());
+    this.#panel.draw((this.#exhibit ?? this.#timer).view());
+  }
+
+  /**
+   * Times a run nobody is playing: a TAS movie playing back, against the
+   * selected route, for the panel to show beside it. Hands back the
+   * Module.onSpeedrunEvent hook for that game.
+   *
+   * Timed exactly as a run is, and kept nowhere. Nothing reaches the run
+   * history, the route's record is not written - its best run and golds are
+   * the player's, and a movie is not the player - and a recording armed in
+   * the routes section is left for the next run the player plays. The timer
+   * the player's own runs go to is left as it was, behind this one.
+   *
+   * The times stay on the panel once the game is over, as a run's do, until
+   * endExhibit() or the next exhibit() takes them off.
+   */
+  exhibit(): (event: GameEvent) => boolean {
+    this.endExhibit();
+
+    const route = this.#store.selected;
+    const timer = new SpeedrunTimer(
+      this.#store.category.id,
+      route,
+      route === null ? emptyRecord("") : this.#store.recordFor(route.id),
+      () => this.#draw(),
+    );
+
+    timer.worldsOnly = this.#store.worldsOnly;
+    this.#exhibit = timer;
+    this.#draw();
+
+    // Never true: only a recording stops the game, and this is never one.
+    return (event) => {
+      timer.handle(event);
+      return false;
+    };
+  }
+
+  /** The panel goes back to the player's own timer. */
+  endExhibit(): void {
+    const timer = this.#exhibit;
+    if (timer === null) return;
+
+    // Stopped, so its clock does not go on ticking where nobody can see it:
+    // a movie can end, or be left, with the run it was playing still going.
+    timer.handle({ kind: "run-abandoned" });
+    this.#exhibit = null;
+    this.#draw();
   }
 
   /**

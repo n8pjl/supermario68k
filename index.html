@@ -108,7 +108,18 @@
           Show gamepad inputs
         </label>
 
-        <button type="submit">Start game</button>
+        <!-- A TAS movie, exported from the TAS page, to play back here: on this
+             build, at this page's pace, fullscreen and with the timer if it is
+             on, so it can be recorded as a run. While one is chosen the game
+             version and language are the movie's, and Start plays it. -->
+        <div class="option movie-option">
+          <label for="movie">TAS movie:</label>
+          <input type="file" id="movie" name="movie" accept=".txt,text/plain" />
+          <button type="button" class="movie-clear" id="movie-clear" hidden>Clear</button>
+        </div>
+        <p class="movie-note" id="movie-note" hidden></p>
+
+        <button type="submit" id="start">Start game</button>
       </form>
 
       <!-- Put in place of the settings menu by shell.js when the browser is

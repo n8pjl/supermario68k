@@ -71,6 +71,10 @@ SPEEDRUN = $(wildcard speedrun/*.ts)
 # consumer, no state to keep between sessions and nothing to share.
 PRACTICE = practice.ts
 
+# TAS movie playback on the game page, which is one file too, but reads movies
+# with the TAS page's own parser, so it is bundled rather than only stripped.
+PLAYBACK = playback.ts
+
 # The data page's script: the run history read back and added up. Its own
 # directory, bundled like the timer, whose modules it imports; data/ would be
 # the obvious name and is already the game's converted blobs.
@@ -141,7 +145,7 @@ DEPS += $(TAS_OBJS:.o=.d)
 
 .PHONY: all clean data format maps stages typecheck verify-levels
 
-all: speedrun.js practice.js analysis.js routing.js routing-worker.js \
+all: speedrun.js practice.js playback.js analysis.js routing.js routing-worker.js \
      routing-search.wasm tas.js tas-worker.js $(DIST)
 
 # The level data's source: JSON under levels/, compiled to the blobs the game
@@ -247,6 +251,7 @@ $(TAS_OBJDIR)/%.o: $(SRCDIR)/%.cpp
 # to build incrementally and nothing for a stale hash to survive in.
 $(DIST): $(TARGET) $(BUILDDIR)/mario.wasm \
          index.html shell.js shell.css ma_texts.json $(SPEEDRUN) $(PRACTICE) \
+         $(PLAYBACK) \
          data.html data.css $(ANALYSIS) \
          routing.html routing.css $(ROUTING) routing-search.wasm \
          $(TAS_TARGET) $(BUILDDIR)/mario-tas.wasm tas.html tas.css $(TAS) \
@@ -265,7 +270,7 @@ $(TSC): $(ESBUILD) ;
 
 # A type error fails the build rather than riding along into dist/: nothing
 # downstream of here would notice one, least of all esbuild.
-$(TYPECHECK): $(SPEEDRUN) $(PRACTICE) $(ANALYSIS) $(ROUTING) $(TAS) tsconfig.json \
+$(TYPECHECK): $(SPEEDRUN) $(PRACTICE) $(PLAYBACK) $(ANALYSIS) $(ROUTING) $(TAS) tsconfig.json \
               $(STAGECHECK) $(MAPCHECK) | $(TSC)
 	$(TSC) --noEmit
 	@touch $@
@@ -283,6 +288,11 @@ speedrun.js: $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
 # serving this directory as it stands needs the types stripped off it first.
 practice.js: $(PRACTICE) $(TYPECHECK) | $(ESBUILD)
 	$(ESBUILD) $(PRACTICE) --format=esm --target=esnext --outfile=$@
+
+# And for movie playback, which shell.js imports by its built name as well.
+playback.js: $(PLAYBACK) $(TAS) $(TYPECHECK) | $(ESBUILD)
+	$(ESBUILD) $(PLAYBACK) --bundle --format=esm --target=esnext \
+		--outfile=$@
 
 # And for the data page, which data.html reaches by this name.
 analysis.js: $(ANALYSIS) $(SPEEDRUN) $(TYPECHECK) | $(ESBUILD)
@@ -343,6 +353,6 @@ verify-levels:
 
 clean:
 	rm -f $(OBJS) $(DEPS) .data-stamp $(LEVELCHECK) $(STAGECHECK) $(DIST) \
-	      $(MAPCHECK) $(TYPECHECK) speedrun.js practice.js analysis.js \
+	      $(MAPCHECK) $(TYPECHECK) speedrun.js practice.js playback.js analysis.js \
 	      routing.js routing-worker.js routing-search.wasm tas.js tas-worker.js
 	rm -rf $(OUTDIR) $(BUILDDIR) data $(SEARCH_CRATE)/target

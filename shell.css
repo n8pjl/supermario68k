@@ -21,6 +21,8 @@
   /* A segment nobody has ever run faster. Gold, because that is what it is
      called, and because it has to read as neither of the two above. */
   --gold: #9a7400;
+  /* Something on the menu that did not work: a movie that would not read. */
+  --error: #b3261e;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -40,6 +42,7 @@
     --ahead: #6ede8a;
     --behind: #ff8a80;
     --gold: #e8c14a;
+    --error: #ff8a80;
   }
 }
 
@@ -402,7 +405,7 @@ body > footer a {
 }
 
 /* Pushed to the bottom edge of the canvas, centred across it. */
-.settings button {
+.settings button[type="submit"] {
   font: inherit;
   font-size: 1.1rem;
   font-weight: 600;
@@ -417,8 +420,47 @@ body > footer a {
   cursor: pointer;
 }
 
-.settings button:hover {
+.settings button:hover,
+.settings input[type="file"]::file-selector-button:hover {
   background: var(--panel-edge);
+}
+
+/* The movie picker and its Clear: small buttons in the select boxes' dress,
+   rather than a second Start. */
+.settings input[type="file"] {
+  font: inherit;
+  color: var(--ink-dim);
+  min-width: 0;
+}
+
+.settings input[type="file"]::file-selector-button,
+.settings .movie-clear {
+  font: inherit;
+  color: var(--ink);
+  background: var(--kbd-bg);
+  border: 1px solid var(--kbd-edge);
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+.settings .movie-clear[hidden] {
+  display: none;
+}
+
+/* What the chosen movie is, or why it could not be read. */
+.settings .movie-note {
+  margin: 0;
+  color: var(--ink-dim);
+}
+
+.settings .movie-note[hidden] {
+  display: none;
+}
+
+.settings .movie-note.error {
+  color: var(--error);
 }
 
 .unsupported {
@@ -469,7 +511,7 @@ body > footer a {
     border-radius: 8px;
   }
 
-  .settings button {
+  .settings button[type="submit"] {
     margin-top: 0.6rem;
     width: 100%;
   }
