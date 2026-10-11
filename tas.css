@@ -37,12 +37,16 @@ body {
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+  /* The window's height, whatever the screen's side holds: the panel and its
+     input editor never move as what is beside them grows or shrinks. */
+  grid-template-rows: minmax(0, 1fr);
   gap: 1rem;
   margin-top: 1rem;
 }
 
 .screen {
   min-width: 0;
+  overflow-y: auto;
 }
 
 .console {
@@ -95,12 +99,17 @@ body {
 
 .strip p {
   display: flex;
-  flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.25rem 1rem;
   margin: 0 0 0.3rem;
   font-size: 0.85rem;
   color: var(--ink-dim);
+  white-space: nowrap;
+}
+
+.strip p span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #strip {
@@ -170,9 +179,16 @@ body {
 
 .check {
   margin: 0;
-  /* Room for the longest message but a stopped one, so the panel does not
-     jump as the levels after are played again one by one. */
-  min-height: 2lh;
+  /* Always three lines, so the input editor under it does not move as the
+     levels after are played again one by one; a longer message is cut, and
+     is whole in its title. */
+  flex: none;
+  height: 3lh;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   color: var(--accent);
 }
 
@@ -252,9 +268,11 @@ body {
   border-color: var(--record);
 }
 
+/* Columns as many as the panel's width has room for, not as the figures
+   do: a figure growing never wraps the counters onto another line. */
 .counters {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   gap: 0.25rem 1rem;
   margin: 0;
 }
@@ -262,6 +280,13 @@ body {
 .counters div {
   display: flex;
   gap: 0.35rem;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.counters dd {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .counters dt {
@@ -278,6 +303,9 @@ body {
 }
 
 .bookmarks button {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
   padding: 0.15rem 0.3rem;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
@@ -422,6 +450,11 @@ body {
 
   .tas {
     grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+
+  .screen {
+    overflow-y: visible;
   }
 
   .roll {

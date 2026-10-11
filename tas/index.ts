@@ -314,6 +314,7 @@ function checkLevel(s: Session, segments: readonly Segment[], i: number): { text
 }
 
 let levelOptions = "";
+let shownLevel = -1;
 
 /**
  * The real time a level takes, as the game page would let its frames go; null
@@ -374,17 +375,25 @@ function drawLevels(s: Session, segments: readonly Segment[], current: number): 
   }
 
   levelSelect.value = String(current);
-  [...segmentBar.children].forEach((child, i) => {
-    const on = i === current;
-    if (child.classList.contains("current") !== on) {
-      child.classList.toggle("current", on);
-      if (on) child.scrollIntoView({ block: "nearest", inline: "nearest" });
+  [...segmentBar.children].forEach((child, i) => child.classList.toggle("current", i === current));
+  // The bar is scrolled itself, and only to a level newly gone to: it is
+  // rebuilt on every edit, and scrollIntoView would scroll the page as well.
+  if (current !== shownLevel) {
+    shownLevel = current;
+    const button = segmentBar.children[current] as HTMLElement | undefined;
+    if (button) {
+      const left = button.offsetLeft - segmentBar.offsetLeft;
+      if (left < segmentBar.scrollLeft) segmentBar.scrollLeft = left;
+      else if (left + button.offsetWidth > segmentBar.scrollLeft + segmentBar.clientWidth) {
+        segmentBar.scrollLeft = left + button.offsetWidth - segmentBar.clientWidth;
+      }
     }
-  });
+  }
 
   const segment = segments[current]!;
   const { text, state } = checkLevel(s, segments, current);
   check.textContent = text;
+  check.title = text;
   check.dataset["state"] = state;
 
   const d = delta(segment);
