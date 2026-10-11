@@ -295,6 +295,15 @@ export class SpeedrunTimer {
    */
   #worldsOnly = false;
 
+  /**
+   * Fold this run's segments into the sum of best as they close.
+   *
+   * Off for a run that is not the player's - a TAS movie playing back - whose
+   * segments will never be golds on the record, so a sum that moved with them
+   * would be a figure about a route nobody's bests add up to.
+   */
+  #liveSumOfBest = true;
+
   /** Armed to record the next run rather than time it against the route. */
   #recording = false;
   /** This run is a recording, which is fixed when it starts and not after. */
@@ -336,6 +345,15 @@ export class SpeedrunTimer {
   set worldsOnly(only: boolean) {
     this.#settledView = null;
     this.#worldsOnly = only;
+  }
+
+  get liveSumOfBest(): boolean {
+    return this.#liveSumOfBest;
+  }
+
+  set liveSumOfBest(live: boolean) {
+    this.#settledView = null;
+    this.#liveSumOfBest = live;
   }
 
   get route(): Route | null {
@@ -921,8 +939,14 @@ export class SpeedrunTimer {
         recording || this.#route === null
           ? null
           : worlds
-            ? sumOfGroupBest(splitGroups, liveGroupBest)
-            : sumOfBest(this.#route, liveBest),
+            ? sumOfGroupBest(
+                splitGroups,
+                this.#liveSumOfBest ? liveGroupBest : this.#groupGolds,
+              )
+            : sumOfBest(
+                this.#route,
+                this.#liveSumOfBest ? liveBest : this.#golds,
+              ),
     };
   }
 

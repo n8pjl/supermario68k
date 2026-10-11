@@ -281,6 +281,8 @@ export class Speedrun {
     );
 
     timer.worldsOnly = this.#store.worldsOnly;
+    // The player's sum of best, held still: the movie's segments are not theirs.
+    timer.liveSumOfBest = false;
     this.#exhibit = timer;
     this.#draw();
 
